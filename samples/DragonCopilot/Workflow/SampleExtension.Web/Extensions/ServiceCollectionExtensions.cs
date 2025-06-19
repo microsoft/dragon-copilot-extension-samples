@@ -1,3 +1,7 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
+
+using Microsoft.Extensions.DependencyInjection;
 using SampleExtension.Web.Services;
 
 namespace SampleExtension.Web.Extensions;
@@ -18,7 +22,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IProcessingService, ProcessingService>();
 
         // Add any additional services here
-        
+
         return services;
     }
 }

@@ -1,12 +1,17 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
+
+using System;
+
 namespace DragonBackendSimulator.Web.Configuration;
 
-public class ExtensionApiOptions
+public sealed class ExtensionApiOptions
 {
-    public const string SectionName = "ExtensionApi";
+  public const string SectionName = "ExtensionApi";
 
-    public string BaseUrl { get; set; } = string.Empty;
+  public required Uri BaseUrl { get; set; }
 
-    public string Path { get; set; } = string.Empty;
+  public string Path { get; set; } = string.Empty;
 
-    public int TimeoutSeconds { get; set; } = 30;
+  public int TimeoutSeconds { get; set; } = 30;
 }

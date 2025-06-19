@@ -1,6 +1,12 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
+
+using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.Hosting;
+
 namespace DragonBackendSimulator.Web.Extensions;
 
-public static class WebApplicationExtensions
+internal static class WebApplicationExtensions
 {
     public static WebApplication ConfigureRequestPipeline(this WebApplication app)
     {
@@ -14,7 +20,7 @@ public static class WebApplicationExtensions
                 c.SwaggerEndpoint("/swagger/v1/swagger.json", "Dragon Backend Simulator API v1");
                 c.RoutePrefix = string.Empty; // Set Swagger UI at the app's root
             });
-            
+
             // Keep the OpenAPI endpoint as well for compatibility
             app.MapOpenApi();
         }

@@ -1,11 +1,21 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
+
+using System;
+using System.Collections.Generic;
+using System.Net.Http;
 using System.Text.Json;
+using System.Threading;
+using System.Threading.Tasks;
 using DragonBackendSimulator.Web.Models;
 using Microsoft.Extensions.Options;
 using DragonBackendSimulator.Web.Configuration;
+using DragonBackendSimulator.Web.Extensions;
+using Microsoft.Extensions.Logging;
 
 namespace DragonBackendSimulator.Web.Services;
 
-public class EncounterService : IEncounterService
+public sealed class EncounterService : IEncounterService
 {
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly ILogger<EncounterService> _logger;
@@ -41,7 +51,8 @@ public class EncounterService : IEncounterService
             Status = EncounterStatus.Created
         };
 
-        _logger.LogInformation("Simulating encounter {EncounterId} with name '{Name}'", encounter.Id, encounter.Name);        try
+        _logger.LogEncounterStart(encounter.Id, encounter.Name);
+        try
         {
             // Create a payload that matches the ProcessRequest model expected by the extension
             var payload = new
@@ -60,23 +71,21 @@ public class EncounterService : IEncounterService
             };
 
             var jsonContent = JsonSerializer.Serialize(payload);
-            var content = new StringContent(jsonContent, System.Text.Encoding.UTF8, "application/json");
+            using var content = new StringContent(jsonContent, System.Text.Encoding.UTF8, "application/json");
 
-            _logger.LogInformation("Calling extension API for encounter {EncounterId} at {ApiUrl}{ApiPath}",
-                encounter.Id, _extensionApiOptions.BaseUrl, _extensionApiOptions.Path);
+            _logger.LogExtensionSuccess(encounter.Id, _extensionApiOptions.BaseUrl, _extensionApiOptions.Path);
 
-            var response = await httpClient.PostAsync(_extensionApiOptions.Path, content, cancellationToken);
+            var response = await httpClient.PostAsync(new Uri(_extensionApiOptions.Path, UriKind.Relative), content, cancellationToken).ConfigureAwait(false);
 
             // Update encounter status based on API response
             if (response.IsSuccessStatusCode)
             {
-                var responseContent = await response.Content.ReadAsStringAsync(cancellationToken);
+                var responseContent = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
                 encounter.Status = EncounterStatus.Completed;
                 encounter.ExternalApiResponse = responseContent;
                 encounter.StatusCode = (int)response.StatusCode;
 
-                _logger.LogInformation("Encounter {EncounterId} completed successfully with status {StatusCode}",
-                    encounter.Id, encounter.StatusCode);
+                _logger.LogExtensionSuccess(encounter.Id, encounter.StatusCode);
 
                 // Try to parse the response to extract additional info
                 try
@@ -103,15 +112,16 @@ public class EncounterService : IEncounterService
                 encounter.StatusCode = (int)response.StatusCode;
                 encounter.ErrorMessage = $"Extension API call failed with status {response.StatusCode}: {response.ReasonPhrase}";
 
-                _logger.LogWarning("Encounter {EncounterId} failed with status {StatusCode}: {ReasonPhrase}",
-                    encounter.Id, encounter.StatusCode, response.ReasonPhrase);
+                _logger.LogExtensionFailure(encounter.Id, encounter.StatusCode, response.ReasonPhrase);
             }
         }
+#pragma warning disable CA1031
         catch (Exception ex)
+#pragma warning restore CA1031
         {
             encounter.Status = EncounterStatus.Failed;
             encounter.ErrorMessage = ex.Message;
-            _logger.LogError(ex, "Error occurred while processing encounter {EncounterId}", encounter.Id);
+            _logger.LogExtensionException(ex, encounter.Id);
         }
 
         encounter.CompletedAt = DateTime.UtcNow;

@@ -16,7 +16,7 @@ cd dragon-extension-developer
 
 ### Option 2: Bash Script (Linux/Mac)
 ```bash
-# Clone the repository  
+# Clone the repository
 git clone <your-repo-url>
 cd dragon-extension-developer
 
@@ -27,7 +27,7 @@ chmod +x scripts/start-dev.sh
 
 ### Option 3: Docker Compose (Cross-platform)
 ```bash
-# Clone the repository  
+# Clone the repository
 git clone <your-repo-url>
 cd dragon-extension-developer
 
@@ -42,7 +42,7 @@ cd DragonBackendSimulator/DragonBackendSimulator.Web
 dotnet run --urls http://localhost:5180
 
 # Terminal 2 - Start the Sample Extension
-cd samples/DragonCopilot/Workflow/SampleExtension.Web  
+cd samples/DragonCopilot/Workflow/SampleExtension.Web
 dotnet run --urls http://localhost:5181
 ```
 
@@ -57,7 +57,7 @@ After starting the services, you'll have:
   - Automatically calls your extension when encounters are simulated
   - Swagger documentation for easy testing
 
-### 🔧 Sample Extension  
+### 🔧 Sample Extension
 - **URL**: http://localhost:5181/
 - **Purpose**: Example extension showing how to integrate with the simulator
 - **Features**:
@@ -96,7 +96,7 @@ dotnet test
 ### Step 1: Copy the Sample
 ```bash
 # Copy the sample extension as a starting point
-cp -r src/SampleExtension.Web src/YourExtension.Web
+cp -r samples/DragonCopilot/Workflow/SampleExtension.Web src/YourExtension.Web
 cd src/YourExtension.Web
 ```
 
@@ -187,14 +187,16 @@ Update `DragonBackendSimulator.Web/appsettings.Development.json`:
 ```
 dragon-extension-developer/
 ├── scripts/                          # Quick start scripts
-│   ├── start-dev.ps1                 # Windows PowerShell script  
+│   ├── start-dev.ps1                 # Windows PowerShell script
 │   └── start-dev.sh                  # Linux/Mac bash script
 ├── testing/                          # Test suites and documentation
 │   └── integration-tests.http        # Ready-to-run integration tests
 ├── DragonBackendSimulator/           # Simulator that calls your extension
 │   └── DragonBackendSimulator.Web/   # ASP.NET Core web API
+├── samples/DragonCopilot             # Example extension implementations
+│   └── Workflow/SampleExtension.Web/ # Workflow Extension Example
 ├── src/                              # Your extensions go here
-│   └── SampleExtension.Web/          # Example extension implementation
+│   └── YourExtension.Web/            # Extension implementation
 ├── docker-compose.yml                # Docker setup for easy deployment
 └── README.md                         # This file
 ```

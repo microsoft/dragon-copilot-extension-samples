@@ -1,4 +1,13 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
+
+using System;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
+using SampleExtension.Web.Extensions;
 using SampleExtension.Web.Models;
 using SampleExtension.Web.Services;
 
@@ -15,6 +24,11 @@ public class ProcessController : ControllerBase
     private readonly IProcessingService _processingService;
     private readonly ILogger<ProcessController> _logger;
 
+    /// <summary>
+    /// Constructor for ProcessController
+    /// </summary>
+    /// <param name="processingService">The service that does the processing of the incoming request</param>
+    /// <param name="logger">The logger</param>
     public ProcessController(IProcessingService processingService, ILogger<ProcessController> logger)
     {
         _processingService = processingService;
@@ -38,6 +52,8 @@ public class ProcessController : ControllerBase
         [FromBody] ProcessRequest request,
         CancellationToken cancellationToken = default)
     {
+        ArgumentNullException.ThrowIfNull(request, nameof(request));
+
         try
         {
             if (request.RequestId == Guid.Empty)
@@ -45,20 +61,19 @@ public class ProcessController : ControllerBase
                 request.RequestId = Guid.NewGuid();
             }
 
-            var response = await _processingService.ProcessAsync(request, cancellationToken);
-            
+            var response = await _processingService.ProcessAsync(request, cancellationToken).ConfigureAwait(false);
+
             if (response.Success)
             {
                 return Ok(response);
             }
-            else
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError, response);
-            }
+            return StatusCode(StatusCodes.Status500InternalServerError, response);
         }
+#pragma warning disable CA1031
         catch (Exception ex)
+#pragma warning restore CA1031
         {
-            _logger.LogError(ex, "Unexpected error occurred while processing request");
+            _logger.LogUnexpectedProcessingException(ex);
             return Problem(
                 title: "Internal Server Error",
                 detail: "An unexpected error occurred while processing the request",
@@ -97,8 +112,8 @@ public class ProcessController : ControllerBase
     [ProducesResponseType(typeof(object), StatusCodes.Status200OK)]
     public ActionResult Echo([FromBody] string message)
     {
-        return Ok(new 
-        { 
+        return Ok(new
+        {
             originalMessage = message,
             echoedMessage = $"Echo: {message}",
             timestamp = DateTime.UtcNow

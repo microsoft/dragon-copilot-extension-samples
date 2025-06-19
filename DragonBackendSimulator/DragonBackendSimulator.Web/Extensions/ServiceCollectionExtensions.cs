@@ -1,10 +1,17 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
+
+using System;
 using DragonBackendSimulator.Web.Configuration;
 using DragonBackendSimulator.Web.Services;
+using Microsoft.AspNetCore.Routing;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.OpenApi.Models;
 
 namespace DragonBackendSimulator.Web.Extensions;
 
-public static class ServiceCollectionExtensions
+internal static class ServiceCollectionExtensions
 {
     public static IServiceCollection AddApplicationServices(this IServiceCollection services, IConfiguration configuration)
     {
@@ -35,13 +42,8 @@ public static class ServiceCollectionExtensions
         {
             var options = serviceProvider.GetRequiredService<Microsoft.Extensions.Options.IOptions<ExtensionApiOptions>>().Value;
 
-            if (!string.IsNullOrEmpty(options.BaseUrl))
-            {
-                client.BaseAddress = new Uri(options.BaseUrl);
-            }
-
+            client.BaseAddress = options.BaseUrl;
             client.Timeout = TimeSpan.FromSeconds(options.TimeoutSeconds);
-
             client.DefaultRequestHeaders.Add("User-Agent", "DragonBackendSimulator/1.0");
         });
 

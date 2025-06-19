@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
 #!/usr/bin/env pwsh
 # Quick validation script to test that both services are running and integrated properly
 # Run this after starting the services with start-dev.ps1
@@ -56,7 +59,7 @@ try {
     exit 1
 }
 
-# Test 2: Simulator Health Check  
+# Test 2: Simulator Health Check
 Write-Host "`n2️⃣  Testing Dragon Backend Simulator..." -ForegroundColor Yellow
 try {
     $response = Invoke-RestMethod -Uri "$simulatorUrl/health" -Method GET -TimeoutSec 5
@@ -113,10 +116,10 @@ try {
             timestamp = (Get-Date).ToString("o")
         }
     }
-    
+
     $body = $testRequest | ConvertTo-Json -Depth 3
     $response = Invoke-RestMethod -Uri "$extensionUrl/api/process" -Method POST -Body $body -ContentType "application/json" -TimeoutSec 5
-    
+
     if ($response.success -eq $true) {
         Write-Host "   ✅ Direct processing working correctly" -ForegroundColor Green
         if ($Verbose) {
@@ -143,13 +146,13 @@ try {
         name = "Quick Test Encounter"
         description = "Automated test encounter created by test script"
     }
-    
+
     $body = $encounterRequest | ConvertTo-Json
     $createResponse = Invoke-RestMethod -Uri "$simulatorUrl/api/encounters:simulate" -Method POST -Body $body -ContentType "application/json" -TimeoutSec 10
-    
+
     if ($createResponse.id) {
         Write-Host "   ✅ Encounter created successfully (ID: $($createResponse.id))" -ForegroundColor Green
-       
+
         if ($createResponse.status -eq "Completed") {
             Write-Host "   ✅ Integration test successful - encounter was completed by extension!" -ForegroundColor Green
             if ($Verbose) {

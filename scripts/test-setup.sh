@@ -1,4 +1,8 @@
 #!/bin/bash
+
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
 # Quick validation script to test that both services are running and integrated properly
 # Run this after starting the services with start-dev.sh
 
@@ -75,7 +79,7 @@ else
     exit 1
 fi
 
-# Test 2: Simulator Health Check  
+# Test 2: Simulator Health Check
 echo ""
 echo "2️⃣  Testing Dragon Backend Simulator..."
 if response=$(curl -s -f "$SIMULATOR_URL/health" 2>/dev/null); then
@@ -109,10 +113,10 @@ test_message="Quick test message"
 if response=$(curl -s -f -X POST "$EXTENSION_URL/api/process/echo" \
     -H "Content-Type: application/json" \
     -d "\"$test_message\"" 2>/dev/null); then
-    
+
     original_message=$(echo "$response" | grep -o '"originalMessage":"[^"]*"' | cut -d'"' -f4)
     echoed_message=$(echo "$response" | grep -o '"echoedMessage":"[^"]*"' | cut -d'"' -f4)
-    
+
     if [ "$original_message" = "$test_message" ] && [ "$echoed_message" = "Echo: $test_message" ]; then
         echo "   ✅ Echo endpoint working correctly"
         if [ "$VERBOSE" = true ]; then
@@ -177,15 +181,15 @@ encounter_data='{
 if create_response=$(curl -s -f -X POST "$SIMULATOR_URL/api/encounters:simulate" \
     -H "Content-Type: application/json" \
     -d "$encounter_data" 2>/dev/null); then
-    
+
     encounter_id=$(echo "$create_response" | grep -o '"id":"[^"]*"' | cut -d'"' -f4)
-    
+
     if [ ! -z "$encounter_id" ]; then
         echo "   ✅ Encounter created successfully (ID: $encounter_id)"
-        
+
         # Handle string status values: "Created", "Processing", "Completed", "Failed"
         status_text=$(echo "$create_response" | grep -o '"status":"[^"]*"' | cut -d'"' -f4)
-        
+
         if [ "$status_text" = "Completed" ]; then
             echo "   ✅ Integration test successful - encounter was completed by extension!"
             if [ "$VERBOSE" = true ]; then

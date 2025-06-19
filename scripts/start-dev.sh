@@ -1,5 +1,9 @@
 #!/bin/bash
-# Quick start script for Dragon Extension Developer environment (Linux/Mac)
+
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+# Quick start script for Dragon Copilot Extension Developer environment (Linux/Mac)
 # This script starts both the Dragon Backend Simulator and Sample Extension for development
 
 set -e
@@ -22,7 +26,7 @@ EOF
 
 stop_services() {
     echo "🛑 Stopping all Dragon Extension Developer services..."
-    
+
     # Kill processes on our ports
     for port in 5180 5181; do
         pid=$(lsof -ti :$port 2>/dev/null || true)
@@ -33,7 +37,7 @@ stop_services() {
             kill -KILL $pid 2>/dev/null || true
         fi
     done
-    
+
     echo "✅ All services stopped."
     exit 0
 }
@@ -97,7 +101,7 @@ fi
 cleanup() {
     echo ""
     echo "🛑 Stopping services..."
-    
+
     # Stop all background processes
     if [ ! -z "${SIMULATOR_OUTPUT_PID:-}" ]; then
         kill $SIMULATOR_OUTPUT_PID 2>/dev/null || true
@@ -111,7 +115,7 @@ cleanup() {
     if [ ! -z "${EXTENSION_TAIL_PID:-}" ]; then
         kill $EXTENSION_TAIL_PID 2>/dev/null || true
     fi
-    
+
     # Stop main service processes
     if [ ! -z "${SIMULATOR_PID:-}" ]; then
         kill $SIMULATOR_PID 2>/dev/null || true
@@ -119,7 +123,7 @@ cleanup() {
     if [ ! -z "${EXTENSION_PID:-}" ]; then
         kill $EXTENSION_PID 2>/dev/null || true
     fi
-    
+
     # Wait a moment then force kill if necessary
     sleep 2
     if [ ! -z "${SIMULATOR_PID:-}" ]; then
@@ -128,11 +132,11 @@ cleanup() {
     if [ ! -z "${EXTENSION_PID:-}" ]; then
         kill -9 $EXTENSION_PID 2>/dev/null || true
     fi
-    
+
     # Clean up temporary files and pipes
     rm -f "$SIMULATOR_LOG" "$EXTENSION_LOG" 2>/dev/null || true
     rm -f "$SIMULATOR_PIPE" "$EXTENSION_PIPE" 2>/dev/null || true
-    
+
     echo "👋 Dragon Extension Developer Environment stopped."
     exit 0
 }
@@ -158,7 +162,7 @@ show_buffered_output() {
             echo -e "${CYAN}[Simulator]${RESET} $line"
         done < "$SIMULATOR_LOG"
     fi
-    
+
     # Show extension output in magenta
     if [ -s "$EXTENSION_LOG" ]; then
         while IFS= read -r line; do
@@ -177,7 +181,7 @@ SIMULATOR_PID=$!
 # Wait a moment for the first service to start
 sleep 2
 
-# Start the Sample Extension  
+# Start the Sample Extension
 echo "🔧 Starting Sample Extension on http://localhost:5181..."
 cd "$EXTENSION_PATH"
 dotnet run --urls "http://localhost:5181" > "$EXTENSION_LOG" 2>&1 &
@@ -195,26 +199,26 @@ EXTENSION_HEALTHY=false
 
 for retry in $(seq 1 $MAX_RETRIES); do
     echo "🔍 Health check attempt $retry/$MAX_RETRIES..."
-    
+
     # Check Dragon Backend Simulator
     if [ "$SIMULATOR_HEALTHY" = false ]; then
         if curl -s -f "http://localhost:5180/" > /dev/null 2>&1; then
             SIMULATOR_HEALTHY=true
         fi
     fi
-    
+
     # Check Sample Extension
     if [ "$EXTENSION_HEALTHY" = false ]; then
         if curl -s -f "http://localhost:5181" > /dev/null 2>&1; then
             EXTENSION_HEALTHY=true
         fi
     fi
-    
+
     # If both services are healthy, break out of retry loop
     if [ "$SIMULATOR_HEALTHY" = true ] && [ "$EXTENSION_HEALTHY" = true ]; then
         break
     fi
-    
+
     # Wait before next retry (except on last attempt)
     if [ $retry -lt $MAX_RETRIES ]; then
         sleep $RETRY_DELAY

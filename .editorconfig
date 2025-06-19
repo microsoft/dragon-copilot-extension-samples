@@ -1,0 +1,56 @@
+# editorconfig.org
+
+# top-most EditorConfig file
+root = true # Don't look at the repo root
+
+# Default settings:
+# A newline ending every file
+# Use 4 spaces as indentation
+[*]
+insert_final_newline     = true
+indent_style             = space
+indent_size              = 4
+trim_trailing_whitespace = true
+
+# Generated code
+[*{_AssemblyInfo.cs,.notsupported.cs,.Generated.cs}]
+generated_code = true
+
+# C# files
+[*.cs]
+charset              = utf-8
+file_header_template = // Copyright (c) Microsoft Corporation.\n// Licensed under the MIT License.
+
+# Xml project files
+[*.{csproj,dcproj}]
+charset     = utf-8
+indent_size = 2
+
+# Xml files
+[*.{xml,resx}]
+charset     = utf-8
+indent_size = 2
+
+# Xml config files
+[*.{props,targets,config,nuspec}]
+charset     = utf-8
+indent_size = 2
+
+# JSON files
+[*.json]
+charset     = utf-8
+indent_size = 2
+
+# YAML files
+[*.{yml,yaml}]
+charset     = utf-8
+indent_size = 2
+
+# Shell scripts
+[*.sh]
+charset     = utf-8
+end_of_line = lf
+
+[*.{cmd,bat}]
+charset     = utf-8
+end_of_line = crlf

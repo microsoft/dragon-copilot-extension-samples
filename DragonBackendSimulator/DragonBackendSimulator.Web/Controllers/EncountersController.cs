@@ -1,13 +1,23 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
+
+using System;
+using System.Net.Http;
+using System.Threading;
+using System.Threading.Tasks;
+using DragonBackendSimulator.Web.Extensions;
 using Microsoft.AspNetCore.Mvc;
 using DragonBackendSimulator.Web.Models;
 using DragonBackendSimulator.Web.Services;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Logging;
 
 namespace DragonBackendSimulator.Web.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
 [Produces("application/json")]
-public class EncountersController : ControllerBase
+public sealed class EncountersController : ControllerBase
 {
     private readonly IEncounterService _encounterService;
     private readonly ILogger<EncountersController> _logger;
@@ -64,12 +74,12 @@ public class EncountersController : ControllerBase
     {
         try
         {
-            var extensionResponse = await _encounterService.CallExtensionAsync(request, cancellationToken);
+            var extensionResponse = await _encounterService.CallExtensionAsync(request, cancellationToken).ConfigureAwait(false);
             return Ok(extensionResponse);
         }
         catch (HttpRequestException ex)
         {
-            _logger.LogError(ex, "HTTP error occurred while simulating encounter");
+            _logger.LogHttpException(ex);
             return Problem(
                 title: "External API Error",
                 detail: ex.Message,
@@ -78,16 +88,18 @@ public class EncountersController : ControllerBase
         }
         catch (TaskCanceledException ex) when (ex.InnerException is TimeoutException)
         {
-            _logger.LogError(ex, "Timeout occurred while simulating encounter");
+            _logger.LogHttpTimoutException(ex);
             return Problem(
                 title: "Request Timeout",
                 detail: "The external API request timed out",
                 statusCode: StatusCodes.Status408RequestTimeout
             );
         }
+#pragma warning disable CA1031
         catch (Exception ex)
+#pragma warning restore CA1031
         {
-            _logger.LogError(ex, "Unexpected error occurred while simulating encounter");
+            _logger.LogHttpUnexpectedException(ex);
             return Problem(
                 title: "Internal Server Error",
                 detail: "An unexpected error occurred",
