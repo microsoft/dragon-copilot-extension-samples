@@ -225,7 +225,7 @@ dragon-extension-developer/
 
 ## 📚 Additional Resources
 
-- [Sample Extension Documentation](src/SampleExtension.Web/README.md)
+- [Sample Extension Documentation](samples/DragonCopilot/Workflow/SampleExtension.Web/README.md)
 - [Dragon Backend Simulator Documentation](DragonBackendSimulator/DragonBackendSimulator.Web/README.md)
 - [API Documentation](testing/integration-tests.http) - See the HTTP file for detailed API examples
 
