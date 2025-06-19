@@ -1,0 +1,50 @@
+version: '3.8'
+
+services:
+  dragon-simulator:
+    build:
+      context: ./DragonBackendSimulator/DragonBackendSimulator.Web
+      dockerfile: Dockerfile
+    ports:
+      - "5180:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:8080
+      - EncounterApi__BaseUrl=http://sample-extension:8080
+      - EncounterApi__Path=/api/process
+      - EncounterApi__TimeoutSeconds=30
+    networks:
+      - dragon-network
+
+  sample-extension:
+    build:
+      context: ./samples/DragonCopilot/Workflow/SampleExtension.Web
+      dockerfile: Dockerfile
+    ports:
+      - "5181:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:8080
+    networks:
+      - dragon-network
+
+networks:
+  dragon-network:
+    driver: bridge
+
+# Development override - uncomment to use for live development with volume mounts
+# To use: docker-compose -f docker-compose.yml -f docker-compose.override.yml up
+# volumes:
+#   dragon-simulator-src:
+#     driver: local
+#     driver_opts:
+#       type: none
+#       o: bind
+#       device: ./DragonBackendSimulator/DragonBackendSimulator.Web
+#
+#   sample-extension-src:
+#     driver: local
+#     driver_opts:
+#       type: none
+#       o: bind
+#       device: ./src/SampleExtension.Web

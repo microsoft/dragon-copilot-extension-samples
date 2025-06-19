@@ -1,0 +1,54 @@
+<Project>
+
+  <PropertyGroup>
+    <AlwaysUseSdkAnalyzers>true</AlwaysUseSdkAnalyzers>
+    <AnalysisLevel>latest-All</AnalysisLevel>
+    <CodeAnalysisTreatWarningsAsErrors>true</CodeAnalysisTreatWarningsAsErrors>
+    <Company>Microsoft Corporation</Company>
+    <Copyright>Copyright © Microsoft Corporation. All rights reserved.</Copyright>
+    <Deterministic>true</Deterministic>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <LangVersion>latest</LangVersion>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+    <Product>Dragon Copilot Extension Samples</Product>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <TrimMode>partial</TrimMode>
+    <UseCodeAnalysisRuleSet>false</UseCodeAnalysisRuleSet>
+    <UseStyleCop>false</UseStyleCop>
+    <WarningsAsErrors />
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <Platforms>x64</Platforms>
+  </PropertyGroup>
+
+  <!-- Dynamic Assembly Info -->
+  <ItemGroup>
+    <AssemblyAttribute Include="System.CLSCompliantAttribute">
+      <_Parameter1>false</_Parameter1>
+      <_Parameter1_TypeName>System.Boolean</_Parameter1_TypeName>
+    </AssemblyAttribute>
+    <AssemblyAttribute Include="System.Resources.NeutralResourcesLanguage">
+      <_Parameter1>en</_Parameter1>
+      <_Parameter1_TypeName>System.String</_Parameter1_TypeName>
+    </AssemblyAttribute>
+  </ItemGroup>
+
+  <!-- Test Properties -->
+  <Choose>
+    <When Condition="$(MSBuildProjectName.Contains('Test'))">
+      <PropertyGroup>
+        <IsPackable>false</IsPackable>
+        <IsTestProject>true</IsTestProject>
+        <NoWarn>$(NoWarn);CA1515;CA1710;CA1711;CA1859;CA2201;CA5350;CA5394;CS1591</NoWarn>
+      </PropertyGroup>
+    </When>
+    <Otherwise>
+      <PropertyGroup>
+        <IsPackable>true</IsPackable>
+        <NoWarn>$(NoWarn);SYSLIB1006</NoWarn>
+      </PropertyGroup>
+    </Otherwise>
+  </Choose>
+
+</Project>

@@ -1,0 +1,222 @@
+### Integration Test Suite for Dragon Extension Developer
+### Run these tests after starting both services with scripts/start-dev.ps1 or docker-compose up
+### 
+### Prerequisites:
+### 1. Dragon Backend Simulator running on http://localhost:5180
+### 2. Sample Extension running on http://localhost:5181
+###
+### How to use:
+### 1. Install REST Client extension in VS Code
+### 2. Open this file in VS Code
+### 3. Click "Send Request" above each test
+### 4. Verify the responses
+
+@simulator_url = http://localhost:5180
+@extension_url = http://localhost:5181
+
+################################################################################
+# Health Checks
+################################################################################
+
+### 1. Verify Sample Extension is Running
+# @name healthCheck
+GET {{extension_url}}/health
+Accept: application/json
+
+### 2. Verify Dragon Backend Simulator is Running  
+# @name simulatorHealth
+GET {{simulator_url}}/health
+Accept: application/json
+
+### 2a. Check Dragon Backend Simulator Swagger Documentation
+# @name simulatorSwagger
+GET {{simulator_url}}/
+
+### 3. Check Sample Extension Swagger Documentation
+# @name extensionSwagger
+GET {{extension_url}}/
+
+################################################################################
+# Direct Extension Tests
+################################################################################
+
+### 4. Test Extension Echo Endpoint
+# @name echoTest
+POST {{extension_url}}/api/process/echo
+Content-Type: application/json
+
+"Hello from integration test! 🐉"
+
+### 5. Test Direct Extension Processing
+# @name directProcessing
+POST {{extension_url}}/api/process
+Content-Type: application/json
+
+{
+  "requestId": "test-{{$guid}}",
+  "data": "Integration test data from test suite",
+  "metadata": {
+    "source": "IntegrationTestSuite",
+    "testType": "directProcessing",
+    "timestamp": "{{$datetime iso8601}}",
+    "environment": "development"
+  }
+}
+
+################################################################################
+# Full Integration Flow Tests
+################################################################################
+
+### 6. Simulate an Encounter (This will call the Sample Extension automatically)
+# @name simulateEncounter
+POST {{simulator_url}}/api/encounters:simulate
+Content-Type: application/json
+
+{
+  "name": "Integration Test Encounter",
+  "description": "Testing the full flow from simulator to extension - created at {{$datetime iso8601}}"
+}
+
+### 7. Simulate Multiple Encounters to Test Throughput
+# @name simulateMultipleEncounters
+POST {{simulator_url}}/api/encounters:simulate
+Content-Type: application/json
+
+{
+  "name": "Batch Test Encounter 1",
+  "description": "First encounter in batch test"
+}
+
+###
+POST {{simulator_url}}/api/encounters:simulate
+Content-Type: application/json
+
+{
+  "name": "Batch Test Encounter 2",
+  "description": "Second encounter in batch test"
+}
+
+###
+POST {{simulator_url}}/api/encounters:simulate
+Content-Type: application/json
+
+{
+  "name": "Batch Test Encounter 3",
+  "description": "Third encounter in batch test"
+}
+
+################################################################################
+# Error Handling Tests
+################################################################################
+
+### 8. Test Extension with Invalid JSON
+# @name invalidJson
+POST {{extension_url}}/api/process
+Content-Type: application/json
+
+{
+  "requestId": "invalid-test",
+  "data": "This should work fine",
+  "metadata": {
+    "invalidField": 
+  }
+}
+
+### 9. Test Extension with Missing Required Fields
+# @name missingFields
+POST {{extension_url}}/api/process
+Content-Type: application/json
+{
+  "data": "Missing requestId field"
+}
+
+### 10. Test Simulator with Invalid Encounter Data
+# @name invalidEncounter
+POST {{simulator_url}}/api/encounters:simulate
+Content-Type: application/json
+
+{
+  "description": "Missing name field - should fail validation"
+}
+
+################################################################################
+# Performance Tests
+################################################################################
+
+### 11. Test Extension Response Time
+# @name performanceTest
+POST {{extension_url}}/api/process
+Content-Type: application/json
+
+{
+  "requestId": "perf-test-{{$guid}}",
+  "data": "Performance test data - should respond quickly",
+  "metadata": {
+    "testType": "performance",
+    "expectedResponseTime": "< 100ms",
+    "timestamp": "{{$datetime iso8601}}"
+  }
+}
+
+################################################################################
+# End-to-End Workflow Test
+################################################################################
+
+### 12. Complete Workflow Test - Simulate, Process, and Verify
+# @name workflowTest
+POST {{simulator_url}}/api/encounters:simulate
+Content-Type: application/json
+
+{
+  "name": "Complete Workflow Test",
+  "description": "End-to-end test: Simulator simulates encounter → calls extension → extension processes → simulator updates status"
+}
+
+################################################################################
+# Cleanup (Optional)
+################################################################################
+
+### 13. Health Check After All Tests
+# @name finalHealthCheck
+GET {{extension_url}}/
+Accept: application/json
+
+### 14. Final Simulator Status
+# @name finalSimulatorStatus  
+GET {{simulator_url}}/api/encounters
+Accept: application/json
+
+################################################################################
+# Documentation
+################################################################################
+
+### Test Results Interpretation:
+###
+### ✅ Success Indicators:
+### - Tests 1-3: All return 200 OK (services are running)
+### - Test 4: Returns the echoed message with proper structure
+### - Test 5: Returns success response with processed data
+### - Test 8: Returns 201 Created with encounter ID
+### - Test 9: Returns 200 OK with encounter details showing status 2 (Completed)
+###
+### ⚠️ Expected Failures:
+### - Test 7: Returns 404 (encounter doesn't exist yet)
+### - Tests 11-13: Return 400 Bad Request (validation errors)
+###
+### 📋 Encounter Status Values:
+### - 0: Created
+### - 1: Processing  
+### - 2: Completed (success)
+### - 3: Failed
+###
+### 🔍 What to Look For:
+### - Response times should be under 1 second for simple operations
+### - Encounter status should change from 0 (Created) to 2 (Completed) after calling extension
+### - Extension should return meaningful error messages for invalid input
+### - All successful operations should return appropriate HTTP status codes
+###
+### 🐛 Troubleshooting:
+### - If tests 1-3 fail: Services are not running - run start-dev.ps1
+### - If test 8 succeeds but test 9 shows status 0: Extension is not being called
+### - If extension tests fail: Check extension logs for errors
+### - If simulator tests fail: Check simulator logs for errors
