@@ -123,39 +123,42 @@ public class ProcessingService : IProcessingService
             {
                 if (!string.IsNullOrEmpty(resource.Content))
                 {
-                    // Simple keyword-based entity extraction for demonstration
-                    var content = resource.Content.ToUpperInvariant();
-
-                    if (content.Contains("BLOOD PRESSURE", StringComparison.InvariantCultureIgnoreCase) || content.Contains("BP", StringComparison.InvariantCultureIgnoreCase))
+                    // Blood pressure detection
+                    var bpMatch = FindEntityMatch(resource.Content, ["BLOOD PRESSURE", "BP"]);
+                    if (bpMatch != null)
                     {
                         entities.Add(new
                         {
                             id = Guid.NewGuid().ToString(),
                             type = "vital_sign",
                             entity = "blood_pressure",
-                            value = string.Concat("extracted from: ", resource.Content.AsSpan(0, Math.Min(50, resource.Content.Length)))
+                            value = $"extracted from: \"{bpMatch}\""
                         });
                     }
 
-                    if (content.Contains("DIABETES", StringComparison.InvariantCultureIgnoreCase) || content.Contains("DIABETIC", StringComparison.InvariantCultureIgnoreCase))
+                    // Diabetes detection
+                    var diabetesMatch = FindEntityMatch(resource.Content, ["DIABETES", "DIABETIC"]);
+                    if (diabetesMatch != null)
                     {
                         entities.Add(new
                         {
                             id = Guid.NewGuid().ToString(),
                             type = "condition",
                             entity = "diabetes",
-                            value = string.Concat("extracted from: ", resource.Content.AsSpan(0, Math.Min(50, resource.Content.Length)))
+                            value = $"extracted from: \"{diabetesMatch}\""
                         });
                     }
 
-                    if (content.Contains("MEDICATION", StringComparison.InvariantCultureIgnoreCase) || content.Contains("PRESCRIBED", StringComparison.InvariantCultureIgnoreCase))
+                    // Medication detection
+                    var medicationMatch = FindEntityMatch(resource.Content, ["MEDICATION", "PRESCRIBED", "TAKING"]);
+                    if (medicationMatch != null)
                     {
                         entities.Add(new
                         {
                             id = Guid.NewGuid().ToString(),
                             type = "medication",
                             entity = "prescription",
-                            value = string.Concat("extracted from: ", resource.Content.AsSpan(0, Math.Min(50, resource.Content.Length)))
+                            value = $"extracted from: \"{medicationMatch}\""
                         });
                     }
                 }
@@ -163,6 +166,53 @@ public class ProcessingService : IProcessingService
         }
 
         return entities;
+    }
+
+    private static string? FindEntityMatch(string content, string[] keywords)
+    {
+        const int contextLength = 25;
+        var contentUpper = content.ToUpperInvariant();
+        
+        foreach (var keyword in keywords)
+        {
+            var index = contentUpper.IndexOf(keyword.ToUpperInvariant(), StringComparison.InvariantCultureIgnoreCase);
+            if (index >= 0)
+            {
+                // Calculate the start and end positions for context
+                var startPos = Math.Max(0, index - contextLength);
+                var endPos = Math.Min(content.Length, index + keyword.Length + contextLength);
+                
+                // Extract the text with context
+                var extractedText = content.Substring(startPos, endPos - startPos);
+                
+                // Clean up the extracted text
+                extractedText = extractedText.Trim();
+                
+                // If we started in the middle of a word, try to find the beginning of the word
+                if (startPos > 0 && !char.IsWhiteSpace(content[startPos - 1]))
+                {
+                    var wordStart = extractedText.IndexOf(' ', StringComparison.Ordinal);
+                    if (wordStart > 0 && wordStart < contextLength)
+                    {
+                        extractedText = extractedText.Substring(wordStart + 1);
+                    }
+                }
+                
+                // If we ended in the middle of a word, try to find the end of the word
+                if (endPos < content.Length && !char.IsWhiteSpace(content[endPos]))
+                {
+                    var wordEnd = extractedText.LastIndexOf(' ');
+                    if (wordEnd > extractedText.Length - contextLength && wordEnd > 0)
+                    {
+                        extractedText = extractedText.Substring(0, wordEnd);
+                    }
+                }
+                
+                return extractedText;
+            }
+        }
+        
+        return null;
     }
 
     private static object CreateAdaptiveCardResource(List<object> entities)
