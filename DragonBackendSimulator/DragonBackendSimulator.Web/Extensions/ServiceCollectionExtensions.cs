@@ -2,6 +2,7 @@
 // Licensed under the MIT License.
 
 using System;
+using System.Text.Json;
 using DragonBackendSimulator.Web.Configuration;
 using DragonBackendSimulator.Web.Services;
 using Microsoft.AspNetCore.Routing;
@@ -46,6 +47,8 @@ internal static class ServiceCollectionExtensions
             client.Timeout = TimeSpan.FromSeconds(options.TimeoutSeconds);
             client.DefaultRequestHeaders.Add("User-Agent", "DragonBackendSimulator/1.0");
         });
+
+        services.AddSingleton(new JsonSerializerOptions(JsonSerializerDefaults.Web));
 
         return services;
     }

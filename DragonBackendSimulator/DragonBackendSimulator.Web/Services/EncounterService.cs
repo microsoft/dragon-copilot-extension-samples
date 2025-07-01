@@ -21,23 +21,21 @@ public sealed class EncounterService : IEncounterService
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly ILogger<EncounterService> _logger;
     private readonly ExtensionApiOptions _extensionApiOptions;
-
-    private static readonly JsonSerializerOptions JsonOptions = new()
-    {
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-        WriteIndented = true
-    };
+    private readonly JsonSerializerOptions _jsonSerializerOptions;
 
     public EncounterService(
         IHttpClientFactory httpClientFactory,
+        JsonSerializerOptions jsonSerializerOptions,
         ILogger<EncounterService> logger,
         IOptions<ExtensionApiOptions> options)
     {
         ArgumentNullException.ThrowIfNull(httpClientFactory, nameof(httpClientFactory));
+        ArgumentNullException.ThrowIfNull(jsonSerializerOptions, nameof(jsonSerializerOptions));
         ArgumentNullException.ThrowIfNull(logger, nameof(logger));
         ArgumentNullException.ThrowIfNull(options?.Value, nameof(options));
 
         _httpClientFactory = httpClientFactory;
+        _jsonSerializerOptions = jsonSerializerOptions;
         _logger = logger;
         _extensionApiOptions = options.Value;
     }
@@ -100,7 +98,7 @@ public sealed class EncounterService : IEncounterService
                 Note = note
             };
 
-            var jsonContent = JsonSerializer.Serialize(dragonPayload, JsonOptions);
+            var jsonContent = JsonSerializer.Serialize(dragonPayload, _jsonSerializerOptions);
             using var content = new StringContent(jsonContent, System.Text.Encoding.UTF8, "application/json");
 
             _logger.LogExtensionSuccess(encounter.Id, _extensionApiOptions.BaseUrl, _extensionApiOptions.Path);
@@ -120,7 +118,7 @@ public sealed class EncounterService : IEncounterService
                 // Try to parse the response using the shared ProcessResponse model
                 try
                 {
-                    var processResponse = JsonSerializer.Deserialize<ProcessResponse>(responseContent, JsonOptions);
+                    var processResponse = JsonSerializer.Deserialize<ProcessResponse>(responseContent, _jsonSerializerOptions);
 
                     if (processResponse != null && !processResponse.Success)
                     {
