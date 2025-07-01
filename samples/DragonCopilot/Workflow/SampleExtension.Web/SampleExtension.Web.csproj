@@ -11,8 +11,11 @@
     <PackageReference Include="Swashbuckle.AspNetCore" Version="7.2.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\..\src\Dragon.Copilot.Models\Dragon.Copilot.Models.csproj" />
+  </ItemGroup>
+
   <PropertyGroup>
-    <NoWarn>CA1812</NoWarn>
-    <NoWarn>CA1515</NoWarn>
+    <NoWarn>CA1812;CA1515;</NoWarn>
   </PropertyGroup>
 </Project>
