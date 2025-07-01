@@ -47,6 +47,7 @@ public class ProcessingService : IProcessingService
             if (payload.Note != null)
             {
                 var noteResponse = await ProcessNoteAsync(payload.Note, payload.SessionData, cancellationToken).ConfigureAwait(false);
+
                 processResponse.Payload["sample-entities"] = noteResponse.SampleEntities;
                 processResponse.Payload["sample-entities-adaptive-card"] = noteResponse.SampleEntitiesAdaptiveCard;
             }
@@ -72,13 +73,11 @@ public class ProcessingService : IProcessingService
         }
     }
 
-    private static async Task<(DspResponse SampleEntities, DspResponse SampleEntitiesAdaptiveCard)> ProcessNoteAsync(
+    private static Task<(DspResponse SampleEntities, DspResponse SampleEntitiesAdaptiveCard)> ProcessNoteAsync(
         Note note,
         SessionData sessionData,
         CancellationToken cancellationToken)
     {
-        await Task.Delay(10, cancellationToken).ConfigureAwait(false); // Simulate async processing
-
         // Extract sample clinical entities from the note
         var entities = ExtractClinicalEntities(note);
 
@@ -94,7 +93,7 @@ public class ProcessingService : IProcessingService
 
         foreach(var entity in entities)
         {
-            sampleEntities.Resources.Add(entity);
+            sampleEntities.Resources?.Add(entity);
         }
 
         // Create adaptive card version
@@ -106,9 +105,9 @@ public class ProcessingService : IProcessingService
             Encounter = note.Encounter,
             Document = note.Document,
         };
-        adaptiveCardResponse.Resources.Add(CreateAdaptiveCardResource(entities));
+        adaptiveCardResponse.Resources?.Add(CreateAdaptiveCardResource(entities));
 
-        return (sampleEntities, adaptiveCardResponse);
+        return Task.FromResult((sampleEntities, adaptiveCardResponse));
     }
 
     private static List<object> ExtractClinicalEntities(Note note)
@@ -172,7 +171,7 @@ public class ProcessingService : IProcessingService
     {
         const int contextLength = 25;
         var contentUpper = content.ToUpperInvariant();
-        
+
         foreach (var keyword in keywords)
         {
             var index = contentUpper.IndexOf(keyword.ToUpperInvariant(), StringComparison.InvariantCultureIgnoreCase);
@@ -181,13 +180,13 @@ public class ProcessingService : IProcessingService
                 // Calculate the start and end positions for context
                 var startPos = Math.Max(0, index - contextLength);
                 var endPos = Math.Min(content.Length, index + keyword.Length + contextLength);
-                
+
                 // Extract the text with context
                 var extractedText = content.Substring(startPos, endPos - startPos);
-                
+
                 // Clean up the extracted text
                 extractedText = extractedText.Trim();
-                
+
                 // If we started in the middle of a word, try to find the beginning of the word
                 if (startPos > 0 && !char.IsWhiteSpace(content[startPos - 1]))
                 {
@@ -197,7 +196,7 @@ public class ProcessingService : IProcessingService
                         extractedText = extractedText.Substring(wordStart + 1);
                     }
                 }
-                
+
                 // If we ended in the middle of a word, try to find the end of the word
                 if (endPos < content.Length && !char.IsWhiteSpace(content[endPos]))
                 {
@@ -207,11 +206,11 @@ public class ProcessingService : IProcessingService
                         extractedText = extractedText.Substring(0, wordEnd);
                     }
                 }
-                
+
                 return extractedText;
             }
         }
-        
+
         return null;
     }
 

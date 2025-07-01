@@ -16,7 +16,7 @@ internal static partial class LoggerExtensions
     [LoggerMessage(
         Level = LogLevel.Information,
         Message = "Processing Dragon Standard payload. RequestId: {RequestId}, CorrelationId: {CorrelationId}")]
-    public static partial void LogProcessingStart(this ILogger logger, string requestId, string correlationId);
+    public static partial void LogProcessingStart(this ILogger logger, string? requestId, string? correlationId);
 
     [LoggerMessage(
         Level = LogLevel.Information,
@@ -26,5 +26,5 @@ internal static partial class LoggerExtensions
     [LoggerMessage(
         Level = LogLevel.Error,
         Message = "Error processing Dragon Standard payload. RequestId: {RequestId}")]
-    public static partial void LogProcessingException(this ILogger logger, Exception ex, string requestId);
+    public static partial void LogProcessingException(this ILogger logger, Exception ex, string? requestId);
 }

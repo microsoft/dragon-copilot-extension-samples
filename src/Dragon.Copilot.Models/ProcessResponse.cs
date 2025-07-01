@@ -27,5 +27,5 @@ public class ProcessResponse
     /// The processed payload data containing DSP responses
     /// </summary>
     [JsonPropertyName("payload")]
-    public IDictionary<string, DspResponse>? Payload { get; } = new Dictionary<string, DspResponse>();
+    public IDictionary<string, DspResponse> Payload { get; } = new Dictionary<string, DspResponse>();
 }
