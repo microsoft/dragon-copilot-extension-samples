@@ -84,41 +84,19 @@ try {
     exit 1
 }
 
-# Test 3: Extension Echo Test
-Write-Host "`n3️⃣  Testing Extension Echo Endpoint..." -ForegroundColor Yellow
-try {
-    $testMessage = "Quick test message"
-    $response = Invoke-RestMethod -Uri "$extensionUrl/api/process/echo" -Method POST -Body "`"$testMessage`"" -ContentType "application/json" -TimeoutSec 5
-    if ($response.originalMessage -eq $testMessage -and $response.echoedMessage -eq "Echo: $testMessage") {
-        Write-Host "   ✅ Echo endpoint working correctly" -ForegroundColor Green
-        if ($Verbose) {
-            Write-Host "   📋 Original: $($response.originalMessage)" -ForegroundColor Gray
-            Write-Host "   📋 Echoed: $($response.echoedMessage)" -ForegroundColor Gray
-        }
-    } else {
-        Write-Host "   ⚠️  Echo endpoint returned unexpected response format" -ForegroundColor Yellow
-        if ($Verbose) {
-            Write-Host "   📋 Response: $($response | ConvertTo-Json -Compress)" -ForegroundColor Gray
-        }
-    }
-} catch {
-    Write-Host "   ❌ Echo endpoint test failed: $_" -ForegroundColor Red
-}
-
-# Test 4: Direct Extension Processing
-Write-Host "`n4️⃣  Testing Direct Extension Processing..." -ForegroundColor Yellow
+# Test 3: Direct Extension Processing
+Write-Host "`n3️⃣  Testing Direct Extension Processing..." -ForegroundColor Yellow
 try {
     $testRequest = @{
-        requestId = [System.Guid]::NewGuid().ToString()
-        data = "Quick setup validation test"
-        metadata = @{
-            source = "QuickTestScript"
-            timestamp = (Get-Date).ToString("o")
+        sessionData = @{
+            correlation_id = "test-correlation-123"
+            session_start = "2025-07-01T13:50:00.000Z"
+            tenant_id = "test-tenant-456"
         }
     }
 
     $body = $testRequest | ConvertTo-Json -Depth 3
-    $response = Invoke-RestMethod -Uri "$extensionUrl/api/process" -Method POST -Body $body -ContentType "application/json" -TimeoutSec 5
+    $response = Invoke-RestMethod -Uri "$extensionUrl/v1/process" -Method POST -Body $body -ContentType "application/json" -TimeoutSec 5
 
     if ($response.success -eq $true) {
         Write-Host "   ✅ Direct processing working correctly" -ForegroundColor Green
@@ -139,8 +117,8 @@ try {
     }
 }
 
-# Test 5: Full Integration Test (Simulator -> Extension)
-Write-Host "`n5️⃣  Testing Full Integration (Simulator → Extension)..." -ForegroundColor Yellow
+# Test 4: Full Integration Test (Simulator -> Extension)
+Write-Host "`n4️⃣  Testing Full Integration (Simulator → Extension)..." -ForegroundColor Yellow
 try {
     $encounterRequest = @{
         name = "Quick Test Encounter"

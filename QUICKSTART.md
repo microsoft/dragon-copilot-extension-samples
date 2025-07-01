@@ -22,7 +22,7 @@ chmod +x scripts/*.sh
 # Start both services
 ./scripts/start-dev.sh
 
-# Test the setup  
+# Test the setup
 ./scripts/test-setup.sh
 
 # Stop services when done
@@ -84,7 +84,7 @@ Use VS Code debug configurations:
 - Automatically calls your extension when encounters are created
 - Provides Swagger UI for testing
 
-### Sample Extension (Port 5181)  
+### Sample Extension (Port 5181)
 - Example implementation of an extension
 - Shows proper request/response handling
 - Includes health check endpoints
@@ -94,13 +94,15 @@ Use VS Code debug configurations:
 
 ### 1. Direct Extension Testing
 ```http
-POST http://localhost:5181/api/process
+POST http://localhost:5181/v1/process
 Content-Type: application/json
 
 {
-  "requestId": "test-123",
-  "data": "Your test data",
-  "metadata": {"source": "manual-test"}
+  "sessionData": {
+    "session_start": "2025-07-01T13:50:00.000Z",
+    "correlation_id": "test-correlation-123",
+    "tenant_id": "test-tenant-456"
+  }
 }
 ```
 
@@ -113,14 +115,6 @@ Content-Type: application/json
   "name": "Test Encounter",
   "description": "This will call your extension"
 }
-```
-
-### 3. Echo Testing (Simple)
-```http
-POST http://localhost:5181/api/process/echo
-Content-Type: application/json
-
-"Hello World"
 ```
 
 ## 🔍 Troubleshooting

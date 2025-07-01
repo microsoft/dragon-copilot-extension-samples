@@ -106,47 +106,19 @@ else
     exit 1
 fi
 
-# Test 3: Extension Echo Test
+# Test 3: Direct Extension Processing
 echo ""
-echo "3️⃣  Testing Extension Echo Endpoint..."
-test_message="Quick test message"
-if response=$(curl -s -f -X POST "$EXTENSION_URL/api/process/echo" \
-    -H "Content-Type: application/json" \
-    -d "\"$test_message\"" 2>/dev/null); then
-
-    original_message=$(echo "$response" | grep -o '"originalMessage":"[^"]*"' | cut -d'"' -f4)
-    echoed_message=$(echo "$response" | grep -o '"echoedMessage":"[^"]*"' | cut -d'"' -f4)
-
-    if [ "$original_message" = "$test_message" ] && [ "$echoed_message" = "Echo: $test_message" ]; then
-        echo "   ✅ Echo endpoint working correctly"
-        if [ "$VERBOSE" = true ]; then
-            echo "   📋 Original: $original_message"
-            echo "   📋 Echoed: $echoed_message"
-        fi
-    else
-        echo "   ⚠️  Echo endpoint returned unexpected response format"
-        if [ "$VERBOSE" = true ]; then
-            echo "   📋 Response: $response"
-        fi
-    fi
-else
-    echo "   ❌ Echo endpoint test failed"
-fi
-
-# Test 4: Direct Extension Processing
-echo ""
-echo "4️⃣  Testing Direct Extension Processing..."
+echo "3️⃣  Testing Direct Extension Processing..."
 request_id=$(uuidgen 2>/dev/null || python3 -c "import uuid; print(uuid.uuid4())" 2>/dev/null || echo "test-$(date +%s)")
 test_data='{
-  "requestId": "'$request_id'",
-  "data": "Quick setup validation test",
-  "metadata": {
-    "source": "QuickTestScript",
-    "timestamp": "'$(date -u +"%Y-%m-%dT%H:%M:%S.%3NZ")'"
+  "sessionData": {
+    "session_start": "2025-07-01T13:50:00.000Z",
+    "correlation_id": "test-correlation-123",
+    "tenant_id": "test-tenant-456"
   }
 }'
 
-if response=$(curl -s -f -X POST "$EXTENSION_URL/api/process" \
+if response=$(curl -s -f -X POST "$EXTENSION_URL/v1/process" \
     -H "Content-Type: application/json" \
     -d "$test_data" 2>/dev/null); then
     if echo "$response" | grep -q '"success":true'; then
@@ -170,9 +142,9 @@ else
     fi
 fi
 
-# Test 5: Full Integration Test (Simulator -> Extension)
+# Test 4: Full Integration Test (Simulator -> Extension)
 echo ""
-echo "5️⃣  Testing Full Integration (Simulator → Extension)..."
+echo "4️⃣  Testing Full Integration (Simulator → Extension)..."
 encounter_data='{
   "name": "Quick Test Encounter",
   "description": "Automated test encounter created by test script"

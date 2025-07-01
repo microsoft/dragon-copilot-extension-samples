@@ -1,6 +1,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using DragonBackendSimulator.Web.Models;
+using Dragon.Copilot.Models;
 
 namespace DragonBackendSimulator.Web.Services;
 

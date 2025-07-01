@@ -8,6 +8,7 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using DragonBackendSimulator.Web.Models;
+using Dragon.Copilot.Models;
 using Microsoft.Extensions.Options;
 using DragonBackendSimulator.Web.Configuration;
 using DragonBackendSimulator.Web.Extensions;
@@ -20,6 +21,12 @@ public sealed class EncounterService : IEncounterService
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly ILogger<EncounterService> _logger;
     private readonly ExtensionApiOptions _extensionApiOptions;
+
+    private static readonly JsonSerializerOptions JsonOptions = new()
+    {
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        WriteIndented = true
+    };
 
     public EncounterService(
         IHttpClientFactory httpClientFactory,
@@ -54,23 +61,46 @@ public sealed class EncounterService : IEncounterService
         _logger.LogEncounterStart(encounter.Id, encounter.Name);
         try
         {
-            // Create a payload that matches the ProcessRequest model expected by the extension
-            var payload = new
+            // Create a DragonStandardPayload with a Note for the extension
+            var sessionData = new SessionData
             {
-                requestId = Guid.NewGuid(),
-                encounterId = encounter.Id,
-                data = $"Encounter: {encounter.Name}" + (string.IsNullOrEmpty(encounter.Description) ? "" : $" - {encounter.Description}"),
-                metadata = new Dictionary<string, object>
-                {
-                    { "source", "DragonBackendSimulator" },
-                    { "encounterName", encounter.Name },
-                    { "encounterDescription", encounter.Description ?? "" },
-                    { "simulatorVersion", "1.0.0" }
-                },
-                createdAt = encounter.CreatedAt
+                CorrelationId = encounter.Id.ToString(),
+                SessionStart = encounter.CreatedAt,
+                TenantId = "dragon-backend-simulator"
             };
 
-            var jsonContent = JsonSerializer.Serialize(payload);
+            var note = new Note
+            {
+                PayloadVersion = "1.0",
+                SchemaVersion = "1.0",
+                Language = "en-US",
+                Priority = "normal",
+                Document = new Document
+                {
+                    Title = simulationRequest.Name,
+                    Type = new DocumentType
+                    {
+                        Text = "Encounter Simulation"
+                    }
+                },
+                Resources = new List<ClinicalDocumentSection>
+                {
+                    new ClinicalDocumentSection
+                    {
+                        LegacyId = encounter.Id.ToString(),
+                        Content = $"Encounter: {simulationRequest.Name}" +
+                                 (string.IsNullOrEmpty(simulationRequest.Description) ? "" : $" - {simulationRequest.Description}")
+                    }
+                }
+            };
+
+            var dragonPayload = new DragonStandardPayload
+            {
+                SessionData = sessionData,
+                Note = note
+            };
+
+            var jsonContent = JsonSerializer.Serialize(dragonPayload, JsonOptions);
             using var content = new StringContent(jsonContent, System.Text.Encoding.UTF8, "application/json");
 
             _logger.LogExtensionSuccess(encounter.Id, _extensionApiOptions.BaseUrl, _extensionApiOptions.Path);
@@ -87,23 +117,20 @@ public sealed class EncounterService : IEncounterService
 
                 _logger.LogExtensionSuccess(encounter.Id, encounter.StatusCode);
 
-                // Try to parse the response to extract additional info
+                // Try to parse the response using the shared ProcessResponse model
                 try
                 {
-                    var processResponse = JsonSerializer.Deserialize<JsonElement>(responseContent);
-                    if (processResponse.TryGetProperty("success", out var successProperty) &&
-                        successProperty.GetBoolean() == false)
+                    var processResponse = JsonSerializer.Deserialize<ProcessResponse>(responseContent, JsonOptions);
+
+                    if (processResponse != null && !processResponse.Success)
                     {
                         encounter.Status = EncounterStatus.Failed;
-                        if (processResponse.TryGetProperty("errorMessage", out var errorProperty))
-                        {
-                            encounter.ErrorMessage = errorProperty.GetString();
-                        }
+                        encounter.ErrorMessage = processResponse.Message ?? "Extension processing failed";
                     }
                 }
                 catch (JsonException)
                 {
-                    // If we can't parse the response, that's OK - we'll keep the successful status
+                    // If we can't parse the response as ProcessResponse, that's OK - we'll keep the successful status
                 }
             }
             else
@@ -112,7 +139,7 @@ public sealed class EncounterService : IEncounterService
                 encounter.StatusCode = (int)response.StatusCode;
                 encounter.ErrorMessage = $"Extension API call failed with status {response.StatusCode}: {response.ReasonPhrase}";
 
-                _logger.LogExtensionFailure(encounter.Id, encounter.StatusCode, response.ReasonPhrase);
+                _logger.LogExtensionFailure(encounter.Id, encounter.StatusCode, response.ReasonPhrase ?? "Unknown error");
             }
         }
 #pragma warning disable CA1031

@@ -62,7 +62,6 @@ After starting the services, you'll have:
 - **Purpose**: Example extension showing how to integrate with the simulator
 - **Features**:
   - Receives and processes requests from the simulator
-  - Echo endpoint for simple testing
   - Full Swagger documentation at root URL
   - Example of proper request/response handling
 
