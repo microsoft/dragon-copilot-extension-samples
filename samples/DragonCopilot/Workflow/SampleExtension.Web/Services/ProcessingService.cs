@@ -53,7 +53,6 @@ public class ProcessingService : IProcessingService
 
             // TODO: Add processing for other payload types (Transcript, IterativeTranscript, IterativeAudio)
 
-
             processResponse.Success = true;
             processResponse.Message = "Payload processed successfully";
 
@@ -168,6 +167,129 @@ public class ProcessingService : IProcessingService
 
     private static object CreateAdaptiveCardResource(List<object> entities)
     {
+        // Create the body elements list
+        var bodyElements = new List<object>
+        {
+            // Header
+            new
+            {
+                type = "TextBlock",
+                text = "🔍 Clinical Entities Extracted",
+                weight = "Bolder",
+                size = "Large",
+                color = "Accent"
+            },
+            new
+            {
+                type = "TextBlock",
+                text = $"Found {entities.Count} clinical {(entities.Count == 1 ? "entity" : "entities")} in the note",
+                wrap = true,
+                size = "Medium",
+                spacing = "Small"
+            }
+        };
+
+        // Add entities as individual containers if any found
+        if (entities.Count > 0)
+        {
+            foreach (dynamic entity in entities)
+            {
+                var entityContainer = new
+                {
+                    type = "Container",
+                    style = "emphasis",
+                    spacing = "Medium",
+                    items = new object[]
+                    {
+                        new
+                        {
+                            type = "ColumnSet",
+                            columns = new object[]
+                            {
+                                new
+                                {
+                                    type = "Column",
+                                    width = "auto",
+                                    items = new object[]
+                                    {
+                                        new
+                                        {
+                                            type = "TextBlock",
+                                            text = GetEntityIcon(entity.type?.ToString()),
+                                            size = "Large",
+                                            spacing = "None"
+                                        }
+                                    }
+                                },
+                                new
+                                {
+                                    type = "Column",
+                                    width = "stretch",
+                                    items = new object[]
+                                    {
+                                        new
+                                        {
+                                            type = "TextBlock",
+                                            text = $"**{GetEntityTypeDisplayName(entity.type?.ToString())}**",
+                                            weight = "Bolder",
+                                            size = "Medium",
+                                            spacing = "None"
+                                        },
+                                        new
+                                        {
+                                            type = "TextBlock",
+                                            text = entity.entity?.ToString() ?? "Unknown",
+                                            color = "Accent",
+                                            spacing = "None"
+                                        },
+                                        new
+                                        {
+                                            type = "TextBlock",
+                                            text = entity.value?.ToString() ?? "No additional information",
+                                            wrap = true,
+                                            size = "Small",
+                                            color = "Default",
+                                            spacing = "Small"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                };
+                bodyElements.Add(entityContainer);
+            }
+        }
+        else
+        {
+            // No entities found message
+            bodyElements.Add(new
+            {
+                type = "Container",
+                style = "attention",
+                items = new object[]
+                {
+                    new
+                    {
+                        type = "TextBlock",
+                        text = "ℹ️ No clinical entities were detected in this note.",
+                        wrap = true,
+                        horizontalAlignment = "Center"
+                    }
+                }
+            });
+        }
+
+        // Add footer
+        bodyElements.Add(new
+        {
+            type = "TextBlock",
+            text = $"Processed at {DateTime.UtcNow:yyyy-MM-dd HH:mm:ss} UTC",
+            size = "Small",
+            horizontalAlignment = "Right",
+            spacing = "Medium"
+        });
+
         return new
         {
             id = Guid.NewGuid().ToString(),
@@ -176,31 +298,7 @@ public class ProcessingService : IProcessingService
             {
                 type = "AdaptiveCard",
                 version = "1.3",
-                body = new object[]
-                {
-                    new
-                    {
-                        type = "TextBlock",
-                        text = "Clinical Entities Extracted",
-                        weight = "Bolder",
-                        size = "Medium"
-                    },
-                    new
-                    {
-                        type = "TextBlock",
-                        text = $"Found {entities.Count} clinical entities in the note:",
-                        wrap = true
-                    },
-                    new
-                    {
-                        type = "FactSet",
-                        facts = entities.Select((entity, index) => new
-                        {
-                            title = $"Entity {index + 1}:",
-                            value = entity.ToString()
-                        }).ToArray()
-                    }
-                }
+                body = bodyElements.ToArray()
             },
             payloadSources = new object[]
             {
@@ -212,6 +310,34 @@ public class ProcessingService : IProcessingService
                 }
             },
             dragonCopilotCopyData = "Clinical entities extracted from note content"
+        };
+    }
+
+    private static string GetEntityIcon(string? entityType)
+    {
+        return entityType?.ToUpperInvariant() switch
+        {
+            "VITAL_SIGN" => "💓",
+            "CONDITION" => "🏥",
+            "MEDICATION" => "💊",
+            "PROCEDURE" => "🔬",
+            "ALLERGY" => "⚠️",
+            "SYMPTOM" => "🤒",
+            _ => "📋"
+        };
+    }
+
+    private static string GetEntityTypeDisplayName(string? entityType)
+    {
+        return entityType?.ToUpperInvariant() switch
+        {
+            "VITAL_SIGN" => "Vital Sign",
+            "CONDITION" => "Medical Condition",
+            "MEDICATION" => "Medication",
+            "PROCEDURE" => "Medical Procedure",
+            "ALLERGY" => "Allergy",
+            "SYMPTOM" => "Symptom",
+            _ => "Clinical Entity"
         };
     }
 }
