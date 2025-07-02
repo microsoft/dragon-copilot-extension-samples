@@ -11,8 +11,4 @@
     <PackageReference Include="System.Text.Json" Version="9.0.0" />
   </ItemGroup>
 
-  <PropertyGroup>
-<!--    <NoWarn>CA1812;CA1515;CA1845;CA1848;CA1308;CA1307;CA2007;CA1822;CA2227;CA1002</NoWarn>-->
-  </PropertyGroup>
-
 </Project>
