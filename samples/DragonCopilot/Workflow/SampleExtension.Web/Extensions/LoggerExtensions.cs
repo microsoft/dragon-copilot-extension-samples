@@ -1,5 +1,5 @@
-﻿// // Copyright (c) Microsoft Corporation.
-// // Licensed under the MIT License.
+﻿// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
 
 using System;
 using Microsoft.Extensions.Logging;
@@ -15,8 +15,8 @@ internal static partial class LoggerExtensions
 
     [LoggerMessage(
         Level = LogLevel.Information,
-        Message = "Processing request {RequestId} with data: {Data}")]
-    public static partial void LogProcessingStart(this ILogger logger, Guid requestId, string data);
+        Message = "Processing Dragon Standard payload. RequestId: {RequestId}, CorrelationId: {CorrelationId}")]
+    public static partial void LogProcessingStart(this ILogger logger, string? requestId, string? correlationId);
 
     [LoggerMessage(
         Level = LogLevel.Information,
@@ -25,6 +25,6 @@ internal static partial class LoggerExtensions
 
     [LoggerMessage(
         Level = LogLevel.Error,
-        Message = "Error processing request {RequestId}")]
-    public static partial void LogProcessingException(this ILogger logger, Exception ex, Guid requestId);
+        Message = "Error processing Dragon Standard payload. RequestId: {RequestId}")]
+    public static partial void LogProcessingException(this ILogger logger, Exception ex, string? requestId);
 }

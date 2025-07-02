@@ -19,7 +19,6 @@ A sample C# Web API project that demonstrates how to create an extension that ca
 ### Utility Endpoints
 - `GET /health` - Application health check
 - `GET /api/process/health` - Service-specific health check
-- `POST /api/process/echo` - Echo endpoint for connectivity testing
 
 ## Request/Response Models
 

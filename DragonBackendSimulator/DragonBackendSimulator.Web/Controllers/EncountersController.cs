@@ -11,6 +11,7 @@ using DragonBackendSimulator.Web.Models;
 using DragonBackendSimulator.Web.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
+using Dragon.Copilot.Models;
 
 namespace DragonBackendSimulator.Web.Controllers;
 
