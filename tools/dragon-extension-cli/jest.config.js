@@ -4,13 +4,15 @@ export default {
   testEnvironment: 'node',
   roots: ['<rootDir>/src'],
   testMatch: ['**/__tests__/**/*.ts', '**/?(*.)+(spec|test).ts'],
+  testPathIgnorePatterns: ['__mocks__'],
   transform: {
     '^.+\\.ts$': ['ts-jest', {
       useESM: true
     }],
   },
-  moduleNameMapping: {
+  moduleNameMapper: {
     '^(\\.{1,2}/.*)\\.js$': '$1',
+    '^chalk$': '<rootDir>/src/__tests__/__mocks__/chalk.ts',
   },
   collectCoverageFrom: [
     'src/**/*.ts',
@@ -19,5 +21,5 @@ export default {
     '!src/**/*.spec.ts',
   ],
   coverageDirectory: 'coverage',
-  coverageReporters: ['text', 'lcov', 'html'],
+  coverageReporters: ['text', 'lcov', 'html']
 };

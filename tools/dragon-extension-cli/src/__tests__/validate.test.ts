@@ -6,6 +6,9 @@ const { writeFileSync, removeSync } = fs;
 
 const testManifestPath = path.join(__dirname, 'test-manifest.yaml');
 
+// Mock console.log to prevent output during tests
+const mockConsoleLog = jest.spyOn(console, 'log').mockImplementation(() => {});
+
 describe('validateManifest', () => {
   afterEach(() => {
     try {
@@ -13,6 +16,11 @@ describe('validateManifest', () => {
     } catch {
       // Ignore cleanup errors
     }
+    jest.clearAllMocks();
+  });
+
+  afterAll(() => {
+    mockConsoleLog.mockRestore();
   });
 
   test('should validate a correct manifest', async () => {
@@ -38,6 +46,9 @@ tools:
 
     // This should not throw
     await expect(validateManifest(testManifestPath)).resolves.toBeUndefined();
+
+    // Verify console.log was called with success message
+    expect(mockConsoleLog).toHaveBeenCalledWith(expect.stringContaining('✅ Manifest validation passed!'));
   });
 
   test('should detect missing required fields', async () => {
