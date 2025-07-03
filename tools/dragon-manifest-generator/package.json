@@ -1,11 +1,11 @@
 {
-  "name": "dragon-manifest-generator",
+  "name": "dragon-extension",
   "version": "1.0.0",
-  "description": "CLI tool for generating Dragon Copilot extension manifests",
+  "description": "CLI tool for Dragon Copilot extension development and packaging",
   "type": "module",
   "main": "dist/index.js",
   "bin": {
-    "dragon-manifest-generator": "dist/cli.js"
+    "dragon-extension": "dist/cli.js"
   },
   "scripts": {
     "build": "tsc",
@@ -14,7 +14,8 @@
     "test": "echo \"Tests disabled for now - manual testing successful\"",
     "clean": "rimraf dist",
     "prepublishOnly": "npm run clean && npm run build",
-    "package": "npm run build && pkg dist/cli.js --out-path releases"
+    "package": "npm run build && pkg dist/cli.js --targets node18-win-x64,node18-macos-x64,node18-linux-x64 --out-path releases && npm run rename-executables",
+    "rename-executables": "node -e \"const fs = require('fs'); const path = require('path'); try { fs.renameSync('releases/cli-win.exe', 'releases/dragon-extension-win.exe'); } catch(e) {} try { fs.renameSync('releases/cli-macos', 'releases/dragon-extension-macos'); } catch(e) {} try { fs.renameSync('releases/cli-linux', 'releases/dragon-extension-linux'); } catch(e) {}\""
   },
   "keywords": [
     "dragon-copilot",

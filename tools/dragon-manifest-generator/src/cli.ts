@@ -10,9 +10,9 @@ import chalk from 'chalk';
 const program = new Command();
 
 program
-  .name('dragon-extension-manifest')
-  .description('CLI tool for generating Dragon Copilot extension manifests')
-  .version('0.0.1');
+  .name('dragon-extension')
+  .description('CLI tool for Dragon Copilot extension development and packaging')
+  .version('1.0.0');
 
 program
   .command('init')

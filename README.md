@@ -1,4 +1,4 @@
-# Dragon Extension Developer
+# Dragon Copilot Extension Samples
 
 A development environment for creating and testing extensions that integrate with the Dragon Backend Simulator. This repository provides everything you need to build, test, and debug extensions locally before deploying them to production.
 
@@ -8,7 +8,7 @@ A development environment for creating and testing extensions that integrate wit
 ```powershell
 # Clone the repository
 git clone <your-repo-url>
-cd dragon-extension-developer
+cd dragon-copilot-extension-samples
 
 # Run the quick start script
 .\scripts\start-dev.ps1
@@ -18,7 +18,7 @@ cd dragon-extension-developer
 ```bash
 # Clone the repository
 git clone <your-repo-url>
-cd dragon-extension-developer
+cd dragon-copilot-extension-samples
 
 # Make the script executable and run it
 chmod +x scripts/start-dev.sh
@@ -29,7 +29,7 @@ chmod +x scripts/start-dev.sh
 ```bash
 # Clone the repository
 git clone <your-repo-url>
-cd dragon-extension-developer
+cd dragon-copilot-extension-samples
 
 # Start with Docker Compose
 docker-compose up --build
@@ -247,13 +247,13 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ## 🛠️ Tools
 
-### Dragon Extension Manifest Generator
+### Dragon Extension CLI
 
-A cross-platform CLI tool for generating Dragon Copilot extension manifests and packaging extensions for distribution.
+A cross-platform CLI tool for Dragon Copilot extension development, including manifest generation and packaging for distribution.
 
 **Key Features:**
 - Interactive manifest generation with step-by-step wizard
-- Pre-built templates for common use cases (note analysis, speech analysis)
+- Pre-built templates for common use cases (clinical coding, speech analysis)
 - Comprehensive manifest validation with helpful error messages
 - Extension packaging into ZIP files ready for distribution
 - Cross-platform support (Windows, macOS, Linux)
@@ -264,19 +264,19 @@ A cross-platform CLI tool for generating Dragon Copilot extension manifests and 
 
 ```bash
 # Initialize a new extension
-dragon-manifest-generator init
+dragon-extension init
 
 # Generate from template
-dragon-manifest-generator generate --template note-analysis
+dragon-extension generate --template note-analysis
 
 # Validate a manifest
-dragon-manifest-generator validate manifest.yaml
+dragon-extension validate manifest.yaml
 
 # Package extension
-dragon-manifest-generator package
+dragon-extension package
 ```
 
-📁 **Location:** `tools/dragon-manifest-generator/`
-📖 **Documentation:** [Dragon Manifest Generator README](tools/dragon-manifest-generator/README.md)
+📁 **Location:** `tools/dragon-manifest-generator/` *(Note: Directory will be renamed to `tools/dragon-extension/` in a future update)*  
+📖 **Documentation:** [Dragon Extension CLI README](tools/dragon-manifest-generator/README.md)
 
 ---

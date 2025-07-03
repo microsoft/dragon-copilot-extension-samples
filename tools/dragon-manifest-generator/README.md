@@ -1,6 +1,10 @@
-# Dragon Manifest Generator
+# Dragon Extension CLI
 
-A cross-platform CLI tool for generating Dragon Copilot extension manifests and packaging extensions for distribution.
+A cross-platform CLI tool for# Clinical note analysis extension
+dragon-extension generate --template note-analysis
+
+# Speech analysis extension  
+dragon-extension generate --template speech-analysison Copilot extension development, including manifest generation and packaging for distribution.
 
 ## Features
 
@@ -18,16 +22,16 @@ A cross-platform CLI tool for generating Dragon Copilot extension manifests and 
 
 Download the latest release for your platform:
 
-- **Windows**: `dragon-manifest-win.exe`
-- **macOS**: `dragon-manifest-macos`
-- **Linux**: `dragon-manifest-linux`
+- **Windows**: `dragon-extension-win.exe`
+- **macOS**: `dragon-extension-macos`
+- **Linux**: `dragon-extension-linux`
 
 ### From npm
 
 > Note: Not currently available
 
 ```bash
-npm install -g dragon-manifest-generator
+npm install -g dragon-extension
 ```
 
 ### From Source
@@ -45,7 +49,7 @@ npm link
 ### Initialize a New Extension
 
 ```bash
-dragon-manifest-generator init
+dragon-extension init
 ```
 
 Interactive prompts will guide you through creating a new extension manifest.
@@ -63,13 +67,13 @@ dragon-manifest-generator generate --template speech-analysis
 ### Add Tools Interactively
 
 ```bash
-dragon-manifest-generator generate --interactive
+dragon-extension generate --interactive
 ```
 
 ### Validate a Manifest
 
 ```bash
-dragon-manifest-generator validate manifest.yaml
+dragon-extension validate manifest.yaml
 ```
 
 ### Package Extension
@@ -78,13 +82,13 @@ dragon-manifest-generator validate manifest.yaml
 dragon-manifest-generator package
 ```bash
 # Basic packaging
-dragon-manifest-generator package
+dragon-extension package
 
 # Include additional files
-dragon-manifest-generator package --include README.md LICENSE images/logo.png
+dragon-extension package --include README.md LICENSE images/logo.png
 
 # Custom output name
-dragon-manifest-generator package --output my-extension-v1.0.0.zip
+dragon-extension package --output my-extension-v1.0.0.zip
 ```
 
 ## Manifest Format
@@ -121,8 +125,8 @@ tools:
 
 ## Templates
 
-### clinical-coder
-Provides E/M and ICD10 coding functionality for clinical notes.
+### note-analysis
+Provides analysis and processing functionality for clinical notes.
 
 ### speech-analysis
 Analyzes speech patterns for medical conditions using vocal biomarkers.
