@@ -244,3 +244,39 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 ---
 
 🐉 **Happy Extension Development!** If you run into any issues or have questions, please open an issue in this repository.
+
+## 🛠️ Tools
+
+### Dragon Extension Manifest Generator
+
+A cross-platform CLI tool for generating Dragon Copilot extension manifests and packaging extensions for distribution.
+
+**Key Features:**
+- Interactive manifest generation with step-by-step wizard
+- Pre-built templates for common use cases (note analysis, speech analysis)
+- Comprehensive manifest validation with helpful error messages
+- Extension packaging into ZIP files ready for distribution
+- Cross-platform support (Windows, macOS, Linux)
+
+**Quick Usage:**
+
+> Note: The CLI tool is not currently available for download, but you can build it from source and execute with `node dist/cli.js <command>`
+
+```bash
+# Initialize a new extension
+dragon-manifest-generator init
+
+# Generate from template
+dragon-manifest-generator generate --template note-analysis
+
+# Validate a manifest
+dragon-manifest-generator validate manifest.yaml
+
+# Package extension
+dragon-manifest-generator package
+```
+
+📁 **Location:** `tools/dragon-manifest-generator/`
+📖 **Documentation:** [Dragon Manifest Generator README](tools/dragon-manifest-generator/README.md)
+
+---
