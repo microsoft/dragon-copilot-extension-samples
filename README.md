@@ -2,7 +2,12 @@
 
 A development environment for creating and testing extensions that integrate with the Dragon Backend Simulator. This repository provides everything you need to build, test, and debug extensions locally before deploying them to production.
 
-## 🚀 Quick Start
+Additionally, it includes a CLI tool for generating and managing extension manifests.
+
+📁 **Location:** `tools/dragon-extension-cli/`
+📖 **Documentation:** [Dragon Extension CLI README](tools/dragon-extension-cli/README.md)## 🚀
+
+## Quick Start
 
 ### Option 1: PowerShell Script (Recommended for Windows)
 ```powershell
@@ -260,7 +265,20 @@ A cross-platform CLI tool for Dragon Copilot extension development, including ma
 
 **Quick Usage:**
 
-> Note: The CLI tool is not currently available for download, but you can build it from source and execute with `node dist/cli.js <command>`
+To set up the CLI tool for global use:
+
+```bash
+# Navigate to the tool directory
+cd tools/dragon-extension-cli
+
+# Build the TypeScript code
+npm run build
+
+# Link globally (makes 'dragon-extension' command available anywhere)
+npm link
+```
+
+Then you can use it anywhere:
 
 ```bash
 # Initialize a new extension
@@ -276,7 +294,8 @@ dragon-extension validate manifest.yaml
 dragon-extension package
 ```
 
-📁 **Location:** `tools/dragon-manifest-generator/` *(Note: Directory will be renamed to `tools/dragon-extension/` in a future update)*
-📖 **Documentation:** [Dragon Extension CLI README](tools/dragon-manifest-generator/README.md)
+📁 **Location:** `tools/dragon-extension-cli/`
+
+📖 **Documentation:** [Dragon Extension CLI README](tools/dragon-extension-cli/README.md)
 
 ---

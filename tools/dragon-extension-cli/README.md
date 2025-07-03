@@ -38,7 +38,7 @@ npm install -g dragon-extension
 
 ```bash
 git clone <repository-url>
-cd dragon-manifest-generator
+cd tools/dragon-extension-cli
 npm install
 npm run build
 npm link
@@ -57,11 +57,11 @@ Interactive prompts will guide you through creating a new extension manifest.
 ### Generate from Template
 
 ```bash
-# Clinical coding extension
-dragon-manifest-generator generate --template clinical-coder
+# Clinical note analysis extension
+dragon-extension generate --template note-analysis
 
 # Speech analysis extension
-dragon-manifest-generator generate --template speech-analysis
+dragon-extension generate --template speech-analysis
 ```
 
 ### Add Tools Interactively
@@ -78,8 +78,6 @@ dragon-extension validate manifest.yaml
 
 ### Package Extension
 
-```bash
-dragon-manifest-generator package
 ```bash
 # Basic packaging
 dragon-extension package
