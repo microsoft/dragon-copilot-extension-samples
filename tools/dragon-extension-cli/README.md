@@ -1,10 +1,6 @@
 # Dragon Extension CLI
 
-A cross-platform CLI tool for# Clinical note analysis extension
-dragon-extension generate --template note-analysis
-
-# Speech analysis extension
-dragon-extension generate --template speech-analysison Copilot extension development, including manifest generation and packaging for distribution.
+A cross-platform CLI tool for Dragon Copilot extension development, including manifest generation and packaging for distribution.
 
 ## Features
 
@@ -97,7 +93,6 @@ Dragon Copilot manifests follow this structure:
 name: my-extension
 description: Description of what the extension does
 version: 0.0.1
-# authentication: ? # Optional
 
 tools:
   - name: my-tool
@@ -116,10 +111,9 @@ tools:
 ### Supported Data Types
 
 - `DSP/Note` - Clinical notes
+- `DSP/Transcript` - Transcript
 - `DSP/IterativeTranscript` - Real-time transcription
 - `DSP/IterativeAudio` - Real-time audio
-- `DSP/Document` - Documents
-- `DSP` - Generic DSP data
 
 ## Templates
 
@@ -174,7 +168,3 @@ jobs:
         with:
           files: releases/*
 ```
-
-## License
-
-MIT

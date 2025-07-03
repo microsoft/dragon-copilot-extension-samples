@@ -2,12 +2,8 @@
 
 A development environment for creating and testing extensions that integrate with the Dragon Backend Simulator. This repository provides everything you need to build, test, and debug extensions locally before deploying them to production.
 
-Additionally, it includes a CLI tool for generating and managing extension manifests.
 
-📁 **Location:** `tools/dragon-extension-cli/`
-📖 **Documentation:** [Dragon Extension CLI README](tools/dragon-extension-cli/README.md)## 🚀
-
-## Quick Start
+## 🚀 Quick Start
 
 ### Option 1: PowerShell Script (Recommended for Windows)
 ```powershell
