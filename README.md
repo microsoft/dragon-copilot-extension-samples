@@ -1,6 +1,7 @@
-# Dragon Extension Developer
+# Dragon Copilot Extension Samples
 
 A development environment for creating and testing extensions that integrate with the Dragon Backend Simulator. This repository provides everything you need to build, test, and debug extensions locally before deploying them to production.
+
 
 ## 🚀 Quick Start
 
@@ -8,7 +9,7 @@ A development environment for creating and testing extensions that integrate wit
 ```powershell
 # Clone the repository
 git clone <your-repo-url>
-cd dragon-extension-developer
+cd dragon-copilot-extension-samples
 
 # Run the quick start script
 .\scripts\start-dev.ps1
@@ -18,7 +19,7 @@ cd dragon-extension-developer
 ```bash
 # Clone the repository
 git clone <your-repo-url>
-cd dragon-extension-developer
+cd dragon-copilot-extension-samples
 
 # Make the script executable and run it
 chmod +x scripts/start-dev.sh
@@ -29,7 +30,7 @@ chmod +x scripts/start-dev.sh
 ```bash
 # Clone the repository
 git clone <your-repo-url>
-cd dragon-extension-developer
+cd dragon-copilot-extension-samples
 
 # Start with Docker Compose
 docker-compose up --build
@@ -244,3 +245,53 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 ---
 
 🐉 **Happy Extension Development!** If you run into any issues or have questions, please open an issue in this repository.
+
+## 🛠️ Tools
+
+### Dragon Extension CLI
+
+A cross-platform CLI tool for Dragon Copilot extension development, including manifest generation and packaging for distribution.
+
+**Key Features:**
+- Interactive manifest generation with step-by-step wizard
+- Pre-built templates for common use cases (clinical coding, speech analysis)
+- Comprehensive manifest validation with helpful error messages
+- Extension packaging into ZIP files ready for distribution
+- Cross-platform support (Windows, macOS, Linux)
+
+**Quick Usage:**
+
+To set up the CLI tool for global use:
+
+```bash
+# Navigate to the tool directory
+cd tools/dragon-extension-cli
+
+# Build the TypeScript code
+npm run build
+
+# Link globally (makes 'dragon-extension' command available anywhere)
+npm link
+```
+
+Then you can use it anywhere:
+
+```bash
+# Initialize a new extension
+dragon-extension init
+
+# Generate from template
+dragon-extension generate --template note-analysis
+
+# Validate a manifest
+dragon-extension validate manifest.yaml
+
+# Package extension
+dragon-extension package
+```
+
+📁 **Location:** `tools/dragon-extension-cli/`
+
+📖 **Documentation:** [Dragon Extension CLI README](tools/dragon-extension-cli/README.md)
+
+---
