@@ -276,7 +276,7 @@ dragon-extension validate manifest.yaml
 dragon-extension package
 ```
 
-📁 **Location:** `tools/dragon-manifest-generator/` *(Note: Directory will be renamed to `tools/dragon-extension/` in a future update)*  
+📁 **Location:** `tools/dragon-manifest-generator/` *(Note: Directory will be renamed to `tools/dragon-extension/` in a future update)*
 📖 **Documentation:** [Dragon Extension CLI README](tools/dragon-manifest-generator/README.md)
 
 ---

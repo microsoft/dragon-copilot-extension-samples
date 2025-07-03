@@ -3,7 +3,7 @@
 A cross-platform CLI tool for# Clinical note analysis extension
 dragon-extension generate --template note-analysis
 
-# Speech analysis extension  
+# Speech analysis extension
 dragon-extension generate --template speech-analysison Copilot extension development, including manifest generation and packaging for distribution.
 
 ## Features
