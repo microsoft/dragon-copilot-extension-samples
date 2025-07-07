@@ -7,17 +7,23 @@ EXPOSE 8080
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 WORKDIR /src
 
-# Copy the project file and restore dependencies
-COPY ["SampleExtension.Web.csproj", "."]
-RUN dotnet restore "SampleExtension.Web.csproj"
+# Copy project files for restore (in dependency order)
+COPY ["src/Dragon.Copilot.Models/Dragon.Copilot.Models.csproj", "src/Dragon.Copilot.Models/"]
+COPY ["samples/DragonCopilot/Workflow/SampleExtension.Web/SampleExtension.Web.csproj", "samples/DragonCopilot/Workflow/SampleExtension.Web/"]
 
-# Copy the entire project and build it
+# Restore dependencies
+RUN dotnet restore "samples/DragonCopilot/Workflow/SampleExtension.Web/SampleExtension.Web.csproj"
+
+# Copy the entire source code
 COPY . .
-WORKDIR "/src"
+
+# Build the application
+WORKDIR "/src/samples/DragonCopilot/Workflow/SampleExtension.Web"
 RUN dotnet build "SampleExtension.Web.csproj" -c Release -o /app/build
 
 # Publish the application
 FROM build AS publish
+WORKDIR "/src/samples/DragonCopilot/Workflow/SampleExtension.Web"
 RUN dotnet publish "SampleExtension.Web.csproj" -c Release -o /app/publish /p:UseAppHost=false
 
 # Copy the published application to the base image
