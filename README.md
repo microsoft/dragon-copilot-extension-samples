@@ -47,6 +47,72 @@ cd samples/DragonCopilot/Workflow/SampleExtension.Web
 dotnet run --urls http://localhost:5181
 ```
 
+## ☁️ Deploy to Azure
+
+Deploy your extension to Azure Container Apps for production use:
+
+### Prerequisites
+- Azure CLI installed and logged in
+- Docker Desktop installed and running
+- Azure subscription with Container Apps permissions
+
+### Quick Deploy
+```powershell
+# Deploy the sample extension to Azure
+.\scripts\deploy-extension-azure.ps1 -ExtensionName "my-dragon-ext"
+
+# Deploy to different environment
+.\scripts\deploy-extension-azure.ps1 -ExtensionName "my-dragon-ext" -EnvironmentSuffix "prod" -Region "West US 2"
+
+# Deploy to custom resource group
+.\scripts\deploy-extension-azure.ps1 -ExtensionName "my-dragon-ext" -ResourceGroup "my-custom-rg"
+```
+
+### What the Deploy Script Does
+1. **Infrastructure Setup**:
+   - Creates Azure Container Registry (ACR)
+   - Sets up Container App Environment
+   - Creates managed identity for secure authentication
+
+2. **Docker Build & Push**:
+   - Builds your extension locally using Docker
+   - Pushes the image to your private ACR
+   - Uses repository root for proper build context
+
+3. **Container App Deployment**:
+   - Deploys using the pre-built Docker image
+   - Configures managed identity for ACR access
+   - Sets up external ingress and health checks
+   - Provides complete URLs for testing
+
+### Deploy Script Parameters
+- `-ExtensionName` (Required): Name for your extension resources
+- `-ResourceGroup` (Optional): Azure resource group (default: `{ExtensionName}-rg`)
+- `-Region` (Optional): Azure region (default: "East US")
+- `-SubscriptionId` (Optional): Azure subscription ID (uses current if not specified)
+- `-EnvironmentSuffix` (Optional): Environment suffix for resource naming (default: "dev")
+
+### Post-Deployment
+After successful deployment, you'll get:
+- **Extension URL**: Your live extension endpoint
+- **Health Check URL**: For monitoring
+- **Process Endpoint**: `/v1/process` for Dragon Copilot integration
+- **Azure Portal Link**: For monitoring and logs
+
+Example output:
+```
+🎉 Deployment completed successfully!
+
+🌐 URLs:
+  Extension URL:     https://my-dragon-ext-dev.proudwater-12345678.eastus.azurecontainerapps.io
+  Health Check:      https://my-dragon-ext-dev.proudwater-12345678.eastus.azurecontainerapps.io/health
+  Process Endpoint:  https://my-dragon-ext-dev.proudwater-12345678.eastus.azurecontainerapps.io/v1/process
+
+💡 Integration with Dragon Copilot:
+  Extension URL: https://my-dragon-ext-dev.proudwater-12345678.eastus.azurecontainerapps.io
+  Process Path:  /v1/process
+```
+
 ## 🎯 What You'll See
 
 After starting the services, you'll have:
@@ -203,25 +269,60 @@ dragon-extension-developer/
 
 ## 🐛 Troubleshooting
 
-### Services Won't Start
+### Local Development Issues
+
+#### Services Won't Start
 - Ensure .NET 9.0 SDK is installed
 - Check if ports 5180/5181 are already in use
 - Run `.\scripts\start-dev.ps1 -StopAll` to clean up
 
-### Extension Not Being Called
+#### Extension Not Being Called
 - Verify simulator configuration points to correct URL
 - Check extension is running and responding to health checks
 - Look at simulator logs for HTTP errors
 
-### Tests Failing
+#### Tests Failing
 - Ensure both services are running
 - Check the services are on the expected ports
 - Verify network connectivity between services
 
-### Docker Issues
+#### Docker Issues
 - Ensure Docker is running
 - Try `docker-compose down` then `docker-compose up --build`
 - Check Docker logs: `docker-compose logs`
+
+### Azure Deployment Issues
+
+#### Prerequisites Not Met
+- Install Azure CLI: `winget install Microsoft.AzureCLI`
+- Install Docker Desktop and ensure it's running
+- Login to Azure: `az login`
+- Verify subscription access: `az account show`
+
+#### Docker Build Failures
+- Ensure Docker Desktop is running: `docker --version`
+- Check available disk space (Docker builds need ~2GB)
+- Try cleaning Docker: `docker system prune -f`
+
+#### Registry Permission Errors
+- The script handles managed identity setup automatically
+- If manual intervention is needed, check the Azure Portal for role assignments
+- Ensure your account has "Contributor" access to the subscription
+
+#### Container App Deployment Fails
+- Check quota limits in your Azure region
+- Try a different region: `-Region "West US 2"`
+- Verify Container Apps is available in your region
+
+#### Health Check Failures
+- The app may still be starting (takes 1-2 minutes)
+- Check logs: `az containerapp logs show --name {app-name} --resource-group {rg-name} --follow`
+- Verify the application starts successfully locally first
+
+#### Getting Help
+- Check deployment logs in the terminal output
+- View detailed logs in Azure Portal
+- Use the troubleshooting checklist provided by the script on failure
 
 ## 📚 Additional Resources
 
