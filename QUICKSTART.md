@@ -44,6 +44,37 @@ docker-compose down
 3. Type "Tasks: Run Task"
 4. Select "Start Dragon Extension Developer Environment"
 
+## ☁️ Deploy to Azure (Production Ready)
+
+### Prerequisites for Azure Deployment
+- Azure CLI installed: `winget install Microsoft.AzureCLI`
+- Docker Desktop installed and running
+- Azure subscription with Container Apps permissions
+
+### Quick Azure Deploy
+```powershell
+# Deploy your extension to Azure Container Apps
+.\scripts\deploy-extension-azure.ps1 -ExtensionName "my-dragon-ext"
+
+# For production environment
+.\scripts\deploy-extension-azure.ps1 -ExtensionName "my-dragon-ext" -EnvironmentSuffix "prod"
+```
+
+### What Azure Deployment Includes
+- ✅ **Secure Container Registry**: Private ACR for your images
+- ✅ **Managed Identity**: No passwords or keys needed
+- ✅ **Auto-scaling**: Scales to zero when not in use
+- ✅ **Health Monitoring**: Built-in health checks
+- ✅ **HTTPS**: Automatic SSL certificates
+- ✅ **Production Ready**: High availability and monitoring
+
+The deployment script will:
+1. Build your Docker image locally
+2. Create Azure infrastructure (ACR, Container Apps, etc.)
+3. Push image to your private registry
+4. Deploy with managed identity authentication
+5. Provide live URLs for testing and integration
+
 ## 🧪 Verify Everything Works
 
 ### Quick Test
