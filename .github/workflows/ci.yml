@@ -1,0 +1,82 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '9.0.x'
+
+    - name: Build Dragon.Copilot.Models
+      run: |
+        cd src/Dragon.Copilot.Models
+        dotnet restore
+        dotnet build --no-restore --configuration Release
+
+    - name: Test Dragon.Copilot.Models
+      run: |
+        cd src/Dragon.Copilot.Models
+        dotnet test --no-build --configuration Release --verbosity normal
+
+    - name: Build DragonBackendSimulator
+      run: |
+        cd DragonBackendSimulator
+        dotnet restore
+        dotnet build --no-restore --configuration Release
+
+    - name: Test DragonBackendSimulator
+      run: |
+        cd DragonBackendSimulator
+        dotnet test --no-build --configuration Release --verbosity normal
+
+    - name: Build SampleExtension
+      run: |
+        cd samples/DragonCopilot/Workflow
+        dotnet restore
+        dotnet build --no-restore --configuration Release
+
+    - name: Test SampleExtension
+      run: |
+        cd samples/DragonCopilot/Workflow
+        dotnet test --no-build --configuration Release --verbosity normal
+
+    - name: Build Docker images
+      run: |
+        docker build -f DragonBackendSimulator/DragonBackendSimulator.Web/Dockerfile -t dragon-backend-simulator .
+        docker build -f samples/DragonCopilot/Workflow/SampleExtension.Web/Dockerfile -t sample-extension ./samples/DragonCopilot/Workflow
+
+  nodejs-tools:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+        cache-dependency-path: tools/dragon-extension-cli/package.json
+
+    - name: Install dependencies
+      working-directory: tools/dragon-extension-cli
+      run: npm ci
+
+    - name: Run tests
+      working-directory: tools/dragon-extension-cli
+      run: npm test
+
+    - name: Build
+      working-directory: tools/dragon-extension-cli
+      run: npm run build --if-present
