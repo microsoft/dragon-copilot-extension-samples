@@ -53,8 +53,8 @@ jobs:
 
     - name: Build Docker images
       run: |
-        docker build -f DragonBackendSimulator/DragonBackendSimulator.Web/Dockerfile -t dragon-backend-simulator .
-        docker build -f samples/DragonCopilot/Workflow/SampleExtension.Web/Dockerfile -t sample-extension ./samples/DragonCopilot/Workflow
+        docker build -f DragonBackendSimulator.Web/Dockerfile -t dragon-backend-simulator ./DragonBackendSimulator
+        docker build -f samples/DragonCopilot/Workflow/SampleExtension.Web/Dockerfile -t sample-extension .
 
   nodejs-tools:
     runs-on: ubuntu-latest

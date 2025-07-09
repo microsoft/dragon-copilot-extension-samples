@@ -1,23 +1,52 @@
 version: 2
 updates:
-  # Enable version updates for .NET dependencies
+  # Enable version updates for .NET dependencies - Dragon.Copilot.Models
   - package-ecosystem: "nuget"
-    directory: "/"
+    directory: "/src/Dragon.Copilot.Models"
     schedule:
       interval: "weekly"
       day: "monday"
       time: "04:00"
-    open-pull-requests-limit: 10
-    reviewers:
-      - "@octocat"
-    assignees:
-      - "@octocat"
+    open-pull-requests-limit: 5
     commit-message:
       prefix: "deps"
       include: "scope"
     labels:
       - "dependencies"
       - "dotnet"
+      - "models"
+
+  # Enable version updates for .NET dependencies - DragonBackendSimulator
+  - package-ecosystem: "nuget"
+    directory: "/DragonBackendSimulator"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "04:00"
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "deps"
+      include: "scope"
+    labels:
+      - "dependencies"
+      - "dotnet"
+      - "backend-simulator"
+
+  # Enable version updates for .NET dependencies - SampleExtension
+  - package-ecosystem: "nuget"
+    directory: "/samples/DragonCopilot/Workflow"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "04:00"
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "deps"
+      include: "scope"
+    labels:
+      - "dependencies"
+      - "dotnet"
+      - "sample-extension"
 
   # Enable version updates for npm dependencies
   - package-ecosystem: "npm"
