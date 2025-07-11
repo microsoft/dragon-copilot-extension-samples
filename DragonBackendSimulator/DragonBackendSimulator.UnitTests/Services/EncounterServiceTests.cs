@@ -323,8 +323,8 @@ public sealed class EncounterServiceTests : IDisposable
         Assert.Equal("Test Encounter", payload.Note.Document!.Title);
         Assert.Equal("Encounter Simulation", payload.Note.Document.Type!.Text);
         Assert.Single(payload.Note.Resources!);
-        Assert.Equal(result.Id.ToString(), payload.Note.Resources[0].LegacyId);
-        Assert.Equal("Encounter: Test Encounter - Test Description", payload.Note.Resources[0].Content);
+        Assert.Equal(result.Id.ToString(), payload.Note.Resources?[0].LegacyId);
+        Assert.Equal("Encounter: Test Encounter - Test Description", payload.Note.Resources?[0].Content);
     }
 
     [Fact]
