@@ -1,0 +1,98 @@
+version: 2
+updates:
+  # Enable version updates for .NET dependencies - Dragon.Copilot.Models
+  - package-ecosystem: "nuget"
+    directory: "/src/Dragon.Copilot.Models"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "04:00"
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "deps"
+      include: "scope"
+    labels:
+      - "dependencies"
+      - "dotnet"
+      - "models"
+
+  # Enable version updates for .NET dependencies - DragonBackendSimulator
+  - package-ecosystem: "nuget"
+    directory: "/DragonBackendSimulator"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "04:00"
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "deps"
+      include: "scope"
+    labels:
+      - "dependencies"
+      - "dotnet"
+      - "backend-simulator"
+
+  # Enable version updates for .NET dependencies - SampleExtension
+  - package-ecosystem: "nuget"
+    directory: "/samples/DragonCopilot/Workflow"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "04:00"
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "deps"
+      include: "scope"
+    labels:
+      - "dependencies"
+      - "dotnet"
+      - "sample-extension"
+
+  # Enable version updates for npm dependencies
+  - package-ecosystem: "npm"
+    directory: "/tools/dragon-extension-cli"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "04:00"
+    open-pull-requests-limit: 5
+    reviewers:
+      - "@octocat"
+    assignees:
+      - "@octocat"
+    commit-message:
+      prefix: "deps"
+      include: "scope"
+    labels:
+      - "dependencies"
+      - "javascript"
+
+  # Enable version updates for Docker
+  - package-ecosystem: "docker"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "04:00"
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "deps"
+      include: "scope"
+    labels:
+      - "dependencies"
+      - "docker"
+
+  # Enable version updates for GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "04:00"
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "deps"
+      include: "scope"
+    labels:
+      - "dependencies"
+      - "github-actions"
