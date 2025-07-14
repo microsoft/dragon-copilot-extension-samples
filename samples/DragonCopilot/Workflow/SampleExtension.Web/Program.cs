@@ -4,9 +4,11 @@
 using System;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
+using SampleExtension.Web.Configuration;
 using SampleExtension.Web.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -24,6 +26,63 @@ builder.Services.AddSwaggerGen(c =>
         Version = "v1",
         Description = "A sample extension API that accepts posts from the Dragon Backend Simulator"
     });
+
+    // Add JWT authentication to Swagger
+    var authOptions = builder.Configuration.GetSection(AuthenticationOptions.SectionName).Get<AuthenticationOptions>();
+    if (authOptions?.Enabled == true)
+    {
+        c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+        {
+            Description = "JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {token}\"",
+            Name = "Authorization",
+            In = ParameterLocation.Header,
+            Type = SecuritySchemeType.ApiKey,
+            Scheme = "Bearer"
+        });
+
+        c.AddSecurityRequirement(new OpenApiSecurityRequirement
+        {
+            {
+                new OpenApiSecurityScheme
+                {
+                    Reference = new OpenApiReference
+                    {
+                        Type = ReferenceType.SecurityScheme,
+                        Id = "Bearer"
+                    }
+                },
+                Array.Empty<string>()
+            }
+        });
+    }
+
+    // Add license key header to Swagger
+    var authzOptions = builder.Configuration.GetSection(AuthorizationOptions.SectionName).Get<AuthorizationOptions>();
+    if (authzOptions?.LicenseKeyEnabled == true)
+    {
+        c.AddSecurityDefinition("LicenseKey", new OpenApiSecurityScheme
+        {
+            Description = $"License key header. Example: \"{authzOptions.LicenseKeyHeader}: valid\"",
+            Name = authzOptions.LicenseKeyHeader,
+            In = ParameterLocation.Header,
+            Type = SecuritySchemeType.ApiKey
+        });
+
+        c.AddSecurityRequirement(new OpenApiSecurityRequirement
+        {
+            {
+                new OpenApiSecurityScheme
+                {
+                    Reference = new OpenApiReference
+                    {
+                        Type = ReferenceType.SecurityScheme,
+                        Id = "LicenseKey"
+                    }
+                },
+                Array.Empty<string>()
+            }
+        });
+    }
 });
 
 // Add CORS to allow requests from the backend simulator
@@ -37,8 +96,11 @@ builder.Services.AddCors(options =>
     });
 });
 
+// Add authentication services
+builder.Services.AddCustomAuthentication(builder.Configuration);
+
 // Add application services
-builder.Services.AddApplicationServices();
+builder.Services.AddApplicationServices(builder.Configuration);
 
 var app = builder.Build();
 
@@ -55,6 +117,14 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseCors();
+
+// Add authentication middleware (must be before authorization)
+var authOptions = builder.Configuration.GetSection(AuthenticationOptions.SectionName).Get<AuthenticationOptions>();
+if (authOptions?.Enabled == true)
+{
+    app.UseAuthentication();
+}
+
 app.UseAuthorization();
 app.MapControllers();
 

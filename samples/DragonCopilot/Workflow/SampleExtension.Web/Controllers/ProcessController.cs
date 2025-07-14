@@ -5,10 +5,12 @@ using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Dragon.Copilot.Models;
+using SampleExtension.Web.Attributes;
 using SampleExtension.Web.Extensions;
 using SampleExtension.Web.Services;
 
@@ -44,10 +46,14 @@ public class ProcessController : ControllerBase
     /// <returns>The processing response</returns>
     /// <response code="200">Successfully processed</response>
     /// <response code="400">Bad request</response>
+    /// <response code="401">Unauthorized</response>
     /// <response code="500">Internal server error</response>
     [HttpPost("process")]
+    [Authorize] // This will handle JWT authentication when enabled
+    [LicenseKeyAuthorize] // This will handle license key authorization when enabled
     [ProducesResponseType(typeof(ProcessResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(object), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(object), StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(object), StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<ProcessResponse>> ProcessDragonStandard(
         [FromBody] DragonStandardPayload payload,

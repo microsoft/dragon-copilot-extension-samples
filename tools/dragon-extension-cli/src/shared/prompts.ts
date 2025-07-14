@@ -102,8 +102,8 @@ export async function promptToolDetails(
     };
   }
 ): Promise<ToolDetails> {
-  const { 
-    includeAdaptiveCardPrompt = true, 
+  const {
+    includeAdaptiveCardPrompt = true,
     allowMultipleInputs = true,
     defaults = {}
   } = options || {};
