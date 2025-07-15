@@ -145,14 +145,15 @@ export async function validateManifest(filePath: string): Promise<void> {
 function isValidDataType(dataType: string): boolean {
   const validTypes = [
     'DSP',
-    'DSP/Note',
-    'DSP/IterativeTranscript',
-    'DSP/IterativeAudio',
     'DSP/Document',
     'DSP/DragonSession',
+    'DSP/Encounter',
+    'DSP/IterativeAudio',
+    'DSP/IterativeTranscript',
+    'DSP/Note',
     'DSP/Patient',
     'DSP/Practitioner',
-    'DSP/Encounter',
+    'DSP/Transcript',
     'DSP/Visit'
   ];
 
