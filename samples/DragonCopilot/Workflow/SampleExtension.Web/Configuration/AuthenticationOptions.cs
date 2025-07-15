@@ -1,10 +1,12 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
+using System.Collections.Generic;
+
 namespace SampleExtension.Web.Configuration;
 
 /// <summary>
-/// Configuration options for authentication
+/// JWT Authentication configuration options
 /// </summary>
 public class AuthenticationOptions
 {
@@ -19,22 +21,18 @@ public class AuthenticationOptions
     public bool Enabled { get; set; } = true;
 
     /// <summary>
-    /// Azure AD tenant ID
+    /// JWT token issuer
     /// </summary>
-    public string? TenantId { get; set; }
+    public string Issuer { get; set; } = string.Empty;
 
     /// <summary>
     /// Expected audience for JWT tokens
     /// </summary>
-    public string? Audience { get; set; }
+    public string Audience { get; set; } = string.Empty;
 
     /// <summary>
-    /// Azure AD instance (e.g., https://login.microsoftonline.com/)
+    /// Required claims that must be present in JWT tokens
     /// </summary>
-    public string Instance { get; set; } = "https://login.microsoftonline.com/";
+    public IReadOnlyDictionary<string, List<string>> RequiredClaims { get; } = new Dictionary<string, List<string>>();
 
-    /// <summary>
-    /// Client ID for the application
-    /// </summary>
-    public string? ClientId { get; set; }
 }

@@ -36,8 +36,9 @@ builder.Services.AddSwaggerGen(c =>
             Description = "JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {token}\"",
             Name = "Authorization",
             In = ParameterLocation.Header,
-            Type = SecuritySchemeType.ApiKey,
-            Scheme = "Bearer"
+            Type = SecuritySchemeType.Http,
+            Scheme = "bearer",
+            BearerFormat = "JWT"
         });
 
         c.AddSecurityRequirement(new OpenApiSecurityRequirement
@@ -57,13 +58,13 @@ builder.Services.AddSwaggerGen(c =>
     }
 
     // Add license key header to Swagger
-    var authzOptions = builder.Configuration.GetSection(AuthorizationOptions.SectionName).Get<AuthorizationOptions>();
-    if (authzOptions?.LicenseKeyEnabled == true)
+    var licenseOptions = builder.Configuration.GetSection(LicenseKeyOptions.SectionName).Get<LicenseKeyOptions>();
+    if (licenseOptions?.Enabled == true)
     {
         c.AddSecurityDefinition("LicenseKey", new OpenApiSecurityScheme
         {
-            Description = $"License key header. Example: \"{authzOptions.LicenseKeyHeader}: valid\"",
-            Name = authzOptions.LicenseKeyHeader,
+            Description = $"License key header for protected routes. Example: \"{licenseOptions.HeaderName}: your-license-key\"",
+            Name = licenseOptions.HeaderName,
             In = ParameterLocation.Header,
             Type = SecuritySchemeType.ApiKey
         });
@@ -96,10 +97,8 @@ builder.Services.AddCors(options =>
     });
 });
 
-// Add authentication services
+// Add authentication and application services
 builder.Services.AddCustomAuthentication(builder.Configuration);
-
-// Add application services
 builder.Services.AddApplicationServices(builder.Configuration);
 
 var app = builder.Build();
@@ -118,16 +117,12 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseCors();
 
-// Add authentication middleware (must be before authorization)
-var authOptions = builder.Configuration.GetSection(AuthenticationOptions.SectionName).Get<AuthenticationOptions>();
-if (authOptions?.Enabled == true)
-{
-    app.UseAuthentication();
-}
+// Apply full security (JWT + License Key) to all non-public routes
+app.UseFullSecurity();
 
 app.MapControllers();
 
-// Add health check endpoint
+// Add health check endpoint (PUBLIC - no authentication required)
 app.MapGet("/health", () => Results.Ok(new { status = "healthy", timestamp = DateTime.UtcNow }))
     .WithName("HealthCheck")
     .WithOpenApi();

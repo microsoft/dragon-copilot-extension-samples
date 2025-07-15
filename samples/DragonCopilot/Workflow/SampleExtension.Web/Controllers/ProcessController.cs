@@ -10,7 +10,6 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Dragon.Copilot.Models;
-using SampleExtension.Web.Attributes;
 using SampleExtension.Web.Extensions;
 using SampleExtension.Web.Services;
 
@@ -46,14 +45,15 @@ public class ProcessController : ControllerBase
     /// <returns>The processing response</returns>
     /// <response code="200">Successfully processed</response>
     /// <response code="400">Bad request</response>
-    /// <response code="401">Unauthorized</response>
+    /// <response code="401">Unauthorized - JWT authentication failed</response>
+    /// <response code="403">Forbidden - License key validation failed</response>
     /// <response code="500">Internal server error</response>
     [HttpPost("process")]
-    [Authorize] // This will handle JWT authentication when enabled
-    [Authorization] // This will handle license key authorization when enabled
+    [Authorize(Policy = "RequiredClaims")] // JWT + Claims validation (framework handles this)
     [ProducesResponseType(typeof(ProcessResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(object), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(object), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(object), StatusCodes.Status403Forbidden)]
     [ProducesResponseType(typeof(object), StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<ProcessResponse>> ProcessDragonStandard(
         [FromBody] DragonStandardPayload payload,
@@ -99,6 +99,7 @@ public class ProcessController : ControllerBase
     /// </summary>
     /// <returns>Service status</returns>
     [HttpGet("health")]
+    [AllowAnonymous] // Explicitly mark as public (though middleware will skip it anyway)
     [ProducesResponseType(typeof(object), StatusCodes.Status200OK)]
     public ActionResult HealthCheck()
     {
