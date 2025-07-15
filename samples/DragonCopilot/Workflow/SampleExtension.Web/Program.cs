@@ -125,7 +125,6 @@ if (authOptions?.Enabled == true)
     app.UseAuthentication();
 }
 
-app.UseAuthorization();
 app.MapControllers();
 
 // Add health check endpoint

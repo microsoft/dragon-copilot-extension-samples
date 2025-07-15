@@ -28,7 +28,7 @@ public static class ServiceCollectionExtensions
 
         // Register application services
         services.AddScoped<IProcessingService, ProcessingService>();
-        services.AddScoped<IAuthorizationService, AuthorizationService>();
+        services.AddScoped<IAuthorizationService, LicenseKeyAuthorizationService>();
 
         // Configure options
         services.Configure<AuthenticationOptions>(configuration.GetSection(AuthenticationOptions.SectionName));
@@ -49,7 +49,7 @@ public static class ServiceCollectionExtensions
 
         var authSection = configuration.GetSection(AuthenticationOptions.SectionName);
         var authOptions = authSection.Get<AuthenticationOptions>();
-        
+
         if (authOptions?.Enabled == true)
         {
             // Use Microsoft.Identity.Web for Azure AD authentication

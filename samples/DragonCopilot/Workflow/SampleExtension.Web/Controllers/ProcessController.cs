@@ -50,7 +50,7 @@ public class ProcessController : ControllerBase
     /// <response code="500">Internal server error</response>
     [HttpPost("process")]
     [Authorize] // This will handle JWT authentication when enabled
-    [LicenseKeyAuthorize] // This will handle license key authorization when enabled
+    [Authorization] // This will handle license key authorization when enabled
     [ProducesResponseType(typeof(ProcessResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(object), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(object), StatusCodes.Status401Unauthorized)]

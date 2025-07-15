@@ -12,19 +12,20 @@ using SampleExtension.Web.Configuration;
 namespace SampleExtension.Web.Services;
 
 /// <summary>
-/// Implementation of the authorization service
+/// Implementation of the authorization service that checks for a valid license key.
+/// Expects the license key to be provided in a specific header.
 /// </summary>
-public class AuthorizationService : IAuthorizationService
+public class LicenseKeyAuthorizationService : IAuthorizationService
 {
     private readonly AuthorizationOptions _options;
-    private readonly ILogger<AuthorizationService> _logger;
+    private readonly ILogger<LicenseKeyAuthorizationService> _logger;
 
     /// <summary>
-    /// Constructor for AuthorizationService
+    /// Constructor for LicenseKeyAuthorizationService
     /// </summary>
     /// <param name="options">Authorization configuration options</param>
     /// <param name="logger">The logger</param>
-    public AuthorizationService(IOptions<AuthorizationOptions> options, ILogger<AuthorizationService> logger)
+    public LicenseKeyAuthorizationService(IOptions<AuthorizationOptions> options, ILogger<LicenseKeyAuthorizationService> logger)
     {
         ArgumentNullException.ThrowIfNull(options);
         _options = options.Value;
@@ -32,57 +33,34 @@ public class AuthorizationService : IAuthorizationService
     }
 
     /// <inheritdoc />
-    public Task<bool> IsAuthorizedAsync(HttpRequest request)
+    public Task<AuthorizationResult> AuthorizeAsync(HttpRequest request)
     {
         ArgumentNullException.ThrowIfNull(request);
 
         if (!_options.LicenseKeyEnabled)
         {
             LogLicenseKeyDisabled(_logger, null);
-            return Task.FromResult(true);
+            return Task.FromResult(AuthorizationResult.Success());
         }
 
         var licenseKey = request.Headers[_options.LicenseKeyHeader].FirstOrDefault();
-        
+
         if (string.IsNullOrEmpty(licenseKey))
         {
             LogMissingLicenseKey(_logger, _options.LicenseKeyHeader, null);
-            return Task.FromResult(false);
+            return Task.FromResult(AuthorizationResult.Failure($"Missing required header: {_options.LicenseKeyHeader}"));
         }
 
         var isValid = string.Equals(licenseKey, _options.ValidLicenseKey, StringComparison.Ordinal);
-        
+
         if (!isValid)
         {
             LogInvalidLicenseKey(_logger, null);
-        }
-        else
-        {
-            LogLicenseKeyValid(_logger, null);
+            return Task.FromResult(AuthorizationResult.Failure("Invalid license key"));
         }
 
-        return Task.FromResult(isValid);
-    }
-
-    /// <inheritdoc />
-    public Task<string?> GetAuthorizationFailureReasonAsync(HttpRequest request)
-    {
-        ArgumentNullException.ThrowIfNull(request);
-
-        if (!_options.LicenseKeyEnabled)
-        {
-            return Task.FromResult<string?>(null);
-        }
-
-        var licenseKey = request.Headers[_options.LicenseKeyHeader].FirstOrDefault();
-        
-        if (string.IsNullOrEmpty(licenseKey))
-        {
-            return Task.FromResult<string?>($"Missing required header: {_options.LicenseKeyHeader}");
-        }
-
-        var isValid = string.Equals(licenseKey, _options.ValidLicenseKey, StringComparison.Ordinal);
-        return Task.FromResult<string?>(isValid ? null : "Invalid license key");
+        LogLicenseKeyValid(_logger, null);
+        return Task.FromResult(AuthorizationResult.Success());
     }
 
     #region High-performance logging

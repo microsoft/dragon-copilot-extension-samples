@@ -15,13 +15,6 @@ public interface IAuthorizationService
     /// Checks if the request is authorized based on license key
     /// </summary>
     /// <param name="request">The HTTP request</param>
-    /// <returns>True if authorized, false otherwise</returns>
-    Task<bool> IsAuthorizedAsync(HttpRequest request);
-
-    /// <summary>
-    /// Gets the authorization failure reason
-    /// </summary>
-    /// <param name="request">The HTTP request</param>
-    /// <returns>The failure reason or null if authorized</returns>
-    Task<string?> GetAuthorizationFailureReasonAsync(HttpRequest request);
+    /// <returns>Authorization result with success status and optional failure reason</returns>
+    Task<AuthorizationResult> AuthorizeAsync(HttpRequest request);
 }

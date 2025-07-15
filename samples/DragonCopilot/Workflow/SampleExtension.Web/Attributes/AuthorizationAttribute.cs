@@ -12,9 +12,9 @@ using SampleExtension.Web.Services;
 namespace SampleExtension.Web.Attributes;
 
 /// <summary>
-/// Custom authorization attribute for license key validation
+/// Custom authorization attribute for configured authorization service
 /// </summary>
-public sealed class LicenseKeyAuthorizeAttribute : ActionFilterAttribute
+public sealed class AuthorizationAttribute : ActionFilterAttribute
 {
     /// <inheritdoc />
     public override async Task OnActionExecutionAsync(ActionExecutingContext context, ActionExecutionDelegate next)
@@ -23,20 +23,17 @@ public sealed class LicenseKeyAuthorizeAttribute : ActionFilterAttribute
         ArgumentNullException.ThrowIfNull(next);
 
         var authorizationService = context.HttpContext.RequestServices.GetRequiredService<IAuthorizationService>();
-        
-        var isAuthorized = await authorizationService.IsAuthorizedAsync(context.HttpContext.Request)
+
+        var authorizationResult = await authorizationService.AuthorizeAsync(context.HttpContext.Request)
             .ConfigureAwait(false);
-        
-        if (!isAuthorized)
+
+        if (!authorizationResult.IsAuthorized)
         {
-            var failureReason = await authorizationService.GetAuthorizationFailureReasonAsync(context.HttpContext.Request)
-                .ConfigureAwait(false);
-            
             context.Result = new ObjectResult(new
             {
                 success = false,
                 error = "Unauthorized",
-                message = failureReason ?? "Authorization failed"
+                message = authorizationResult.FailureReason ?? "Authorization failed"
             })
             {
                 StatusCode = StatusCodes.Status401Unauthorized
