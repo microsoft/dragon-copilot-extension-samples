@@ -18,21 +18,26 @@ public class AuthenticationOptions
     /// <summary>
     /// Whether authentication is enabled
     /// </summary>
-    public bool Enabled { get; set; } = true;
+    public bool Enabled { get; set; }
 
     /// <summary>
-    /// JWT token issuer
+    /// Tenant ID for the application
     /// </summary>
-    public string Issuer { get; set; } = string.Empty;
+    public string TenantId { get; set; }
 
     /// <summary>
-    /// Expected audience for JWT tokens
+    /// Client ID for the application
     /// </summary>
-    public string Audience { get; set; } = string.Empty;
+    public string ClientId { get; set; }
+
+    /// <summary>
+    /// Login instance (e.g., "https://login.microsoftonline.com/")
+    /// </summary>
+    public string Instance { get; set; }
 
     /// <summary>
     /// Required claims that must be present in JWT tokens
     /// </summary>
-    public IReadOnlyDictionary<string, List<string>> RequiredClaims { get; } = new Dictionary<string, List<string>>();
+    public IDictionary<string, List<string>> RequiredClaims { get; } = new Dictionary<string, List<string>>();
 
 }
