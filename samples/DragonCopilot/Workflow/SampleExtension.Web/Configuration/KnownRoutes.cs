@@ -16,7 +16,7 @@ public static class KnownRoutes
     /// </summary>
     private const string Health = "/health";           // Mapped in Program.cs
     private const string HealthV1 = "/v1/health";      // Controller endpoint
-    private const string Swagger = "/index.html";       // Swagger UI endpoint
+    private const string Swagger = "/index.html";      // Swagger UI endpoint
 
     /// <summary>
     /// Array of public routes

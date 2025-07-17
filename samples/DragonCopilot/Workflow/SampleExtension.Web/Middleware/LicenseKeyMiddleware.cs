@@ -19,7 +19,7 @@ namespace SampleExtension.Web.Middleware;
 public class LicenseKeyMiddleware
 {
     private readonly RequestDelegate _next;
-    private readonly LicenseKeyOptions _options;
+    private readonly LicenseKeyOptions _licenseKeyOptions;
     private readonly ILogger<LicenseKeyMiddleware> _logger;
 
     /// <summary>
@@ -34,7 +34,7 @@ public class LicenseKeyMiddleware
         ArgumentNullException.ThrowIfNull(options?.Value, nameof(options));
 
         _next = next;
-        _options = options.Value;
+        _licenseKeyOptions = options.Value;
         _logger = logger;
     }
 
@@ -48,15 +48,15 @@ public class LicenseKeyMiddleware
         ArgumentNullException.ThrowIfNull(context, nameof(context));
 
         // Skip if license key validation is globally disabled
-        if (!_options.Enabled)
+        if (!_licenseKeyOptions.Enabled)
         {
             await _next(context).ConfigureAwait(false);
             return;
         }
 
-        var licenseKey = context.Request.Headers[_options.HeaderName].FirstOrDefault();
+        var licenseKey = context.Request.Headers[_licenseKeyOptions.HeaderName].FirstOrDefault();
 
-        if (string.IsNullOrEmpty(licenseKey) || !_options.ValidKeys.Contains(licenseKey))
+        if (string.IsNullOrEmpty(licenseKey) || !_licenseKeyOptions.ValidKeys.Contains(licenseKey))
         {
             context.Response.StatusCode = StatusCodes.Status403Forbidden;
             context.Response.ContentType = "application/json";

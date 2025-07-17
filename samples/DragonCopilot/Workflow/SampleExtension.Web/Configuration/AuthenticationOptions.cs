@@ -38,6 +38,5 @@ public class AuthenticationOptions
     /// <summary>
     /// Required claims that must be present in JWT tokens
     /// </summary>
-    public IDictionary<string, List<string>> RequiredClaims { get; } = new Dictionary<string, List<string>>();
-
+    public IDictionary<string, HashSet<string>> RequiredClaims { get; } = new Dictionary<string, HashSet<string>>();
 }

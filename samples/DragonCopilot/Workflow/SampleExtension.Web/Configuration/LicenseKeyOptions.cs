@@ -28,5 +28,5 @@ public class LicenseKeyOptions
     /// <summary>
     /// Array of valid license keys
     /// </summary>
-    public IList<string> ValidKeys { get; } = new List<string>();
+    public ICollection<string> ValidKeys { get; } = new HashSet<string>();
 }
