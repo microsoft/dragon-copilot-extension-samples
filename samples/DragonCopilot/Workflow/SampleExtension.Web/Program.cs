@@ -4,11 +4,8 @@
 using System;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.OpenApi.Models;
-using SampleExtension.Web.Configuration;
 using SampleExtension.Web.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -18,73 +15,7 @@ builder.Services.AddControllers();
 
 // Add API Explorer and Swagger
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen(c =>
-{
-    c.SwaggerDoc("v1", new OpenApiInfo
-    {
-        Title = "Sample Extension API",
-        Version = "v1",
-        Description = "A sample extension API that accepts posts from the Dragon Backend Simulator"
-    });
-
-    // Add JWT authentication to Swagger
-    var authOptions = builder.Configuration.GetSection(AuthenticationOptions.SectionName).Get<AuthenticationOptions>();
-    if (authOptions?.Enabled == true)
-    {
-        c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
-        {
-            Description = "JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {token}\"",
-            Name = "Authorization",
-            In = ParameterLocation.Header,
-            Type = SecuritySchemeType.Http,
-            Scheme = "bearer",
-            BearerFormat = "JWT"
-        });
-
-        c.AddSecurityRequirement(new OpenApiSecurityRequirement
-        {
-            {
-                new OpenApiSecurityScheme
-                {
-                    Reference = new OpenApiReference
-                    {
-                        Type = ReferenceType.SecurityScheme,
-                        Id = "Bearer"
-                    }
-                },
-                Array.Empty<string>()
-            }
-        });
-    }
-
-    // Add license key header to Swagger
-    var licenseOptions = builder.Configuration.GetSection(LicenseKeyOptions.SectionName).Get<LicenseKeyOptions>();
-    if (licenseOptions?.Enabled == true)
-    {
-        c.AddSecurityDefinition("LicenseKey", new OpenApiSecurityScheme
-        {
-            Description = $"License key header for protected routes. Example: \"{licenseOptions.HeaderName}: your-license-key\"",
-            Name = licenseOptions.HeaderName,
-            In = ParameterLocation.Header,
-            Type = SecuritySchemeType.ApiKey
-        });
-
-        c.AddSecurityRequirement(new OpenApiSecurityRequirement
-        {
-            {
-                new OpenApiSecurityScheme
-                {
-                    Reference = new OpenApiReference
-                    {
-                        Type = ReferenceType.SecurityScheme,
-                        Id = "LicenseKey"
-                    }
-                },
-                Array.Empty<string>()
-            }
-        });
-    }
-});
+builder.AddSwaggerConfiguration();
 
 // Add CORS to allow requests from the backend simulator
 builder.Services.AddCors(options =>
