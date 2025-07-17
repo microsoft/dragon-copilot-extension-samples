@@ -6,7 +6,6 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.OpenApi.Models;
 using SampleExtension.Web.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -16,15 +15,7 @@ builder.Services.AddControllers();
 
 // Add API Explorer and Swagger
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen(c =>
-{
-    c.SwaggerDoc("v1", new OpenApiInfo
-    {
-        Title = "Sample Extension API",
-        Version = "v1",
-        Description = "A sample extension API that accepts posts from the Dragon Backend Simulator"
-    });
-});
+builder.AddSwaggerConfiguration();
 
 // Add CORS to allow requests from the backend simulator
 builder.Services.AddCors(options =>
@@ -37,8 +28,9 @@ builder.Services.AddCors(options =>
     });
 });
 
-// Add application services
-builder.Services.AddApplicationServices();
+// Add authentication and application services
+builder.Services.AddCustomAuthentication(builder.Configuration);
+builder.Services.AddApplicationServices(builder.Configuration);
 
 var app = builder.Build();
 
@@ -55,10 +47,13 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseCors();
-app.UseAuthorization();
+
+// Apply full security (JWT + License Key) to all non-public routes
+app.UseFullSecurity();
+
 app.MapControllers();
 
-// Add health check endpoint
+// Add health check endpoint (PUBLIC - no authentication required)
 app.MapGet("/health", () => Results.Ok(new { status = "healthy", timestamp = DateTime.UtcNow }))
     .WithName("HealthCheck")
     .WithOpenApi();
