@@ -23,7 +23,7 @@ public class LicenseKeyOptions
     /// <summary>
     /// Header name containing the license key
     /// </summary>
-    public string HeaderName { get; set; }
+    public string? HeaderName { get; set; }
 
     /// <summary>
     /// Array of valid license keys

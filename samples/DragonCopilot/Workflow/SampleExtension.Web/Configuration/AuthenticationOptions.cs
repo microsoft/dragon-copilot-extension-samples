@@ -23,12 +23,12 @@ public class AuthenticationOptions
     /// <summary>
     /// Tenant ID for the application
     /// </summary>
-    public string TenantId { get; set; }
+    public string? TenantId { get; set; }
 
     /// <summary>
     /// Client ID for the application
     /// </summary>
-    public string ClientId { get; set; }
+    public string? ClientId { get; set; }
 
     /// <summary>
     /// Login instance (e.g., "https://login.microsoftonline.com/")
