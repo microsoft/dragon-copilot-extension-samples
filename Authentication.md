@@ -28,8 +28,6 @@ The development configuration disables both authentication layers for ease of te
 
 - **Authentication**: Disabled
 - **License Key Validation**: Disabled
-- **Swagger**: Enabled for API testing
-- **Detailed Errors**: Enabled for debugging
 
 **Purpose**: Allows easy testing and development without authentication overhead.
 
@@ -39,13 +37,12 @@ The production configuration enables full security:
 
 - **Authentication**: Enabled with Microsoft Entra ID integration
 - **License Key Validation**: Enabled with configurable header name and valid keys
-- **Swagger**: Disabled for security
-- **Detailed Errors**: Disabled to prevent information leakage
 
 **Required Production Settings**:
 - `TenantId`: Your organization's Entra ID tenant identifier
 - `ClientId`: The registered application identifier in Entra ID
 - `Instance`: The Entra ID authority URL (typically `https://login.microsoftonline.com/`)
+- `RequiredClaims`: Array of required claims for authorization (e.g., `["oid", "azp"]`)
 - `HeaderName`: Custom header name for license keys (e.g., `"X-License-Key"`)
 - `ValidKeys`: Array of valid license key values
 
@@ -114,7 +111,7 @@ Security middleware is applied selectively using route filtering:
 | **200** | Success | Request processed successfully |
 | **400** | Bad Request | Invalid payload or parameters |
 | **401** | Unauthorized | JWT authentication failed or missing |
-| **403** | Forbidden | License key validation failed |
+| **403** | Forbidden | JWT required claims missing, License key validation failed |
 | **500** | Internal Server Error | Processing exception |
 
 ## Swagger Integration
@@ -138,7 +135,6 @@ Production requests require both JWT tokens and license keys:
 
 - **Authorization header**: Bearer token from Entra ID
 - **License key header**: Valid license key value
-- **Content-Type**: Standard JSON content type
 
 ## Extension Points
 
@@ -147,7 +143,6 @@ This architecture provides several extension opportunities:
 1. **Enhanced License Logic**: Replace simple key validation with database lookups, expiration checks, feature flags
 2. **Rate Limiting**: Implement different limits per license tier
 3. **Audit Logging**: Track API usage per license key
-4. **Dynamic Claims**: Add custom claims to JWT tokens based on license level
 5. **Multi-tenant Support**: Route requests based on license key to different processing logic
 
 ## Security Best Practices

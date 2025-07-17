@@ -33,7 +33,7 @@ public class AuthenticationOptions
     /// <summary>
     /// Login instance (e.g., "https://login.microsoftonline.com/")
     /// </summary>
-    public string Instance { get; set; }
+    public string Instance { get; set; } = "https://login.microsoftonline.com/";
 
     /// <summary>
     /// Required claims that must be present in JWT tokens
