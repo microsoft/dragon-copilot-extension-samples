@@ -4,7 +4,7 @@ import path from 'path';
 
 const { writeFileSync, removeSync } = fs;
 
-const testManifestPath = path.join(__dirname, 'test-manifest.yaml');
+const testManifestPath = path.join(__dirname, 'test-extension.yaml');
 
 // Mock console.log to prevent output during tests
 const mockConsoleLog = jest.spyOn(console, 'log').mockImplementation(() => {});

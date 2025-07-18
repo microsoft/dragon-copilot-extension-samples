@@ -10,7 +10,7 @@ import { PackageOptions, DragonExtensionManifest } from '../types.js';
 export async function packageExtension(options: PackageOptions): Promise<void> {
   console.log(chalk.blue('🐉 Packaging Dragon Copilot Extension'));
 
-  const manifestPath = options.manifest || 'manifest.yaml';
+  const manifestPath = options.manifest || 'extension.yaml';
 
   // Validate manifest exists
   if (!(await pathExists(manifestPath))) {
@@ -64,8 +64,8 @@ export async function packageExtension(options: PackageOptions): Promise<void> {
     archive.pipe(output);
 
     // Add manifest file
-    archive.file(manifestPath, { name: 'manifest.yaml' });
-    console.log(chalk.gray(`✓ Added manifest.yaml`));
+    archive.file(manifestPath, { name: 'extension.yaml' });
+    console.log(chalk.gray(`✓ Added extension.yaml`));
 
     // Add additional files if specified
     if (options.include && options.include.length > 0) {

@@ -27,7 +27,7 @@ program
   .command('generate')
   .description('Generate a manifest file from a template')
   .option('-t, --template <template>', 'Template to use (note-analysis, speech-analysis, custom)')
-  .option('-o, --output <path>', 'Output file path', 'manifest.yaml')
+  .option('-o, --output <path>', 'Output file path', 'extension.yaml')
   .option('-i, --interactive', 'Interactive mode')
   .action(generateManifest);
 
@@ -40,7 +40,7 @@ program
 program
   .command('package')
   .description('Package extension into a ZIP file')
-  .option('-m, --manifest <path>', 'Manifest file path', 'manifest.yaml')
+  .option('-m, --manifest <path>', 'Manifest file path', 'extension.yaml')
   .option('-o, --output <path>', 'Output ZIP file path')
   .option('-i, --include <patterns...>', 'Additional files to include')
   .action(packageExtension);

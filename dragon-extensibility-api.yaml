@@ -1,0 +1,709 @@
+openapi: 3.0.0
+info:
+  title: Dragon Extensibility API
+  version: 1.0.0
+  description: API definition for enabling Dragon Extensibility integrations
+
+paths:
+  /v1/process:
+    post:
+      summary: Process Dragon Standard payload
+      description: Endpoint to process a Dragon Standard payload containing note, transcript, iterative transcript and / or iterative audio data
+      operationId: processDragonStandard
+      parameters:
+        - name: x-ms-request-id
+          in: header
+          required: false
+          schema:
+            type: string
+          description: Unique request identifier. In case of retries for the same call, this value is the same.
+        - name: x-ms-correlation-id
+          in: header
+          required: false
+          schema:
+            type: string
+          description: Correlation identifier for tracking. Stays same for the execution of multiple extensions in the scope of the same patient recording.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DragonStandardPayload"
+      responses:
+        "200":
+          description: Successfully processed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProcessResponse"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  error:
+                    type: string
+                    example: "Invalid payload format"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  error:
+                    type: string
+                    example: "Internal server error occurred"
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    DragonStandardPayload:
+      type: object
+      description: Dragon Standard payload containing session data, and note, transcript, iterative transcript and / or iterative audio data
+      required:
+        - sessionData
+      properties:
+        sessionData:
+          $ref: "#/components/schemas/SessionData"
+      additionalProperties:
+        oneOf:
+          - $ref: "#/components/schemas/Note"
+          - $ref: "#/components/schemas/Transcript"
+          - $ref: "#/components/schemas/IterativeTranscript"
+          - $ref: "#/components/schemas/IterativeAudio"
+    IterativeAudio:
+      type: object
+      properties:
+        payload_version:
+          type: string
+          example: "1.1.0"
+        schema_version:
+          type: string
+          example: "0.1"
+        language:
+          type: string
+          example: "en-US"
+        encounter:
+          $ref: "#/components/schemas/Encounter"
+        turn:
+          $ref: "#/components/schemas/AudioTurn"
+
+    AudioTurn:
+      type: object
+      required:
+        - index
+        - speaker
+        - audio
+        - start_time
+        - end_time
+      properties:
+        index:
+          type: integer
+          example: 0
+        speaker:
+          type: string
+          example: "Clinician"
+        audio:
+          type: string
+          format: byte
+          description: "Base64-encoded audio data"
+        start_time:
+          type: string
+          example: "00:00:00.000"
+        end_time:
+          type: string
+          example: "00:00:14.940"
+
+    Note:
+      type: object
+      properties:
+        payload_version:
+          type: string
+          example: "1.1.0"
+        schema_version:
+          type: string
+          example: "0.1"
+        language:
+          type: string
+          example: "en-US"
+        priority:
+          type: string
+          nullable: true
+        encounter:
+          $ref: "#/components/schemas/Encounter"
+        sessions:
+          type: array
+          items:
+            $ref: "#/components/schemas/Session"
+        document:
+          $ref: "#/components/schemas/Document"
+        resources:
+          type: array
+          items:
+            $ref: "#/components/schemas/ClinicalDocumentSection"
+
+    Transcript:
+      type: object
+      properties:
+        payload_version:
+          type: string
+          example: "2.2.0"
+        schema_version:
+          type: string
+          example: "0.1"
+        language:
+          type: string
+          example: "en-US"
+        encounter:
+          $ref: "#/components/schemas/Encounter"
+        recordings:
+          type: array
+          items:
+            $ref: "#/components/schemas/Recording"
+        transcript:
+          $ref: "#/components/schemas/TranscriptContent"
+
+    IterativeTranscript:
+      type: object
+      properties:
+        payload_version:
+          type: string
+          example: "1.1.0"
+        schema_version:
+          type: string
+          example: "0.1"
+        language:
+          type: string
+          example: "en-US"
+        encounter:
+          $ref: "#/components/schemas/Encounter"
+        turn:
+          $ref: "#/components/schemas/Turn"
+
+    Encounter:
+      type: object
+      properties:
+        correlation_id:
+          type: string
+          example: "aeda69e6-99c2-466d-a55e-6a9547af06a5"
+        external_encounter_id:
+          type: string
+          example: "6488"
+        status:
+          type: string
+          example: "complete"
+        date_of_encounter:
+          type: string
+          format: date-time
+          example: "2025-06-20T08:51:53.858360Z"
+        patient:
+          $ref: "#/components/schemas/Patient"
+        practitioner:
+          $ref: "#/components/schemas/Practitioner"
+        visit:
+          $ref: "#/components/schemas/Visit"
+        organization_id:
+          type: string
+          example: "01bd0d47-1621-4a29-941d-00e9a9420f20"
+        user_id:
+          type: string
+          example: "5df21012-bdee-414d-ba75-ec1a1ad2c82c"
+        recording_locales:
+          type: array
+          items:
+            type: string
+          example: ["en-US"]
+        report_locale:
+          type: string
+          example: "en-US"
+        ui_locale:
+          type: string
+          example: "en-US"
+
+    Patient:
+      type: object
+      properties:
+        name_details:
+          type: object
+          properties:
+            given_name:
+              type: string
+            family_name:
+              type: string
+        gender:
+          type: string
+          example: "Unspecified"
+        pronoun_preference:
+          type: object
+          properties:
+            description:
+              type: string
+              example: "he/him/his/his/himself"
+            identifier:
+              type: string
+              example: "LA29518-0"
+            system:
+              type: string
+              example: "loinc.org"
+        medical_record_number:
+          type: string
+        external_patient_id:
+          type: string
+
+    Practitioner:
+      type: object
+      properties:
+        full_name:
+          type: string
+        user_id:
+          type: string
+        external_practitioner_ids:
+          type: array
+          items:
+            type: object
+            properties:
+              identifier:
+                type: string
+              type:
+                type: string
+
+    Visit:
+      type: object
+      properties:
+        reason_for_visit:
+          type: string
+
+    Session:
+      type: object
+      properties:
+        dax_session_id:
+          type: string
+          example: "b65c4365-05bd-493b-953d-ae73b9f6ee1a"
+        user_id:
+          type: string
+        organization_id:
+          type: string
+
+    Document:
+      type: object
+      properties:
+        title:
+          type: string
+          example: "Outpatient Note"
+        type:
+          type: object
+          properties:
+            text:
+              type: string
+            codes:
+              type: array
+              items:
+                $ref: "#/components/schemas/Code"
+
+    ClinicalDocumentSection:
+      type: object
+      properties:
+        legacy_id:
+          type: string
+        context:
+          $ref: "#/components/schemas/Context"
+        content:
+          type: string
+
+    Code:
+      type: object
+      properties:
+        system:
+          type: string
+          nullable: true
+        code:
+          type: string
+          description: "Maps to CodeValue in C# model"
+          nullable: true
+        system_url:
+          type: string
+          nullable: true
+        identifier:
+          type: string
+          nullable: true
+        description:
+          type: string
+          nullable: true
+
+    Context:
+      type: object
+      properties:
+        id:
+          type: string
+        content_type:
+          type: string
+        display_description:
+          type: string
+        definition:
+          type: string
+          description: "Describes the purpose or functionality of the context"
+          example: "A lab orders component that supports only lab orders."
+        codes:
+          type: array
+          items:
+            $ref: "#/components/schemas/Code"
+        spoken_forms:
+          type: array
+          items:
+            type: string
+
+    Recording:
+      type: object
+      properties:
+        id:
+          type: string
+        first_turn:
+          type: integer
+        last_turn:
+          type: integer
+        length:
+          type: string
+        creation_date:
+          type: string
+          format: date-time
+
+    TranscriptContent:
+      type: object
+      required:
+        - speaker_count
+        - turns
+        - webVTT
+      properties:
+        speaker_count:
+          type: integer
+          example: 2
+        turns:
+          type: array
+          items:
+            $ref: "#/components/schemas/Turn"
+        webVTT:
+          type: string
+
+    SessionData:
+      type: object
+      properties:
+        correlation_id:
+          type: string
+          example: "f40dd0d0-4201-d29d-79b4-df40189fd2f0"
+        session_start:
+          type: string
+          format: date-time
+          example: "2025-06-20T08:57:35.978Z"
+        tenant_id:
+          type: string
+          example: "01bd0d47-1621-4a29-941d-00e9a9420f20"
+
+    Turn:
+      type: object
+      required:
+        - index
+        - speaker
+        - text
+        - start_time
+        - end_time
+      properties:
+        index:
+          type: integer
+          example: 0
+        speaker:
+          type: string
+          example: "Clinician"
+        text:
+          type: string
+          example: "Hi Mr. Porter, good to see you."
+        start_time:
+          type: string
+          example: "00:00:00.000"
+        end_time:
+          type: string
+          example: "00:00:14.940"
+
+    ProcessResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: "Payload processed successfully"
+        payload:
+          type: object
+          additionalProperties:
+            $ref: "#/components/schemas/DSP"
+
+    DSP:
+      type: object
+      properties:
+        payload_version:
+          type: string
+          description: This represents the version of payload definition.
+        schema_version:
+          type: string
+          description: References the DSP version utilized, as the structure requirements may evolve.
+          example: "0.1"
+        priority:
+          type: string
+          description: The priority in which the payload must be handled
+          enum: [low, medium, high]
+        external_callback_url:
+          type: string
+          format: uri
+          description: Endpoint to be used to make FHIR requests back to partner
+        encounter:
+          $ref: "#/components/schemas/Encounter"
+        recordings:
+          type: array
+          description: A list of recordings that have taken place during the encounter.
+          items:
+            $ref: "#/components/schemas/Recording"
+        document:
+          $ref: "#/components/schemas/Document"
+        resources:
+          type: array
+          description: A list clinical or non-clinical objects extracted or generated based on source materials (ie. transcript).
+          items:
+            anyOf:
+              - $ref: "#/components/schemas/ClinicalDocumentSection"
+              - $ref: "#/components/schemas/VisualizationResource"
+              - $ref: "#/components/schemas/MedicalCode"
+              - $ref: "#/components/schemas/ObservationConcept"
+              - $ref: "#/components/schemas/ObservationNumber"
+
+    VisualizationResource:
+      type: object
+      required:
+        [id, type, adaptive_card_payload, payloadSources, dragonCopilotCopyData]
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+          enum: [AdaptiveCard]
+        adaptive_card_payload:
+          description: Adaptive Card payload as defined by the Adaptive Card schema
+          # Reference to external JSON schema
+          allOf:
+            - $ref: "http://adaptivecards.io/schemas/adaptive-card.json"
+        payloadSources:
+          type: array
+          items:
+            type: object
+            properties:
+              identifier:
+                type: string
+                description: The unique identifier for referencing the overall request
+              description:
+                type: string
+                description: The name of the source that generated the code. Could be internal or vendor service
+              url:
+                type: string
+                format: uri
+                description: A URL pointing to the source or relevant resource
+            required: [identifier, description, url]
+            additionalProperties: false
+        dragonCopilotCopyData:
+          type: string
+
+    Provenance:
+      type: array
+      description: An array of the sources, and source details, used to generate the data.
+      items:
+        type: object
+        properties:
+          session_id:
+            type: string
+            description: The ID of the session for which the value was obtained.
+          source:
+            type: string
+            description: The input source type. 'transcript', 'document', 'patient_details', etc.
+          turns:
+            type: array
+            description: For use with 'transcript' source types. An array of turn ids used in the generation of the data.
+            items:
+              type: object
+              properties:
+                index:
+                  type: integer
+                  description: The index value of the transcript.
+                positions:
+                  type: array
+                  minItems: 2
+                  maxItems: 2
+                  items:
+                    type: integer
+                    description: The character position (start, end).
+          document_sections:
+            type: array
+            description: For use with 'document_section' source types. An array of document section ids used in the generation of the data.
+            items:
+              type: object
+              properties:
+                id:
+                  type: string
+                positions:
+                  type: array
+                  minItems: 2
+                  maxItems: 2
+                  items:
+                    type: integer
+                    description: The character position (start, end).
+
+    MedicalCode:
+      type: object
+      description: Represents a medical code with context, code details, and provenance.
+      properties:
+        id:
+          type: string
+          description: The unique internal identifier for the medication.
+        context:
+          $ref: "#/components/schemas/Context"
+          description: The circumstances that form the setting for the resource in terms of which it can be fully understood, assessed, and mapped.
+        code:
+          type: object
+          required: [identifier]
+          properties:
+            identifier:
+              type: string
+              description: The code value.
+            description:
+              type: string
+              description: The description of the code.
+            system_url:
+              type: string
+              format: uri
+              description: The url resource to obtain the system details.
+            system_version:
+              type: string
+              description: The version of the system.
+        details:
+          type: string
+          description: Details regarding why the code was applied.
+        source:
+          type: object
+          properties:
+            id:
+              type: string
+              description: The unique identifier for referencing the overall request.
+            description:
+              type: string
+              description: The name of the source that generated the code. Could be internal or vendor service.
+          additionalProperties: false
+        priority:
+          type: string
+          description: The priority in which the payload resource must be handled.
+          enum: [low, medium, high]
+        reason:
+          type: string
+          description: The reason the code is being recommended.
+        provenance:
+          $ref: "#/components/schemas/Provenance"
+          description: An array of the sources, and source details, used to generate the data.
+      required:
+        - context
+        - code
+
+    ObservationConcept:
+      type: object
+      description: Represents an observation concept with value, codes, and provenance.
+      properties:
+        id:
+          type: string
+          description: The unique internal identifier for the concept.
+        context:
+          $ref: "#/components/schemas/Context"
+          description: The circumstances that form the setting for the resource in terms of which it can be fully understood, assessed, and mapped.
+        value:
+          type: object
+          properties:
+            text:
+              type: string
+              description: The actual value goes here.
+            codes:
+              type: array
+              items:
+                type: object
+                properties:
+                  system:
+                    type: string
+                    description: The coding system that the code belongs to.
+                  identifier:
+                    type: string
+                    description: The code value.
+                  description:
+                    type: string
+                    description: The description of the code.
+                  system_url:
+                    type: string
+                    format: uri
+                    description: The url resource to obtain the system details.
+                  system_version:
+                    type: string
+                    description: The version of the system.
+            concept_id:
+              type: string
+              description: The identifier for the Dragon defined concept.
+        priority:
+          type: string
+          description: The priority in which the payload resource must be handled.
+          enum: [low, medium, high]
+        parent_reference:
+          type: string
+          format: uuid
+          description: A reference to the parent entity which the resource belongs.
+        provenance:
+          $ref: "#/components/schemas/Provenance"
+          description: An array of the sources, and source details, used to generate the data.
+      required:
+        - context
+
+    ObservationNumber:
+      type: object
+      description: Represents a numeric observation with context, value, and provenance.
+      properties:
+        id:
+          type: string
+          description: The unique internal identifier for the number.
+        context:
+          $ref: "#/components/schemas/Context"
+          description: The circumstances that form the setting for the resource in terms of which it can be fully understood, assessed, and mapped.
+        value:
+          type: number
+          description: The value which is an integer or float/double.
+        value_unit:
+          type: string
+          description: The unit for the value.
+        priority:
+          type: string
+          description: The priority in which the payload resource must be handled.
+          enum: [low, medium, high]
+        parent_reference:
+          type: string
+          format: uuid
+          description: A reference to the parent entity which the resource belongs.
+        provenance:
+          $ref: "#/components/schemas/Provenance"
+          description: An array of the sources, and source details, used to generate the data.
+      required:
+        - context
+        - value

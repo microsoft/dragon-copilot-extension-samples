@@ -385,7 +385,7 @@ dragon-extension init
 dragon-extension generate --template note-analysis
 
 # Validate a manifest
-dragon-extension validate manifest.yaml
+dragon-extension validate extension.yaml
 
 # Package extension
 dragon-extension package
