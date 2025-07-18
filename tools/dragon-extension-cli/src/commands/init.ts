@@ -71,7 +71,7 @@ export async function initProject(options: InitOptions): Promise<void> {
     });
   }
 
-  const outputPath = path.join(options.output || '.', 'manifest.yaml');
+  const outputPath = path.join(options.output || '.', 'extension.yaml');
   const yamlContent = dump(manifest, { lineWidth: -1 });
 
   writeFileSync(outputPath, yamlContent);

@@ -26,7 +26,7 @@ async function generateInteractive(options: GenerateOptions): Promise<void> {
   // Check if manifest already exists
   let existingManifest: DragonExtensionManifest | null = null;
   try {
-    const existing = readFileSync(options.output || 'manifest.yaml', 'utf8');
+    const existing = readFileSync(options.output || 'extension.yaml', 'utf8');
     existingManifest = load(existing) as DragonExtensionManifest;
     console.log(chalk.yellow('📄 Found existing manifest, will add to it'));
   } catch {
@@ -80,10 +80,10 @@ async function generateInteractive(options: GenerateOptions): Promise<void> {
   }
 
   const yamlContent = dump(manifest, { lineWidth: -1 });
-  writeFileSync(options.output || 'manifest.yaml', yamlContent);
+  writeFileSync(options.output || 'extension.yaml', yamlContent);
 
   console.log(chalk.green('\n✅ Tool added to manifest successfully!'));
-  console.log(chalk.gray(`📁 Manifest saved to: ${options.output || 'manifest.yaml'}`));
+  console.log(chalk.gray(`📁 Manifest saved to: ${options.output || 'extension.yaml'}`));
 }
 
 async function generateFromTemplate(options: GenerateOptions): Promise<void> {
@@ -95,10 +95,10 @@ async function generateFromTemplate(options: GenerateOptions): Promise<void> {
   try {
     const template = getTemplate(options.template);
     const yamlContent = dump(template, { lineWidth: -1 });
-    writeFileSync(options.output || 'manifest.yaml', yamlContent);
+    writeFileSync(options.output || 'extension.yaml', yamlContent);
 
     console.log(chalk.green(`✅ Manifest generated from template: ${options.template}`));
-    console.log(chalk.gray(`📁 Manifest saved to: ${options.output || 'manifest.yaml'}`));
+    console.log(chalk.gray(`📁 Manifest saved to: ${options.output || 'extension.yaml'}`));
   } catch (error) {
     console.log(chalk.red(`❌ Error generating from template: ${error}`));
   }
