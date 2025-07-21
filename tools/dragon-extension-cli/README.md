@@ -1,10 +1,11 @@
 # Dragon Extension CLI
 
-A cross-platform CLI tool for Dragon Copilot extension development, including manifest generation and packaging for distribution.
+A cross-platform CLI tool for Dragon Copilot extension development, including manifest generation, publisher configuration, and packaging for distribution.
 
 ## Features
 
 - **Interactive Manifest Generation**: Step-by-step wizard to create manifests
+- **Publisher Configuration**: Generate and manage publisher.json files
 - **Template-based Generation**: Pre-built templates for common use cases
 - **Manifest Validation**: Comprehensive validation with helpful error messages
 - **Extension Packaging**: Create ZIP packages ready for distribution
@@ -48,7 +49,7 @@ npm link
 dragon-extension init
 ```
 
-Interactive prompts will guide you through creating a new extension manifest.
+Interactive prompts will guide you through creating a new extension manifest and publisher configuration.
 
 ### Generate from Template
 
@@ -66,11 +67,15 @@ dragon-extension generate --template speech-analysis
 dragon-extension generate --interactive
 ```
 
+This will also offer to create or update the publisher.json file.
+
 ### Validate a Manifest
 
 ```bash
-dragon-extension validate manifest.yaml
+dragon-extension validate extension.yaml
 ```
+
+This validates both the extension manifest and publisher.json (if present).
 
 ### Package Extension
 
@@ -79,10 +84,20 @@ dragon-extension validate manifest.yaml
 dragon-extension package
 
 # Include additional files
-dragon-extension package --include README.md LICENSE images/logo.png
+dragon-extension package --include images/logo.png
 
 # Custom output name
 dragon-extension package --output my-extension-v1.0.0.zip
+```
+
+## File Structure
+
+A typical Dragon Copilot extension project includes:
+
+```
+my-extension/
+├── extension.yaml      # Extension manifest
+└── publisher.json      # Publisher configuration
 ```
 
 ## Manifest Format
@@ -108,12 +123,39 @@ tools:
         data: DSP
 ```
 
-### Supported Data Types
+## Publisher Configuration Format
 
-- `DSP/Note` - Clinical notes
-- `DSP/Transcript` - Transcript
-- `DSP/IterativeTranscript` - Real-time transcription
-- `DSP/IterativeAudio` - Real-time audio
+The `publisher.json` file contains publisher information required for extension distribution:
+
+```json
+{
+  "publisherId": "contoso.healthcare",
+  "publisherName": "Contoso Healthcare Inc.",
+  "websiteUrl": "https://www.contosohealth.com",
+  "privacyPolicyUrl": "https://www.contosohealth.com/privacy",
+  "supportUrl": "https://www.contosohealth.com/support",
+  "version": "0.0.1",
+  "contactEmail": "support@contosohealth.com",
+  "offerId": "contoso-extension-suite",
+  "defaultLocale": "en-US",
+  "supportedLocales": ["en-US"],
+  "countries": ["US"]
+}
+```
+
+### Publisher Configuration Fields
+
+- **publisherId**: Unique identifier for the publisher (e.g., `contoso.healthcare`)
+- **publisherName**: Display name of the publisher
+- **websiteUrl**: Publisher's website URL
+- **privacyPolicyUrl**: URL to privacy policy
+- **supportUrl**: URL for support information
+- **version**: Version of the publisher configuration
+- **contactEmail**: Contact email for support
+- **offerId**: Identifier for the extension offering
+- **defaultLocale**: Must be `en-US` (only supported locale)
+- **supportedLocales**: Must be `["en-US"]` (only supported locale)
+- **countries**: Must be `["US"]` (only supported country)
 
 ## Templates
 

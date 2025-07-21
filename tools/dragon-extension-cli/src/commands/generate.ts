@@ -1,11 +1,12 @@
 import fs from 'fs-extra';
-const { readFileSync, writeFileSync } = fs;
+const { readFileSync, writeFileSync, existsSync } = fs;
 import yaml from 'js-yaml';
 const { load, dump } = yaml;
 import chalk from 'chalk';
+import { confirm } from '@inquirer/prompts';
 import { GenerateOptions, DragonExtensionManifest, DragonTool } from '../types.js';
 import { getTemplate } from '../templates/index.js';
-import { promptToolDetails, getInputDescription } from '../shared/prompts.js';
+import { promptToolDetails, promptPublisherDetails, getInputDescription } from '../shared/prompts.js';
 
 export async function generateManifest(options: GenerateOptions): Promise<void> {
   console.log(chalk.blue('🐉 Generating Dragon Copilot Manifest'));
@@ -31,6 +32,43 @@ async function generateInteractive(options: GenerateOptions): Promise<void> {
     console.log(chalk.yellow('📄 Found existing manifest, will add to it'));
   } catch {
     // File doesn't exist, create new
+  }
+
+  // Check for publisher.json and offer to create/update it
+  const publisherPath = 'publisher.json';
+  const publisherExists = existsSync(publisherPath);
+
+  if (!publisherExists) {
+    const createPublisher = await confirm({
+      message: 'No publisher.json found. Create publisher configuration?',
+      default: true
+    });
+
+    if (createPublisher) {
+      console.log(chalk.blue('\n📋 Publisher Configuration'));
+      const publisherConfig = await promptPublisherDetails();
+      writeFileSync(publisherPath, JSON.stringify(publisherConfig, null, 2));
+      console.log(chalk.green('✅ Publisher configuration created!'));
+    }
+  } else {
+    const updatePublisher = await confirm({
+      message: 'Update existing publisher.json?',
+      default: false
+    });
+
+    if (updatePublisher) {
+      console.log(chalk.blue('\n📋 Updating Publisher Configuration'));
+      try {
+        const existingPublisher = JSON.parse(readFileSync(publisherPath, 'utf8'));
+        const publisherConfig = await promptPublisherDetails(existingPublisher);
+        writeFileSync(publisherPath, JSON.stringify(publisherConfig, null, 2));
+        console.log(chalk.green('✅ Publisher configuration updated!'));
+      } catch (error) {
+        console.log(chalk.yellow('⚠️  Could not parse existing publisher.json, creating new one'));
+        const publisherConfig = await promptPublisherDetails();
+        writeFileSync(publisherPath, JSON.stringify(publisherConfig, null, 2));
+      }
+    }
   }
 
   // Use shared prompt logic
@@ -99,7 +137,30 @@ async function generateFromTemplate(options: GenerateOptions): Promise<void> {
 
     console.log(chalk.green(`✅ Manifest generated from template: ${options.template}`));
     console.log(chalk.gray(`📁 Manifest saved to: ${options.output || 'extension.yaml'}`));
+
+    // Offer to create publisher.json for template-based generation
+    const publisherPath = 'publisher.json';
+    const publisherExists = existsSync(publisherPath);
+
+    if (!publisherExists) {
+      const createPublisher = await confirm({
+        message: 'Create publisher configuration file (publisher.json)?',
+        default: true
+      });
+
+      if (createPublisher) {
+        console.log(chalk.blue('\n📋 Publisher Configuration'));
+        const publisherConfig = await promptPublisherDetails();
+        writeFileSync(publisherPath, JSON.stringify(publisherConfig, null, 2));
+        console.log(chalk.green('✅ Publisher configuration created!'));
+      }
+    }
+
   } catch (error) {
-    console.log(chalk.red(`❌ Error generating from template: ${error}`));
+    if (error instanceof Error) {
+      console.log(chalk.red(`❌ Error generating from template: ${error.message}`));
+    } else {
+      console.log(chalk.red('❌ Unknown error occurred while generating from template'));
+    }
   }
 }

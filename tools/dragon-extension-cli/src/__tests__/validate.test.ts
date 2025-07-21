@@ -48,7 +48,7 @@ tools:
     await expect(validateManifest(testManifestPath)).resolves.toBeUndefined();
 
     // Verify console.log was called with success message
-    expect(mockConsoleLog).toHaveBeenCalledWith(expect.stringContaining('✅ Manifest validation passed!'));
+    expect(mockConsoleLog).toHaveBeenCalledWith(expect.stringContaining('✅ Validation passed!'));
   });
 
   test('should detect missing required fields', async () => {
