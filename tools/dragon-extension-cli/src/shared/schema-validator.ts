@@ -2,14 +2,89 @@ import Ajv from 'ajv';
 import addFormats from 'ajv-formats';
 import { DragonExtensionManifest, PublisherConfig } from '../types.js';
 import { readFileSync } from 'fs';
-import { join, resolve } from 'path';
+import { join, resolve, dirname } from 'path';
+import { fileURLToPath } from 'url';
 
 // Initialize AJV with format support
 const ajv = new Ajv({ allErrors: true, strict: false });
 addFormats(ajv);
 
-// Load schemas from source directory (works in both test and runtime)
-const schemaDir = resolve(process.cwd(), 'src', 'schemas');
+// Get the directory of the current module - with fallback for test environments
+function getCurrentModuleDir(): string {
+  // Try using the stack trace approach first, as it's more reliable
+  try {
+    const stack = new Error().stack;
+    if (stack) {
+      // Look for this file in the stack trace
+      const match = stack.match(/at .*? \((.+?):\d+:\d+\)/);
+      if (match && match[1]) {
+        let filePath = match[1];
+        
+        // Convert file URL to path if necessary
+        if (filePath.startsWith('file:///')) {
+          filePath = fileURLToPath(filePath);
+        }
+        
+        // Make sure it's a valid file path and contains our module
+        if (filePath.includes('schema-validator') || filePath.includes('dist') || filePath.includes('src')) {
+          return dirname(filePath);
+        }
+      }
+    }
+  } catch (error) {
+    // Continue to other methods
+  }
+
+  try {
+    // Try import.meta.url approach (works in most environments)
+    // Use type assertion to avoid TypeScript module target issues
+    const importMeta = (globalThis as any).import?.meta || (global as any).import?.meta;
+    if (importMeta?.url) {
+      // Make sure we have a proper file URL before converting
+      let fileUrl = importMeta.url;
+      if (typeof fileUrl === 'string' && fileUrl.startsWith('file:')) {
+        const __filename = fileURLToPath(fileUrl);
+        return dirname(__filename);
+      }
+    }
+  } catch (error) {
+    // Fallback for test environments or other edge cases
+  }
+  
+  // Fallback: use __dirname if available (CommonJS)
+  if (typeof __dirname !== 'undefined') {
+    return __dirname;
+  }
+  
+  // If all else fails, fall back to process.cwd() with src assumption
+  return resolve(process.cwd(), 'src', 'shared');
+}
+
+// Load schemas from the correct location - works in development, built, and test environments
+function getSchemaPath(): string {
+  const currentDir = getCurrentModuleDir();
+  
+  // Check if we're in a test environment by looking for common test indicators
+  const isTestEnvironment = process.env.NODE_ENV === 'test' || 
+                           process.env.JEST_WORKER_ID !== undefined ||
+                           currentDir.includes('__tests__') ||
+                           currentDir.includes('test');
+  
+  if (isTestEnvironment) {
+    // In test environment, always look relative to src
+    return resolve(currentDir, '..', 'schemas');
+  }
+  
+  // Check if we're in the dist directory (built/packaged)
+  if (currentDir.includes('dist')) {
+    return resolve(currentDir, '..', 'schemas');
+  } else {
+    // We're in development (src directory)
+    return resolve(currentDir, '..', 'schemas');
+  }
+}
+
+const schemaDir = getSchemaPath();
 const manifestSchema = JSON.parse(readFileSync(join(schemaDir, 'extension-manifest.json'), 'utf8'));
 const publisherSchema = JSON.parse(readFileSync(join(schemaDir, 'publisher-config.json'), 'utf8'));
 

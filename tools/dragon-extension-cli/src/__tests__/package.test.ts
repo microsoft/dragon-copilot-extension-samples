@@ -63,7 +63,8 @@ tools:
 
     await packageExtension({
       manifest: 'extension.yaml',
-      output: packagePath
+      output: packagePath,
+      silent: true
     });
 
     // Check that package was created
@@ -77,7 +78,8 @@ tools:
     await fs.remove('publisher.json');
 
     await expect(packageExtension({
-      manifest: 'extension.yaml'
+      manifest: 'extension.yaml',
+      silent: true
     })).rejects.toThrow();
   });
 
@@ -85,7 +87,8 @@ tools:
     await fs.remove('extension.yaml');
 
     await expect(packageExtension({
-      manifest: 'extension.yaml'
+      manifest: 'extension.yaml',
+      silent: true
     })).rejects.toThrow();
   });
 });

@@ -8,82 +8,91 @@ import chalk from 'chalk';
 import { PackageOptions, DragonExtensionManifest, PublisherConfig } from '../types.js';
 import { validateExtensionManifest, validatePublisherConfig, SchemaError } from '../shared/schema-validator.js';
 
+// Helper function for conditional logging
+function log(message: string, silent: boolean = false): void {
+  if (!silent && process.env.NODE_ENV !== 'test') {
+    console.log(message);
+  }
+}
+
 export async function packageExtension(options: PackageOptions): Promise<void> {
-  console.log(chalk.blue('🐉 Packaging Dragon Copilot Extension'));
+  const isQuiet = options.silent || process.env.NODE_ENV === 'test';
+  
+  log(chalk.blue('🐉 Packaging Dragon Copilot Extension'), isQuiet);
 
   const manifestPath = options.manifest || 'extension.yaml';
   const publisherPath = 'publisher.json';
 
   // Step 1: Validate required files exist
-  console.log(chalk.blue('📋 Validating required files...'));
+  log(chalk.blue('📋 Validating required files...'), isQuiet);
 
   if (!(await pathExists(manifestPath))) {
-    console.log(chalk.red(`❌ Extension manifest not found: ${manifestPath}`));
-    console.log(chalk.gray('   Create one using: dragon-extension init'));
-    process.exit(1);
+    log(chalk.red(`❌ Extension manifest not found: ${manifestPath}`), isQuiet);
+    log(chalk.gray('   Create one using: dragon-extension init'), isQuiet);
+    throw new Error(`Extension manifest not found: ${manifestPath}`);
   }
 
   if (!(await pathExists(publisherPath))) {
-    console.log(chalk.red(`❌ Publisher configuration not found: ${publisherPath}`));
-    console.log(chalk.gray('   A publisher.json file is required for packaging'));
-    console.log(chalk.gray('   Create one using: dragon-extension init --with-publisher'));
-    process.exit(1);
+    log(chalk.red(`❌ Publisher configuration not found: ${publisherPath}`), isQuiet);
+    log(chalk.gray('   A publisher.json file is required for packaging'), isQuiet);
+    log(chalk.gray('   Create one using: dragon-extension init --with-publisher'), isQuiet);
+    throw new Error(`Publisher configuration not found: ${publisherPath}`);
   }
 
-  console.log(chalk.gray(`✓ Found extension manifest: ${manifestPath}`));
-  console.log(chalk.gray(`✓ Found publisher configuration: ${publisherPath}`));
+  log(chalk.gray(`✓ Found extension manifest: ${manifestPath}`), isQuiet);
+  log(chalk.gray(`✓ Found publisher configuration: ${publisherPath}`), isQuiet);
 
   try {
     // Step 2: Validate extension manifest
-    console.log(chalk.blue('\n📋 Validating extension manifest...'));
+    log(chalk.blue('\n📋 Validating extension manifest...'), isQuiet);
     const manifestContent = readFileSync(manifestPath, 'utf8');
     const manifest = load(manifestContent) as DragonExtensionManifest;
 
     const manifestValidation = validateExtensionManifest(manifest);
     if (!manifestValidation.isValid) {
-      console.log(chalk.red('❌ Extension manifest validation failed:'));
+      log(chalk.red('❌ Extension manifest validation failed:'), isQuiet);
       manifestValidation.errors.forEach((error: SchemaError) => {
         const fieldPath = error.instancePath.replace(/^\//, '').replace(/\//g, '.');
         const fieldName = fieldPath || 'manifest';
-        console.log(chalk.red(`  • ${fieldName}: ${error.message}`));
+        log(chalk.red(`  • ${fieldName}: ${error.message}`), isQuiet);
       });
-      process.exit(1);
+      throw new Error('Extension manifest validation failed');
     }
-    console.log(chalk.green('✅ Extension manifest is valid'));
+    log(chalk.green('✅ Extension manifest is valid'), isQuiet);
 
     // Step 3: Validate publisher configuration
-    console.log(chalk.blue('📋 Validating publisher configuration...'));
+    log(chalk.blue('📋 Validating publisher configuration...'), isQuiet);
     let publisherConfig: PublisherConfig;
     try {
       const publisherContent = readFileSync(publisherPath, 'utf8');
       publisherConfig = JSON.parse(publisherContent) as PublisherConfig;
     } catch (parseError) {
-      console.log(chalk.red('❌ Failed to parse publisher.json:'));
+      log(chalk.red('❌ Failed to parse publisher.json:'), isQuiet);
       if (parseError instanceof Error) {
-        console.log(chalk.red(`   ${parseError.message}`));
+        log(chalk.red(`   ${parseError.message}`), isQuiet);
       }
-      process.exit(1);
+      throw new Error('Failed to parse publisher.json');
     }
 
     const publisherValidation = validatePublisherConfig(publisherConfig);
     if (!publisherValidation.isValid) {
-      console.log(chalk.red('❌ Publisher configuration validation failed:'));
+      log(chalk.red('❌ Publisher configuration validation failed:'), isQuiet);
       publisherValidation.errors.forEach((error: SchemaError) => {
         const fieldPath = error.instancePath.replace(/^\//, '').replace(/\//g, '.');
         const fieldName = fieldPath || 'config';
-        console.log(chalk.red(`  • ${fieldName}: ${error.message}`));
+        log(chalk.red(`  • ${fieldName}: ${error.message}`), isQuiet);
       });
-      process.exit(1);
+      throw new Error('Publisher configuration validation failed');
     }
-    console.log(chalk.green('✅ Publisher configuration is valid'));
+    log(chalk.green('✅ Publisher configuration is valid'), isQuiet);
 
     // Step 4: Create package
     const outputPath = options.output || `${manifest.name}-${manifest.version}.zip`;
 
-    console.log(chalk.blue(`\n📦 Creating package: ${outputPath}`));
-    console.log(chalk.gray(`🏢 Publisher: ${publisherConfig.publisherName} (${publisherConfig.publisherId})`));
-    console.log(chalk.gray(`📄 Extension: ${manifest.name} v${manifest.version}`));
-    console.log(chalk.gray(`🛠️  Tools: ${manifest.tools?.length || 0}`));
+    log(chalk.blue(`\n📦 Creating package: ${outputPath}`), isQuiet);
+    log(chalk.gray(`🏢 Publisher: ${publisherConfig.publisherName} (${publisherConfig.publisherId})`), isQuiet);
+    log(chalk.gray(`📄 Extension: ${manifest.name} v${manifest.version}`), isQuiet);
+    log(chalk.gray(`🛠️  Tools: ${manifest.tools?.length || 0}`), isQuiet);
 
     // Create ZIP archive
     const output = createWriteStream(outputPath);
@@ -94,32 +103,32 @@ export async function packageExtension(options: PackageOptions): Promise<void> {
     // Handle archive events
     output.on('close', () => {
       const sizeKB = (archive.pointer() / 1024).toFixed(2);
-      console.log(chalk.green(`\n✅ Package created successfully!`));
-      console.log(chalk.gray(`📁 File: ${outputPath}`));
-      console.log(chalk.gray(`📏 Size: ${sizeKB} KB`));
+      log(chalk.green(`\n✅ Package created successfully!`), isQuiet);
+      log(chalk.gray(`📁 File: ${outputPath}`), isQuiet);
+      log(chalk.gray(`📏 Size: ${sizeKB} KB`), isQuiet);
 
       // Package summary
-      console.log(chalk.blue('\n📊 Package Contents:'));
-      console.log(chalk.gray(`  • Extension manifest (extension.yaml)`));
-      console.log(chalk.gray(`  • Publisher configuration (publisher.json)`));
+      log(chalk.blue('\n📊 Package Contents:'), isQuiet);
+      log(chalk.gray(`  • Extension manifest (extension.yaml)`), isQuiet);
+      log(chalk.gray(`  • Publisher configuration (publisher.json)`), isQuiet);
       if (options.include && options.include.length > 0) {
-        console.log(chalk.gray(`  • Additional files: ${options.include.length}`));
+        log(chalk.gray(`  • Additional files: ${options.include.length}`), isQuiet);
       }
 
-      console.log(chalk.green('\n🎉 Ready for deployment!'));
+      log(chalk.green('\n🎉 Ready for deployment!'), isQuiet);
     });
 
     archive.on('warning', (err) => {
       if (err.code === 'ENOENT') {
-        console.log(chalk.yellow(`⚠️  Warning: ${err.message}`));
+        log(chalk.yellow(`⚠️  Warning: ${err.message}`), isQuiet);
       } else {
         throw err;
       }
     });
 
     archive.on('error', (err) => {
-      console.log(chalk.red(`❌ Archive error: ${err.message}`));
-      process.exit(1);
+      log(chalk.red(`❌ Archive error: ${err.message}`), isQuiet);
+      throw new Error(`Archive error: ${err.message}`);
     });
 
     archive.pipe(output);
@@ -127,22 +136,22 @@ export async function packageExtension(options: PackageOptions): Promise<void> {
     // Add required files with standardized names
     // Always name the manifest "extension.yaml" in the package, regardless of source filename
     archive.file(manifestPath, { name: 'extension.yaml' });
-    console.log(chalk.gray(`✓ Added extension.yaml (from ${path.basename(manifestPath)})`));
+    log(chalk.gray(`✓ Added extension.yaml (from ${path.basename(manifestPath)})`), isQuiet);
 
     // Always name the publisher config "publisher.json" in the package
     archive.file(publisherPath, { name: 'publisher.json' });
-    console.log(chalk.gray(`✓ Added publisher.json`));
+    log(chalk.gray(`✓ Added publisher.json`), isQuiet);
 
     // Add additional files if specified
     if (options.include && options.include.length > 0) {
-      console.log(chalk.blue('\n📁 Adding additional files...'));
+      log(chalk.blue('\n📁 Adding additional files...'), isQuiet);
       for (const pattern of options.include) {
         if (await pathExists(pattern)) {
           const fileName = path.basename(pattern);
           archive.file(pattern, { name: fileName });
-          console.log(chalk.gray(`✓ Added ${fileName}`));
+          log(chalk.gray(`✓ Added ${fileName}`), isQuiet);
         } else {
-          console.log(chalk.yellow(`⚠️  File not found, skipping: ${pattern}`));
+          log(chalk.yellow(`⚠️  File not found, skipping: ${pattern}`), isQuiet);
         }
       }
     }
@@ -156,7 +165,7 @@ export async function packageExtension(options: PackageOptions): Promise<void> {
     for (const dir of commonDirectories) {
       if (await pathExists(dir.path)) {
         archive.directory(dir.path, dir.path);
-        console.log(chalk.gray(`✓ Added ${dir.path}/ directory (${dir.description})`));
+        log(chalk.gray(`✓ Added ${dir.path}/ directory (${dir.description})`), isQuiet);
       }
     }
 
@@ -165,10 +174,11 @@ export async function packageExtension(options: PackageOptions): Promise<void> {
 
   } catch (error) {
     if (error instanceof Error) {
-      console.log(chalk.red(`❌ Failed to package extension: ${error.message}`));
+      log(chalk.red(`❌ Failed to package extension: ${error.message}`), isQuiet);
+      throw error; // Re-throw for test handling
     } else {
-      console.log(chalk.red('❌ Failed to package extension: Unknown error'));
+      log(chalk.red('❌ Failed to package extension: Unknown error'), isQuiet);
+      throw new Error('Failed to package extension: Unknown error');
     }
-    process.exit(1);
   }
 }

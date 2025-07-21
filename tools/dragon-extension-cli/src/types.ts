@@ -57,6 +57,7 @@ export interface PackageOptions {
   manifest?: string;
   output?: string;
   include?: string[];
+  silent?: boolean;
 }
 
 export interface TemplateConfig {
