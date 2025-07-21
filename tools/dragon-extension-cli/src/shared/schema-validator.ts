@@ -19,12 +19,12 @@ function getCurrentModuleDir(): string {
       const match = stack.match(/at .*? \((.+?):\d+:\d+\)/);
       if (match && match[1]) {
         let filePath = match[1];
-        
+
         // Convert file URL to path if necessary
         if (filePath.startsWith('file:///')) {
           filePath = fileURLToPath(filePath);
         }
-        
+
         // Make sure it's a valid file path and contains our module
         if (filePath.includes('schema-validator') || filePath.includes('dist') || filePath.includes('src')) {
           return dirname(filePath);
@@ -50,12 +50,12 @@ function getCurrentModuleDir(): string {
   } catch (error) {
     // Fallback for test environments or other edge cases
   }
-  
+
   // Fallback: use __dirname if available (CommonJS)
   if (typeof __dirname !== 'undefined') {
     return __dirname;
   }
-  
+
   // If all else fails, fall back to process.cwd() with src assumption
   return resolve(process.cwd(), 'src', 'shared');
 }
@@ -63,18 +63,18 @@ function getCurrentModuleDir(): string {
 // Load schemas from the correct location - works in development, built, and test environments
 function getSchemaPath(): string {
   const currentDir = getCurrentModuleDir();
-  
+
   // Check if we're in a test environment by looking for common test indicators
-  const isTestEnvironment = process.env.NODE_ENV === 'test' || 
+  const isTestEnvironment = process.env.NODE_ENV === 'test' ||
                            process.env.JEST_WORKER_ID !== undefined ||
                            currentDir.includes('__tests__') ||
                            currentDir.includes('test');
-  
+
   if (isTestEnvironment) {
     // In test environment, always look relative to src
     return resolve(currentDir, '..', 'schemas');
   }
-  
+
   // Check if we're in the dist directory (built/packaged)
   if (currentDir.includes('dist')) {
     return resolve(currentDir, '..', 'schemas');

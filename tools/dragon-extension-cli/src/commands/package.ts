@@ -17,7 +17,7 @@ function log(message: string, silent: boolean = false): void {
 
 export async function packageExtension(options: PackageOptions): Promise<void> {
   const isQuiet = options.silent || process.env.NODE_ENV === 'test';
-  
+
   log(chalk.blue('🐉 Packaging Dragon Copilot Extension'), isQuiet);
 
   const manifestPath = options.manifest || 'extension.yaml';
