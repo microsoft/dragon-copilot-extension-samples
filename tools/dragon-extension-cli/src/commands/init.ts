@@ -6,7 +6,7 @@ const { dump } = yaml;
 import path from 'path';
 import chalk from 'chalk';
 import { InitOptions, DragonExtensionManifest } from '../types.js';
-import { promptExtensionDetails, promptToolDetails, getInputDescription } from '../shared/prompts.js';
+import { promptExtensionDetails, promptToolDetails, promptPublisherDetails, getInputDescription } from '../shared/prompts.js';
 
 export async function initProject(options: InitOptions): Promise<void> {
   console.log(chalk.blue('🐉 Dragon Copilot Extension Generator'));
@@ -18,6 +18,18 @@ export async function initProject(options: InitOptions): Promise<void> {
     description: options.description,
     version: options.version
   });
+
+  // Prompt for publisher configuration
+  console.log(chalk.blue('\n📋 Publisher Configuration'));
+  const createPublisherConfig = await confirm({
+    message: 'Create publisher configuration file (publisher.json)?',
+    default: true
+  });
+
+  let publisherConfig = null;
+  if (createPublisherConfig) {
+    publisherConfig = await promptPublisherDetails();
+  }
 
   const addTool = await confirm({
     message: 'Add an initial tool?',
@@ -76,6 +88,14 @@ export async function initProject(options: InitOptions): Promise<void> {
 
   writeFileSync(outputPath, yamlContent);
 
+  // Create publisher.json if requested
+  if (publisherConfig) {
+    const publisherPath = path.join(options.output || '.', 'publisher.json');
+    writeFileSync(publisherPath, JSON.stringify(publisherConfig, null, 2));
+    console.log(chalk.green('\n✅ Publisher configuration created successfully!'));
+    console.log(chalk.gray(`📁 Publisher config created at: ${publisherPath}`));
+  }
+
   console.log(chalk.green('\n✅ Extension project initialized successfully!'));
   console.log(chalk.gray(`📁 Manifest created at: ${outputPath}`));
 
@@ -83,5 +103,8 @@ export async function initProject(options: InitOptions): Promise<void> {
     console.log(chalk.yellow('\n💡 Next steps:'));
     console.log(chalk.gray('1. Update the endpoint URL with your actual API'));
     console.log(chalk.gray('2. Customize inputs and outputs as needed'));
+    if (publisherConfig) {
+      console.log(chalk.gray('3. Review and update publisher configuration as needed'));
+    }
   }
 }

@@ -1,0 +1,127 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Dragon Copilot Extension Manifest",
+  "type": "object",
+  "required": ["name", "description", "version", "tools"],
+  "properties": {
+    "name": {
+      "type": "string",
+      "pattern": "^[a-z0-9-]+$",
+      "minLength": 1,
+      "description": "Extension name (lowercase letters, numbers, and hyphens only)"
+    },
+    "description": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Extension description"
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$",
+      "description": "Version in x.y.z format"
+    },
+    "authentication": {
+      "type": "string",
+      "description": "Optional authentication configuration"
+    },
+    "tools": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/definitions/DragonTool"
+      },
+      "description": "Array of tools provided by this extension"
+    }
+  },
+  "additionalProperties": false,
+  "definitions": {
+    "DragonTool": {
+      "type": "object",
+      "required": ["name", "description", "endpoint", "inputs", "outputs"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "pattern": "^[a-z0-9-]+$",
+          "minLength": 1,
+          "description": "Tool name (lowercase letters, numbers, and hyphens only)"
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Tool description"
+        },
+        "endpoint": {
+          "type": "string",
+          "format": "uri",
+          "description": "API endpoint URL"
+        },
+        "inputs": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/definitions/DragonInput"
+          },
+          "description": "Array of input definitions"
+        },
+        "outputs": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/definitions/DragonOutput"
+          },
+          "description": "Array of output definitions"
+        }
+      },
+      "additionalProperties": false
+    },
+    "DragonInput": {
+      "type": "object",
+      "required": ["name", "description", "data"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Input name"
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Input description"
+        },
+        "data": {
+          "type": "string",
+          "enum": [
+            "DSP/IterativeAudio",
+            "DSP/IterativeTranscript",
+            "DSP/Note",
+            "DSP/Transcript"
+          ],
+          "description": "Data type identifier"
+        }
+      },
+      "additionalProperties": false
+    },
+    "DragonOutput": {
+      "type": "object",
+      "required": ["name", "description", "data"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Output name"
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Output description"
+        },
+        "data": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Output data type"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

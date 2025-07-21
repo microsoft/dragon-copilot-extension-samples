@@ -1,5 +1,6 @@
 import { input, select, checkbox, confirm } from '@inquirer/prompts';
-import { DragonExtensionManifest } from '../types.js';
+import { DragonExtensionManifest, PublisherConfig } from '../types.js';
+import { validateFieldValue } from './schema-validator.js';
 
 export interface ExtensionDetails {
   name: string;
@@ -35,32 +36,38 @@ export function validateToolName(input: string, existingManifest?: DragonExtensi
 }
 
 /**
- * Validates extension name input
+ * Validates extension name input using schema validation
  */
 export function validateExtensionName(input: string): string | boolean {
-  if (!input.trim()) return 'Extension name is required';
-  if (!/^[a-z0-9-]+$/.test(input)) return 'Extension name must contain only lowercase letters, numbers, and hyphens';
-  return true;
+  return validateFieldValue(input, 'name', 'manifest');
 }
 
 /**
- * Validates URL input
+ * Validates URL input using schema validation
  */
 export function validateUrl(input: string): string | boolean {
-  try {
-    new URL(input);
-    return true;
-  } catch {
-    return 'Please enter a valid URL';
-  }
+  return validateFieldValue(input, 'websiteUrl', 'publisher');
 }
 
 /**
- * Validates version format (x.y.z)
+ * Validates version format using schema validation
  */
 export function validateVersion(input: string): string | boolean {
-  if (!/^\d+\.\d+\.\d+$/.test(input)) return 'Version must be in format x.y.z';
-  return true;
+  return validateFieldValue(input, 'version', 'manifest');
+}
+
+/**
+ * Validates publisher ID input using schema validation
+ */
+export function validatePublisherId(input: string): string | boolean {
+  return validateFieldValue(input, 'publisherId', 'publisher');
+}
+
+/**
+ * Validates email input using schema validation
+ */
+export function validateEmail(input: string): string | boolean {
+  return validateFieldValue(input, 'contactEmail', 'publisher');
 }
 
 /**
@@ -164,4 +171,75 @@ export function getInputDescription(dataType: string): string {
     default:
       return 'Data from Dragon Copilot';
   }
+}
+
+/**
+ * Prompts for publisher configuration details
+ * Sets fixed values for locale (en-US) and country (US) as per requirements
+ */
+export async function promptPublisherDetails(defaults?: Partial<PublisherConfig>): Promise<PublisherConfig> {
+  const publisherId = await input({
+    message: 'Publisher ID (e.g., contoso.healthcare):',
+    default: defaults?.publisherId || 'contoso.healthcare',
+    validate: validatePublisherId
+  });
+
+  const publisherName = await input({
+    message: 'Publisher Name:',
+    default: defaults?.publisherName || 'Contoso Healthcare Inc.'
+  });
+
+  const websiteUrl = await input({
+    message: 'Website URL:',
+    default: defaults?.websiteUrl || 'https://www.contosohealth.com',
+    validate: validateUrl
+  });
+
+  const privacyPolicyUrl = await input({
+    message: 'Privacy Policy URL:',
+    default: defaults?.privacyPolicyUrl || 'https://www.contosohealth.com/privacy',
+    validate: validateUrl
+  });
+
+  const supportUrl = await input({
+    message: 'Support URL:',
+    default: defaults?.supportUrl || 'https://www.contosohealth.com/support',
+    validate: validateUrl
+  });
+
+  const version = await input({
+    message: 'Publisher Config Version:',
+    default: defaults?.version || '0.0.1',
+    validate: validateVersion
+  });
+
+  const contactEmail = await input({
+    message: 'Contact Email:',
+    default: defaults?.contactEmail || 'support@contosohealth.com',
+    validate: validateEmail
+  });
+
+  const offerId = await input({
+    message: 'Offer ID:',
+    default: defaults?.offerId || 'contoso-extension-suite'
+  });
+
+  // Fixed values as per requirements - only US and en-US supported
+  const defaultLocale = 'en-US';
+  const supportedLocales = ['en-US'];
+  const countries = ['US'];
+
+  return {
+    publisherId,
+    publisherName,
+    websiteUrl,
+    privacyPolicyUrl,
+    supportUrl,
+    version,
+    contactEmail,
+    offerId,
+    defaultLocale,
+    supportedLocales,
+    countries
+  };
 }

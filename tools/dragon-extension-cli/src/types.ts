@@ -26,6 +26,20 @@ export interface DragonOutput {
   data: string;
 }
 
+export interface PublisherConfig {
+  publisherId: string;
+  publisherName: string;
+  websiteUrl: string;
+  privacyPolicyUrl: string;
+  supportUrl: string;
+  version: string;
+  contactEmail: string;
+  offerId: string;
+  defaultLocale: string;
+  supportedLocales: string[];
+  countries: string[];
+}
+
 export interface GenerateOptions {
   template?: string;
   output?: string;

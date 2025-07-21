@@ -1,132 +1,103 @@
 import fs from 'fs-extra';
-const { readFileSync } = fs;
+const { readFileSync, existsSync } = fs;
 import yaml from 'js-yaml';
 const { load } = yaml;
+import path from 'path';
 import chalk from 'chalk';
-import { DragonExtensionManifest } from '../types.js';
+import { DragonExtensionManifest, PublisherConfig } from '../types.js';
+import { validateExtensionManifest, validatePublisherConfig, getFieldDisplayName, SchemaError } from '../shared/schema-validator.js';
 
 export async function validateManifest(filePath: string): Promise<void> {
   console.log(chalk.blue('🐉 Validating Dragon Copilot Extension Manifest'));
   console.log(chalk.gray(`📄 File: ${filePath}\n`));
 
+  let hasErrors = false;
+  let hasWarnings = false;
+
+  // Validate manifest file
   try {
     const fileContent = readFileSync(filePath, 'utf8');
     const manifest = load(fileContent) as DragonExtensionManifest;
 
-    const errors: string[] = [];
-    const warnings: string[] = [];
+    console.log(chalk.blue('📋 Validating Extension Manifest...'));
+    const manifestResult = validateExtensionManifest(manifest);
 
-    // Validate required fields
-    if (!manifest.name) errors.push('Missing required field: name');
-    if (!manifest.description) errors.push('Missing required field: description');
-    if (!manifest.version) errors.push('Missing required field: version');
-    if (!manifest.tools || !Array.isArray(manifest.tools)) {
-      errors.push('Missing or invalid tools array');
-    }
-
-    // Validate version format
-    if (manifest.version && !/^\d+\.\d+\.\d+$/.test(manifest.version)) {
-      errors.push('Version must be in format x.y.z');
-    }
-
-    // Validate extension name format
-    if (manifest.name && !/^[a-z0-9-]+$/.test(manifest.name)) {
-      warnings.push('Extension name should contain only lowercase letters, numbers, and hyphens');
-    }
-
-    // Validate tools
-    if (manifest.tools && Array.isArray(manifest.tools)) {
-      if (manifest.tools.length === 0) {
-        warnings.push('No tools defined in manifest');
-      }
-
-      manifest.tools.forEach((tool, index) => {
-        const toolPrefix = `Tool ${index + 1} (${tool.name || 'unnamed'})`;
-
-        if (!tool.name) errors.push(`${toolPrefix}: Missing required field: name`);
-        if (!tool.description) errors.push(`${toolPrefix}: Missing required field: description`);
-        if (!tool.endpoint) errors.push(`${toolPrefix}: Missing required field: endpoint`);
-
-        // Validate tool name format
-        if (tool.name && !/^[a-z0-9-]+$/.test(tool.name)) {
-          warnings.push(`${toolPrefix}: Tool name should contain only lowercase letters, numbers, and hyphens`);
-        }
-
-        // Validate endpoint URL
-        if (tool.endpoint) {
-          try {
-            new URL(tool.endpoint);
-          } catch {
-            errors.push(`${toolPrefix}: Invalid endpoint URL`);
-          }
-        }
-
-        // Validate inputs
-        if (!tool.inputs || !Array.isArray(tool.inputs)) {
-          errors.push(`${toolPrefix}: Missing or invalid inputs array`);
-        } else if (tool.inputs.length === 0) {
-          warnings.push(`${toolPrefix}: No inputs defined`);
-        } else {
-          tool.inputs.forEach((input, inputIndex) => {
-            const inputPrefix = `${toolPrefix} Input ${inputIndex + 1}`;
-            if (!input.name) errors.push(`${inputPrefix}: Missing required field: name`);
-            if (!input.description) errors.push(`${inputPrefix}: Missing required field: description`);
-            if (!input.data) errors.push(`${inputPrefix}: Missing required field: data`);
-
-            // Validate known data types
-            if (input.data && !isValidDataType(input.data)) {
-              warnings.push(`${inputPrefix}: Unknown data type '${input.data}'`);
-            }
-          });
-        }
-
-        // Validate outputs
-        if (!tool.outputs || !Array.isArray(tool.outputs)) {
-          errors.push(`${toolPrefix}: Missing or invalid outputs array`);
-        } else if (tool.outputs.length === 0) {
-          warnings.push(`${toolPrefix}: No outputs defined`);
-        } else {
-          tool.outputs.forEach((output, outputIndex) => {
-            const outputPrefix = `${toolPrefix} Output ${outputIndex + 1}`;
-            if (!output.name) errors.push(`${outputPrefix}: Missing required field: name`);
-            if (!output.description) errors.push(`${outputPrefix}: Missing required field: description`);
-            if (!output.data) errors.push(`${outputPrefix}: Missing required field: data`);
-          });
-        }
+    if (manifestResult.errors.length > 0) {
+      hasErrors = true;
+      console.log(chalk.red('❌ Manifest validation failed with errors:'));
+      manifestResult.errors.forEach((error: SchemaError) => {
+        // Convert schema path to friendly field name
+        const fieldPath = error.instancePath.replace(/^\//, '').replace(/\//g, '.');
+        const fieldName = fieldPath || 'manifest';
+        console.log(chalk.red(`  • ${fieldName}: ${error.message}`));
       });
+    }
 
-      // Check for duplicate tool names
-      const toolNames = manifest.tools.map(t => t.name).filter(Boolean);
-      const duplicateNames = toolNames.filter((name, index) => toolNames.indexOf(name) !== index);
-      if (duplicateNames.length > 0) {
-        errors.push(`Duplicate tool names found: ${[...new Set(duplicateNames)].join(', ')}`);
+    // Check for publisher.json in the same directory
+    const manifestDir = path.dirname(filePath);
+    const publisherPath = path.join(manifestDir, 'publisher.json');
+
+    if (existsSync(publisherPath)) {
+      console.log(chalk.blue('\n📋 Validating Publisher Configuration...'));
+      try {
+        const publisherContent = readFileSync(publisherPath, 'utf8');
+        const publisherConfig = JSON.parse(publisherContent) as PublisherConfig;
+
+        const publisherResult = validatePublisherConfig(publisherConfig);
+
+        if (publisherResult.errors.length > 0) {
+          hasErrors = true;
+          console.log(chalk.red('❌ Publisher config validation failed with errors:'));
+          publisherResult.errors.forEach((error: SchemaError) => {
+            // Convert schema path to friendly field name
+            const fieldPath = error.instancePath.replace(/^\//, '').replace(/\//g, '.');
+            const fieldName = getFieldDisplayName(fieldPath) || fieldPath || 'config';
+            console.log(chalk.red(`  • ${fieldName}: ${error.message}`));
+          });
+        }
+
+      } catch (publisherError) {
+        hasErrors = true;
+        if (publisherError instanceof Error) {
+          console.log(chalk.red(`❌ Publisher config parsing error: ${publisherError.message}`));
+        } else {
+          console.log(chalk.red('❌ Publisher config parsing error: Unknown error'));
+        }
       }
+    } else {
+      hasWarnings = true;
+      console.log(chalk.yellow('\n⚠️  No publisher.json found - consider creating one for extension publishing'));
     }
 
-    // Display results
-    if (errors.length > 0) {
-      console.log(chalk.red('❌ Validation failed with errors:'));
-      errors.forEach(error => console.log(chalk.red(`  • ${error}`)));
-    }
-
-    if (warnings.length > 0) {
-      console.log(chalk.yellow(`\n⚠️  Warnings (${warnings.length}):`));
-      warnings.forEach(warning => console.log(chalk.yellow(`  • ${warning}`)));
-    }
-
-    if (errors.length === 0) {
-      console.log(chalk.green('✅ Manifest validation passed!'));
+    // Display results summary
+    if (!hasErrors) {
+      console.log(chalk.green('\n✅ Validation passed!'));
 
       // Display summary
-      console.log(chalk.gray('\n📊 Manifest Summary:'));
+      console.log(chalk.gray('\n📊 Extension Summary:'));
       console.log(chalk.gray(`  • Extension: ${manifest.name} v${manifest.version}`));
       console.log(chalk.gray(`  • Description: ${manifest.description}`));
       console.log(chalk.gray(`  • Tools: ${manifest.tools?.length || 0}`));
+
+      if (existsSync(publisherPath)) {
+        try {
+          const publisherConfig = JSON.parse(readFileSync(publisherPath, 'utf8')) as PublisherConfig;
+          console.log(chalk.gray(`  • Publisher: ${publisherConfig.publisherName} (${publisherConfig.publisherId})`));
+          console.log(chalk.gray(`  • Supported Locales: ${publisherConfig.supportedLocales?.join(', ') || 'None'}`));
+          console.log(chalk.gray(`  • Supported Countries: ${publisherConfig.countries?.join(', ') || 'None'}`));
+        } catch {
+          // Ignore parsing errors for summary
+        }
+      }
 
       if (manifest.tools && manifest.tools.length > 0) {
         manifest.tools.forEach(tool => {
           console.log(chalk.gray(`    - ${tool.name}: ${tool.inputs?.length || 0} inputs, ${tool.outputs?.length || 0} outputs`));
         });
+      }
+
+      if (hasWarnings) {
+        console.log(chalk.yellow('\n💡 Consider addressing the warnings above for better compliance.'));
       }
     } else {
       process.exit(1);
@@ -140,22 +111,4 @@ export async function validateManifest(filePath: string): Promise<void> {
     }
     process.exit(1);
   }
-}
-
-function isValidDataType(dataType: string): boolean {
-  const validTypes = [
-    'DSP',
-    'DSP/Document',
-    'DSP/DragonSession',
-    'DSP/Encounter',
-    'DSP/IterativeAudio',
-    'DSP/IterativeTranscript',
-    'DSP/Note',
-    'DSP/Patient',
-    'DSP/Practitioner',
-    'DSP/Transcript',
-    'DSP/Visit'
-  ];
-
-  return validTypes.includes(dataType);
 }
