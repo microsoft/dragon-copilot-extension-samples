@@ -1,6 +1,6 @@
 # Dragon Copilot Extension Samples
 
-A development environment for creating and testing extensions that integrate with the Dragon Backend Simulator. This repository provides everything you need to build, test, and debug extensions locally before deploying them to production.
+A development environment for creating and testing Dragon Copilot extensions. This repository provides everything you need to build, test, and debug extensions locally before deploying them to production.
 
 
 ## 🚀 Quick Start
@@ -26,23 +26,9 @@ chmod +x scripts/start-dev.sh
 ./scripts/start-dev.sh
 ```
 
-### Option 3: Docker Compose (Cross-platform)
+### Option 3: Manual Start
 ```bash
-# Clone the repository
-git clone <your-repo-url>
-cd dragon-copilot-extension-samples
-
-# Start with Docker Compose
-docker-compose up --build
-```
-
-### Option 4: Manual Start
-```bash
-# Terminal 1 - Start the Dragon Backend Simulator
-cd DragonBackendSimulator/DragonBackendSimulator.Web
-dotnet run --urls http://localhost:5180
-
-# Terminal 2 - Start the Sample Extension
+# Start the Sample Extension
 cd samples/DragonCopilot/Workflow/SampleExtension.Web
 dotnet run --urls http://localhost:5181
 ```
@@ -117,20 +103,14 @@ Example output:
 
 After starting the services, you'll have:
 
-### 🐉 Dragon Backend Simulator
-- **URL**: http://localhost:5180/
-- **Purpose**: Simulates the backend system that will call your extension
-- **Features**:   - REST API for simulating encounters
-  - Automatically calls your extension when encounters are simulated
-  - Swagger documentation for easy testing
-
-### 🔧 Sample Extension
+###  Sample Extension
 - **URL**: http://localhost:5181/
-- **Purpose**: Example extension showing how to integrate with the simulator
+- **Purpose**: Example extension showing how to build Dragon Copilot extensions
 - **Features**:
-  - Receives and processes requests from the simulator
+  - Receives and processes requests from Dragon Copilot
   - Full Swagger documentation at root URL
   - Example of proper request/response handling
+  - Demonstrates best practices for extension development
 
 ## 🧪 Testing Your Setup
 
@@ -146,16 +126,14 @@ After starting the services, you'll have:
 cd samples/DragonCopilot/Workflow/SampleExtension.Web
 dotnet test
 
-# Run integration tests (services must be running)
+# Run integration tests using the HTTP file
 # Use the HTTP file or your preferred API testing tool
 ```
 
 ### Health Checks
 - Sample Extension: http://localhost:5181/health
 - Sample Extension Swagger: http://localhost:5181/
-- Simulator Health: http://localhost:5180/health
-- Simulator Swagger: http://localhost:5180/
-- Integration Test: Simulate an encounter and verify it gets processed
+- Direct Testing: Send POST requests to http://localhost:5181/v1/process
 
 ## 🛠️ Creating Your Own Extension
 
@@ -172,56 +150,44 @@ cd src/YourExtension.Web
 3. Modify the `ProcessingService.cs` to implement your business logic
 4. Update the `ProcessRequest` and `ProcessResponse` models as needed
 
-### Step 3: Configure the Simulator
-Update `DragonBackendSimulator.Web/appsettings.Development.json`:
-```json
-{
-  "EncounterApi": {
-    "BaseUrl": "http://localhost:5182",  // Your extension's port
-    "Path": "/api/process",
-    "TimeoutSeconds": 30
-  }
-}
-```
-
-### Step 4: Test Your Extension
+### Step 3: Test Your Extension
 1. Start your extension on a different port (e.g., 5182)
-2. Update the simulator configuration to point to your extension
-3. Use the integration tests to verify the flow works
-4. Add your own tests specific to your extension's functionality
+2. Use the integration tests to verify your extension works correctly
+3. Add your own tests specific to your extension's functionality
+4. Test integration with Dragon Copilot in your development environment
 
 ## 📋 Architecture Overview
 
 ```
 ┌─────────────────────┐    HTTP POST     ┌─────────────────────┐
-│                     │   /api/process   │                     │
-│  Dragon Backend     │ ───────────────► │   Your Extension    │
-│     Simulator       │                  │                     │
+│                     │   /v1/process    │                     │
+│   Dragon Copilot    │ ───────────────► │   Your Extension    │
+│     Platform        │                  │                     │
 │                     │ ◄─────────────── │                     │
 └─────────────────────┘    Response      └─────────────────────┘
          │                                                      │
          │                                                      │
          ▼                                                      ▼
-   Starts Encounters                               Processes Business Logic
-                                                   Returns Results
+   Manages Encounters                               Processes Business Logic
+   Handles Voice Data                               Returns Results
                                                    Handles Errors
 ```
 
 ### Components
 
-- **Dragon Backend Simulator**: Simulates the production backend system
-  - Creates encounters
-  - Calls your extension via HTTP
-  - Provides APIs for testing
+- **Dragon Copilot Platform**: The production system that integrates with your extension
+  - Manages patient encounters and voice data
+  - Calls your extension via HTTP API
+  - Handles the complete workflow
 
 - **Sample Extension**: Example implementation showing best practices
-  - Receives processing requests
+  - Receives processing requests from Dragon Copilot
   - Demonstrates proper error handling
   - Shows how to structure responses
   - Includes comprehensive testing
 
 - **Integration Tests**: Ready-to-run test suite
-  - Verifies end-to-end functionality
+  - Verifies extension functionality
   - Tests error scenarios
   - Performance testing
   - Documentation of expected behavior
@@ -238,7 +204,7 @@ Update `DragonBackendSimulator.Web/appsettings.Development.json`:
 ### Debugging
 - Set breakpoints in your extension code
 - Use the sample HTTP requests to trigger specific scenarios
-- Check logs in the terminal where services are running
+- Check logs in the terminal where the extension is running
 - Use Swagger UI for interactive API testing
 
 ### Adding Features
@@ -246,7 +212,7 @@ Update `DragonBackendSimulator.Web/appsettings.Development.json`:
 2. Implement business logic in `ProcessingService`
 3. Add new endpoints if needed
 4. Update integration tests
-5. Test with the simulator
+4. Test integration with Dragon Copilot in your development environment
 
 ## 📁 Project Structure
 
@@ -257,13 +223,10 @@ dragon-extension-developer/
 │   └── start-dev.sh                  # Linux/Mac bash script
 ├── testing/                          # Test suites and documentation
 │   └── integration-tests.http        # Ready-to-run integration tests
-├── DragonBackendSimulator/           # Simulator that calls your extension
-│   └── DragonBackendSimulator.Web/   # ASP.NET Core web API
 ├── samples/DragonCopilot             # Example extension implementations
 │   └── Workflow/SampleExtension.Web/ # Workflow Extension Example
 ├── src/                              # Your extensions go here
 │   └── YourExtension.Web/            # Extension implementation
-├── docker-compose.yml                # Docker setup for easy deployment
 └── README.md                         # This file
 ```
 
@@ -273,23 +236,23 @@ dragon-extension-developer/
 
 #### Services Won't Start
 - Ensure .NET 9.0 SDK is installed
-- Check if ports 5180/5181 are already in use
+- Check if port 5181 is already in use
 - Run `.\scripts\start-dev.ps1 -StopAll` to clean up
 
-#### Extension Not Being Called
-- Verify simulator configuration points to correct URL
-- Check extension is running and responding to health checks
-- Look at simulator logs for HTTP errors
+#### Extension Issues
+- Verify extension is running and responding to health checks
+- Check extension logs for errors
+- Test extension directly using the HTTP test file
 
 #### Tests Failing
-- Ensure both services are running
-- Check the services are on the expected ports
-- Verify network connectivity between services
+- Ensure the extension is running
+- Check the extension is on the expected port (5181)
+- Verify the extension responds to health checks
 
 #### Docker Issues
-- Ensure Docker is running
-- Try `docker-compose down` then `docker-compose up --build`
-- Check Docker logs: `docker-compose logs`
+- For containerized deployment, use the Dockerfile in the extension directory
+- Build: `docker build -f samples/DragonCopilot/Workflow/SampleExtension.Web/Dockerfile -t my-extension .`
+- Run: `docker run -p 5181:8080 my-extension`
 
 ### Azure Deployment Issues
 
@@ -327,7 +290,6 @@ dragon-extension-developer/
 ## 📚 Additional Resources
 
 - [Sample Extension Documentation](samples/DragonCopilot/Workflow/SampleExtension.Web/README.md)
-- [Dragon Backend Simulator Documentation](DragonBackendSimulator/DragonBackendSimulator.Web/README.md)
 - [API Documentation](testing/integration-tests.http) - See the HTTP file for detailed API examples
 
 ## 🤝 Contributing

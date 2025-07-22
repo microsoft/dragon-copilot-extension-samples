@@ -29,17 +29,6 @@ jobs:
         cd src/Dragon.Copilot.Models
         dotnet test --no-build --configuration Release --verbosity normal
 
-    - name: Build DragonBackendSimulator
-      run: |
-        cd DragonBackendSimulator
-        dotnet restore
-        dotnet build --no-restore --configuration Release
-
-    - name: Test DragonBackendSimulator
-      run: |
-        cd DragonBackendSimulator
-        dotnet test --no-build --configuration Release --verbosity normal
-
     - name: Build SampleExtension
       run: |
         cd samples/DragonCopilot/Workflow
@@ -53,7 +42,6 @@ jobs:
 
     - name: Build Docker images
       run: |
-        docker build -f DragonBackendSimulator/DragonBackendSimulator.Web/Dockerfile -t dragon-backend-simulator .
         docker build -f samples/DragonCopilot/Workflow/SampleExtension.Web/Dockerfile -t sample-extension .
 
   nodejs-tools:

@@ -17,7 +17,7 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.AddSwaggerConfiguration();
 
-// Add CORS to allow requests from the backend simulator
+// Add CORS to allow requests from Dragon Copilot
 builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(policy =>

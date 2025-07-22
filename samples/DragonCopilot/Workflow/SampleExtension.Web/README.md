@@ -1,20 +1,20 @@
 # Sample Extension Web API
 
-A sample C# Web API project that demonstrates how to create an extension that can receive and process requests from the Dragon Backend Simulator.
+A sample C# Web API project that demonstrates how to create an extension that can receive and process requests from Dragon Copilot.
 
 ## Features
 
 - **REST API**: Accepts POST requests with data to be processed
 - **Swagger Documentation**: Interactive API documentation available at the root URL
 - **Health Checks**: Multiple health check endpoints for monitoring
-- **CORS Support**: Configured to accept requests from the Dragon Backend Simulator
+- **CORS Support**: Configured to accept requests from Dragon Copilot
 - **Structured Logging**: Comprehensive logging for debugging and monitoring
 - **Error Handling**: Robust error handling with appropriate HTTP status codes
 
 ## API Endpoints
 
 ### Main Processing Endpoint
-- `POST /api/process` - Processes data sent from the Dragon Backend Simulator
+- `POST /v1/process` - Processes data sent from Dragon Copilot
 
 ### Utility Endpoints
 - `GET /health` - Application health check
@@ -82,14 +82,15 @@ A sample C# Web API project that demonstrates how to create an extension that ca
 
 Use the included `SampleExtension.Web.http` file in VS Code with the REST Client extension to test the API endpoints.
 
-## Integration with Dragon Backend Simulator
+## Integration with Dragon Copilot
 
-To integrate this extension with the Dragon Backend Simulator:
+To integrate this extension with Dragon Copilot:
 
-1. Ensure both applications are running
-2. Configure the Dragon Backend Simulator to send requests to:
-   - HTTP: `http://localhost:5181/api/process`
-   - HTTPS: `https://localhost:7156/api/process`
+1. Ensure the extension is running
+2. Configure Dragon Copilot to send requests to:
+   - HTTP: `http://localhost:5181/v1/process`
+   - HTTPS: `https://localhost:7156/v1/process`
+3. Test the integration using the provided test files
 
 ## Customization
 

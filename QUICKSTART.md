@@ -4,11 +4,8 @@
 
 ### Option 1: PowerShell Script (Windows - Easiest)
 ```powershell
-# Start both services
+# Start the extension
 .\scripts\start-dev.ps1
-
-# Test the setup
-.\scripts\test-setup.ps1
 
 # Stop services when done
 .\scripts\start-dev.ps1 -StopAll
@@ -19,26 +16,14 @@
 # Make scripts executable (first time only)
 chmod +x scripts/*.sh
 
-# Start both services
+# Start the extension
 ./scripts/start-dev.sh
-
-# Test the setup
-./scripts/test-setup.sh
 
 # Stop services when done
 ./scripts/start-dev.sh --stop
 ```
 
-### Option 3: Docker Compose
-```bash
-# Start everything with Docker
-docker-compose up --build
-
-# Stop everything
-docker-compose down
-```
-
-### Option 4: VS Code Tasks
+### Option 3: VS Code Tasks
 1. Open workspace in VS Code
 2. Press `Ctrl+Shift+P`
 3. Type "Tasks: Run Task"
@@ -77,49 +62,34 @@ The deployment script will:
 
 ## 🧪 Verify Everything Works
 
-### Quick Test
-Run the test script to verify integration:
-- Windows: `.\scripts\test-setup.ps1`
-- Linux/Mac: `./scripts/test-setup.sh`
+### Quick Testing Options
 
-### Manual Verification
+#### Manual Verification
 1. **Extension Health**: http://localhost:5181/health
 2. **Extension Swagger**: http://localhost:5181/
-3. **Simulator Health**: http://localhost:5180/health
-4. **Simulator Swagger**: http://localhost:5180/
 
-### Integration Test Suite
+#### Comprehensive Integration Test Suite
 Open `testing/integration-tests.http` in VS Code with REST Client extension and run the tests.
 
 ## 🔧 Development Workflow
 
 ### VS Code Tasks Available
-- **Start Dragon Extension Developer Environment**: Starts both services
+- **Start Dragon Extension Developer Environment**: Starts the extension service
 - **Stop Dragon Extension Services**: Stops all services
-- **Test Dragon Extension Setup**: Runs validation tests
-- **Build Sample Extension**: Builds just the extension
-- **Build Dragon Backend Simulator**: Builds just the simulator
-- **Docker Compose Up/Down**: Docker-based development
+- **Build Sample Extension**: Builds the extension
 
 ### Debugging
 Use VS Code debug configurations:
 - **Debug Sample Extension**: Debug the extension with breakpoints
-- **Debug Dragon Backend Simulator**: Debug the simulator
-- **Debug Both Services**: Debug both simultaneously
 
-## 📋 What Each Service Does
-
-### Dragon Backend Simulator (Port 5180)
-- Simulates the production backend system
-- Creates encounters via REST API
-- Automatically calls your extension when encounters are created
-- Provides Swagger UI for testing
+## 📋 What the Service Does
 
 ### Sample Extension (Port 5181)
-- Example implementation of an extension
-- Shows proper request/response handling
+- Example implementation of a Dragon Copilot extension
+- Shows proper request/response handling for Dragon Copilot integration
 - Includes health check endpoints
 - Demonstrates error handling patterns
+- Provides comprehensive API documentation via Swagger
 
 ## 🎯 Testing Your Extension
 
@@ -137,14 +107,21 @@ Content-Type: application/json
 }
 ```
 
-### 2. Full Integration Testing
+### 2. Extension Processing Test
 ```http
-POST http://localhost:5180/api/encounters:simulate
+POST http://localhost:5181/v1/process
 Content-Type: application/json
 
 {
-  "name": "Test Encounter",
-  "description": "This will call your extension"
+  "sessionData": {
+    "session_start": "2025-07-22T12:00:00.000Z",
+    "session_id": "test-session-001"
+  },
+  "iterativeTranscripts": [
+    {
+      "transcript": "Test patient encounter for validation"
+    }
+  ]
 }
 ```
 
@@ -152,18 +129,20 @@ Content-Type: application/json
 
 ### Services Won't Start
 - Check .NET 9.0 SDK is installed: `dotnet --version`
-- Ensure ports 5180/5181 are free
+- Ensure port 5181 is free
 - Run stop script first: `.\scripts\start-dev.ps1 -StopAll`
 
 ### Integration Tests Fail
-- Verify both services are running and healthy
-- Check service logs in terminal windows
-- Ensure simulator configuration points to extension URL
+- Verify the extension is running and healthy
+- Check extension logs in terminal window
+- Test extension directly using the HTTP test file
 
 ### Docker Issues
-- Ensure Docker Desktop is running
-- Try: `docker-compose down && docker-compose up --build`
-- Check logs: `docker-compose logs`
+- For containerized deployment, build the extension directly:
+  ```bash
+  docker build -f samples/DragonCopilot/Workflow/SampleExtension.Web/Dockerfile -t my-extension .
+  docker run -p 5181:8080 my-extension
+  ```
 
 ## 📚 Next Steps
 
@@ -175,6 +154,6 @@ Content-Type: application/json
 
 ## 🎉 You're Ready!
 
-Your Dragon Extension Developer environment is now set up and ready for development. Start building your custom extensions and use the simulator to test them locally before deployment.
+Your Dragon Extension Developer environment is now set up and ready for development. Start building your custom extensions and test them locally before deploying to Dragon Copilot.
 
 For detailed documentation, see the individual README files in each project folder.
