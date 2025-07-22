@@ -64,7 +64,7 @@ Accept: text/html
 
 ###
 
-# Integration Test - Simulating Dragon Backend Simulator Request
+# Integration Test - Testing Dragon Copilot Extension
 POST {{SampleExtension_Web_HostAddress}}/v1/process
 Content-Type: application/json
 Accept: application/json

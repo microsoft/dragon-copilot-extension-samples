@@ -24,20 +24,17 @@ jobs:
     - name: Restore dependencies
       run: |
         cd src/Dragon.Copilot.Models && dotnet restore
-        cd ../../DragonBackendSimulator && dotnet restore
-        cd ../samples/DragonCopilot/Workflow && dotnet restore
+        cd ../../samples/DragonCopilot/Workflow && dotnet restore
 
     - name: Run security audit
       run: |
         cd src/Dragon.Copilot.Models && dotnet list package --vulnerable --include-transitive
-        cd ../../DragonBackendSimulator && dotnet list package --vulnerable --include-transitive
-        cd ../samples/DragonCopilot/Workflow && dotnet list package --vulnerable --include-transitive
+        cd ../../samples/DragonCopilot/Workflow && dotnet list package --vulnerable --include-transitive
 
     - name: Check for outdated packages
       run: |
         cd src/Dragon.Copilot.Models && dotnet list package --outdated
-        cd ../../DragonBackendSimulator && dotnet list package --outdated
-        cd ../samples/DragonCopilot/Workflow && dotnet list package --outdated
+        cd ../../samples/DragonCopilot/Workflow && dotnet list package --outdated
 
   codeql-analysis:
     runs-on: ubuntu-latest
@@ -64,10 +61,7 @@ jobs:
         cd src/Dragon.Copilot.Models
         dotnet restore
         dotnet build --no-restore --configuration Release
-        cd ../../DragonBackendSimulator
-        dotnet restore
-        dotnet build --no-restore --configuration Release
-        cd ../samples/DragonCopilot/Workflow
+        cd ../../samples/DragonCopilot/Workflow
         dotnet restore
         dotnet build --no-restore --configuration Release
 

@@ -47,7 +47,7 @@ internal static class WebApplicationExtensions
             {
                 Title = "Sample Extension API",
                 Version = "v1",
-                Description = "A sample extension API that accepts posts from the Dragon Backend Simulator"
+                Description = "A sample extension API that accepts posts from Dragon Copilot"
             });
 
             // Add JWT authentication to Swagger

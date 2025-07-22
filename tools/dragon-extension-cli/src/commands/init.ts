@@ -15,7 +15,7 @@ export async function initProject(options: InitOptions): Promise<void> {
   // Step 1: Extension Details
   console.log(chalk.blue('📝 Step 1: Extension Details'));
   console.log(chalk.gray('Let\'s start with basic information about your extension.\n'));
-  
+
   const extensionDetails = await promptExtensionDetails({
     name: options.name,
     description: options.description,
@@ -26,7 +26,7 @@ export async function initProject(options: InitOptions): Promise<void> {
   console.log(chalk.blue('\n📋 Step 2: Publisher Configuration'));
   console.log(chalk.gray('Publisher information is required for deployment and marketplace listing.'));
   console.log(chalk.gray('This creates a separate publisher.json file that can be reused across extensions.\n'));
-  
+
   const createPublisherConfig = await confirm({
     message: 'Create publisher configuration file (publisher.json)?',
     default: true
@@ -41,7 +41,7 @@ export async function initProject(options: InitOptions): Promise<void> {
   console.log(chalk.blue('\n🛠️  Step 3: Extension Tools'));
   console.log(chalk.gray('Tools define the AI-powered functionality your extension provides.'));
   console.log(chalk.gray('Each tool processes specific types of clinical data and returns results.\n'));
-  
+
   const addTool = await confirm({
     message: 'Add an initial tool?',
     default: true
@@ -112,13 +112,13 @@ export async function initProject(options: InitOptions): Promise<void> {
 
   // Enhanced next steps with better organization
   console.log(chalk.blue('\n🎯 What\'s Next?'));
-  
+
   if (addTool) {
     console.log(chalk.yellow('� Development Steps:'));
     console.log(chalk.gray('   1. Update the endpoint URL with your actual API'));
     console.log(chalk.gray('   2. Customize inputs and outputs as needed'));
     console.log(chalk.gray('   3. Test your extension locally'));
-    
+
     if (publisherConfig) {
       console.log(chalk.yellow('\n📦 Deployment Steps:'));
       console.log(chalk.gray('   1. Review and update publisher configuration'));
@@ -131,7 +131,7 @@ export async function initProject(options: InitOptions): Promise<void> {
     console.log(chalk.gray('   2. Update the manifest with your API endpoints'));
     console.log(chalk.gray('   3. Test and package your extension'));
   }
-  
+
   console.log(chalk.blue('\n📚 Resources:'));
   console.log(chalk.gray('   • Validate your extension: dragon-extension validate'));
   console.log(chalk.gray('   • Add more tools: dragon-extension add-tool'));

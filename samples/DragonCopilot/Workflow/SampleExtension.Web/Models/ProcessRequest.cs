@@ -7,7 +7,7 @@ using System.Collections.Generic;
 namespace SampleExtension.Web.Models;
 
 /// <summary>
-/// Request model for processing data from the Dragon Backend Simulator
+/// Request model for processing data from Dragon Copilot
 /// </summary>
 public class ProcessRequest
 {
@@ -17,7 +17,7 @@ public class ProcessRequest
     public Guid RequestId { get; set; }
 
     /// <summary>
-    /// The encounter ID from the backend simulator
+    /// The encounter ID from Dragon Copilot
     /// </summary>
     public Guid? EncounterId { get; set; }
 
