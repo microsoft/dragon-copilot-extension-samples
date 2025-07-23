@@ -8,7 +8,8 @@
     "dragon-extension": "dist/cli.js"
   },
   "scripts": {
-    "build": "tsc",
+    "build": "tsc && npm run copy-schemas",
+    "copy-schemas": "node -e \"const fs = require('fs-extra'); fs.copySync('src/schemas', 'dist/schemas')\"",
     "dev": "ts-node src/cli.ts",
     "start": "node dist/cli.js",
     "test": "jest",
