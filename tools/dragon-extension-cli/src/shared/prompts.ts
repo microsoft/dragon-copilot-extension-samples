@@ -228,7 +228,7 @@ export async function promptPublisherDetails(defaults?: Partial<PublisherConfig>
   const defaultLocale = 'en-US';
   const supportedLocales = ['en-US'];
   const regions = ['US'];
-  const scope = 'workflow'; // Fixed scope as per requirements
+  const scope = 'Workflow'; // Fixed scope as per requirements
 
   return {
     publisherId,
