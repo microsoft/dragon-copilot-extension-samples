@@ -37,7 +37,8 @@ export interface PublisherConfig {
   offerId: string;
   defaultLocale: string;
   supportedLocales: string[];
-  countries: string[];
+  scope: string;
+  regions: string[];
 }
 
 export interface GenerateOptions {

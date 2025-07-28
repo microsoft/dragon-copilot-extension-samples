@@ -84,7 +84,7 @@ export async function validateManifest(filePath: string): Promise<void> {
           const publisherConfig = JSON.parse(readFileSync(publisherPath, 'utf8')) as PublisherConfig;
           console.log(chalk.gray(`  • Publisher: ${publisherConfig.publisherName} (${publisherConfig.publisherId})`));
           console.log(chalk.gray(`  • Supported Locales: ${publisherConfig.supportedLocales?.join(', ') || 'None'}`));
-          console.log(chalk.gray(`  • Supported Countries: ${publisherConfig.countries?.join(', ') || 'None'}`));
+          console.log(chalk.gray(`  • Supported Regions: ${publisherConfig.regions?.join(', ') || 'None'}`));
         } catch {
           // Ignore parsing errors for summary
         }
