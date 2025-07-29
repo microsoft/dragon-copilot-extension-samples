@@ -121,7 +121,7 @@ describe('Schema Validation', () => {
 
       const result = validatePublisherConfig(config);
       expect(result.isValid).toBe(false);
-      expect(result.errors.some((e: any) => e.instancePath.includes('countries'))).toBe(true);
+      expect(result.errors.some((e: any) => e.instancePath.includes('regions'))).toBe(true);
     });
 
     test('should reject non-en-US locales', () => {

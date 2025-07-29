@@ -43,7 +43,8 @@ tools:
       offerId: 'test-offer',
       defaultLocale: 'en-US',
       supportedLocales: ['en-US'],
-      countries: ['US']
+      scope: 'Workflow',
+      regions: ['US']
     };
 
     await fs.writeFile(publisherPath, JSON.stringify(publisher, null, 2));
