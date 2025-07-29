@@ -1,5 +1,5 @@
 import { input, select, checkbox, confirm } from '@inquirer/prompts';
-import { DragonExtensionManifest, PublisherConfig } from '../types.js';
+import { DragonExtensionManifest, PublisherConfig, DragonConfiguration } from '../types.js';
 import { validateFieldValue } from './schema-validator.js';
 
 export interface ExtensionDetails {
@@ -24,8 +24,93 @@ export const INPUT_TYPE_CHOICES = [
 ];
 
 /**
- * Validates tool name input
+ * Validates configuration label using schema
  */
+export function validateConfigLabel(input: string): string | boolean {
+  return validateFieldValue(input, 'DragonConfiguration.label', 'manifest');
+}
+
+/**
+ * Validates configuration description using schema
+ */
+export function validateConfigDescription(input: string): string | boolean {
+  return validateFieldValue(input, 'DragonConfiguration.description', 'manifest');
+}
+
+/**
+ * Validates header name using schema
+ */
+export function validateHeaderName(input: string): string | boolean {
+  return validateFieldValue(input, 'DragonConfiguration.header', 'manifest');
+}
+
+/**
+ * Prompts for a single configuration item
+ */
+export async function promptConfigurationItem(existingConfigs?: DragonConfiguration[]): Promise<DragonConfiguration> {
+  const label = await input({
+    message: 'Configuration label (shown during installation):',
+    validate: validateConfigLabel
+  });
+
+  const description = await input({
+    message: 'Configuration description (help text for users):',
+    validate: validateConfigDescription
+  });
+
+  const header = await input({
+    message: 'Header name (must start with "x-dre-"):',
+    default: `x-dre-${label.toLowerCase().replace(/\s+/g, '-')}`,
+    validate: (input: string) => {
+      const baseValidation = validateHeaderName(input);
+      if (baseValidation !== true) return baseValidation;
+
+      if (existingConfigs?.find(c => c.header === input)) {
+        return 'Header name already exists in this extension';
+      }
+      return true;
+    }
+  });
+
+  return { label, description, header };
+}
+
+/**
+ * Prompts for extension configuration
+ */
+export async function promptExtensionConfiguration(): Promise<DragonConfiguration[]> {
+  const configurations: DragonConfiguration[] = [];
+
+  const addConfiguration = await confirm({
+    message: 'Add configuration values for this extension?',
+    default: false
+  });
+
+  if (!addConfiguration) {
+    return configurations;
+  }
+
+  console.log('\n📋 Configuration allows users to provide custom values during installation.');
+  console.log('These values are passed as HTTP headers to your extension\'s API endpoints.\n');
+
+  let addMore = true;
+  while (addMore) {
+    const config = await promptConfigurationItem(configurations);
+    configurations.push(config);
+
+    if (configurations.length >= 10) {
+      console.log('Maximum of 10 configuration items reached.');
+      break;
+    }
+
+    addMore = await confirm({
+      message: 'Add another configuration item?',
+      default: false
+    });
+  }
+
+  return configurations;
+}
 export function validateToolName(input: string, existingManifest?: DragonExtensionManifest | null): string | boolean {
   if (!input.trim()) return 'Tool name is required';
   if (!/^[a-z0-9-]+$/.test(input)) return 'Tool name must contain only lowercase letters, numbers, and hyphens';

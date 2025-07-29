@@ -3,6 +3,172 @@ import { DragonExtensionManifest, PublisherConfig } from '../types.js';
 
 describe('Schema Validation', () => {
   describe('validateExtensionManifest', () => {
+    test('should validate a correct manifest with configuration', () => {
+      const manifest: DragonExtensionManifest = {
+        name: 'test-extension',
+        description: 'A test extension',
+        version: '1.0.0',
+        configuration: [
+          {
+            label: 'API Key',
+            description: 'Your organization API key',
+            header: 'x-dre-api-key'
+          },
+          {
+            label: 'Environment',
+            description: 'Target environment configuration',
+            header: 'x-dre-environment'
+          }
+        ],
+        tools: [
+          {
+            name: 'test-tool',
+            description: 'A test tool',
+            endpoint: 'https://api.example.com/test',
+            inputs: [
+              {
+                name: 'note',
+                description: 'Clinical note',
+                data: 'DSP/Note'
+              }
+            ],
+            outputs: [
+              {
+                name: 'result',
+                description: 'Processed result',
+                data: 'DSP'
+              }
+            ]
+          }
+        ]
+      };
+
+      const result = validateExtensionManifest(manifest);
+      expect(result.isValid).toBe(true);
+      expect(result.errors).toHaveLength(0);
+    });
+
+    test('should detect invalid configuration header', () => {
+      const manifest: DragonExtensionManifest = {
+        name: 'test-extension',
+        description: 'A test extension',
+        version: '1.0.0',
+        configuration: [
+          {
+            label: 'API Key',
+            description: 'Your organization API key',
+            header: 'api-key' // Should start with x-dre-
+          }
+        ],
+        tools: [
+          {
+            name: 'test-tool',
+            description: 'A test tool',
+            endpoint: 'https://api.example.com/test',
+            inputs: [
+              {
+                name: 'note',
+                description: 'Clinical note',
+                data: 'DSP/Note'
+              }
+            ],
+            outputs: [
+              {
+                name: 'result',
+                description: 'Processed result',
+                data: 'DSP'
+              }
+            ]
+          }
+        ]
+      };
+
+      const result = validateExtensionManifest(manifest);
+      expect(result.isValid).toBe(false);
+      expect(result.errors.length).toBeGreaterThan(0);
+      expect(result.errors.some(error => error.message.includes('x-dre-'))).toBe(true);
+    });
+
+    test('should detect configuration label that is too long', () => {
+      const manifest: DragonExtensionManifest = {
+        name: 'test-extension',
+        description: 'A test extension',
+        version: '1.0.0',
+        configuration: [
+          {
+            label: 'a'.repeat(31), // Too long (max 30)
+            description: 'Valid description',
+            header: 'x-dre-api-key'
+          }
+        ],
+        tools: [
+          {
+            name: 'test-tool',
+            description: 'A test tool',
+            endpoint: 'https://api.example.com/test',
+            inputs: [
+              {
+                name: 'note',
+                description: 'Clinical note',
+                data: 'DSP/Note'
+              }
+            ],
+            outputs: [
+              {
+                name: 'result',
+                description: 'Processed result',
+                data: 'DSP'
+              }
+            ]
+          }
+        ]
+      };
+
+      const result = validateExtensionManifest(manifest);
+      expect(result.isValid).toBe(false);
+      expect(result.errors.length).toBeGreaterThan(0);
+    });
+
+    test('should detect configuration description that is too long', () => {
+      const manifest: DragonExtensionManifest = {
+        name: 'test-extension',
+        description: 'A test extension',
+        version: '1.0.0',
+        configuration: [
+          {
+            label: 'API Key',
+            description: 'a'.repeat(101), // Too long (max 100)
+            header: 'x-dre-api-key'
+          }
+        ],
+        tools: [
+          {
+            name: 'test-tool',
+            description: 'A test tool',
+            endpoint: 'https://api.example.com/test',
+            inputs: [
+              {
+                name: 'note',
+                description: 'Clinical note',
+                data: 'DSP/Note'
+              }
+            ],
+            outputs: [
+              {
+                name: 'result',
+                description: 'Processed result',
+                data: 'DSP'
+              }
+            ]
+          }
+        ]
+      };
+
+      const result = validateExtensionManifest(manifest);
+      expect(result.isValid).toBe(false);
+      expect(result.errors.length).toBeGreaterThan(0);
+    });
+
     test('should validate a correct manifest', () => {
       const manifest: DragonExtensionManifest = {
         name: 'test-extension',

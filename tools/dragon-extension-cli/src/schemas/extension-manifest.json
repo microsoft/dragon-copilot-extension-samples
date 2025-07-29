@@ -24,6 +24,14 @@
       "type": "string",
       "description": "Optional authentication configuration"
     },
+    "configuration": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/definitions/DragonConfiguration"
+      },
+      "description": "Array of configuration values expected by this extension"
+    },
     "tools": {
       "type": "array",
       "minItems": 1,
@@ -119,6 +127,32 @@
           "type": "string",
           "minLength": 1,
           "description": "Output data type"
+        }
+      },
+      "additionalProperties": false
+    },
+    "DragonConfiguration": {
+      "type": "object",
+      "required": ["label", "description", "header"],
+      "properties": {
+        "label": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 30,
+          "description": "Label to be shown during installation"
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100,
+          "description": "Description of the value to be showing during installation"
+        },
+        "header": {
+          "type": "string",
+          "pattern": "^x-dre-[a-zA-Z0-9-]+$",
+          "minLength": 7,
+          "maxLength": 64,
+          "description": "Header key passed in a request to the API endpoint (must start with 'x-dre-' and contain letters, numbers, and hyphens)"
         }
       },
       "additionalProperties": false

@@ -2,6 +2,7 @@
 // Licensed under the MIT License.
 
 using System;
+using System.Diagnostics;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -54,6 +55,7 @@ public class LicenseKeyMiddleware
             return;
         }
 
+        Debug.Assert(_licenseKeyOptions.HeaderName != null);
         var licenseKey = context.Request.Headers[_licenseKeyOptions.HeaderName].FirstOrDefault();
 
         if (string.IsNullOrEmpty(licenseKey) || !_licenseKeyOptions.ValidKeys.Contains(licenseKey))
