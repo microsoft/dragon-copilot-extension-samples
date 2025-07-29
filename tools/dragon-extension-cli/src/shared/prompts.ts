@@ -227,7 +227,8 @@ export async function promptPublisherDetails(defaults?: Partial<PublisherConfig>
   // Fixed values as per requirements - only US and en-US supported
   const defaultLocale = 'en-US';
   const supportedLocales = ['en-US'];
-  const countries = ['US'];
+  const regions = ['US'];
+  const scope = 'Workflow'; // Fixed scope as per requirements
 
   return {
     publisherId,
@@ -238,8 +239,9 @@ export async function promptPublisherDetails(defaults?: Partial<PublisherConfig>
     version,
     contactEmail,
     offerId,
+    scope,
     defaultLocale,
     supportedLocales,
-    countries
+    regions
   };
 }

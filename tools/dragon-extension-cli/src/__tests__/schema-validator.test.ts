@@ -93,8 +93,9 @@ describe('Schema Validation', () => {
         contactEmail: 'support@contosohealth.com',
         offerId: 'contoso-extension-suite',
         defaultLocale: 'en-US',
+        scope: 'Workflow',
         supportedLocales: ['en-US'],
-        countries: ['US']
+        regions: ['US']
       };
 
       const result = validatePublisherConfig(config);
@@ -114,12 +115,13 @@ describe('Schema Validation', () => {
         offerId: 'contoso-extension-suite',
         defaultLocale: 'en-US',
         supportedLocales: ['en-US'],
-        countries: ['FR'] // Invalid country
+        scope: 'Workflow',
+        regions: ['FR'] // Invalid country
       };
 
       const result = validatePublisherConfig(config);
       expect(result.isValid).toBe(false);
-      expect(result.errors.some((e: any) => e.instancePath.includes('countries'))).toBe(true);
+      expect(result.errors.some((e: any) => e.instancePath.includes('regions'))).toBe(true);
     });
 
     test('should reject non-en-US locales', () => {
@@ -134,7 +136,8 @@ describe('Schema Validation', () => {
         offerId: 'contoso-extension-suite',
         defaultLocale: 'fr-FR', // Invalid locale
         supportedLocales: ['fr-FR'], // Invalid locale
-        countries: ['US']
+        scope: 'Workflow',
+        regions: ['US']
       };
 
       const result = validatePublisherConfig(config);

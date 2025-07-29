@@ -258,7 +258,7 @@ export function getFieldDisplayName(path: string): string {
     'offerId': 'Offer ID',
     'defaultLocale': 'Default Locale',
     'supportedLocales': 'Supported Locales',
-    'countries': 'Countries'
+    'regions': 'Regions'
   };
 
   return fieldNames[path] || path;

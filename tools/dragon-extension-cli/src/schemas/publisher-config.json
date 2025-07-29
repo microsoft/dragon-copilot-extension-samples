@@ -13,7 +13,8 @@
     "offerId",
     "defaultLocale",
     "supportedLocales",
-    "countries"
+    "scope",
+    "regions"
   ],
   "properties": {
     "publisherId": {
@@ -71,14 +72,19 @@
       },
       "description": "Supported locales (currently only en-US is supported). To extend: add more locales to the enum array."
     },
-    "countries": {
+    "regions": {
       "type": "array",
       "minItems": 1,
       "items": {
         "type": "string",
         "enum": ["US"]
       },
-      "description": "Supported countries (currently only US is supported). To extend: add more countries to the enum array."
+      "description": "Supported regions (currently only US is supported). To extend: add more regions to the enum array."
+    },
+    "scope": {
+      "type": "string",
+      "enum": ["Workflow"],
+      "description": "Scope of the extension (currently only Workflow is supported). To extend: add more scopes to the enum array."
     }
   },
   "additionalProperties": false
