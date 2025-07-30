@@ -10,6 +10,29 @@ param(
     [switch]$StopAll
 )
 
+# Define emoji functions for cross-platform compatibility
+function Get-Emoji {
+    param([string]$CodePoint)
+    try {
+        $EmojiIcon = [System.Convert]::toInt32($CodePoint, 16)
+        return [System.Char]::ConvertFromUtf32($EmojiIcon)
+    } catch {
+        return ""  # Fallback to empty string if conversion fails
+    }
+}
+
+# Define emoji variables
+$DragonEmoji = Get-Emoji "1F409"      # 🐉
+$WrenchEmoji = Get-Emoji "1F527"      # 🔧
+$HourglassEmoji = Get-Emoji "23F3"    # ⏳
+$MagnifyingGlassEmoji = Get-Emoji "1F50D"  # 🔍
+$CheckMarkEmoji = Get-Emoji "2705"    # ✅
+$GreenCircleEmoji = Get-Emoji "1F7E2" # 🟢
+$YellowCircleEmoji = Get-Emoji "1F7E1" # 🟡
+$ClipboardEmoji = Get-Emoji "1F4CB"   # 📋
+$RocketEmoji = Get-Emoji "1F680"      # 🚀
+$WavingHandEmoji = Get-Emoji "1F44B"  # 👋
+
 if ($Help) {
     Write-Host @"
 Dragon Extension Developer - Quick Start Script
@@ -54,7 +77,7 @@ if (-not (Get-Command dotnet -ErrorAction SilentlyContinue)) {
     exit 1
 }
 
-Write-Host "🐉 Starting Dragon Extension Developer Environment..." -ForegroundColor Green
+Write-Host "$DragonEmoji Starting Dragon Extension Developer Environment..." -ForegroundColor Green
 Write-Host "Root path: $rootPath" -ForegroundColor Gray
 
 # Check if ports are available
@@ -69,7 +92,7 @@ foreach ($port in $ports) {
 
 try {
     # Start the Sample Extension
-    Write-Host "🔧 Starting Sample Extension on http://localhost:5181..." -ForegroundColor Yellow
+    Write-Host "$WrenchEmoji Starting Sample Extension on http://localhost:5181..." -ForegroundColor Yellow
     $extensionPath = Join-Path $rootPath "samples/DragonCopilot/Workflow/SampleExtension.Web"
 
     if (-not (Test-Path $extensionPath)) {
@@ -84,7 +107,7 @@ try {
     } -ArgumentList $extensionPath
 
     # Wait for services to start and retry health checks
-    Write-Host "`n⏳ Waiting for service to start..." -ForegroundColor Gray
+    Write-Host "`n$HourglassEmoji Waiting for service to start..." -ForegroundColor Gray
     Start-Sleep -Seconds 5
 
     # Retry health checks multiple times
@@ -93,7 +116,7 @@ try {
     $extensionHealthy = $false
 
     for ($retry = 1; $retry -le $maxRetries; $retry++) {
-        Write-Host "🔍 Health check attempt $retry/$maxRetries..." -ForegroundColor Gray
+        Write-Host "$MagnifyingGlassEmoji Health check attempt $retry/$maxRetries..." -ForegroundColor Gray
 
         # Check Sample Extension
         if (-not $extensionHealthy) {
@@ -102,7 +125,9 @@ try {
                 if ($response.StatusCode -eq 200) {
                     $extensionHealthy = $true
                 }
-            } catch { }
+            } catch {
+                # Ignore connection errors during health check
+            }
         }
 
         # If service is healthy, break out of retry loop
@@ -116,22 +141,22 @@ try {
         }
     }
 
-    Write-Host "`n✅ Dragon Extension Developer Environment Started!" -ForegroundColor Green
-    Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor DarkGray
+    Write-Host "`n$CheckMarkEmoji Dragon Extension Developer Environment Started!" -ForegroundColor Green
+    Write-Host "------------------------------------------------------------------------" -ForegroundColor DarkGray
 
     if ($extensionHealthy) {
-        Write-Host "🟢 Sample Extension Swagger: http://localhost:5181/" -ForegroundColor DarkMagenta
+        Write-Host "$GreenCircleEmoji Sample Extension Swagger: http://localhost:5181/" -ForegroundColor DarkMagenta
     } else {
-        Write-Host "🟡 Sample Extension Swagger: http://localhost:5181/ (starting...)" -ForegroundColor DarkMagenta
+        Write-Host "$YellowCircleEmoji Sample Extension Swagger: http://localhost:5181/ (starting...)" -ForegroundColor DarkMagenta
     }
 
-    Write-Host "`n📋 Quick Test Commands:" -ForegroundColor White
-    Write-Host "• Test extension directly: Send POST requests to http://localhost:5181/v1/process" -ForegroundColor Gray
-    Write-Host "• Stop services:           .\start-dev.ps1 -StopAll" -ForegroundColor Gray
-    Write-Host "• View logs:               Check the job outputs below" -ForegroundColor Gray
+    Write-Host "`n$ClipboardEmoji Quick Test Commands:" -ForegroundColor White
+    Write-Host "- Test extension directly: Send POST requests to http://localhost:5181/v1/process" -ForegroundColor Gray
+    Write-Host "- Stop services:           .\start-dev.ps1 -StopAll" -ForegroundColor Gray
+    Write-Host "- View logs:               Check the job outputs below" -ForegroundColor Gray
 
-    Write-Host "`n🚀 Ready for development! Press Ctrl+C to stop the service." -ForegroundColor Green
-    Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor DarkGray
+    Write-Host "`n$RocketEmoji Ready for development! Press Ctrl+C to stop the service." -ForegroundColor Green
+    Write-Host "------------------------------------------------------------------------" -ForegroundColor DarkGray
 
     # Monitor jobs and display output
     while ($extensionJob.State -eq "Running") {
@@ -158,5 +183,5 @@ try {
         $extensionJob | Stop-Job -PassThru | Remove-Job -Force
     }
 
-    Write-Host "`n👋 Dragon Extension Developer Environment stopped." -ForegroundColor Yellow
+    Write-Host "`n$WavingHandEmoji Dragon Extension Developer Environment stopped." -ForegroundColor Yellow
 }
