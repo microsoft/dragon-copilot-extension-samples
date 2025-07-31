@@ -19,10 +19,17 @@ public class Encounter
     public string? CorrelationId { get; set; }
 
     /// <summary>
-    /// External encounter identifier
+    /// External encounter identifier (deprecated - use external_encounter_ids instead)
     /// </summary>
     [JsonPropertyName("external_encounter_id")]
+    [Obsolete("Use ExternalEncounterIds instead. This will be removed in future versions.")]
     public string? ExternalEncounterId { get; set; }
+
+    /// <summary>
+    /// External encounter identifiers (replaces single external_encounter_id)
+    /// </summary>
+    [JsonPropertyName("external_encounter_ids")]
+    public IList<ExternalIdentifier>? ExternalEncounterIds { get; init; }
 
     /// <summary>
     /// Status of the encounter
@@ -35,6 +42,12 @@ public class Encounter
     /// </summary>
     [JsonPropertyName("date_of_encounter")]
     public DateTime? DateOfEncounter { get; set; }
+
+    /// <summary>
+    /// Service date for the encounter
+    /// </summary>
+    [JsonPropertyName("service_date")]
+    public DateTime? ServiceDate { get; set; }
 
     /// <summary>
     /// Patient information
