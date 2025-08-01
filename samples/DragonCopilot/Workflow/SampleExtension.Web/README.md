@@ -2,6 +2,23 @@
 
 A sample C# Web API project that demonstrates how to create an extension that can receive and process requests from Dragon Copilot.
 
+## Architecture Overview
+
+```
+┌─────────────────────┐    HTTP POST     ┌─────────────────────┐
+│                     │   /v1/process    │                     │
+│   Dragon Copilot    │ ───────────────► │   Your Extension    │
+│     Platform        │                  │                     │
+│                     │ ◄─────────────── │                     │
+└─────────────────────┘    Response      └─────────────────────┘
+         │                                                      │
+         │                                                      │
+         ▼                                                      ▼
+   Manages Encounters                               Processes Business Logic
+   Handles Voice Data                               Returns Results
+                                                   Handles Errors
+```
+
 ## Features
 
 - **REST API**: Accepts POST requests with data to be processed
@@ -10,6 +27,7 @@ A sample C# Web API project that demonstrates how to create an extension that ca
 - **CORS Support**: Configured to accept requests from Dragon Copilot
 - **Structured Logging**: Comprehensive logging for debugging and monitoring
 - **Error Handling**: Robust error handling with appropriate HTTP status codes
+- **Dockerfile**: Build your application as a container.
 
 ## API Endpoints
 
