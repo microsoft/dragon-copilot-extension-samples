@@ -8,6 +8,11 @@ namespace Dragon.Copilot.Models;
 /// <summary>
 /// Base interface for all resource types that can be included in DSP responses
 /// </summary>
+[JsonDerivedType(typeof(ClinicalDocumentSection))]
+[JsonDerivedType(typeof(MedicalCode))]
+[JsonDerivedType(typeof(ObservationConcept))]
+[JsonDerivedType(typeof(ObservationNumber))]
+[JsonDerivedType(typeof(VisualizationResource))]
 public interface IResource
 {
     /// <summary>
