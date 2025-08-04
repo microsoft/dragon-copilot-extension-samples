@@ -53,5 +53,5 @@ public class DspResponse
     /// Clinical resources extracted or generated
     /// </summary>
     [JsonPropertyName("resources")]
-    public ICollection<object>? Resources { get; } = new List<object>();
+    public ICollection<IResource> Resources { get; } = new List<IResource>();
 }

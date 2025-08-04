@@ -110,9 +110,9 @@ public class ProcessingService : IProcessingService
         return Task.FromResult((sampleEntities, adaptiveCardResponse));
     }
 
-    private static List<object> ExtractClinicalEntities(Note note)
+    private static List<IResource> ExtractClinicalEntities(Note note)
     {
-        var entities = new List<object>();
+        var entities = new List<IResource>();
 
         // Sample entity extraction logic - in a real implementation,
         // this would use NLP or other AI services to extract entities
@@ -126,39 +126,21 @@ public class ProcessingService : IProcessingService
                     var bpMatch = FindEntityMatch(resource.Content, ["BLOOD PRESSURE", "BP"]);
                     if (bpMatch != null)
                     {
-                        entities.Add(new
-                        {
-                            id = Guid.NewGuid().ToString(),
-                            type = "vital_sign",
-                            entity = "blood_pressure",
-                            value = $"extracted from: \"{bpMatch}\""
-                        });
+                        entities.Add(CreateVitalSignObservation(145.0, "mmHg"));
                     }
 
                     // Diabetes detection
                     var diabetesMatch = FindEntityMatch(resource.Content, ["DIABETES", "DIABETIC"]);
                     if (diabetesMatch != null)
                     {
-                        entities.Add(new
-                        {
-                            id = Guid.NewGuid().ToString(),
-                            type = "condition",
-                            entity = "diabetes",
-                            value = $"extracted from: \"{diabetesMatch}\""
-                        });
+                        entities.Add(CreateMedicalCodeExample("E11.9", "Type 2 diabetes mellitus without complications"));
                     }
 
                     // Medication detection
-                    var medicationMatch = FindEntityMatch(resource.Content, ["MEDICATION", "PRESCRIBED", "TAKING"]);
+                    var medicationMatch = FindEntityMatch(resource.Content, ["MEDICATION", "PRESCRIBED", "TAKING", "METFORMIN"]);
                     if (medicationMatch != null)
                     {
-                        entities.Add(new
-                        {
-                            id = Guid.NewGuid().ToString(),
-                            type = "medication",
-                            entity = "prescription",
-                            value = $"extracted from: \"{medicationMatch}\""
-                        });
+                        entities.Add(CreateObservationConceptExample("Prescription medication detected", "medication-concept-001"));
                     }
                 }
             }
@@ -214,7 +196,7 @@ public class ProcessingService : IProcessingService
         return null;
     }
 
-    private static object CreateAdaptiveCardResource(List<object> entities)
+    private static VisualizationResource CreateAdaptiveCardResource(List<IResource> entities)
     {
         // Create the body elements list
         var bodyElements = new List<object>
@@ -241,8 +223,12 @@ public class ProcessingService : IProcessingService
         // Add entities as individual containers if any found
         if (entities.Count > 0)
         {
-            foreach (dynamic entity in entities)
+            foreach (var entity in entities)
             {
+                var entityType = GetEntityTypeFromResource(entity);
+                var entityName = GetEntityNameFromResource(entity);
+                var entityValue = GetEntityValueFromResource(entity);
+
                 var entityContainer = new
                 {
                     type = "Container",
@@ -264,7 +250,7 @@ public class ProcessingService : IProcessingService
                                         new
                                         {
                                             type = "TextBlock",
-                                            text = GetEntityIcon(entity.type?.ToString()),
+                                            text = GetEntityIcon(entityType),
                                             size = "Large",
                                             spacing = "None"
                                         }
@@ -279,7 +265,7 @@ public class ProcessingService : IProcessingService
                                         new
                                         {
                                             type = "TextBlock",
-                                            text = $"**{GetEntityTypeDisplayName(entity.type?.ToString())}**",
+                                            text = $"**{GetEntityTypeDisplayName(entityType)}**",
                                             weight = "Bolder",
                                             size = "Medium",
                                             spacing = "None"
@@ -287,14 +273,14 @@ public class ProcessingService : IProcessingService
                                         new
                                         {
                                             type = "TextBlock",
-                                            text = entity.entity?.ToString() ?? "Unknown",
+                                            text = entityName,
                                             color = "Accent",
                                             spacing = "None"
                                         },
                                         new
                                         {
                                             type = "TextBlock",
-                                            text = entity.value?.ToString() ?? "No additional information",
+                                            text = entityValue,
                                             wrap = true,
                                             size = "Small",
                                             color = "Default",
@@ -339,26 +325,51 @@ public class ProcessingService : IProcessingService
             spacing = "Medium"
         });
 
-        return new
+        return new VisualizationResource
         {
-            id = Guid.NewGuid().ToString(),
-            type = "AdaptiveCard",
-            adaptive_card_payload = new
+            Id = Guid.NewGuid().ToString(),
+            Type = "AdaptiveCard",
+            Subtype = VisualizationSubtype.Note,
+            CardTitle = "Clinical Entities Extracted",
+            AdaptiveCardPayload = new
             {
                 type = "AdaptiveCard",
                 version = "1.3",
                 body = bodyElements.ToArray()
             },
-            payloadSources = new object[]
+            Actions = new List<VisualizationAction>
             {
-                new
+                new()
                 {
-                    identifier = Guid.NewGuid().ToString(),
-                    description = "Sample Extension Clinical Entity Extractor",
-                    url = "https://localhost/api/process"
+                    Title = "Accept Analysis",
+                    Action = VisualizationActionType.Accept,
+                    ActionType = ActionButtonType.Primary
+                },
+                new()
+                {
+                    Title = "Copy to Note",
+                    Action = VisualizationActionType.Copy,
+                    ActionType = ActionButtonType.Secondary,
+                    Code = "CLINICAL ENTITY ANALYSIS\n\nEntities detected:\n" +
+                           string.Join("\n", entities.Select(e => $"- {GetEntityNameFromResource(e)} ({GetEntityTypeFromResource(e)})"))
+                },
+                new()
+                {
+                    Title = "Reject Analysis",
+                    Action = VisualizationActionType.Reject,
+                    ActionType = ActionButtonType.Tertiary
                 }
             },
-            dragonCopilotCopyData = "Clinical entities extracted from note content"
+            PayloadSources = new List<PayloadSource>
+            {
+                new()
+                {
+                    Identifier = Guid.NewGuid().ToString(),
+                    Description = "Sample Extension Clinical Entity Extractor",
+                    Url = new Uri("https://localhost/api/process")
+                }
+            },
+            DragonCopilotCopyData = "Clinical entities extracted from note content"
         };
     }
 
@@ -387,6 +398,126 @@ public class ProcessingService : IProcessingService
             "ALLERGY" => "Allergy",
             "SYMPTOM" => "Symptom",
             _ => "Clinical Entity"
+        };
+    }
+
+    /// <summary>
+    /// Creates a sample medical code resource
+    /// </summary>
+    /// <param name="codeValue">The medical code value</param>
+    /// <param name="description">Description of the code</param>
+    /// <returns>A medical code resource</returns>
+    private static MedicalCode CreateMedicalCodeExample(string codeValue, string description)
+    {
+        return new MedicalCode
+        {
+            Id = Guid.NewGuid().ToString(),
+            Context = new Context
+            {
+                Id = "medical-code-context",
+                ContentType = "medical-code",
+                DisplayDescription = "Medical coding for clinical entities"
+            },
+            Code = new CodeInfo
+            {
+                Identifier = codeValue,
+                Description = description,
+                System = "ICD-10-CM",
+                SystemUrl = new Uri("http://hl7.org/fhir/sid/icd-10-cm")
+            },
+            Priority = Priority.Medium,
+            Reason = "Detected from clinical documentation"
+        };
+    }
+
+    /// <summary>
+    /// Creates a sample observation number resource for vital signs
+    /// </summary>
+    /// <param name="value">The numeric value</param>
+    /// <param name="unit">The unit of measurement</param>
+    /// <returns>An observation number resource</returns>
+    private static ObservationNumber CreateVitalSignObservation(double value, string unit)
+    {
+        return new ObservationNumber
+        {
+            Id = Guid.NewGuid().ToString(),
+            Context = new Context
+            {
+                Id = "vital-sign-context",
+                ContentType = "vital-sign",
+                DisplayDescription = "Vital sign measurement"
+            },
+            Value = value,
+            ValueUnit = unit,
+            Priority = Priority.High
+        };
+    }
+
+    /// <summary>
+    /// Creates a sample observation concept resource
+    /// </summary>
+    /// <param name="conceptText">The concept text</param>
+    /// <param name="conceptId">The concept identifier</param>
+    /// <returns>An observation concept resource</returns>
+    private static ObservationConcept CreateObservationConceptExample(string conceptText, string conceptId)
+    {
+        return new ObservationConcept
+        {
+            Id = Guid.NewGuid().ToString(),
+            Context = new Context
+            {
+                Id = "observation-context",
+                ContentType = "clinical-observation",
+                DisplayDescription = "Clinical observation finding"
+            },
+            Value = new ObservationValue
+            {
+                Text = conceptText,
+                ConceptId = conceptId
+            },
+            Priority = Priority.Medium
+        };
+    }
+
+    /// <summary>
+    /// Gets the entity type string from an IResource
+    /// </summary>
+    private static string GetEntityTypeFromResource(IResource resource)
+    {
+        return resource switch
+        {
+            MedicalCode => "CONDITION",
+            ObservationNumber => "VITAL_SIGN",
+            ObservationConcept => "MEDICATION",
+            _ => "CLINICAL_ENTITY"
+        };
+    }
+
+    /// <summary>
+    /// Gets the entity name from an IResource
+    /// </summary>
+    private static string GetEntityNameFromResource(IResource resource)
+    {
+        return resource switch
+        {
+            MedicalCode mc => mc.Code.Description ?? "Medical Code",
+            ObservationNumber on => $"Numeric Observation ({on.Value} {on.ValueUnit})",
+            ObservationConcept oc => oc.Value?.Text ?? "Clinical Observation",
+            _ => "Unknown Entity"
+        };
+    }
+
+    /// <summary>
+    /// Gets the entity value description from an IResource
+    /// </summary>
+    private static string GetEntityValueFromResource(IResource resource)
+    {
+        return resource switch
+        {
+            MedicalCode mc => $"Code: {mc.Code.Identifier} - {mc.Reason ?? "No additional details"}",
+            ObservationNumber on => $"Value: {on.Value} {on.ValueUnit ?? ""} (Priority: {on.Priority})",
+            ObservationConcept oc => $"Concept: {oc.Value?.ConceptId ?? "N/A"} (Priority: {oc.Priority})",
+            _ => "No additional information available"
         };
     }
 }

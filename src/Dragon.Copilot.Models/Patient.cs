@@ -23,6 +23,12 @@ public class Patient
     public string? Gender { get; set; }
 
     /// <summary>
+    /// Pronoun preference for the patient
+    /// </summary>
+    [JsonPropertyName("pronoun_preference")]
+    public PronounPreference? PronounPreference { get; set; }
+
+    /// <summary>
     /// Medical record number
     /// </summary>
     [JsonPropertyName("medical_record_number")]
