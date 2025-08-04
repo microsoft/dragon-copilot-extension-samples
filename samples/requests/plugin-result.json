@@ -1,293 +1,348 @@
 {
-    "sessionData": {
-        "correlation_id": "f40dd0d0-4201-d29d-79b4-df40189fd2f0",
-        "session_start": "2025-06-20T08:57:35.978Z",
-        "environment_id": "01bd0d47-1621-4a29-941d-00e9a9420f20"
-    },
-    "note": {
-        "payload_version": "1.1.0",
-        "schema_version": "0.1",
-        "language": "en-US",
-        "encounter": {
-            "external_encounter_ids": [
-                {
-                    "identifier": "CSN123456",
-                    "type": "CSN"
-                },
-                {
-                    "identifier": "string",
-                    "type": "external_encounter_id"
-                }
-            ],
-            "correlation_id": "string",
-            "status": "complete",
-            "date_of_encounter": "2025-04-29T09:15:42.624Z",
-            "service_date": "2025-04-29T09:15:42.24Z",
-            "patient": {
-                "full_name": "string",
-                "name_details": {
-                    "given_name": "string",
-                    "family_name": "string"
-                },
-                "gender": "string",
-                "birthdate": "2025-04-29",
-                "medical_record_number": "MRN123456789"
-            },
-            "practitioner": {
-                "full_name": "string",
-                "name_details": {
-                    "given_name": "string",
-                    "family_name": "string",
-                    "suffix": "string"
-                },
-                "user_id": "string",
-                "specialty": "string",
-                "npi": 1234567890
-            }
-        },
-        "document": {
-            "title": "Outpatient Note",
-            "type": {
-                "text": "string",
-                "codes": [
-                    {
-                        "description": "string",
-                        "identifier": "string",
-                        "system": "string",
-                        "system_identifier": "string"
-                    }
-                ]
-            }
-        },
-        "resources": [
-            {
-                "legacy_id": "hpi_2",
-                "context": {
-                    "content_type": "document_section",
-                    "display_description": "HISTORY OF PRESENT ILLNESS",
-                    "spoken_forms": [
-                        "history of illness",
-                        "HPI",
-                        "history",
-                        "history of present illness",
-                        "subjective"
-                    ],
+    "success": true,
+    "message": "Payload processed successfully",
+    "payload": {
+        "samplePluginResult": {
+            "schema_version": "0.1",
+            "document": {
+                "title": "My Coded doc",
+                "type": {
+                    "text": "string",
                     "codes": [
                         {
+                            "description": "My coded doc with LOINC code",
                             "system": "loinc.org",
                             "identifier": "10164-2",
                             "system_url": "http://loinc.org"
                         }
                     ]
-                },
-                "content": "The patient presents for evaluation of right knee pain.\r\n\r\nHe has been experiencing persistent discomfort in his right knee for the past 2 months, particularly when transitioning from a seated to a standing position or vice versa. He recalls receiving an injection in his left knee in the past, although the exact timeline remains uncertain."
+                }
             },
-            {
-                "legacy_id": "socialhx",
-                "context": {
-                    "content_type": "document_section",
-                    "display_description": "SOCIAL HISTORY",
-                    "spoken_forms": [
-                        "social history",
-                        "social and environmental history",
-                        "social",
-                        "psychosocial history",
-                        "social background"
+            "resources": [
+                {
+                    "id": "medication-summary-card-001",
+                    "type": "AdaptiveCard",
+                    "subtype": "note",
+                    "cardTitle": "Medication Summary & Recommendations",
+                    "partnerLogo": "https://contoso.com/logo.png",
+                    "adaptive_card_payload": {
+                        "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+                        "type": "AdaptiveCard",
+                        "version": "1.3",
+                        "body": [
+                            {
+                                "type": "Container",
+                                "spacing": "Medium",
+                                "items": [
+                                    {
+                                        "type": "TextBlock",
+                                        "text": "Patient Medication Analysis",
+                                        "weight": "Bolder",
+                                        "size": "Large",
+                                        "spacing": "None"
+                                    },
+                                    {
+                                        "type": "TextBlock",
+                                        "text": "Based on current prescriptions and patient history",
+                                        "size": "Small",
+                                        "spacing": "Small",
+                                        "wrap": true
+                                    }
+                                ]
+                            },
+                            {
+                                "type": "ColumnSet",
+                                "spacing": "Medium",
+                                "columns": [
+                                    {
+                                        "type": "Column",
+                                        "width": "stretch",
+                                        "items": [
+                                            {
+                                                "type": "FactSet",
+                                                "facts": [
+                                                    {
+                                                        "title": "Current Medications:",
+                                                        "value": "5 active prescriptions"
+                                                    },
+                                                    {
+                                                        "title": "Drug Interactions:",
+                                                        "value": "2 moderate interactions detected"
+                                                    },
+                                                    {
+                                                        "title": "Adherence Score:",
+                                                        "value": "87% (Good)"
+                                                    }
+                                                ]
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        "type": "Column",
+                                        "width": "auto",
+                                        "items": [
+                                            {
+                                                "type": "Container",
+                                                "style": "attention",
+                                                "items": [
+                                                    {
+                                                        "type": "TextBlock",
+                                                        "text": "⚠️ Review Required",
+                                                        "weight": "Bolder",
+                                                        "size": "Small"
+                                                    }
+                                                ]
+                                            }
+                                        ]
+                                    }
+                                ]
+                            },
+                            {
+                                "type": "Container",
+                                "spacing": "Medium",
+                                "items": [
+                                    {
+                                        "type": "TextBlock",
+                                        "text": "Recommended Actions:",
+                                        "weight": "Bolder",
+                                        "spacing": "Medium"
+                                    },
+                                    {
+                                        "type": "FactSet",
+                                        "facts": [
+                                            {
+                                                "title": "•",
+                                                "value": "Consider alternative to Lisinopril due to interaction with current NSAIDs"
+                                            },
+                                            {
+                                                "title": "•",
+                                                "value": "Monitor potassium levels more frequently"
+                                            },
+                                            {
+                                                "title": "•",
+                                                "value": "Patient education on medication timing"
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        "type": "TextBlock",
+                                        "text": "Note: Use the 'Copy Medication List' action below to copy the full medication list.",
+                                        "size": "Small",
+                                        "spacing": "Medium",
+                                        "wrap": true
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    "actions": [
+                        {
+                            "title": "Accept Recommendations",
+                            "action": "accept",
+                            "actionType": "primary"
+                        },
+                        {
+                            "title": "Reject Changes",
+                            "action": "reject",
+                            "actionType": "secondary"
+                        },
+                        {
+                            "title": "Copy Full Analysis",
+                            "action": "copy",
+                            "actionType": "tertiary",
+                            "code": "MEDICATION ANALYSIS SUMMARY\n\nCurrent Status:\n- 5 active medications\n- 2 moderate drug interactions\n- 87% adherence score\n\nRecommendations:\n1. Review Lisinopril/NSAID interaction\n2. Increase potassium monitoring frequency\n3. Provide patient education on timing\n\nGenerated by PharmaTech Solutions"
+                        },
+                        {
+                            "title": "Update Patient Note",
+                            "action": "updateNote",
+                            "actionType": "secondary"
+                        }
                     ],
-                    "codes": [
+                    "references": [
                         {
-                            "system": "loinc.org",
-                            "identifier": "29762-2",
-                            "system_url": "http://loinc.org"
+                            "id": "ref-patient-note-001",
+                            "type": "Note",
+                            "sectionId": "medications-section-2024-07-20"
+                        },
+                        {
+                            "id": "ref-consultation-transcript",
+                            "type": "Transcript",
+                            "text": "Patient reports occasional missed doses of evening medications due to work schedule. Mentions mild stomach upset with ibuprofen use."
+                        },
+                        {
+                            "id": "ref-drug-interaction-db",
+                            "type": "Web",
+                            "title": "Drug Interaction Database - Lisinopril/NSAID",
+                            "url": "https://druginteractions.com/lisinopril-nsaid-interaction"
                         }
-                    ]
-                },
-                "content": ""
-            },
-            {
-                "legacy_id": "familyhx",
-                "context": {
-                    "content_type": "document_section",
-                    "display_description": "FAMILY HISTORY",
-                    "spoken_forms": [
-                        "family history",
-                        "family medical history",
-                        "family"
                     ],
-                    "codes": [
+                    "payloadSources": [
                         {
-                            "system": "loinc.org",
-                            "identifier": "10157-6",
-                            "system_url": "http://loinc.org"
+                            "identifier": "pharmatech-analysis-req-789123",
+                            "description": "PharmaTech Solutions Medication Analysis Service",
+                            "url": "https://pharmatech-solutions.com/medication-analysis-api"
                         }
-                    ]
-                },
-                "content": ""
-            },
-            {
-                "legacy_id": "allergies",
-                "context": {
-                    "content_type": "document_section",
-                    "display_description": "ALLERGIES",
-                    "spoken_forms": [
-                        "allergies",
-                        "allergens",
-                        "intolerances",
-                        "allergies and intolerances",
-                        "allergy history"
                     ],
-                    "codes": [
-                        {
-                            "system": "loinc.org",
-                            "identifier": "48765-2",
-                            "system_url": "http://loinc.org"
-                        }
-                    ]
+                    "dragonCopilotCopyData": "medication_analysis|patient_id:12345|generated:2024-07-24T10:30:00Z|version:1.2"
                 },
-                "content": ""
-            },
-            {
-                "legacy_id": "meds",
-                "context": {
-                    "content_type": "document_section",
-                    "display_description": "MEDICATIONS",
-                    "spoken_forms": ["medications", "meds", "medication list"],
-                    "codes": [
+                {
+                    "id": "patient-timeline-card-002",
+                    "type": "AdaptiveCard",
+                    "subtype": "timeline",
+                    "cardTitle": "Recent Lab Results Timeline",
+                    "partnerLogo": "https://labcorp-integration.com/logo.png",
+                    "adaptive_card_payload": {
+                        "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+                        "type": "AdaptiveCard",
+                        "version": "1.3",
+                        "body": [
+                            {
+                                "type": "Container",
+                                "items": [
+                                    {
+                                        "type": "TextBlock",
+                                        "text": "Lab Results Trend Analysis",
+                                        "weight": "Bolder",
+                                        "size": "Medium"
+                                    },
+                                    {
+                                        "type": "TextBlock",
+                                        "text": "Last 90 days • 3 lab panels completed",
+                                        "size": "Small",
+                                        "spacing": "Small"
+                                    }
+                                ]
+                            },
+                            {
+                                "type": "ColumnSet",
+                                "spacing": "Medium",
+                                "columns": [
+                                    {
+                                        "type": "Column",
+                                        "width": "auto",
+                                        "items": [
+                                            {
+                                                "type": "TextBlock",
+                                                "text": "Jul 20",
+                                                "weight": "Bolder",
+                                                "size": "Small"
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        "type": "Column",
+                                        "width": "stretch",
+                                        "items": [
+                                            {
+                                                "type": "FactSet",
+                                                "facts": [
+                                                    {
+                                                        "title": "HbA1c:",
+                                                        "value": "7.2% ↓ (was 7.8%)"
+                                                    },
+                                                    {
+                                                        "title": "LDL:",
+                                                        "value": "95 mg/dL ↓ (target <100)"
+                                                    }
+                                                ]
+                                            }
+                                        ]
+                                    }
+                                ]
+                            },
+                            {
+                                "type": "ColumnSet",
+                                "spacing": "Small",
+                                "columns": [
+                                    {
+                                        "type": "Column",
+                                        "width": "auto",
+                                        "items": [
+                                            {
+                                                "type": "TextBlock",
+                                                "text": "May 15",
+                                                "weight": "Bolder",
+                                                "size": "Small"
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        "type": "Column",
+                                        "width": "stretch",
+                                        "items": [
+                                            {
+                                                "type": "FactSet",
+                                                "facts": [
+                                                    {
+                                                        "title": "HbA1c:",
+                                                        "value": "7.8% → (stable from April)"
+                                                    },
+                                                    {
+                                                        "title": "LDL:",
+                                                        "value": "118 mg/dL ↑ (was 112)"
+                                                    }
+                                                ]
+                                            }
+                                        ]
+                                    }
+                                ]
+                            },
+                            {
+                                "type": "Container",
+                                "spacing": "Medium",
+                                "style": "good",
+                                "items": [
+                                    {
+                                        "type": "TextBlock",
+                                        "text": "✅ Positive Trend: Diabetes management improving with current treatment plan",
+                                        "wrap": true,
+                                        "size": "Small"
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    "actions": [
                         {
-                            "system": "loinc.org",
-                            "identifier": "10160-0",
-                            "system_url": "http://loinc.org"
+                            "title": "View Full Results",
+                            "action": "accept",
+                            "actionType": "primary"
+                        },
+                        {
+                            "title": "Copy Timeline Data",
+                            "action": "copy",
+                            "actionType": "tertiary",
+                            "code": "LAB RESULTS TIMELINE (Last 90 Days)\n\nJuly 20, 2024:\n- HbA1c: 7.2% (↓ from 7.8%)\n- LDL: 95 mg/dL (↓, target <100)\n\nMay 15, 2024:\n- HbA1c: 7.8% (stable)\n- LDL: 118 mg/dL (↑ from 112)\n\nTrend: Positive improvement in diabetes management"
                         }
-                    ]
-                },
-                "content": ""
-            },
-            {
-                "legacy_id": "immunizations",
-                "context": {
-                    "content_type": "document_section",
-                    "display_description": "IMMUNIZATIONS",
-                    "spoken_forms": [
-                        "immunizations",
-                        "vaccinations",
-                        "vaccines",
-                        "immunization status"
                     ],
-                    "codes": [
+                    "references": [
                         {
-                            "system": "loinc.org",
-                            "identifier": "11369-6",
-                            "system_url": "http://loinc.org"
+                            "id": "ref-lab-results-july",
+                            "type": "Note",
+                            "sectionId": "lab-results-2024-07-20"
+                        },
+                        {
+                            "id": "ref-lab-results-may",
+                            "type": "Note",
+                            "sectionId": "lab-results-2024-05-15"
+                        },
+                        {
+                            "id": "ref-diabetes-guidelines",
+                            "type": "Web",
+                            "title": "ADA Diabetes Management Guidelines",
+                            "url": "https://diabetes.org/guidelines/management-targets"
                         }
-                    ]
-                },
-                "content": ""
-            },
-            {
-                "legacy_id": "ros",
-                "context": {
-                    "content_type": "document_section",
-                    "display_description": "REVIEW OF SYSTEMS",
-                    "spoken_forms": [
-                        "review of systems",
-                        "ROS",
-                        "systems",
-                        "system review",
-                        "systems review"
                     ],
-                    "codes": [
+                    "payloadSources": [
                         {
-                            "system": "loinc.org",
-                            "identifier": "10187-3",
-                            "system_url": "http://loinc.org"
+                            "identifier": "labcorp-timeline-req-456789",
+                            "description": "LabCorp Integration Timeline Service",
+                            "url": "https://labcorp-integration.com/timeline-api"
                         }
-                    ]
-                },
-                "content": ""
-            },
-            {
-                "legacy_id": "exam_2",
-                "context": {
-                    "content_type": "document_section",
-                    "display_description": "PHYSICAL EXAM",
-                    "spoken_forms": [
-                        "PE",
-                        "physical",
-                        "exam",
-                        "physical exam",
-                        "physical assessment"
                     ],
-                    "codes": [
-                        {
-                            "system": "loinc.org",
-                            "identifier": "29545-1",
-                            "system_url": "http://loinc.org"
-                        }
-                    ]
-                },
-                "content": ""
-            },
-            {
-                "legacy_id": "results",
-                "context": {
-                    "content_type": "document_section",
-                    "display_description": "RESULTS",
-                    "spoken_forms": ["results", "labs", "studies", "imaging"],
-                    "codes": [
-                        {
-                            "system": "loinc.org",
-                            "identifier": "30954-2",
-                            "system_url": "http://loinc.org"
-                        }
-                    ]
-                },
-                "content": ""
-            },
-            {
-                "legacy_id": "procedure",
-                "context": {
-                    "content_type": "document_section",
-                    "display_description": "PROCEDURE",
-                    "spoken_forms": [
-                        "procedure",
-                        "procedures",
-                        "procedure performed",
-                        "procedures performed"
-                    ],
-                    "codes": [
-                        {
-                            "system": "loinc.org",
-                            "identifier": "47519-4",
-                            "system_url": "http://loinc.org"
-                        }
-                    ]
-                },
-                "content": ""
-            },
-            {
-                "legacy_id": "ap",
-                "context": {
-                    "content_type": "document_section",
-                    "display_description": "ASSESSMENT AND PLAN",
-                    "spoken_forms": [
-                        "assessment and plan",
-                        "assessment",
-                        "A and P",
-                        "diagnosis",
-                        "diagnoses",
-                        "plan",
-                        "plans"
-                    ],
-                    "codes": [
-                        {
-                            "system": "loinc.org",
-                            "identifier": "51847-2",
-                            "system_url": "http://loinc.org"
-                        }
-                    ]
-                },
-                "content": "1. Right knee pain.\r\nThe patient reports right knee pain for the last 2 months, especially when standing up or sitting down.\r\n\r\nFollow-up\r\nFollow-up"
-            }
-        ]
+                    "dragonCopilotCopyData": "lab_timeline|patient_id:12345|timespan:90d|generated:2024-07-24T10:35:00Z"
+                }
+            ]
+        }
     }
 }
