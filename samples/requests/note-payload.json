@@ -1,0 +1,293 @@
+{
+    "sessionData": {
+        "correlation_id": "f40dd0d0-4201-d29d-79b4-df40189fd2f0",
+        "session_start": "2025-06-20T08:57:35.978Z",
+        "environment_id": "01bd0d47-1621-4a29-941d-00e9a9420f20"
+    },
+    "note": {
+        "payload_version": "1.1.0",
+        "schema_version": "0.1",
+        "language": "en-US",
+        "encounter": {
+            "external_encounter_ids": [
+                {
+                    "identifier": "CSN123456",
+                    "type": "CSN"
+                },
+                {
+                    "identifier": "string",
+                    "type": "external_encounter_id"
+                }
+            ],
+            "correlation_id": "string",
+            "status": "complete",
+            "date_of_encounter": "2025-04-29T09:15:42.624Z",
+            "service_date": "2025-04-29T09:15:42.24Z",
+            "patient": {
+                "full_name": "string",
+                "name_details": {
+                    "given_name": "string",
+                    "family_name": "string"
+                },
+                "gender": "string",
+                "birthdate": "2025-04-29",
+                "medical_record_number": "MRN123456789"
+            },
+            "practitioner": {
+                "full_name": "string",
+                "name_details": {
+                    "given_name": "string",
+                    "family_name": "string",
+                    "suffix": "string"
+                },
+                "user_id": "string",
+                "specialty": "string",
+                "npi": 1234567890
+            }
+        },
+        "document": {
+            "title": "Outpatient Note",
+            "type": {
+                "text": "string",
+                "codes": [
+                    {
+                        "description": "string",
+                        "identifier": "string",
+                        "system": "string",
+                        "system_identifier": "string"
+                    }
+                ]
+            }
+        },
+        "resources": [
+            {
+                "legacy_id": "hpi_2",
+                "context": {
+                    "content_type": "document_section",
+                    "display_description": "HISTORY OF PRESENT ILLNESS",
+                    "spoken_forms": [
+                        "history of illness",
+                        "HPI",
+                        "history",
+                        "history of present illness",
+                        "subjective"
+                    ],
+                    "codes": [
+                        {
+                            "system": "loinc.org",
+                            "identifier": "10164-2",
+                            "system_url": "http://loinc.org"
+                        }
+                    ]
+                },
+                "content": "The patient presents for evaluation of right knee pain.\r\n\r\nHe has been experiencing persistent discomfort in his right knee for the past 2 months, particularly when transitioning from a seated to a standing position or vice versa. He recalls receiving an injection in his left knee in the past, although the exact timeline remains uncertain."
+            },
+            {
+                "legacy_id": "socialhx",
+                "context": {
+                    "content_type": "document_section",
+                    "display_description": "SOCIAL HISTORY",
+                    "spoken_forms": [
+                        "social history",
+                        "social and environmental history",
+                        "social",
+                        "psychosocial history",
+                        "social background"
+                    ],
+                    "codes": [
+                        {
+                            "system": "loinc.org",
+                            "identifier": "29762-2",
+                            "system_url": "http://loinc.org"
+                        }
+                    ]
+                },
+                "content": ""
+            },
+            {
+                "legacy_id": "familyhx",
+                "context": {
+                    "content_type": "document_section",
+                    "display_description": "FAMILY HISTORY",
+                    "spoken_forms": [
+                        "family history",
+                        "family medical history",
+                        "family"
+                    ],
+                    "codes": [
+                        {
+                            "system": "loinc.org",
+                            "identifier": "10157-6",
+                            "system_url": "http://loinc.org"
+                        }
+                    ]
+                },
+                "content": ""
+            },
+            {
+                "legacy_id": "allergies",
+                "context": {
+                    "content_type": "document_section",
+                    "display_description": "ALLERGIES",
+                    "spoken_forms": [
+                        "allergies",
+                        "allergens",
+                        "intolerances",
+                        "allergies and intolerances",
+                        "allergy history"
+                    ],
+                    "codes": [
+                        {
+                            "system": "loinc.org",
+                            "identifier": "48765-2",
+                            "system_url": "http://loinc.org"
+                        }
+                    ]
+                },
+                "content": ""
+            },
+            {
+                "legacy_id": "meds",
+                "context": {
+                    "content_type": "document_section",
+                    "display_description": "MEDICATIONS",
+                    "spoken_forms": ["medications", "meds", "medication list"],
+                    "codes": [
+                        {
+                            "system": "loinc.org",
+                            "identifier": "10160-0",
+                            "system_url": "http://loinc.org"
+                        }
+                    ]
+                },
+                "content": ""
+            },
+            {
+                "legacy_id": "immunizations",
+                "context": {
+                    "content_type": "document_section",
+                    "display_description": "IMMUNIZATIONS",
+                    "spoken_forms": [
+                        "immunizations",
+                        "vaccinations",
+                        "vaccines",
+                        "immunization status"
+                    ],
+                    "codes": [
+                        {
+                            "system": "loinc.org",
+                            "identifier": "11369-6",
+                            "system_url": "http://loinc.org"
+                        }
+                    ]
+                },
+                "content": ""
+            },
+            {
+                "legacy_id": "ros",
+                "context": {
+                    "content_type": "document_section",
+                    "display_description": "REVIEW OF SYSTEMS",
+                    "spoken_forms": [
+                        "review of systems",
+                        "ROS",
+                        "systems",
+                        "system review",
+                        "systems review"
+                    ],
+                    "codes": [
+                        {
+                            "system": "loinc.org",
+                            "identifier": "10187-3",
+                            "system_url": "http://loinc.org"
+                        }
+                    ]
+                },
+                "content": ""
+            },
+            {
+                "legacy_id": "exam_2",
+                "context": {
+                    "content_type": "document_section",
+                    "display_description": "PHYSICAL EXAM",
+                    "spoken_forms": [
+                        "PE",
+                        "physical",
+                        "exam",
+                        "physical exam",
+                        "physical assessment"
+                    ],
+                    "codes": [
+                        {
+                            "system": "loinc.org",
+                            "identifier": "29545-1",
+                            "system_url": "http://loinc.org"
+                        }
+                    ]
+                },
+                "content": ""
+            },
+            {
+                "legacy_id": "results",
+                "context": {
+                    "content_type": "document_section",
+                    "display_description": "RESULTS",
+                    "spoken_forms": ["results", "labs", "studies", "imaging"],
+                    "codes": [
+                        {
+                            "system": "loinc.org",
+                            "identifier": "30954-2",
+                            "system_url": "http://loinc.org"
+                        }
+                    ]
+                },
+                "content": ""
+            },
+            {
+                "legacy_id": "procedure",
+                "context": {
+                    "content_type": "document_section",
+                    "display_description": "PROCEDURE",
+                    "spoken_forms": [
+                        "procedure",
+                        "procedures",
+                        "procedure performed",
+                        "procedures performed"
+                    ],
+                    "codes": [
+                        {
+                            "system": "loinc.org",
+                            "identifier": "47519-4",
+                            "system_url": "http://loinc.org"
+                        }
+                    ]
+                },
+                "content": ""
+            },
+            {
+                "legacy_id": "ap",
+                "context": {
+                    "content_type": "document_section",
+                    "display_description": "ASSESSMENT AND PLAN",
+                    "spoken_forms": [
+                        "assessment and plan",
+                        "assessment",
+                        "A and P",
+                        "diagnosis",
+                        "diagnoses",
+                        "plan",
+                        "plans"
+                    ],
+                    "codes": [
+                        {
+                            "system": "loinc.org",
+                            "identifier": "51847-2",
+                            "system_url": "http://loinc.org"
+                        }
+                    ]
+                },
+                "content": "1. Right knee pain.\r\nThe patient reports right knee pain for the last 2 months, especially when standing up or sitting down.\r\n\r\nFollow-up\r\nFollow-up"
+            }
+        ]
+    }
+}

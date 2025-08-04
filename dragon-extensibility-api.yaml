@@ -8,7 +8,7 @@ paths:
   /v1/process:
     post:
       summary: Process Dragon Standard payload
-      description: Endpoint to process a Dragon Standard payload containing note, transcript, iterative transcript and / or iterative audio data
+      description: Endpoint to trigger processing within an extension. Receives inputs in the Dragon Standard payload containing note, transcript, iterative transcript and / or iterative audio data.
       operationId: processDragonStandard
       parameters:
         - name: x-ms-request-id
@@ -22,7 +22,13 @@ paths:
           required: false
           schema:
             type: string
-          description: Correlation identifier for tracking. Stays same for the execution of multiple extensions in the scope of the same patient recording.
+          description: Correlation identifier for tracking. Stays the same for the entire execution of multiple extensions in the scope of single execution flow.
+        - name: x-dre-custom-header
+          in: header
+          description: Arbitrary custom DRagon Extension header. Any number of custom headers with the x-dre- prefix are allowed. They originate from the installation of the extension and are passed through to the extension.
+          required: false
+          schema:
+            type: string
       security:
         - bearerAuth: []
       requestBody:
@@ -51,6 +57,19 @@ paths:
                   error:
                     type: string
                     example: "Invalid payload format"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  error:
+                    type: string
+                    example: "Unauthorized."
         "500":
           description: Internal server error
           content:
@@ -204,6 +223,22 @@ components:
         external_encounter_id:
           type: string
           example: "6488"
+          description: "Deprecated, will be removed in future versions. Use external_encounter_ids instead."
+        external_encounter_ids:
+          type: array
+          description: "An array of external encounter identifiers for the encounter. Each object contains an identifier and a type. This array contains also a CSN (if available), as an item with type 'CSN'."
+          items:
+            type: object
+            properties:
+              identifier:
+                type: string
+                description: "The external identifier for the encounter."
+              type:
+                type: string
+                description: "The type of the external identifier."
+            required:
+              - identifier
+              - type
         status:
           type: string
           example: "complete"
@@ -211,6 +246,11 @@ components:
           type: string
           format: date-time
           example: "2025-06-20T08:51:53.858360Z"
+        service_date:
+          type: string
+          format: date-time
+          example: "2023-11-04T13:00:00Z"
+          description: "The date of the service provided. This is currently the placeholder."
         patient:
           $ref: "#/components/schemas/Patient"
         practitioner:
@@ -247,7 +287,13 @@ components:
               type: string
         gender:
           type: string
-          example: "Unspecified"
+          description: "The biologic sex of the patient at birth. male | female | unknown "
+          enum:
+            - "Male"
+            - "Female"
+            - "Other"
+            - "Unknown"
+          example: "Unknown"
         pronoun_preference:
           type: object
           properties:
@@ -272,6 +318,9 @@ components:
           type: string
         user_id:
           type: string
+        npi:
+          type: integer
+          description: "The NPI of the practitioner."
         external_practitioner_ids:
           type: array
           items:
@@ -330,20 +379,20 @@ components:
       properties:
         system:
           type: string
-          nullable: true
-        code:
-          type: string
-          description: "Maps to CodeValue in C# model"
-          nullable: true
-        system_url:
-          type: string
-          nullable: true
+          description: "The coding system for the code."
         identifier:
           type: string
-          nullable: true
+          description: "The code value."
         description:
           type: string
-          nullable: true
+          description: "Description of the code."
+        system_url:
+          type: string
+          format: uri
+          description: "URL resource for system details."
+        system_version:
+          type: string
+          description: "Version of the coding system."
 
     Context:
       type: object
@@ -409,7 +458,7 @@ components:
           type: string
           format: date-time
           example: "2025-06-20T08:57:35.978Z"
-        tenant_id:
+        environment_id:
           type: string
           example: "01bd0d47-1621-4a29-941d-00e9a9420f20"
 
@@ -455,28 +504,10 @@ components:
     DSP:
       type: object
       properties:
-        payload_version:
-          type: string
-          description: This represents the version of payload definition.
         schema_version:
           type: string
           description: References the DSP version utilized, as the structure requirements may evolve.
           example: "0.1"
-        priority:
-          type: string
-          description: The priority in which the payload must be handled
-          enum: [low, medium, high]
-        external_callback_url:
-          type: string
-          format: uri
-          description: Endpoint to be used to make FHIR requests back to partner
-        encounter:
-          $ref: "#/components/schemas/Encounter"
-        recordings:
-          type: array
-          description: A list of recordings that have taken place during the encounter.
-          items:
-            $ref: "#/components/schemas/Recording"
         document:
           $ref: "#/components/schemas/Document"
         resources:
@@ -500,11 +531,96 @@ components:
         type:
           type: string
           enum: [AdaptiveCard]
+        subtype:
+          type: string
+          description: The subtype of the adaptive card indicating its category or purpose
+          enum: [note, timeline]
+          example: "note"
+        cardTitle:
+          type: string
+          description: The display title for the adaptive card
+          example: "Medication Summary & Recommendations"
+        partnerLogo:
+          type: string
+          format: uri
+          description: URL to the partner's logo image
+          example: "https://contoso.com/logo.png"
         adaptive_card_payload:
-          description: Adaptive Card payload as defined by the Adaptive Card schema
-          # Reference to external JSON schema
+          description: Adaptive Card payload as defined by the Adaptive Card schema following the limits from provided Microsoft specification
           allOf:
             - $ref: "http://adaptivecards.io/schemas/adaptive-card.json"
+            - type: object
+              required:
+                - type
+                - version
+              properties:
+                type:
+                  type: string
+                  enum: [AdaptiveCard]
+                version:
+                  type: string
+                  enum: ["1.3"]
+              additionalProperties: true
+        actions:
+          type: array
+          description: Array of actions that users can perform on the card
+          items:
+            type: object
+            required: [title, action, actionType]
+            properties:
+              title:
+                type: string
+                description: Display text for the action button
+                example: "Accept Recommendations"
+              action:
+                type: string
+                description: Action identifier that defines what happens when the action is triggered
+                enum: [accept, reject, copy, updateNote]
+                example: "accept"
+              actionType:
+                type: string
+                description: The type/style of the action button
+                enum: [primary, secondary, tertiary]
+                example: "primary"
+              code:
+                type: string
+                description: Optional code content for copy actions
+                example: "MEDICATION ANALYSIS SUMMARY\n\nCurrent Status:\n- 5 active medications"
+            additionalProperties: false
+        references:
+          type: array
+          description: Array of reference objects linking to related data sources
+          items:
+            type: object
+            required: [id, type]
+            properties:
+              id:
+                type: string
+                description: Unique identifier for the reference
+                example: "ref-patient-note-001"
+              type:
+                type: string
+                description: Type of reference
+                enum: [Note, Transcript, Web]
+                example: "Note"
+              sectionId:
+                type: string
+                description: Section identifier for Note type references
+                example: "medications-section-2024-07-20"
+              text:
+                type: string
+                description: Reference text content for Transcript type references
+                example: "Patient reports occasional missed doses of evening medications"
+              title:
+                type: string
+                description: Title for Web type references
+                example: "Drug Interaction Database - Lisinopril/NSAID"
+              url:
+                type: string
+                format: uri
+                description: URL for Web type references
+                example: "https://druginteractions.com/lisinopril-nsaid-interaction"
+            additionalProperties: false
         payloadSources:
           type: array
           items:
@@ -524,6 +640,7 @@ components:
             additionalProperties: false
         dragonCopilotCopyData:
           type: string
+          example: "medication_analysis|patient_id:12345|generated:2024-07-24T10:30:00Z|version:1.2"
 
     Provenance:
       type: array
