@@ -1,4 +1,4 @@
-# Authentication and Authorization Documentation
+# Authentication and Authorization Implementation Documentation
 
 ## Overview
 
@@ -8,7 +8,9 @@ The Dragon Copilot Sample Extension implements a multi-layered security approach
 
 The security system uses a **dual-gate approach**:
 
-1. **First Gate**: JWT Authentication & Authorization (Microsoft Entra ID)
+1. **First Gate**: JWT Authentication & Authorization (Microsoft EntraId)  
+  The protection of the service-to-service requests from the Dragon Copilot Extension Runtime is covered in detail in [AuthenticationDesign.md](AuthenticationDesign.md).
+
 2. **Second Gate**: License Key Validation (Custom Business Logic)
 
 ```

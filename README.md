@@ -7,12 +7,12 @@ Welcome! This repository contains sample code illustrating the Dragon Copilot ex
 
 ## 📚 Contents
 
-- [Overview](#overview)
-- [Quick Start](#quick-start)
-- [Samples](#samples)
+- [Overview](#-overview)
+- [Quick Start](#-quick-start)
+- [Samples](#-samples)
 - [Tools](#️-tools)
-- [Contributing](#contributing)
-- [License](#license)
+- [Contributing](#-contributing)
+- [License](#-license)
 
 
 ## 📝 Overview
@@ -21,6 +21,7 @@ This repo includes:
 
 - Sample extension with best practices
 - CLI tools to initialize & package extension
+- [Additional Documentation](doc/)
 
 
 
