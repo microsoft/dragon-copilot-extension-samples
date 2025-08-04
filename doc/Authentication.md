@@ -8,7 +8,7 @@ The Dragon Copilot Sample Extension implements a multi-layered security approach
 
 The security system uses a **dual-gate approach**:
 
-1. **First Gate**: JWT Authentication & Authorization (Microsoft EntraId)  
+1. **First Gate**: JWT Authentication & Authorization (Microsoft EntraId)
   The protection of the service-to-service requests from the Dragon Copilot Extension Runtime is covered in detail in [AuthenticationDesign.md](AuthenticationDesign.md).
 
 2. **Second Gate**: License Key Validation (Custom Business Logic)
@@ -44,7 +44,7 @@ The production configuration enables full security:
 - `TenantId`: Your organization's Entra ID tenant identifier
 - `ClientId`: The registered application identifier in Entra ID
 - `Instance`: The Entra ID authority URL (typically `https://login.microsoftonline.com/`)
-- `RequiredClaims`: Array of required claims for authorization (e.g., `["oid", "azp"]`)
+- `RequiredClaims`: Array of required claims for authorization (e.g., `["idtyp", "azp"]`)
 - `HeaderName`: Custom header name for license keys (e.g., `"X-License-Key"`)
 - `ValidKeys`: Array of valid license key values
 
