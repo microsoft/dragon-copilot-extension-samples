@@ -8,7 +8,7 @@ The Dragon Copilot Sample Extension implements a multi-layered security approach
 
 The security system uses a **dual-gate approach**:
 
-1. **First Gate**: JWT Authentication & Authorization (Microsoft EntraId)
+1. **First Gate**: JWT Authentication & Authorization (Microsoft Entra ID)  
   The protection of the service-to-service requests from the Dragon Copilot Extension Runtime is covered in detail in [AuthenticationDesign.md](AuthenticationDesign.md).
 
 2. **Second Gate**: License Key Validation (Custom Business Logic)
@@ -26,7 +26,7 @@ The security system uses a **dual-gate approach**:
 
 ### Development Environment
 
-The development configuration disables both authentication layers for ease of testing:
+The development configuration in file [appsettings.Development.json](../samples/DragonCopilot/Workflow/SampleExtension.Web/appsettings.Development.json) disables both authentication layers for ease of testing:
 
 - **Authentication**: Disabled
 - **License Key Validation**: Disabled
@@ -35,12 +35,13 @@ The development configuration disables both authentication layers for ease of te
 
 ### Production Environment
 
-The production configuration enables full security:
+The production configuration in file [appsettings.json](../samples/DragonCopilot/Workflow/SampleExtension.Web/appsettings.json) enables full security:
 
 - **Authentication**: Enabled with Microsoft Entra ID integration
 - **License Key Validation**: Enabled with configurable header name and valid keys
 
 **Required Production Settings**:
+
 - `TenantId`: Your organization's Entra ID tenant identifier
 - `ClientId`: The registered application identifier in Entra ID
 - `Instance`: The Entra ID authority URL (typically `https://login.microsoftonline.com/`)
@@ -145,7 +146,7 @@ This architecture provides several extension opportunities:
 1. **Enhanced License Logic**: Replace simple key validation with database lookups, expiration checks, feature flags
 2. **Rate Limiting**: Implement different limits per license tier
 3. **Audit Logging**: Track API usage per license key
-5. **Multi-tenant Support**: Route requests based on license key to different processing logic
+4. **Multi-tenant Support**: Route requests based on license key to different processing logic
 
 ## Security Best Practices
 
