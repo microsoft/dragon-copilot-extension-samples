@@ -36,7 +36,7 @@
     "archiver": "^7.0.1",
     "chalk": "^5.5.0",
     "commander": "^14.0.0",
-    "fs-extra": "^11.2.0",
+    "fs-extra": "^11.3.1",
     "js-yaml": "^4.1.0"
   },
   "devDependencies": {
