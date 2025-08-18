@@ -111,7 +111,7 @@ tools:
 
 3. **Security Considerations**
    - Implement proper authentication when required
-   - Validate all input data thoroughly  
+   - Validate all input data thoroughly
    - Use HTTPS in production
    - Follow principle of least privilege
 
