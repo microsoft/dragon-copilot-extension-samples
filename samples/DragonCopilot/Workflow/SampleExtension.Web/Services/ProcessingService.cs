@@ -84,10 +84,7 @@ public class ProcessingService : IProcessingService
         // Create the sample entities DSP response
         var sampleEntities = new DspResponse
         {
-            PayloadVersion = "1.0.0",
             SchemaVersion = "0.1",
-            Priority = "medium",
-            Encounter = note.Encounter,
             Document = note.Document,
         };
 
@@ -99,10 +96,7 @@ public class ProcessingService : IProcessingService
         // Create adaptive card version
         var adaptiveCardResponse = new DspResponse
         {
-            PayloadVersion = "1.0.0",
             SchemaVersion = "0.1",
-            Priority = "medium",
-            Encounter = note.Encounter,
             Document = note.Document,
         };
         adaptiveCardResponse.Resources?.Add(CreateAdaptiveCardResource(entities));
