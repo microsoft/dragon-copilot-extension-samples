@@ -15,7 +15,7 @@ This repository contains sample code and tools for developing **Dragon Copilot E
 ### Core Data Models (src/Dragon.Copilot.Models/)
 - **DragonStandardPayload**: Main payload structure containing session data, clinical context
 - **Note**: Clinical notes and documentation
-- **Transcript**: Speech-to-text transcriptions 
+- **Transcript**: Speech-to-text transcriptions
 - **IterativeTranscript/IterativeAudio**: Real-time streaming data
 - **Patient/Practitioner**: Healthcare entities
 - **Encounter**: Clinical visits and sessions
