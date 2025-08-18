@@ -14,34 +14,10 @@ namespace Dragon.Copilot.Models;
 public class DspResponse
 {
     /// <summary>
-    /// Payload version
-    /// </summary>
-    [JsonPropertyName("payload_version")]
-    public string? PayloadVersion { get; set; }
-
-    /// <summary>
     /// Schema version
     /// </summary>
     [JsonPropertyName("schema_version")]
     public string? SchemaVersion { get; set; }
-
-    /// <summary>
-    /// Priority level
-    /// </summary>
-    [JsonPropertyName("priority")]
-    public string? Priority { get; set; }
-
-    /// <summary>
-    /// External callback URL
-    /// </summary>
-    [JsonPropertyName("external_callback_url")]
-    public Uri? ExternalCallbackUrl { get; set; }
-
-    /// <summary>
-    /// Encounter information
-    /// </summary>
-    [JsonPropertyName("encounter")]
-    public Encounter? Encounter { get; set; }
 
     /// <summary>
     /// Document information
