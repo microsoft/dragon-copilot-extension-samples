@@ -26,9 +26,14 @@ public class AuthenticationOptions
     public string? TenantId { get; set; }
 
     /// <summary>
-    /// Client ID for the application
+    /// Client ID for the application (required by Microsoft Identity Web)
     /// </summary>
     public string? ClientId { get; set; }
+
+    /// <summary>
+    /// Expected audience for JWT tokens
+    /// </summary>
+    public string? Audience { get; set; }
 
     /// <summary>
     /// Login instance (e.g., "https://login.microsoftonline.com/")

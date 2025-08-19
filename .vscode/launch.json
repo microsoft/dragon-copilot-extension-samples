@@ -1,0 +1,30 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Launch SampleExtension.Web",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build",
+            "program": "${workspaceFolder}/samples/DragonCopilot/Workflow/SampleExtension.Web/bin/Debug/net9.0/SampleExtension.Web.dll",
+            "args": ["--urls", "http://localhost:5181"],
+            "cwd": "${workspaceFolder}/samples/DragonCopilot/Workflow/SampleExtension.Web",
+            "console": "internalConsole",
+            "stopAtEntry": false,
+            "env": {
+                "ASPNETCORE_ENVIRONMENT": "Development",
+                "ASPNETCORE_URLS": "http://localhost:5181"
+            },
+            "serverReadyAction": {
+                "action": "openExternally",
+                "pattern": "\\bNow listening on:\\s+(http://localhost:5181)"
+            }
+        },
+        {
+            "name": "Attach to SampleExtension.Web",
+            "type": "coreclr",
+            "request": "attach",
+            "processId": "${command:pickProcess}"
+        }
+    ]
+}

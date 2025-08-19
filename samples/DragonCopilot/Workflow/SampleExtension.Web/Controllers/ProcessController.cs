@@ -112,8 +112,57 @@ public class ProcessController : ControllerBase
             endpoints = new
             {
                 process = "/v1/process",
-                health = "/v1/health"
+                health = "/v1/health",
+                authHealth = "/v1/auth-health"
             }
+        });
+    }
+
+    /// <summary>
+    /// Authenticated health check endpoint to verify authentication and authorization are working
+    /// </summary>
+    /// <returns>Authentication status and claims information</returns>
+    /// <response code="200">Authentication successful</response>
+    /// <response code="401">Unauthorized - JWT authentication failed</response>
+    /// <response code="403">Forbidden - Required claims validation failed</response>
+    [HttpGet("auth-health")]
+    [Authorize(Policy = "RequiredClaims")] // JWT + Claims validation
+    [ProducesResponseType(typeof(object), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(object), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(object), StatusCodes.Status403Forbidden)]
+    public ActionResult AuthenticatedHealthCheck()
+    {
+        // Extract user claims for debugging/verification
+        var claims = User.Claims.ToDictionary(c => c.Type, c => c.Value);
+
+        // Get license key from context (if it was validated by middleware)
+        var licenseKey = HttpContext.Items.ContainsKey("ValidatedLicenseKey")
+            ? HttpContext.Items["ValidatedLicenseKey"]?.ToString()
+            : null;
+
+        #pragma warning disable CA1848 // Use the LoggerMessage delegates
+        _logger.LogInformation("Authenticated health check succeeded for user with {ClaimCount} claims", claims.Count);
+        #pragma warning restore CA1848
+
+        return Ok(new
+        {
+            service = "Dragon Sample Extension",
+            status = "authenticated",
+            timestamp = DateTime.UtcNow,
+            authentication = new
+            {
+                isAuthenticated = User.Identity?.IsAuthenticated ?? false,
+                authenticationType = User.Identity?.AuthenticationType,
+                name = User.Identity?.Name,
+                claimsCount = claims.Count,
+                claims = claims.Select(kvp => new { type = kvp.Key, value = kvp.Value }).ToArray()
+            },
+            authorization = new
+            {
+                licenseKeyValidated = !string.IsNullOrEmpty(licenseKey),
+                licenseKey = string.IsNullOrEmpty(licenseKey) ? null : $"{licenseKey[..Math.Min(8, licenseKey.Length)]}..."
+            },
+            message = "Authentication and authorization successful"
         });
     }
 }
