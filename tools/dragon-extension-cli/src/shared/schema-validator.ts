@@ -214,14 +214,76 @@ export function validateFieldValue(value: any, fieldPath: string, schemaType: 'm
     return true;
   }
 
+  // Special handling for string fields that should not accept whitespace-only values
+  if (typeof value === 'string' && value.trim() === '' &&
+      (fieldPath === 'DragonConfiguration.label' || fieldPath === 'DragonConfiguration.description' || fieldPath === 'DragonConfiguration.header')) {
+    if (fieldPath === 'DragonConfiguration.label') {
+      return 'Label is required';
+    }
+    if (fieldPath === 'DragonConfiguration.description') {
+      return 'Description is required';
+    }
+    if (fieldPath === 'DragonConfiguration.header') {
+      return 'Header name is required';
+    }
+  }
+
   const tempValidator = ajv.compile(fieldSchema);
   const isValid = tempValidator(value);
 
   if (!isValid && tempValidator.errors && tempValidator.errors.length > 0) {
-    return tempValidator.errors[0].message || 'Validation failed';
+    // Get custom error message or fallback to AJV message
+    const customMessage = getCustomErrorMessage(fieldPath, tempValidator.errors[0], value);
+    return customMessage || tempValidator.errors[0].message || 'Validation failed';
   }
 
   return true;
+}
+
+/**
+ * Provides user-friendly error messages for validation failures
+ */
+function getCustomErrorMessage(fieldPath: string, error: any, value: any): string | null {
+  const { keyword, params } = error;
+
+  // Configuration field specific messages
+  if (fieldPath === 'DragonConfiguration.label') {
+    if (keyword === 'minLength' && params?.limit === 1) {
+      return !value || value.trim() === '' ? 'Label is required' : null;
+    }
+    if (keyword === 'maxLength' && params?.limit === 30) {
+      return 'Label must be 30 characters or less';
+    }
+  }
+
+  if (fieldPath === 'DragonConfiguration.description') {
+    if (keyword === 'minLength' && params?.limit === 1) {
+      return !value || value.trim() === '' ? 'Description is required' : null;
+    }
+    if (keyword === 'maxLength' && params?.limit === 100) {
+      return 'Description must be 100 characters or less';
+    }
+  }
+
+  if (fieldPath === 'DragonConfiguration.header') {
+    if (keyword === 'minLength' && params?.limit === 7) {
+      return !value || value.trim() === '' ? 'Header name is required' : 'Header name must be between 7 and 64 characters';
+    }
+    if (keyword === 'maxLength' && params?.limit === 64) {
+      return 'Header name must be between 7 and 64 characters';
+    }
+    if (keyword === 'pattern') {
+      if (params?.pattern === '^x-dre-[a-zA-Z0-9-]+$') {
+        if (!value || !value.startsWith('x-dre-')) {
+          return 'Header name must start with "x-dre-"';
+        } else {
+          return 'Header name can only contain letters, numbers, and hyphens after "x-dre-"';
+        }
+      }
+    }
+  }
+
+  return null;
 }
 
 /**
@@ -231,11 +293,16 @@ function extractFieldSchema(fieldPath: string, schema: any): any | null {
   const pathParts = fieldPath.split('.');
   let currentSchema = schema;
 
-  for (const part of pathParts) {
+  for (let i = 0; i < pathParts.length; i++) {
+    const part = pathParts[i];
+
     if (currentSchema.properties && currentSchema.properties[part]) {
       currentSchema = currentSchema.properties[part];
     } else if (currentSchema.definitions && currentSchema.definitions[part]) {
       currentSchema = currentSchema.definitions[part];
+    } else if (i === 0 && schema.definitions && schema.definitions[part]) {
+      // Handle paths like "DragonConfiguration.label" where we start from definitions
+      currentSchema = schema.definitions[part];
     } else {
       return null;
     }

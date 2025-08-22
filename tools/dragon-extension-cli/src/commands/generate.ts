@@ -4,9 +4,9 @@ import yaml from 'js-yaml';
 const { load, dump } = yaml;
 import chalk from 'chalk';
 import { confirm } from '@inquirer/prompts';
-import { GenerateOptions, DragonExtensionManifest, DragonTool } from '../types.js';
+import { GenerateOptions, DragonExtensionManifest, DragonTool, DragonConfiguration } from '../types.js';
 import { getTemplate } from '../templates/index.js';
-import { promptToolDetails, promptPublisherDetails, getInputDescription } from '../shared/prompts.js';
+import { promptToolDetails, promptPublisherDetails, promptExtensionConfiguration, getInputDescription } from '../shared/prompts.js';
 
 export async function generateManifest(options: GenerateOptions): Promise<void> {
   console.log(chalk.blue('🐉 Generating Dragon Copilot Manifest'));
@@ -71,56 +71,104 @@ async function generateInteractive(options: GenerateOptions): Promise<void> {
     }
   }
 
-  // Use shared prompt logic
-  const answers = await promptToolDetails(existingManifest);
+  // Ask whether to add a tool
+  const addTool = await confirm({
+    message: existingManifest ? 'Add a new tool to the existing manifest?' : 'Add a tool to the manifest?',
+    default: true
+  });
 
-  const newTool: DragonTool = {
-    name: answers.toolName,
-    description: answers.toolDescription,
-    endpoint: answers.endpoint,
-    inputs: answers.inputTypes.map((dataType: string, index: number) => ({
-      name: dataType === 'DSP/Note' ? 'note' :
-            dataType === 'DSP/IterativeTranscript' ? 'iterative-transcript' :
-            dataType === 'DSP/IterativeAudio' ? 'iterative-audio' :
-            dataType === 'DSP/Transcript' ? 'transcript' :
-            `input-${index + 1}`,
-      description: getInputDescription(dataType),
-      data: dataType
-    })),
-    outputs: [
-      {
-        name: 'processed-data',
-        description: 'Processed data response',
+  let newTool: DragonTool | null = null;
+  if (addTool) {
+    // Use shared prompt logic
+    const answers = await promptToolDetails(existingManifest);
+
+    newTool = {
+      name: answers.toolName,
+      description: answers.toolDescription,
+      endpoint: answers.endpoint,
+      inputs: answers.inputTypes.map((dataType: string, index: number) => ({
+        name: dataType === 'DSP/Note' ? 'note' :
+              dataType === 'DSP/IterativeTranscript' ? 'iterative-transcript' :
+              dataType === 'DSP/IterativeAudio' ? 'iterative-audio' :
+              dataType === 'DSP/Transcript' ? 'transcript' :
+              `input-${index + 1}`,
+        description: getInputDescription(dataType),
+        data: dataType
+      })),
+      outputs: [
+        {
+          name: 'processed-data',
+          description: 'Processed data response',
+          data: 'DSP'
+        }
+      ]
+    };
+
+    if (answers.includeAdaptiveCard) {
+      newTool.outputs.push({
+        name: 'adaptive-card',
+        description: 'Adaptive Card response',
         data: 'DSP'
-      }
-    ]
-  };
+      });
+    }
+  }
 
-  if (answers.includeAdaptiveCard) {
-    newTool.outputs.push({
-      name: 'adaptive-card',
-      description: 'Adaptive Card response',
-      data: 'DSP'
+  // Prompt for additional configuration if this is a new manifest
+  let additionalConfiguration: DragonConfiguration[] = [];
+  if (!existingManifest) {
+    console.log(chalk.blue('\n⚙️  Extension Configuration'));
+    additionalConfiguration = await promptExtensionConfiguration();
+  } else {
+    const addConfiguration = await confirm({
+      message: 'Add new configuration items to existing manifest?',
+      default: false
     });
+
+    if (addConfiguration) {
+      additionalConfiguration = await promptExtensionConfiguration();
+    }
   }
 
   let manifest: DragonExtensionManifest;
   if (existingManifest) {
     manifest = existingManifest;
-    manifest.tools.push(newTool);
+
+    // Add new tool if one was created
+    if (newTool) {
+      manifest.tools.push(newTool);
+    }
+
+    // Add new configuration items if any
+    if (additionalConfiguration.length > 0) {
+      if (!manifest.configuration) {
+        manifest.configuration = [];
+      }
+      manifest.configuration.push(...additionalConfiguration);
+    }
   } else {
     manifest = {
       name: 'my-extension',
       description: 'A Dragon Copilot extension',
       version: '0.0.1',
-      tools: [newTool]
+      tools: newTool ? [newTool] : []
     };
+
+    // Add configuration if any were defined
+    if (additionalConfiguration.length > 0) {
+      manifest.configuration = additionalConfiguration;
+    }
   }
 
   const yamlContent = dump(manifest, { lineWidth: -1 });
   writeFileSync(options.output || 'extension.yaml', yamlContent);
 
-  console.log(chalk.green('\n✅ Tool added to manifest successfully!'));
+  if (newTool) {
+    console.log(chalk.green('\n✅ Tool added to manifest successfully!'));
+  } else if (additionalConfiguration.length > 0) {
+    console.log(chalk.green('\n✅ Configuration added to manifest successfully!'));
+  } else {
+    console.log(chalk.green('\n✅ Manifest updated successfully!'));
+  }
   console.log(chalk.gray(`📁 Manifest saved to: ${options.output || 'extension.yaml'}`));
 }
 

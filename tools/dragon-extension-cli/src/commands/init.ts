@@ -6,7 +6,7 @@ const { dump } = yaml;
 import path from 'path';
 import chalk from 'chalk';
 import { InitOptions, DragonExtensionManifest } from '../types.js';
-import { promptExtensionDetails, promptToolDetails, promptPublisherDetails, getInputDescription } from '../shared/prompts.js';
+import { promptExtensionDetails, promptToolDetails, promptPublisherDetails, promptExtensionConfiguration, getInputDescription } from '../shared/prompts.js';
 
 export async function initProject(options: InitOptions): Promise<void> {
   console.log(chalk.blue('🐉 Dragon Copilot Extension Generator'));
@@ -37,8 +37,15 @@ export async function initProject(options: InitOptions): Promise<void> {
     publisherConfig = await promptPublisherDetails();
   }
 
-  // Step 3: Extension Tools
-  console.log(chalk.blue('\n🛠️  Step 3: Extension Tools'));
+  // Step 3: Extension Configuration
+  console.log(chalk.blue('\n⚙️  Step 3: Extension Configuration'));
+  console.log(chalk.gray('Configuration allows users to provide custom values during installation.'));
+  console.log(chalk.gray('These values are passed as HTTP headers to your extension\'s API endpoints.\n'));
+
+  const configuration = await promptExtensionConfiguration();
+
+  // Step 4: Extension Tools
+  console.log(chalk.blue('\n🛠️  Step 4: Extension Tools'));
   console.log(chalk.gray('Tools define the AI-powered functionality your extension provides.'));
   console.log(chalk.gray('Each tool processes specific types of clinical data and returns results.\n'));
 
@@ -53,6 +60,11 @@ export async function initProject(options: InitOptions): Promise<void> {
     version: extensionDetails.version,
     tools: []
   };
+
+  // Add configuration if any were defined
+  if (configuration.length > 0) {
+    manifest.configuration = configuration;
+  }
 
   if (addTool) {
     // Use shared prompt for tool details (single input for init)

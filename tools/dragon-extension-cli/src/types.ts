@@ -3,7 +3,14 @@ export interface DragonExtensionManifest {
   description: string;
   version: string;
   authentication?: string;
+  configuration?: DragonConfiguration[];
   tools: DragonTool[];
+}
+
+export interface DragonConfiguration {
+  label: string;
+  description: string;
+  header: string;
 }
 
 export interface DragonTool {
