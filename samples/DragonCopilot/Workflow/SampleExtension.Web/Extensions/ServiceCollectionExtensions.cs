@@ -81,7 +81,8 @@ public static class ServiceCollectionExtensions
                                 var actualAudience = jsonToken.GetClaim("aud")?.Value ?? "null";
 
                                 // Get expected audience from configuration or JWT options
-                                var expectedAudience = authOptions?.Audience;
+                                var options = context.HttpContext.RequestServices.GetService<IOptions<AuthenticationOptions>>();
+                                var expectedAudience = options?.Value?.Audience;
 
                                 logger.LogJwtAudienceValidationFailed(actualAudience, expectedAudience ?? "null", audienceException.Message, audienceException);
                             }
