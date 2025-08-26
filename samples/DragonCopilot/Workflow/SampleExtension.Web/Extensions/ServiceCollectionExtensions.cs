@@ -62,7 +62,7 @@ public static class ServiceCollectionExtensions
                     if (context.Exception is SecurityTokenInvalidAudienceException audienceException)
                     {
                         // Extract token to get actual audience
-                        var authHeader = context.Request.Headers.Authorization.FirstOrDefault();
+                        var authHeader = context.Request.Headers["Authorization"].ToString();
                         string? token = null;
                         
                         if (!string.IsNullOrEmpty(authHeader) && 
