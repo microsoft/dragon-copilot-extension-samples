@@ -31,11 +31,6 @@ public class AuthenticationOptions
     public string? ClientId { get; set; }
 
     /// <summary>
-    /// Audience for the application
-    /// </summary>
-    public string? Audience { get; set; }    
-
-    /// <summary>
     /// Login instance (e.g., "https://login.microsoftonline.com/")
     /// </summary>
     public string Instance { get; set; } = "https://login.microsoftonline.com/";

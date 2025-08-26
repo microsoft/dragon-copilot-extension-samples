@@ -65,14 +65,14 @@ public static class ServiceCollectionExtensions
                         // Extract token to get actual audience
                         var authHeader = context.Request.Headers["Authorization"].ToString();
                         string? token = null;
-                        
-                        if (!string.IsNullOrEmpty(authHeader) && 
+
+                        if (!string.IsNullOrEmpty(authHeader) &&
                             AuthenticationHeaderValue.TryParse(authHeader, out var headerValue) &&
                             string.Equals(headerValue.Scheme, "Bearer", StringComparison.OrdinalIgnoreCase))
                         {
                             token = headerValue.Parameter;
                         }
-                        
+
                         if (!string.IsNullOrEmpty(token))
                         {
                             try
@@ -83,7 +83,7 @@ public static class ServiceCollectionExtensions
 
                                 // Get expected audience from configuration or JWT options
                                 var options = context.HttpContext.RequestServices.GetService<IOptions<AuthenticationOptions>>();
-                                var expectedAudience = options?.Value?.Audience;
+                                var expectedAudience = options?.Value?.ClientId;
 
                                 logger.LogJwtAudienceValidationFailed(actualAudience, expectedAudience ?? "null", audienceException.Message, audienceException);
                             }
