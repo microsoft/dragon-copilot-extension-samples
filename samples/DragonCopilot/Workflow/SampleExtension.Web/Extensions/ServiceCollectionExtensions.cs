@@ -3,10 +3,14 @@
 
 using System;
 using System.Linq;
+using System.Net.Http.Headers;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.Identity.Web;
+using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
 using SampleExtension.Web.Configuration;
 using SampleExtension.Web.Services;
@@ -45,6 +49,91 @@ public static class ServiceCollectionExtensions
         // Add JWT authentication
         services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             .AddMicrosoftIdentityWebApi(configuration.GetSection(AuthenticationOptions.SectionName));
+
+        // Configure JWT Bearer events to log audience validation failures
+        services.Configure<JwtBearerOptions>(JwtBearerDefaults.AuthenticationScheme, options =>
+        {
+            options.Events = new JwtBearerEvents
+            {
+                OnAuthenticationFailed = context =>
+                {
+                    var logger = context.HttpContext.RequestServices.GetRequiredService<ILogger<JwtBearerEvents>>();
+
+                    if (context.Exception is SecurityTokenInvalidAudienceException audienceException)
+                    {
+                        // Extract token to get actual audience
+                        var authHeader = context.Request.Headers.Authorization.FirstOrDefault();
+                        string? token = null;
+                        
+                        if (!string.IsNullOrEmpty(authHeader) && 
+                            AuthenticationHeaderValue.TryParse(authHeader, out var headerValue) &&
+                            string.Equals(headerValue.Scheme, "Bearer", StringComparison.OrdinalIgnoreCase))
+                        {
+                            token = headerValue.Parameter;
+                        }
+                        
+                        if (!string.IsNullOrEmpty(token))
+                        {
+                            try
+                            {
+                                var handler = new JsonWebTokenHandler();
+                                var jsonToken = handler.ReadJsonWebToken(token);
+                                var actualAudience = jsonToken.GetClaim("aud")?.Value ?? "null";
+
+                                // Get expected audience from configuration or JWT options
+                                var expectedAudience = authOptions?.Audience;
+
+                                logger.LogJwtAudienceValidationFailed(actualAudience, expectedAudience ?? "null", audienceException.Message, audienceException);
+                            }
+                            catch (ArgumentException ex)
+                            {
+                                logger.LogJwtTokenParsingFailed(ex.Message, ex);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        logger.LogJwtAuthenticationFailed(context.Exception.Message, context.Exception);
+                    }
+
+                    return Task.CompletedTask;
+                },
+                OnTokenValidated = context =>
+                {
+                    var logger = context.HttpContext.RequestServices.GetRequiredService<ILogger<JwtBearerEvents>>();
+
+                    // Log successful token validation and claims for debugging
+                    var principal = context.Principal;
+                    if (principal?.Identity?.IsAuthenticated == true)
+                    {
+                        logger.LogJwtTokenValidatedSuccessfully();
+
+                        // Log audience claims
+                        var audClaims = principal.Claims?.Where(c => c.Type == "aud")?.Select(c => c.Value) ?? Enumerable.Empty<string>();
+                        logger.LogTokenAudiences(string.Join(", ", audClaims));
+
+                        // Log required claims for authorization debugging
+                        if (authOptions?.RequiredClaims.Any() == true)
+                        {
+                            foreach (var requiredClaim in authOptions.RequiredClaims)
+                            {
+                                var actualValues = principal.Claims?.Where(c => c.Type == requiredClaim.Key)?.Select(c => c.Value) ?? Enumerable.Empty<string>();
+                                var expectedValues = string.Join(", ", requiredClaim.Value);
+                                var actualValuesStr = string.Join(", ", actualValues);
+
+                                logger.LogClaimValidation(requiredClaim.Key, expectedValues, actualValuesStr);
+                            }
+                        }
+                        else
+                        {
+                            logger.LogNoRequiredClaimsConfigured();
+                        }
+                    }
+
+                    return Task.CompletedTask;
+                }
+            };
+        });
 
         // Add authorization with custom policies
         services.AddAuthorization(options =>

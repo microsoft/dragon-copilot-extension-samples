@@ -116,4 +116,25 @@ public class ProcessController : ControllerBase
             }
         });
     }
+
+    /// <summary>
+    /// Authenticated health check endpoint to have easy testing of the authentication pipeline
+    /// </summary>
+    /// <returns>A status object indicating successful authentication and service health</returns>
+    /// <response code="200">Authentication and authorization successful</response>
+    /// <response code="401">Unauthorized - JWT token authentication failed or token is invalid/expired</response>
+    /// <response code="403">Forbidden - JWT is valid but required Dragon Copilot claims validation failed</response>
+    [HttpGet("auth-health")]
+    [Authorize(Policy = "RequiredClaims")] // JWT + Claims validation
+    [ProducesResponseType(typeof(object), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(object), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(object), StatusCodes.Status403Forbidden)]
+    public ActionResult AuthenticatedHealthCheck()
+    {
+        return Ok(new
+        {
+            service = "Dragon Sample Extension",
+            status = "healthy"
+        });
+    }
 }
