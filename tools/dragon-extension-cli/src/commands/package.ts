@@ -15,6 +15,41 @@ function log(message: string, silent: boolean = false): void {
   }
 }
 
+// Helper function to validate logo requirements
+async function validateLogo(logoPath: string, silent: boolean = false): Promise<boolean> {
+  if (!(await pathExists(logoPath))) {
+    return false;
+  }
+
+  try {
+    // Basic file validation - check if it's a PNG file
+    const stats = await fs.stat(logoPath);
+    if (stats.size === 0) {
+      log(chalk.red(`❌ Logo file is empty: ${logoPath}`), silent);
+      return false;
+    }
+
+    // Check if it's a PNG file by reading the header
+    const buffer = await fs.readFile(logoPath);
+    const isPNG = buffer.length >= 8 && 
+                  buffer[0] === 0x89 && buffer[1] === 0x50 && 
+                  buffer[2] === 0x4E && buffer[3] === 0x47 &&
+                  buffer[4] === 0x0D && buffer[5] === 0x0A && 
+                  buffer[6] === 0x1A && buffer[7] === 0x0A;
+
+    if (!isPNG) {
+      log(chalk.red(`❌ Logo file is not a valid PNG: ${logoPath}`), silent);
+      return false;
+    }
+
+    log(chalk.gray(`✓ Logo validation passed: ${logoPath}`), silent);
+    return true;
+  } catch (error) {
+    log(chalk.red(`❌ Error validating logo: ${error instanceof Error ? error.message : 'Unknown error'}`), silent);
+    return false;
+  }
+}
+
 export async function packageExtension(options: PackageOptions): Promise<void> {
   const isQuiet = options.silent || process.env.NODE_ENV === 'test';
 
@@ -22,6 +57,7 @@ export async function packageExtension(options: PackageOptions): Promise<void> {
 
   const manifestPath = options.manifest || 'extension.yaml';
   const publisherPath = 'publisher.json';
+  const logoPath = 'assets/logo_large.png';
 
   // Step 1: Validate required files exist
   log(chalk.blue('📋 Validating required files...'), isQuiet);
@@ -39,8 +75,26 @@ export async function packageExtension(options: PackageOptions): Promise<void> {
     throw new Error(`Publisher configuration not found: ${publisherPath}`);
   }
 
+  // Step 1.5: Validate required logo
+  log(chalk.blue('🎨 Validating logo requirements...'), isQuiet);
+  
+  if (!(await pathExists(logoPath))) {
+    log(chalk.red(`❌ Required logo not found: ${logoPath}`), isQuiet);
+    log(chalk.gray('   A large logo (PNG, 216x216 to 350x350 px) is required for packaging'), isQuiet);
+    log(chalk.gray('   Create assets directory with logo using: dragon-extension init'), isQuiet);
+    throw new Error(`Required logo not found: ${logoPath}`);
+  }
+
+  const isValidLogo = await validateLogo(logoPath, isQuiet);
+  if (!isValidLogo) {
+    log(chalk.red(`❌ Logo validation failed: ${logoPath}`), isQuiet);
+    log(chalk.gray('   Requirements: PNG file, 216x216 to 350x350 pixels'), isQuiet);
+    throw new Error(`Logo validation failed: ${logoPath}`);
+  }
+
   log(chalk.gray(`✓ Found extension manifest: ${manifestPath}`), isQuiet);
   log(chalk.gray(`✓ Found publisher configuration: ${publisherPath}`), isQuiet);
+  log(chalk.gray(`✓ Found required logo: ${logoPath}`), isQuiet);
 
   try {
     // Step 2: Validate extension manifest
@@ -111,6 +165,7 @@ export async function packageExtension(options: PackageOptions): Promise<void> {
       log(chalk.blue('\n📊 Package Contents:'), isQuiet);
       log(chalk.gray(`  • Extension manifest (extension.yaml)`), isQuiet);
       log(chalk.gray(`  • Publisher configuration (publisher.json)`), isQuiet);
+      log(chalk.gray(`  • Large logo (assets/logo_large.png)`), isQuiet);
       if (options.include && options.include.length > 0) {
         log(chalk.gray(`  • Additional files: ${options.include.length}`), isQuiet);
       }
@@ -142,6 +197,10 @@ export async function packageExtension(options: PackageOptions): Promise<void> {
     archive.file(publisherPath, { name: 'publisher.json' });
     log(chalk.gray(`✓ Added publisher.json`), isQuiet);
 
+    // Add required logo
+    archive.file(logoPath, { name: 'assets/logo_large.png' });
+    log(chalk.gray(`✓ Added assets/logo_large.png`), isQuiet);
+
     // Add additional files if specified
     if (options.include && options.include.length > 0) {
       log(chalk.blue('\n📁 Adding additional files...'), isQuiet);
@@ -156,9 +215,8 @@ export async function packageExtension(options: PackageOptions): Promise<void> {
       }
     }
 
-    // Add common directories if they exist
+    // Add common directories if they exist (excluding assets since we handle it explicitly)
     const commonDirectories = [
-      { path: 'assets', description: 'assets' },
       { path: 'locales', description: 'localization files' }
     ];
 
@@ -166,6 +224,22 @@ export async function packageExtension(options: PackageOptions): Promise<void> {
       if (await pathExists(dir.path)) {
         archive.directory(dir.path, dir.path);
         log(chalk.gray(`✓ Added ${dir.path}/ directory (${dir.description})`), isQuiet);
+      }
+    }
+
+    // Add other assets if they exist (but logo_large.png is already handled)
+    if (await pathExists('assets')) {
+      const assetsEntries = await fs.readdir('assets');
+      const otherAssets = assetsEntries.filter(entry => entry !== 'logo_large.png');
+      
+      if (otherAssets.length > 0) {
+        for (const asset of otherAssets) {
+          const assetPath = path.join('assets', asset);
+          if ((await fs.stat(assetPath)).isFile()) {
+            archive.file(assetPath, { name: `assets/${asset}` });
+            log(chalk.gray(`✓ Added assets/${asset}`), isQuiet);
+          }
+        }
       }
     }
 

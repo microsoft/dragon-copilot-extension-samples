@@ -1,12 +1,16 @@
 import { confirm } from '@inquirer/prompts';
 import fs from 'fs-extra';
-const { writeFileSync } = fs;
+const { writeFileSync, ensureDirSync, copyFileSync, pathExistsSync } = fs;
 import yaml from 'js-yaml';
 const { dump } = yaml;
 import path from 'path';
 import chalk from 'chalk';
 import { InitOptions, DragonExtensionManifest } from '../types.js';
 import { promptExtensionDetails, promptToolDetails, promptPublisherDetails, getInputDescription } from '../shared/prompts.js';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 export async function initProject(options: InitOptions): Promise<void> {
   console.log(chalk.blue('🐉 Dragon Copilot Extension Generator'));
@@ -37,8 +41,37 @@ export async function initProject(options: InitOptions): Promise<void> {
     publisherConfig = await promptPublisherDetails();
   }
 
-  // Step 3: Extension Tools
-  console.log(chalk.blue('\n🛠️  Step 3: Extension Tools'));
+  // Step 3: Assets Setup
+  console.log(chalk.blue('\n🎨 Step 3: Assets Setup'));
+  console.log(chalk.gray('Extensions require a large logo (216x216 to 350x350 px) for marketplace listing.'));
+  console.log(chalk.gray('We\'ll create an assets directory with a sample logo to get you started.\n'));
+
+  const setupAssets = await confirm({
+    message: 'Create assets directory with sample logo?',
+    default: true
+  });
+
+  if (setupAssets) {
+    const assetsDir = path.join(options.output || '.', 'assets');
+    ensureDirSync(assetsDir);
+
+    // Copy sample logo from CLI resources
+    const sampleLogoPath = path.join(__dirname, '..', 'resources', 'assets', 'logo_large.png');
+    const targetLogoPath = path.join(assetsDir, 'logo_large.png');
+
+    if (pathExistsSync(sampleLogoPath)) {
+      copyFileSync(sampleLogoPath, targetLogoPath);
+      console.log(chalk.green('✅ Sample logo copied to assets/logo_large.png'));
+      console.log(chalk.yellow('⚠️  Remember to replace this with your own logo before packaging!'));
+    } else {
+      // If sample logo doesn't exist, create a placeholder message
+      console.log(chalk.yellow('⚠️  Sample logo not found. Please add your logo to assets/logo_large.png'));
+      console.log(chalk.gray('   Requirements: PNG file, 216x216 to 350x350 pixels'));
+    }
+  }
+
+  // Step 4: Extension Tools
+  console.log(chalk.blue('\n🛠️  Step 4: Extension Tools'));
   console.log(chalk.gray('Tools define the AI-powered functionality your extension provides.'));
   console.log(chalk.gray('Each tool processes specific types of clinical data and returns results.\n'));
 
@@ -109,9 +142,19 @@ export async function initProject(options: InitOptions): Promise<void> {
 
   console.log(chalk.green('\n✅ Extension project initialized successfully!'));
   console.log(chalk.gray(`📁 Manifest created at: ${outputPath}`));
+  if (setupAssets) {
+    console.log(chalk.gray(`🎨 Assets directory created at: assets/`));
+  }
 
   // Enhanced next steps with better organization
   console.log(chalk.blue('\n🎯 What\'s Next?'));
+
+  if (setupAssets) {
+    console.log(chalk.yellow('🎨 Logo Requirements:'));
+    console.log(chalk.gray('   • Replace assets/logo_large.png with your own logo'));
+    console.log(chalk.gray('   • Size: 216x216 to 350x350 pixels (PNG format)'));
+    console.log(chalk.gray('   • This will be used to generate Medium (90x90) and Small (48x48) logos'));
+  }
 
   if (addTool) {
     console.log(chalk.yellow('� Development Steps:'));
