@@ -20,14 +20,12 @@ public class VisualizationAction
     /// Action identifier (required)
     /// </summary>
     [JsonPropertyName("action")]
-    [JsonConverter(typeof(JsonStringEnumConverter))]
     public required VisualizationActionType Action { get; set; }
 
     /// <summary>
     /// Action button style (required)
     /// </summary>
     [JsonPropertyName("actionType")]
-    [JsonConverter(typeof(JsonStringEnumConverter))]
     public required ActionButtonType ActionType { get; set; }
 
     /// <summary>
