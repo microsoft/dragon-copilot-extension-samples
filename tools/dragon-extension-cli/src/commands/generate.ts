@@ -87,22 +87,8 @@ async function generateInteractive(options: GenerateOptions): Promise<void> {
       description: getInputDescription(dataType),
       data: dataType
     })),
-    outputs: [
-      {
-        name: 'processed-data',
-        description: 'Processed data response',
-        data: 'DSP'
-      }
-    ]
+    outputs: answers.outputs
   };
-
-  if (answers.includeAdaptiveCard) {
-    newTool.outputs.push({
-      name: 'adaptive-card',
-      description: 'Adaptive Card response',
-      data: 'DSP'
-    });
-  }
 
   let manifest: DragonExtensionManifest;
   if (existingManifest) {

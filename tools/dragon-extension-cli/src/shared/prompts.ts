@@ -13,7 +13,13 @@ export interface ToolDetails {
   toolDescription: string;
   endpoint: string;
   inputTypes: string[];
-  includeAdaptiveCard?: boolean;
+  outputs: OutputDetails[];
+}
+
+export interface OutputDetails {
+  name: string;
+  description: string;
+  data: string;
 }
 
 export const INPUT_TYPE_CHOICES = [
@@ -100,7 +106,6 @@ export async function promptExtensionDetails(defaults?: Partial<ExtensionDetails
 export async function promptToolDetails(
   existingManifest?: DragonExtensionManifest | null,
   options?: {
-    includeAdaptiveCardPrompt?: boolean;
     allowMultipleInputs?: boolean;
     defaults?: {
       toolName?: string;
@@ -110,7 +115,6 @@ export async function promptToolDetails(
   }
 ): Promise<ToolDetails> {
   const {
-    includeAdaptiveCardPrompt = true,
     allowMultipleInputs = true,
     defaults = {}
   } = options || {};
@@ -144,15 +148,10 @@ export async function promptToolDetails(
     }
   });
 
-  let includeAdaptiveCard = true;
-  if (includeAdaptiveCardPrompt) {
-    includeAdaptiveCard = await confirm({
-      message: 'Include Adaptive Card output?',
-      default: true
-    });
-  }
+  // Get outputs using the new prompt function
+  const outputs = await promptOutputs();
 
-  return { toolName, toolDescription, endpoint, inputTypes, includeAdaptiveCard };
+  return { toolName, toolDescription, endpoint, inputTypes, outputs };
 }
 
 /**
@@ -171,6 +170,58 @@ export function getInputDescription(dataType: string): string {
     default:
       return 'Data from Dragon Copilot';
   }
+}
+
+/**
+ * Prompts for output details
+ */
+export async function promptOutputDetails(defaults?: { name?: string; description?: string }): Promise<OutputDetails> {
+  const name = await input({
+    message: 'Output name:',
+    default: defaults?.name || 'adaptive-card'
+  });
+
+  const description = await input({
+    message: 'Output description:',
+    default: defaults?.description || 'Adaptive card response'
+  });
+
+  return {
+    name,
+    description,
+    data: 'DSP'
+  };
+}
+
+/**
+ * Prompts for multiple outputs
+ */
+export async function promptOutputs(): Promise<OutputDetails[]> {
+  const outputs: OutputDetails[] = [];
+
+  console.log('\n📤 Configuring outputs for your tool...');
+
+  // First output
+  const firstOutput = await promptOutputDetails();
+  outputs.push(firstOutput);
+
+  // Ask about additional outputs
+  let addMoreOutputs = await confirm({
+    message: 'Add additional outputs?',
+    default: false
+  });
+
+  while (addMoreOutputs) {
+    const additionalOutput = await promptOutputDetails();
+    outputs.push(additionalOutput);
+
+    addMoreOutputs = await confirm({
+      message: 'Add another output?',
+      default: false
+    });
+  }
+
+  return outputs;
 }
 
 /**
