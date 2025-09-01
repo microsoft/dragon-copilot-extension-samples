@@ -246,11 +246,6 @@ components:
           type: string
           format: date-time
           example: "2025-06-20T08:51:53.858360Z"
-        service_date:
-          type: string
-          format: date-time
-          example: "2023-11-04T13:00:00Z"
-          description: "The date of the service provided. This is currently the placeholder."
         patient:
           $ref: "#/components/schemas/Patient"
         practitioner:
@@ -336,6 +331,11 @@ components:
       properties:
         reason_for_visit:
           type: string
+        actual_start_date:
+          type: string
+          format: date-time
+          description: The actual start time of the encounter. Follows ISO 8601 format.
+          example: "2025-08-19T09:00:00Z"
 
     Session:
       type: object
