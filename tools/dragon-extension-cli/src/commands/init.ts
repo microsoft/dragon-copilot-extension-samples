@@ -90,12 +90,11 @@ export async function initProject(options: InitOptions): Promise<void> {
   if (addTool) {
     // Use shared prompt for tool details (single input for init)
     const toolDetails = await promptToolDetails(undefined, {
-      includeAdaptiveCardPrompt: false, // Skip adaptive card prompt for init
       allowMultipleInputs: true, // Allow multiple inputs for flexibility
       defaults: {
         toolName: 'my-tool',
         toolDescription: 'Processes clinical data',
-        endpoint: 'https://api.example.com/tool-route'
+        endpoint: 'https://api.example.com/tool-route/v1/process'
       }
     });
 
@@ -112,18 +111,7 @@ export async function initProject(options: InitOptions): Promise<void> {
         description: getInputDescription(dataType),
         data: dataType
       })),
-      outputs: [
-        {
-          name: 'processed-data',
-          description: 'Processed data response',
-          data: 'DSP'
-        },
-        {
-          name: 'adaptive-card',
-          description: 'Adaptive Card response',
-          data: 'DSP'
-        }
-      ]
+      outputs: toolDetails.outputs
     });
   }
 
