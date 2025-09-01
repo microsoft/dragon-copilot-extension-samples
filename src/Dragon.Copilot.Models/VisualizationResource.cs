@@ -27,7 +27,6 @@ public class VisualizationResource : IResource
     /// Subtype of the adaptive card
     /// </summary>
     [JsonPropertyName("subtype")]
-    [JsonConverter(typeof(JsonStringEnumConverter))]
     public VisualizationSubtype? Subtype { get; set; }
 
     /// <summary>
