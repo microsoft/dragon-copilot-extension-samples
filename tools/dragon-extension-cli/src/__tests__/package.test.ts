@@ -17,6 +17,8 @@ describe('Package Command', () => {
     const manifest = `name: test-package-extension
 description: Test extension for package command
 version: 1.0.0
+auth:
+  tenantId: 12345678-1234-1234-1234-123456789abc
 tools:
   - name: test-tool
     description: A test tool

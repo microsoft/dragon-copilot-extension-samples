@@ -8,6 +8,9 @@ describe('Schema Validation', () => {
         name: 'test-extension',
         description: 'A test extension',
         version: '1.0.0',
+        auth: {
+          tenantId: '12345678-1234-1234-1234-123456789abc'
+        },
         tools: [
           {
             name: 'test-tool',
@@ -41,6 +44,9 @@ describe('Schema Validation', () => {
         name: 'Test Extension!', // Invalid characters
         description: 'A test extension',
         version: '1.0.0',
+        auth: {
+          tenantId: '12345678-1234-1234-1234-123456789abc'
+        },
         tools: [
           {
             name: 'test-tool',

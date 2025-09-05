@@ -77,6 +77,7 @@ export async function validateManifest(filePath: string): Promise<void> {
       console.log(chalk.gray('\n📊 Extension Summary:'));
       console.log(chalk.gray(`  • Extension: ${manifest.name} v${manifest.version}`));
       console.log(chalk.gray(`  • Description: ${manifest.description}`));
+      console.log(chalk.gray(`  • Auth Tenant ID: ${manifest.auth?.tenantId || 'Not specified'}`));
       console.log(chalk.gray(`  • Tools: ${manifest.tools?.length || 0}`));
 
       if (existsSync(publisherPath)) {

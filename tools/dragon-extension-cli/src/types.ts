@@ -3,7 +3,12 @@ export interface DragonExtensionManifest {
   description: string;
   version: string;
   authentication?: string;
+  auth: AuthConfig;
   tools: DragonTool[];
+}
+
+export interface AuthConfig {
+  tenantId: string;
 }
 
 export interface DragonTool {

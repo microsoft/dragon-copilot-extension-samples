@@ -1,5 +1,5 @@
 import { input, select, checkbox, confirm } from '@inquirer/prompts';
-import { DragonExtensionManifest, PublisherConfig } from '../types.js';
+import { DragonExtensionManifest, PublisherConfig, AuthConfig } from '../types.js';
 import { validateFieldValue } from './schema-validator.js';
 
 export interface ExtensionDetails {
@@ -77,6 +77,16 @@ export function validateEmail(input: string): string | boolean {
 }
 
 /**
+ * Validates tenant ID input (GUID format)
+ */
+export function validateTenantId(input: string): string | boolean {
+  const guidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  if (!input.trim()) return 'Tenant ID is required';
+  if (!guidPattern.test(input.trim())) return 'Tenant ID must be a valid GUID format (e.g., 12345678-1234-1234-1234-123456789abc)';
+  return true;
+}
+
+/**
  * Prompts for extension details
  */
 export async function promptExtensionDetails(defaults?: Partial<ExtensionDetails>): Promise<ExtensionDetails> {
@@ -98,6 +108,22 @@ export async function promptExtensionDetails(defaults?: Partial<ExtensionDetails
   });
 
   return { name, description, version };
+}
+
+/**
+ * Prompts for authentication details
+ */
+export async function promptAuthDetails(defaults?: { tenantId?: string }): Promise<{ tenantId: string }> {
+  console.log('Authentication configuration is required for Dragon Copilot extensions.');
+  console.log('This should be the Azure Entra ID tenant where your extension will be deployed.');
+
+  const tenantId = await input({
+    message: 'Azure Entra ID Tenant ID:',
+    default: defaults?.tenantId || '',
+    validate: validateTenantId
+  });
+
+  return { tenantId };
 }
 
 /**

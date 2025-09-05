@@ -6,12 +6,16 @@ describe('Types', () => {
       name: 'test-extension',
       description: 'A test extension',
       version: '1.0.0',
+      auth: {
+        tenantId: '12345678-1234-1234-1234-123456789abc'
+      },
       tools: []
     };
 
     expect(manifest.name).toBe('test-extension');
     expect(manifest.description).toBe('A test extension');
     expect(manifest.version).toBe('1.0.0');
+    expect(manifest.auth.tenantId).toBe('12345678-1234-1234-1234-123456789abc');
     expect(Array.isArray(manifest.tools)).toBe(true);
   });
 

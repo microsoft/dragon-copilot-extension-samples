@@ -6,7 +6,7 @@ import chalk from 'chalk';
 import { confirm } from '@inquirer/prompts';
 import { GenerateOptions, DragonExtensionManifest, DragonTool } from '../types.js';
 import { getTemplate } from '../templates/index.js';
-import { promptToolDetails, promptPublisherDetails, getInputDescription } from '../shared/prompts.js';
+import { promptToolDetails, promptPublisherDetails, promptAuthDetails, getInputDescription } from '../shared/prompts.js';
 
 export async function generateManifest(options: GenerateOptions): Promise<void> {
   console.log(chalk.blue('🐉 Generating Dragon Copilot Manifest'));
@@ -95,10 +95,18 @@ async function generateInteractive(options: GenerateOptions): Promise<void> {
     manifest = existingManifest;
     manifest.tools.push(newTool);
   } else {
+    // For new manifests, collect auth details
+    console.log(chalk.blue('\n🔐 Authentication Configuration'));
+    console.log(chalk.gray('New manifest requires authentication configuration.\n'));
+    const authDetails = await promptAuthDetails();
+
     manifest = {
       name: 'my-extension',
       description: 'A Dragon Copilot extension',
       version: '0.0.1',
+      auth: {
+        tenantId: authDetails.tenantId
+      },
       tools: [newTool]
     };
   }
