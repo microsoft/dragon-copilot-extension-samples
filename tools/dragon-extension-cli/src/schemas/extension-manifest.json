@@ -20,10 +20,6 @@
       "pattern": "^\\d+\\.\\d+\\.\\d+$",
       "description": "Version in x.y.z format"
     },
-    "authentication": {
-      "type": "string",
-      "description": "Optional authentication configuration"
-    },
     "auth": {
       "$ref": "#/definitions/AuthConfig",
       "description": "Authentication configuration"
