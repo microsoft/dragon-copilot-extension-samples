@@ -6,7 +6,7 @@ const { dump } = yaml;
 import path from 'path';
 import chalk from 'chalk';
 import { InitOptions, DragonExtensionManifest } from '../types.js';
-import { promptExtensionDetails, promptToolDetails, promptPublisherDetails, getInputDescription } from '../shared/prompts.js';
+import { promptExtensionDetails, promptToolDetails, promptPublisherDetails, promptAuthDetails, getInputDescription } from '../shared/prompts.js';
 import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -26,8 +26,14 @@ export async function initProject(options: InitOptions): Promise<void> {
     version: options.version
   });
 
-  // Step 2: Publisher Configuration
-  console.log(chalk.blue('\n📋 Step 2: Publisher Configuration'));
+  // Step 2: Authentication Configuration
+  console.log(chalk.blue('\n🔐 Step 2: Authentication Configuration'));
+  console.log(chalk.gray('Configure Azure Entra ID authentication for your extension.\n'));
+
+  const authDetails = await promptAuthDetails();
+
+  // Step 3: Publisher Configuration
+  console.log(chalk.blue('\n📋 Step 3: Publisher Configuration'));
   console.log(chalk.gray('Publisher information is required for deployment and marketplace listing.'));
   console.log(chalk.gray('This creates a separate publisher.json file that can be reused across extensions.\n'));
 
@@ -41,8 +47,8 @@ export async function initProject(options: InitOptions): Promise<void> {
     publisherConfig = await promptPublisherDetails();
   }
 
-  // Step 3: Assets Setup
-  console.log(chalk.blue('\n🎨 Step 3: Assets Setup'));
+  // Step 4: Assets Setup
+  console.log(chalk.blue('\n🎨 Step 4: Assets Setup'));
   console.log(chalk.gray('Extensions require a large logo (216x216 to 350x350 px) for marketplace listing.'));
   console.log(chalk.gray('We\'ll create an assets directory with a sample logo to get you started.\n'));
 
@@ -70,8 +76,8 @@ export async function initProject(options: InitOptions): Promise<void> {
     }
   }
 
-  // Step 4: Extension Tools
-  console.log(chalk.blue('\n🛠️  Step 4: Extension Tools'));
+  // Step 5: Extension Tools
+  console.log(chalk.blue('\n🛠️  Step 5: Extension Tools'));
   console.log(chalk.gray('Tools define the AI-powered functionality your extension provides.'));
   console.log(chalk.gray('Each tool processes specific types of clinical data and returns results.\n'));
 
@@ -84,6 +90,9 @@ export async function initProject(options: InitOptions): Promise<void> {
     name: extensionDetails.name,
     description: extensionDetails.description,
     version: extensionDetails.version,
+    auth: {
+      tenantId: authDetails.tenantId
+    },
     tools: []
   };
 

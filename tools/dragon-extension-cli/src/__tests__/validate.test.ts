@@ -28,6 +28,8 @@ describe('validateManifest', () => {
 name: test-extension
 description: A test extension
 version: 1.0.0
+auth:
+  tenantId: 12345678-1234-1234-1234-123456789abc
 tools:
   - name: test-tool
     description: A test tool
@@ -49,6 +51,9 @@ tools:
 
     // Verify console.log was called with success message
     expect(mockConsoleLog).toHaveBeenCalledWith(expect.stringContaining('✅ Validation passed!'));
+
+    // Verify auth information is included in summary
+    expect(mockConsoleLog).toHaveBeenCalledWith(expect.stringContaining('Auth Tenant ID: 12345678-1234-1234-1234-123456789abc'));
   });
 
   test('should detect missing required fields', async () => {
@@ -75,6 +80,8 @@ tools: []
 name: test-extension
 description: A test extension
 version: 1.0
+auth:
+  tenantId: 12345678-1234-1234-1234-123456789abc
 tools: []
 `;
 
