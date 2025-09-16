@@ -9,6 +9,10 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Dragon.Copilot.Models;
 using SampleExtension.Web.Extensions;
+using Azure.AI.OpenAI;
+using Azure.Identity;
+using OpenAI.Chat;
+using Azure.AI.OpenAI.Chat;
 
 namespace SampleExtension.Web.Services;
 
@@ -48,8 +52,7 @@ public class ProcessingService : IProcessingService
             {
                 var noteResponse = await ProcessNoteAsync(payload.Note, payload.SessionData, cancellationToken).ConfigureAwait(false);
 
-                processResponse.Payload["sample-entities"] = noteResponse.SampleEntities;
-                processResponse.Payload["sample-entities-adaptive-card"] = noteResponse.SampleEntitiesAdaptiveCard;
+                processResponse.Payload["sample-entities-adaptive-card"] = noteResponse;
             }
 
             // TODO: Add processing for other payload types (Transcript, IterativeTranscript, IterativeAudio)
@@ -73,25 +76,38 @@ public class ProcessingService : IProcessingService
         }
     }
 
-    private static Task<(DspResponse SampleEntities, DspResponse SampleEntitiesAdaptiveCard)> ProcessNoteAsync(
+    private static async Task<DspResponse> ProcessNoteAsync(
         Note note,
         SessionData sessionData,
         CancellationToken cancellationToken)
     {
-        // Extract sample clinical entities from the note
-        var entities = ExtractClinicalEntities(note);
 
-        // Create the sample entities DSP response
-        var sampleEntities = new DspResponse
+        //var endpoint = new Uri("https://brpoll-2025-08-22-resource.cognitiveservices.azure.com/");
+        var endpoint = new Uri("https://ajr897hackai.openai.azure.com/");
+        var deploymentName = "gpt-5-mini";
+
+        AzureOpenAIClient azureClient = new(
+            endpoint,
+            new DefaultAzureCredential());
+        ChatClient chatClient = azureClient.GetChatClient(deploymentName);
+
+        var requestOptions = new ChatCompletionOptions()
         {
-            SchemaVersion = "0.1",
-            Document = note.Document,
+            MaxOutputTokenCount = 10000,
         };
 
-        foreach(var entity in entities)
+#pragma warning disable AOAI001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
+        requestOptions.SetNewMaxCompletionTokensPropertyEnabled(true);
+#pragma warning restore AOAI001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
+
+        List<ChatMessage> messages = new List<ChatMessage>()
         {
-            sampleEntities.Resources?.Add(entity);
-        }
+            new SystemChatMessage("You are a helpful assistant."),
+            new UserChatMessage("I am going to Paris, what should I see?"),
+        };
+
+        var response = await chatClient.CompleteChatAsync(messages, requestOptions, cancellationToken).ConfigureAwait(false);
+        System.Console.WriteLine(response.Value.Content[0].Text);
 
         // Create adaptive card version
         var adaptiveCardResponse = new DspResponse
@@ -99,9 +115,10 @@ public class ProcessingService : IProcessingService
             SchemaVersion = "0.1",
             Document = note.Document,
         };
-        adaptiveCardResponse.Resources?.Add(CreateAdaptiveCardResource(entities));
+        
+        adaptiveCardResponse.Resources?.Add(CreateAdaptiveCardResource(response.Value.Content[0].Text));
 
-        return Task.FromResult((sampleEntities, adaptiveCardResponse));
+        return adaptiveCardResponse;
     }
 
     private static List<IResource> ExtractClinicalEntities(Note note)
@@ -190,16 +207,15 @@ public class ProcessingService : IProcessingService
         return null;
     }
 
-    private static VisualizationResource CreateAdaptiveCardResource(List<IResource> entities)
+    private static VisualizationResource CreateAdaptiveCardResource(string displayText)
     {
-        // Create the body elements list
+        // Build a simple adaptive card showing the provided text and include a copy action containing the same text
         var bodyElements = new List<object>
         {
-            // Header
             new
             {
                 type = "TextBlock",
-                text = "🔍 Clinical Entities Extracted",
+                text = "🔍 Analysis",
                 weight = "Bolder",
                 size = "Large",
                 color = "Accent"
@@ -207,124 +223,27 @@ public class ProcessingService : IProcessingService
             new
             {
                 type = "TextBlock",
-                text = $"Found {entities.Count} clinical {(entities.Count == 1 ? "entity" : "entities")} in the note",
+                text = displayText,
                 wrap = true,
                 size = "Medium",
                 spacing = "Small"
+            },
+            new
+            {
+                type = "TextBlock",
+                text = $"Processed at {DateTime.UtcNow:yyyy-MM-dd HH:mm:ss} UTC",
+                size = "Small",
+                horizontalAlignment = "Right",
+                spacing = "Medium"
             }
         };
-
-        // Add entities as individual containers if any found
-        if (entities.Count > 0)
-        {
-            foreach (var entity in entities)
-            {
-                var entityType = GetEntityTypeFromResource(entity);
-                var entityName = GetEntityNameFromResource(entity);
-                var entityValue = GetEntityValueFromResource(entity);
-
-                var entityContainer = new
-                {
-                    type = "Container",
-                    style = "emphasis",
-                    spacing = "Medium",
-                    items = new object[]
-                    {
-                        new
-                        {
-                            type = "ColumnSet",
-                            columns = new object[]
-                            {
-                                new
-                                {
-                                    type = "Column",
-                                    width = "auto",
-                                    items = new object[]
-                                    {
-                                        new
-                                        {
-                                            type = "TextBlock",
-                                            text = GetEntityIcon(entityType),
-                                            size = "Large",
-                                            spacing = "None"
-                                        }
-                                    }
-                                },
-                                new
-                                {
-                                    type = "Column",
-                                    width = "stretch",
-                                    items = new object[]
-                                    {
-                                        new
-                                        {
-                                            type = "TextBlock",
-                                            text = $"**{GetEntityTypeDisplayName(entityType)}**",
-                                            weight = "Bolder",
-                                            size = "Medium",
-                                            spacing = "None"
-                                        },
-                                        new
-                                        {
-                                            type = "TextBlock",
-                                            text = entityName,
-                                            color = "Accent",
-                                            spacing = "None"
-                                        },
-                                        new
-                                        {
-                                            type = "TextBlock",
-                                            text = entityValue,
-                                            wrap = true,
-                                            size = "Small",
-                                            color = "Default",
-                                            spacing = "Small"
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                };
-                bodyElements.Add(entityContainer);
-            }
-        }
-        else
-        {
-            // No entities found message
-            bodyElements.Add(new
-            {
-                type = "Container",
-                style = "attention",
-                items = new object[]
-                {
-                    new
-                    {
-                        type = "TextBlock",
-                        text = "ℹ️ No clinical entities were detected in this note.",
-                        wrap = true,
-                        horizontalAlignment = "Center"
-                    }
-                }
-            });
-        }
-
-        // Add footer
-        bodyElements.Add(new
-        {
-            type = "TextBlock",
-            text = $"Processed at {DateTime.UtcNow:yyyy-MM-dd HH:mm:ss} UTC",
-            size = "Small",
-            horizontalAlignment = "Right",
-            spacing = "Medium"
-        });
 
         return new VisualizationResource
         {
             Id = Guid.NewGuid().ToString(),
             Type = "AdaptiveCard",
             Subtype = VisualizationSubtype.Note,
-            CardTitle = "Clinical Entities Extracted",
+            CardTitle = "AI Analysis",
             AdaptiveCardPayload = new
             {
                 type = "AdaptiveCard",
@@ -344,8 +263,7 @@ public class ProcessingService : IProcessingService
                     Title = "Copy to Note",
                     Action = VisualizationActionType.Copy,
                     ActionType = ActionButtonType.Secondary,
-                    Code = "CLINICAL ENTITY ANALYSIS\n\nEntities detected:\n" +
-                           string.Join("\n", entities.Select(e => $"- {GetEntityNameFromResource(e)} ({GetEntityTypeFromResource(e)})"))
+                    Code = "AI ANALYSIS\n\n" + displayText
                 },
                 new()
                 {
@@ -359,11 +277,11 @@ public class ProcessingService : IProcessingService
                 new()
                 {
                     Identifier = Guid.NewGuid().ToString(),
-                    Description = "Sample Extension Clinical Entity Extractor",
+                    Description = "AI-generated analysis",
                     Url = new Uri("https://localhost/api/process")
                 }
             },
-            DragonCopilotCopyData = "Clinical entities extracted from note content"
+            DragonCopilotCopyData = displayText
         };
     }
 
