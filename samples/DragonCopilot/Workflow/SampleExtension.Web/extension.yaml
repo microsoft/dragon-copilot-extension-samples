@@ -13,6 +13,6 @@ tools:
       - name: sample-entities
         description: Coded clinical entities
         data: DSP
-      - name: sample-entities-adaptive-card
+      - name: adaptive-card
         description: Coded clinical entities in Adaptive Card format
         data: DSP

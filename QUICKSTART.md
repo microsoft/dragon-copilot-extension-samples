@@ -2,85 +2,144 @@
 
 ## 🚀 Getting Started (Choose One)
 
-### Option 1: PowerShell Script (Windows - Easiest)
-```powershell
-# Start the extension
-.\scripts\start-dev.ps1
+### Development Prerequisites
+* DotNet 9
+* Node 22.20.0
+* npm 10.9.3
 
-# Stop services when done
-.\scripts\start-dev.ps1 -StopAll
+### Local Development Environment
+1. Clone the repository
+1. Open a terminal and navigate to `samples/DragonCopilot/Workflow/SampleExtension.Web`
+1. Issue a `dotnet run`
+
+The application will start and be available at http://localhost:5181
+
+### Call the endpoint
+You can make use of the [SampleExtension.Web.http](./samples/DragonCopilot/Workflow/SampleExtension.Web/SampleExtension.Web.http) file in the sample project to make a call. It contains a sample invocation for an extension listening for `Note` content.
+
+You should see an output similar to the following:
 ```
+HTTP/1.1 200 OK
+Connection: close
+Content-Type: application/json; charset=utf-8
+Date: Mon, 06 Oct 2025 13:20:44 GMT
+Server: Kestrel
+Transfer-Encoding: chunked
 
-### Option 2: Bash Script (Linux/Mac)
-```bash
-# Make scripts executable (first time only)
-chmod +x scripts/*.sh
-
-# Start the extension
-./scripts/start-dev.sh
-
-# Stop services when done
-./scripts/start-dev.sh --stop
+{
+    "success": true,
+    "message": "Payload processed successfully",
+    "payload": {
+    "sample-entities": {
+        "schema_version": "0.1",
+        "document": {
+        "title": "Outpatient Note",
+        "type": {
+            "text": "string"
+        }
+        },
+        "resources": []
+    },
+    "adaptive-card": {
+        // abbreviated
+    }
+}
 ```
-
-### Option 3: VS Code Tasks
-1. Open workspace in VS Code
-2. Press `Ctrl+Shift+P`
-3. Type "Tasks: Run Task"
-4. Select "Start Dragon Extension Developer Environment"
 
 ## ☁️ Deploy to Azure (Production Ready)
 
 ### Prerequisites for Azure Deployment
-- Azure CLI installed: `winget install Microsoft.AzureCLI`
 - Docker Desktop installed and running
-- Azure subscription with Container Apps permissions
+- Azure subscription with Container Apps deployed
+- Container registry with permissions granted to the Container Apps identity
 
-### Quick Azure Deploy
+### Steps
+
+#### 1. Build the Docker Image
+From the **repository root directory**, build the Docker image:
+
 ```powershell
-# Deploy your extension to Azure Container Apps
-.\scripts\deploy-extension-azure.ps1 -ExtensionName "my-dragon-ext"
-
-# For production environment
-.\scripts\deploy-extension-azure.ps1 -ExtensionName "my-dragon-ext" -EnvironmentSuffix "prod"
+# Build the Docker image
+docker build -f samples/DragonCopilot/Workflow/SampleExtension.Web/Dockerfile -t dragon-extension:latest .
 ```
 
-### What Azure Deployment Includes
-- ✅ **Secure Container Registry**: Private ACR for your images
-- ✅ **Managed Identity**: No passwords or keys needed
-- ✅ **Auto-scaling**: Scales to zero when not in use
-- ✅ **Health Monitoring**: Built-in health checks
-- ✅ **HTTPS**: Automatic SSL certificates
-- ✅ **Production Ready**: High availability and monitoring
+> **Note**: The Dockerfile must be built from the repository root because it references files from both `src/Dragon.Copilot.Models/` and `samples/DragonCopilot/Workflow/SampleExtension.Web/`.
 
-The deployment script will:
-1. Build your Docker image locally
-2. Create Azure infrastructure (ACR, Container Apps, etc.)
-3. Push image to your private registry
-4. Deploy with managed identity authentication
-5. Provide live URLs for testing and integration
+#### 2. Test the Docker Image Locally (Optional but Recommended)
+```powershell
+# Run the container locally
+docker run -p 5181:8080 dragon-extension:latest
 
-## 🧪 Verify Everything Works
+# Test the health endpoint
+curl http://localhost:5181/health
+```
 
-### Quick Testing Options
+#### 3. Tag and Push to Azure Container Registry
+```powershell
+# Login to Azure
+az login
 
-#### Manual Verification
-1. **Extension Health**: http://localhost:5181/health
-2. **Extension Swagger**: http://localhost:5181/
+# Login to your Azure Container Registry
+az acr login --name <your-registry-name>
 
-#### Comprehensive Integration Test Suite
-Open `testing/integration-tests.http` in VS Code with REST Client extension and run the tests.
+# Tag the image for your registry
+docker tag dragon-extension:latest <your-registry-name>.azurecr.io/dragon-extension:latest
 
-## 🔧 Development Workflow
+# Push the image
+docker push <your-registry-name>.azurecr.io/dragon-extension:latest
+```
 
-### VS Code Tasks Available
-- **Start Dragon Extension Developer Environment**: Starts the extension service
-- **Stop Dragon Extension Services**: Stops all services
-- **Build Sample Extension**: Builds the extension
+#### 4. Deploy to Azure Container Apps
+```powershell
+# Create or update the container app
+az containerapp update `
+  --name <your-container-app-name> `
+  --resource-group <your-resource-group> `
+  --image <your-registry-name>.azurecr.io/dragon-extension:latest
 
-### Debugging
-Use VS Code debug configurations:
-- **Debug Sample Extension**: Debug the extension with breakpoints
+# Verify deployment
+az containerapp show `
+  --name <your-container-app-name> `
+  --resource-group <your-resource-group> `
+  --query "properties.latestRevisionFqdn" `
+  --output tsv
+```
+
+#### 5. Configure Environment Variables (Production)
+For production deployments, configure authentication and other settings:
+
+```powershell
+az containerapp update `
+  --name <your-container-app-name> `
+  --resource-group <your-resource-group> `
+  --set-env-vars `
+    ASPNETCORE_ENVIRONMENT=Production `
+    Authentication__Enabled=true `
+    Authentication__TenantId=<your-entra-tenant-id> `
+    Authentication__ClientId=<your-entra-client-id> `
+    Authentication__Instance=https://login.microsoftonline.com/
+```
+
+See [Authentication.md](./doc/Authentication.md) for detailed authentication configuration.
+
+#### 6. Verify Production Deployment
+```powershell
+# Get the FQDN
+$fqdn = az containerapp show `
+  --name <your-container-app-name> `
+  --resource-group <your-resource-group> `
+  --query "properties.latestRevisionFqdn" `
+  --output tsv
+
+# Test the health endpoint
+curl "https://$fqdn/health"
+
+# View logs
+az containerapp logs show `
+  --name <your-container-app-name> `
+  --resource-group <your-resource-group> `
+  --follow
+```
 
 ## 📋 What the Service Does
 
@@ -91,66 +150,24 @@ Use VS Code debug configurations:
 - Demonstrates error handling patterns
 - Provides comprehensive API documentation via Swagger
 
-## 🎯 Testing Your Extension
-
-### 1. Direct Extension Testing
-```http
-POST http://localhost:5181/v1/process
-Content-Type: application/json
-
-{
-  "sessionData": {
-    "session_start": "2025-07-01T13:50:00.000Z",
-    "correlation_id": "test-correlation-123",
-    "tenant_id": "test-tenant-456"
-  }
-}
-```
-
-### 2. Extension Processing Test
-```http
-POST http://localhost:5181/v1/process
-Content-Type: application/json
-
-{
-  "sessionData": {
-    "session_start": "2025-07-22T12:00:00.000Z",
-    "session_id": "test-session-001"
-  },
-  "iterativeTranscripts": [
-    {
-      "transcript": "Test patient encounter for validation"
-    }
-  ]
-}
-```
-
 ## 🔍 Troubleshooting
 
 ### Services Won't Start
 - Check .NET 9.0 SDK is installed: `dotnet --version`
+- Make sure that you have nuget available as default source: `dotnet nuget add source https://api.nuget.org/v3/index.json -n nuget.org`
 - Ensure port 5181 is free
-- Run stop script first: `.\scripts\start-dev.ps1 -StopAll`
 
 ### Integration Tests Fail
 - Verify the extension is running and healthy
 - Check extension logs in terminal window
 - Test extension directly using the HTTP test file
 
-### Docker Issues
-- For containerized deployment, build the extension directly:
-  ```bash
-  docker build -f samples/DragonCopilot/Workflow/SampleExtension.Web/Dockerfile -t my-extension .
-  docker run -p 5181:8080 my-extension
-  ```
-
 ## 📚 Next Steps
 
 1. **Explore the APIs**: Use Swagger UI to understand the interfaces
-2. **Run Full Test Suite**: Execute all tests in `testing/integration-tests.http`
-3. **Create Your Extension**: Copy `samples/DragonCopilot/Workflow/SampleExtension.Web` as a starting point
+3. **Create Your Extension**: Use `samples/DragonCopilot/Workflow/SampleExtension.Web` as a starting point
 4. **Customize Business Logic**: Modify `ProcessingService.cs` for your needs
-5. **Add Your Tests**: Extend the integration test suite for your scenarios
+5. **Add Your Tests**: Extend the http test suite for your scenarios
 
 ## 🎉 You're Ready!
 

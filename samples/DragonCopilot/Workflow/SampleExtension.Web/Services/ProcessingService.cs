@@ -49,7 +49,7 @@ public class ProcessingService : IProcessingService
                 var noteResponse = await ProcessNoteAsync(payload.Note, payload.SessionData, cancellationToken).ConfigureAwait(false);
 
                 processResponse.Payload["sample-entities"] = noteResponse.SampleEntities;
-                processResponse.Payload["sample-entities-adaptive-card"] = noteResponse.SampleEntitiesAdaptiveCard;
+                processResponse.Payload["adaptive-card"] = noteResponse.SampleEntitiesAdaptiveCard;
             }
 
             // TODO: Add processing for other payload types (Transcript, IterativeTranscript, IterativeAudio)

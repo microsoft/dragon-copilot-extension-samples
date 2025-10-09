@@ -36,44 +36,15 @@ A sample C# Web API project that demonstrates how to create an extension that ca
 
 ### Utility Endpoints
 - `GET /health` - Application health check
-- `GET /api/process/health` - Service-specific health check
 
-## Request/Response Models
+## Request/Response Examples
 
-### ProcessRequest
-```json
-{
-  "requestId": "guid",
-  "encounterId": "guid (optional)",
-  "data": "string",
-  "metadata": {
-    "key": "value"
-  },
-  "createdAt": "datetime"
-}
-```
-
-### ProcessResponse
-```json
-{
-  "responseId": "guid",
-  "requestId": "guid",
-  "success": true,
-  "result": "processed data",
-  "errorMessage": null,
-  "processingTimeMs": 123,
-  "metadata": {
-    "key": "value"
-  },
-  "processedAt": "datetime"
-}
-```
+Example request and response models are available in the [requests](../../../requests) directory.
 
 ## Getting Started
 
 ### Prerequisites
 - .NET 9.0 SDK
-- Visual Studio 2022 or VS Code
 
 ### Running the Application
 
@@ -98,17 +69,25 @@ A sample C# Web API project that demonstrates how to create an extension that ca
 
 ### Testing with HTTP Files
 
-Use the included `SampleExtension.Web.http` file in VS Code with the REST Client extension to test the API endpoints.
+Use the included [SampleExtension.Web.http](./SampleExtension.Web.http) file in VS Code with the REST Client extension to test the API endpoints.
 
 ## Integration with Dragon Copilot
 
-To integrate this extension with Dragon Copilot:
+To integrate this extension with Dragon Copilot, you can make use of [Dev tunnels](https://learn.microsoft.com/en-us/azure/developer/dev-tunnels/overview) or deploy it to a cloud service like Azure Container Apps.
 
+### Local Integration with a Dev Tunnel
+
+#### Dev Tunnel Setup
+1. [Install dev tunnel](https://learn.microsoft.com/en-us/azure/developer/dev-tunnels/get-started?tabs=windows#install).
+2. In a terminal, issue a `devtunnel login` command.
+3. Issue a `devtunnel create extension-testing -a` command
+4. Issue a `devtunnel port create extension-test -p 5181` command
+5. Issue a `devtunnel host extension-testing` command
+
+#### Test with Dragon Copilot
 1. Ensure the extension is running
-2. Configure Dragon Copilot to send requests to:
-   - HTTP: `http://localhost:5181/v1/process`
-   - HTTPS: `https://localhost:7156/v1/process`
-3. Test the integration using the provided test files
+2. Update your extension manifest in Dragon Copilot to point to the DevTunnel URL
+3. Test the integration by recording a session in Dragon Copilot
 
 ## Customization
 

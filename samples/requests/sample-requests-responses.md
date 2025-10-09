@@ -16,16 +16,16 @@ Sample Manifest Configuration:
         data: DSP/Note
 ```
 
-## Sample Response: Plugin Response
+## Sample Response: Plugin Result
 
-File: [plugin-response.json](./plugin-response.json)
+File: [plugin-result.json](./plugin-result.json)
 
-This file contains a sample response from a plugin that processes the note payload. The name of the response is `samplePluginResult`, which is defined in the extension's manifest.
+This file contains a sample response from a plugin that processes the note payload. The name of the response is `adaptive-card`, which is defined in the extension's manifest.
 
 Sample Manifest Configuration:
 ```yaml
     outputs:
-      - name: samplePluginResult
+      - name: adaptive-card
         description: Response from the plugin
         data: DSP
 ```
