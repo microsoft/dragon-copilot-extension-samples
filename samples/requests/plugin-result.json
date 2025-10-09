@@ -2,7 +2,7 @@
     "success": true,
     "message": "Payload processed successfully",
     "payload": {
-        "samplePluginResult": {
+        "adaptive-card": {
             "schema_version": "0.1",
             "document": {
                 "title": "My Coded doc",
