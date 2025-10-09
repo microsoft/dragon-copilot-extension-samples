@@ -5,12 +5,16 @@ Welcome! This repository contains sample code illustrating the Dragon Copilot ex
 
 ## 📚 Contents
 
-- [Overview](#-overview)
-- [Quick Start](#-quick-start)
-- [Samples](#-samples)
-- [Tools](#️-tools)
-- [Contributing](#-contributing)
-- [License](#-license)
+- [Dragon Copilot Extension Samples](#dragon-copilot-extension-samples)
+  - [📚 Contents](#-contents)
+  - [📝 Overview](#-overview)
+  - [🚀 Quick Start](#-quick-start)
+    - [1. Clone \& Start (Windows)](#1-clone--start-windows)
+  - [📦 Samples](#-samples)
+  - [🛠️ Tools](#️-tools)
+    - [Dragon Extension CLI](#dragon-extension-cli)
+  - [🤝 Contributing](#-contributing)
+  - [📄 License](#-license)
 
 ## 📝 Overview
 
@@ -34,6 +38,7 @@ cd dragon-copilot-extension-samples
 | Sample Name  | Description  | Location |
 |--------------|------------- |----------|
 | Workflow Extension | C# Asp.Net WebApplication showing Dragon workflow extension API Contract | [SampleExtension.Web](./samples/DragonCopilot/Workflow/SampleExtension.Web/) |
+| Audio Samples | Synthetic audio recordings of clinical encounters | [Audio-Recordings](./samples/audio-recordings/) |
 
 ## 🛠️ Tools
 
