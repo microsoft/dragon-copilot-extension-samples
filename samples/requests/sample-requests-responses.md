@@ -20,7 +20,7 @@ Sample Manifest Configuration:
 
 File: [iterative-audio-payload.json](./iterative-audio-payload.json)
 
-This file contains a sample request payload for an extension that is configured to handle an input of type `DSP/IterativeAudio`. The name of the parameter is `audio`, which is defined in the extension's manifest.
+This file contains a sample request payload for an extension that is configured to handle an input of type `DSP/IterativeAudio`. The name of the parameter is `iterativeAudio`, which is defined in the extension's manifest.
 
 Sample Manifest Configuration:
 ```yaml
