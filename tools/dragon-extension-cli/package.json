@@ -12,7 +12,7 @@
     "!dist/**/*.test.*"
   ],
   "scripts": {
-  "build": "tsc -p tsconfig.build.json && npm run copy-resources",
+    "build": "tsc -p tsconfig.build.json && npm run copy-resources",
     "copy-resources": "node -e \"const fs = require('fs-extra'); try { fs.copySync('src/schemas', 'dist/schemas'); } catch (e) {} try { fs.copySync('src/resources', 'dist/resources', { errorOnExist: false }); } catch (e) {}\"",
     "copy-schemas": "node -e \"const fs = require('fs-extra'); fs.copySync('src/schemas', 'dist/schemas')\"",
     "dev": "ts-node src/cli.ts",
@@ -36,7 +36,7 @@
   "license": "MIT",
   "dependencies": {
     "@dragon-copilot/cli-common": "file:../cli-common",
-    "@inquirer/prompts": "^7.8.6",
+    "@inquirer/prompts": "^7.9.0",
     "ajv": "^8.17.1",
     "ajv-formats": "^3.0.1",
     "archiver": "^7.0.1",
@@ -50,7 +50,7 @@
     "@types/fs-extra": "^11.0.4",
     "@types/jest": "^30.0.0",
     "@types/js-yaml": "^4.0.9",
-    "@types/node": "^24.7.2",
+    "@types/node": "^24.8.1",
     "jest": "^30.2.0",
     "pkg": "^5.8.1",
     "rimraf": "^6.0.1",
