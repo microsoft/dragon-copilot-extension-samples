@@ -1,12 +1,12 @@
 import { confirm } from '@inquirer/prompts';
 import fs from 'fs-extra';
 const { writeFileSync, ensureDirSync, copyFileSync, pathExistsSync } = fs;
-import yaml from 'js-yaml';
-const { dump } = yaml;
 import path from 'path';
 import chalk from 'chalk';
 import { InitOptions, PartnerIntegrationManifest } from '../types.js';
-import { promptIntegrationDetails, promptToolDetails, promptPublisherDetails, promptAuthDetails, getInputDescription } from '../shared/prompts.js';
+import { promptPublisherDetails, runPartnerManifestWizard } from '../shared/prompts.js';
+import { normalizeNoteSections } from '../shared/note-sections.js';
+import { dumpManifestYaml } from '../shared/yaml.js';
 import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -16,24 +16,25 @@ export async function initProject(options: InitOptions): Promise<void> {
   console.log(chalk.blue('🤝 Partner Integration Generator'));
   console.log(chalk.gray('Initializing a new partner integration project...\n'));
 
-  // Step 1: Integration Details
-  console.log(chalk.blue('📝 Step 1: Integration Details'));
-  console.log(chalk.gray('Let\'s start with basic information about your partner integration.\n'));
+  // Step 1: Partner Manifest Wizard
+  console.log(chalk.blue('🧙 Step 1: Partner Manifest Wizard'));
+  console.log(chalk.gray('We\'ll gather the details needed for your partner integration manifest, including authentication, documentation sections, and instance configuration.\n'));
 
-  const integrationDetails = await promptIntegrationDetails({
+  const manifest: PartnerIntegrationManifest = await runPartnerManifestWizard({
     name: options.name,
     description: options.description,
     version: options.version
   });
 
-  // Step 2: Authentication Configuration
-  console.log(chalk.blue('\n🔐 Step 2: Authentication Configuration'));
-  console.log(chalk.gray('Configure authentication for your partner integration.\n'));
+  manifest['note-sections'] = normalizeNoteSections(manifest['note-sections']);
 
-  const authDetails = await promptAuthDetails();
+  console.log(chalk.green('\n✅ Manifest details captured!'));
+  console.log(chalk.gray(`   • Server authentication issuers: ${manifest['server-authentication']?.length || 0}`));
+  console.log(chalk.gray(`   • Note sections configured: ${Object.keys(manifest['note-sections'] ?? {}).length}`));
+  console.log(chalk.gray(`   • Context items collected: ${manifest.instance['context-retrieval']?.instance?.length || 0}`));
 
-  // Step 3: Publisher Configuration
-  console.log(chalk.blue('\n📋 Step 3: Publisher Configuration'));
+  // Step 2: Publisher Configuration
+  console.log(chalk.blue('\n📋 Step 2: Publisher Configuration'));
   console.log(chalk.gray('Publisher information is required for deployment and marketplace listing.'));
   console.log(chalk.gray('This creates a separate publisher.json file that can be reused across integrations.\n'));
 
@@ -47,8 +48,8 @@ export async function initProject(options: InitOptions): Promise<void> {
     publisherConfig = await promptPublisherDetails();
   }
 
-  // Step 4: Assets Setup
-  console.log(chalk.blue('\n🎨 Step 4: Assets Setup'));
+  // Step 3: Assets Setup
+  console.log(chalk.blue('\n🎨 Step 3: Assets Setup'));
   console.log(chalk.gray('Integrations require a large logo (216x216 to 350x350 px) for marketplace listing.'));
   console.log(chalk.gray('We\'ll create an assets directory with a sample logo to get you started.\n'));
 
@@ -76,58 +77,8 @@ export async function initProject(options: InitOptions): Promise<void> {
     }
   }
 
-  // Step 5: Integration Tools
-  console.log(chalk.blue('\n🛠️  Step 5: Integration Tools'));
-  console.log(chalk.gray('Tools define the functionality your partner integration provides.'));
-  console.log(chalk.gray('Each tool processes specific types of data and returns results.\n'));
-
-  const addTool = await confirm({
-    message: 'Add an initial tool?',
-    default: true
-  });
-
-  const manifest: PartnerIntegrationManifest = {
-    name: integrationDetails.name,
-    description: integrationDetails.description,
-    version: integrationDetails.version,
-    auth: {
-      tenantId: authDetails.tenantId
-    },
-    tools: []
-  };
-
-  if (addTool) {
-    // Use shared prompt for tool details (single input for init)
-    const toolDetails = await promptToolDetails(undefined, {
-      allowMultipleInputs: true, // Allow multiple inputs for flexibility
-      defaults: {
-        toolName: 'my-integration-tool',
-        toolDescription: 'Processes integration data',
-        endpoint: 'https://api.example.com/integration-route/v1/process'
-      }
-    });
-
-    manifest.tools.push({
-      name: toolDetails.toolName,
-      description: toolDetails.toolDescription,
-      endpoint: toolDetails.endpoint,
-      inputs: toolDetails.inputTypes.map((dataType, index) => ({
-        name: dataType === 'DSP/Note' ? 'note' :
-              dataType === 'DSP/IterativeTranscript' ? 'iterative-transcript' :
-              dataType === 'DSP/IterativeAudio' ? 'iterative-audio' :
-              dataType === 'DSP/Transcript' ? 'transcript' :
-              dataType === 'DSP/Patient' ? 'patient' :
-              dataType === 'DSP/Encounter' ? 'encounter' :
-              `input-${index + 1}`,
-        description: getInputDescription(dataType),
-        data: dataType
-      })),
-      outputs: toolDetails.outputs
-    });
-  }
-
   const outputPath = path.join(options.output || '.', 'integration.yaml');
-  const yamlContent = dump(manifest, { lineWidth: -1 });
+  const yamlContent = dumpManifestYaml(manifest);
 
   writeFileSync(outputPath, yamlContent);
 
@@ -155,27 +106,20 @@ export async function initProject(options: InitOptions): Promise<void> {
     console.log(chalk.gray('   • This will be used to generate Medium (90x90) and Small (48x48) logos'));
   }
 
-  if (addTool) {
-    console.log(chalk.yellow('🔧 Development Steps:'));
-    console.log(chalk.gray('   1. Update the endpoint URL with your actual API'));
-    console.log(chalk.gray('   2. Customize inputs and outputs as needed'));
-    console.log(chalk.gray('   3. Test your integration locally'));
+  console.log(chalk.yellow('🔧 Next Steps:'));
+  console.log(chalk.gray('   1. Review the generated integration.yaml and adjust defaults as needed'));
+  console.log(chalk.gray('   2. Implement your server authentication validation logic'));
+  console.log(chalk.gray('   3. Build your partner runtime to honor the manifest configuration'));
 
-    if (publisherConfig) {
-      console.log(chalk.yellow('\n📦 Deployment Steps:'));
-      console.log(chalk.gray('   1. Review and update publisher configuration'));
-      console.log(chalk.gray('   2. Package your integration: partner-integration package'));
-      console.log(chalk.gray('   3. Deploy to the marketplace'));
-    }
-  } else {
-    console.log(chalk.yellow('🔧 Next Steps:'));
-    console.log(chalk.gray('   1. Add tools to your integration: partner-integration generate --interactive'));
-    console.log(chalk.gray('   2. Update the manifest with your API endpoints'));
-    console.log(chalk.gray('   3. Test and package your integration'));
+  if (publisherConfig) {
+    console.log(chalk.yellow('\n📦 Deployment Steps:'));
+    console.log(chalk.gray('   1. Review and update publisher.json'));
+    console.log(chalk.gray('   2. Package your integration: partner-integration package'));
+    console.log(chalk.gray('   3. Submit to Dragon Copilot marketplace'));
   }
 
   console.log(chalk.blue('\n📚 Resources:'));
   console.log(chalk.gray('   • Validate your integration: partner-integration validate'));
-  console.log(chalk.gray('   • Add more tools: partner-integration generate --interactive'));
+  console.log(chalk.gray('   • Regenerate the manifest interactively: partner-integration generate --interactive'));
   console.log(chalk.gray('   • Package for deployment: partner-integration package'));
 }

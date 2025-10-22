@@ -102,8 +102,13 @@ export async function packageIntegration(options: PackageOptions): Promise<void>
     const manifest = load(manifestContent) as PartnerIntegrationManifest;
 
     // Basic validation
-    if (!manifest.name || !manifest.description || !manifest.version) {
+    if (!manifest.name || !manifest.description || !manifest.version || !manifest['partner-id']) {
       log(chalk.red('❌ Integration manifest validation failed: Missing required fields'), isQuiet);
+      throw new Error('Integration manifest validation failed');
+    }
+
+    if (!Array.isArray(manifest['server-authentication']) || manifest['server-authentication'].length === 0) {
+      log(chalk.red('❌ Integration manifest validation failed: server-authentication requires at least one issuer entry'), isQuiet);
       throw new Error('Integration manifest validation failed');
     }
 
@@ -137,7 +142,8 @@ export async function packageIntegration(options: PackageOptions): Promise<void>
     log(chalk.blue(`\n📦 Creating package: ${outputPath}`), isQuiet);
     log(chalk.gray(`🏢 Publisher: ${publisherConfig.publisherName} (${publisherConfig.publisherId})`), isQuiet);
     log(chalk.gray(`📄 Integration: ${manifest.name} v${manifest.version}`), isQuiet);
-    log(chalk.gray(`🛠️  Tools: ${manifest.tools?.length || 0}`), isQuiet);
+    log(chalk.gray(`🔑 Partner ID: ${manifest['partner-id']}`), isQuiet);
+    log(chalk.gray(`🔐 Server authentication issuers: ${manifest['server-authentication'].length}`), isQuiet);
 
     // Create archive
     const output = createWriteStream(outputPath);

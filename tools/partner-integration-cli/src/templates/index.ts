@@ -1,179 +1,341 @@
-import { TemplateConfig } from '../types.js';
+import { ContextRetrievalItem, PartnerIntegrationManifest, TemplateConfig, YesNo } from '../types.js';
+import { getDefaultNoteSections, normalizeNoteSections } from '../shared/note-sections.js';
+import { buildIntegrationDescription } from '../shared/integration-description.js';
+import { cloneContextItem } from '../shared/context-items.js';
+
+const buildContextItems = (...names: string[]): ContextRetrievalItem[] =>
+  names
+    .map(name => cloneContextItem(name))
+    .filter((item): item is ContextRetrievalItem => Boolean(item));
+
+const adjustContextRequired = (
+  items: ContextRetrievalItem[],
+  overrides: Record<string, YesNo>
+): ContextRetrievalItem[] =>
+  items.map(item =>
+    overrides[item.name] ? { ...item, required: overrides[item.name] } : item
+  );
+
+const defaultNoteSections: PartnerIntegrationManifest['note-sections'] = getDefaultNoteSections();
+
+const defaultInstance: PartnerIntegrationManifest['instance'] = {
+  'client-authentication': {
+    'allow-multiple-issuers': 'yes',
+    issuer: {
+      'access-token-issuer': {
+        type: 'url',
+        description: 'The value of the issuer claim for partner issued, user scoped access tokens.',
+        required: 'yes'
+      },
+      'user-identity-claim': {
+        type: 'string',
+        description: 'Optional claim containing the EHR identity of an end user. Defaults to sub if not collected.',
+        required: 'no',
+        'default-value': 'sub'
+      },
+      'customer-identity-claim': {
+        type: 'string',
+        description: 'Optional claim containing the Microsoft environment identifier.',
+        required: 'no',
+        'default-value': 'http://customerid.dragon.com'
+      }
+    }
+  },
+  'web-launch-sof': {
+    name: 'access-token-issuer',
+    type: 'url',
+    description: 'The value of the issuer claim when invoking the Dragon Copilot SMART on FHIR endpoint.',
+    required: 'yes',
+    'default-value': 'https://launch.partnerhealthworks.com/context'
+  },
+  'web-launch-token': {
+    'use-client-authentication': 'yes'
+  },
+  'context-retrieval': {
+    instance: buildContextItems('base_url', 'in-bound-client-id', 'out-bound-client-id', 'out-bound-issuer', 'out-bound-secret')
+  }
+};
+
+const cloneInstance = (): PartnerIntegrationManifest['instance'] =>
+  JSON.parse(JSON.stringify(defaultInstance)) as PartnerIntegrationManifest['instance'];
+
+const createBaseManifest = (overrides: Partial<PartnerIntegrationManifest> = {}): PartnerIntegrationManifest => {
+  const noteSections = normalizeNoteSections(overrides['note-sections'] ?? defaultNoteSections);
+
+  const manifestName = overrides.name ?? 'partner-integration';
+  const manifestDescription = buildIntegrationDescription(manifestName);
+
+  const manifest: PartnerIntegrationManifest = {
+    name: manifestName,
+    description: manifestDescription,
+    version: overrides.version ?? '0.0.1',
+    'partner-id': overrides['partner-id'] ?? 'contoso.healthworks',
+    'server-authentication': overrides['server-authentication'] ?? [
+      {
+        issuer: 'https://login.partnerhealthworks.com/oauth2/default',
+        identity_claim: 'azp',
+        identity_value: ['a0bb517c-d6de-449f-bfe4-f0bc3f912c66']
+      }
+    ],
+    'note-sections': JSON.parse(JSON.stringify(noteSections)) as PartnerIntegrationManifest['note-sections'],
+    instance: overrides.instance ? overrides.instance : cloneInstance()
+  };
+
+  return manifest;
+};
+
+
+const ehrInstance: PartnerIntegrationManifest['instance'] = {
+  'client-authentication': {
+    'allow-multiple-issuers': 'yes',
+    issuer: {
+      'access-token-issuer': {
+        type: 'url',
+        description: 'The value of the issuer claim for partner issued, user scoped access tokens.',
+        required: 'yes',
+        'default-value': 'https://login.contoso-ehr.com/oauth2/default'
+      },
+      'user-identity-claim': {
+        type: 'string',
+        description: 'Optional claim containing the EHR identity of an end user.',
+        required: 'no',
+        'default-value': 'sub'
+      },
+      'customer-identity-claim': {
+        type: 'string',
+        description: 'Optional claim containing the Microsoft environment identifier.',
+        required: 'no',
+        'default-value': 'http://customerid.dragon.com'
+      }
+    }
+  },
+  'web-launch-sof': {
+    name: 'access-token-issuer',
+    type: 'url',
+    description: 'Issuer claim when invoking the Dragon Copilot SMART on FHIR endpoint.',
+    required: 'yes',
+    'default-value': 'https://launch.contoso-ehr.com/context'
+  },
+  'web-launch-token': {
+    'use-client-authentication': 'no',
+    'allow-multiple-issuers': 'no',
+    issuer: [
+      {
+        name: 'access-token-issuer',
+        type: 'url',
+        description: 'Issuer claim for partner-issued web launch tokens.',
+        required: 'yes',
+        'default-value': 'https://login.contoso-ehr.com/oauth2/default'
+      },
+      {
+        name: 'user-identity-claim',
+        type: 'string',
+        description: 'Optional claim containing the EHR identity of an end user.',
+        required: 'no',
+        'default-value': 'sub'
+      }
+    ]
+  },
+  'context-retrieval': {
+    instance: buildContextItems('base_url', 'ehr-user_id', 'in-bound-issuer', 'out-bound-issuer', 'out-bound-client-id')
+  }
+};
+
+const apiInstance: PartnerIntegrationManifest['instance'] = {
+  'client-authentication': {
+    'allow-multiple-issuers': 'no',
+    issuer: {
+      'access-token-issuer': {
+        type: 'url',
+        description: 'Issuer claim for service-to-service access tokens.',
+        required: 'yes',
+        'default-value': 'https://identity.api-hub.contoso.com/oauth2/default'
+      },
+      'user-identity-claim': {
+        type: 'string',
+        description: 'Claim containing the calling system identity.',
+        required: 'no',
+        'default-value': 'azp'
+      }
+    }
+  },
+  'web-launch-token': {
+    'use-client-authentication': 'yes'
+  },
+  'context-retrieval': {
+    instance: adjustContextRequired(
+      buildContextItems('base_url', 'in-bound-client-id', 'out-bound-client-id', 'out-bound-secret'),
+      { 'out-bound-secret': 'no' }
+    )
+  }
+};
+
+const dataSyncInstance: PartnerIntegrationManifest['instance'] = {
+  'client-authentication': {
+    'allow-multiple-issuers': 'yes',
+    issuer: {
+      'access-token-issuer': {
+        type: 'url',
+        description: 'Issuer claim for synchronization service tokens.',
+        required: 'yes',
+        'default-value': 'https://login.sync.contoso.com/oauth2/default'
+      },
+      'user-identity-claim': {
+        type: 'string',
+        description: 'Claim representing the partner service principal.',
+        required: 'no',
+        'default-value': 'sub'
+      },
+      'customer-identity-claim': {
+        type: 'string',
+        description: 'Claim containing the Microsoft environment identifier.',
+        required: 'no',
+        'default-value': 'http://customerid.dragon.com'
+      }
+    }
+  },
+  'web-launch-sof': {
+    name: 'access-token-issuer',
+    type: 'url',
+    description: 'Issuer claim for synchronization SMART on FHIR launch.',
+    required: 'yes',
+    'default-value': 'https://sync.contoso.com/launch'
+  },
+  'web-launch-token': {
+    'use-client-authentication': 'no',
+    'allow-multiple-issuers': 'yes',
+    issuer: [
+      {
+        name: 'access-token-issuer',
+        type: 'url',
+        description: 'Issuer claim for outbound synchronization tokens.',
+        required: 'yes',
+        'default-value': 'https://customer.sync.contoso.com/oauth2/default'
+      }
+    ]
+  },
+  'context-retrieval': {
+    instance: buildContextItems('base_url', 'in-bound-client-id', 'out-bound-issuer', 'out-bound-client-id', 'out-bound-secret')
+  }
+};
+
+const customInstance: PartnerIntegrationManifest['instance'] = {
+  'client-authentication': {
+    'allow-multiple-issuers': 'no',
+    issuer: {
+      'access-token-issuer': {
+        type: 'url',
+        description: 'Issuer claim for partner-issued access tokens.',
+        required: 'yes',
+        'default-value': 'https://login.custom-partner.com/oauth2/default'
+      }
+    }
+  },
+  'web-launch-token': {
+    'use-client-authentication': 'yes'
+  },
+  'context-retrieval': {
+    instance: buildContextItems('base_url')
+  }
+};
 
 const templates: Record<string, TemplateConfig> = {
   'ehr-integration': {
-    name: 'ehr-integration',
-    description: 'EHR system integration for patient data synchronization',
-    version: '0.0.1',
-    tools: [
-      {
-        name: 'patient-sync',
-        description: 'Synchronizes patient data between EHR and Dragon Copilot',
-        endpoint: 'https://api.example.com/ehr/patient-sync/v1/process',
-        inputs: [
-          {
-            name: 'patient-record',
-            description: 'EHR patient record data',
-            data: 'EHR/PatientRecord'
-          }
-        ],
-        outputs: [
-          {
-            name: 'synchronized-patient',
-            description: 'Synchronized patient data in DSP format',
-            data: 'DSP/Patient'
-          }
-        ]
-      },
-      {
-        name: 'appointment-sync',
-        description: 'Synchronizes appointment data with EHR systems',
-        endpoint: 'https://api.example.com/ehr/appointment-sync/v1/process',
-        inputs: [
-          {
-            name: 'appointment',
-            description: 'EHR appointment data',
-            data: 'EHR/Appointment'
-          }
-        ],
-        outputs: [
-          {
-            name: 'synchronized-appointment',
-            description: 'Synchronized appointment data in DSP format',
-            data: 'DSP/Encounter'
-          }
-        ]
-      }
-    ]
+    description: 'Sample EHR partner manifest with SMART on FHIR launch support',
+    manifest: createBaseManifest({
+      name: 'ehr-integration',
+      ['partner-id']: 'contoso-ehr-suite',
+      ['server-authentication']: [
+        {
+          issuer: 'https://login.contoso-ehr.com/oauth2/default',
+          identity_claim: 'azp',
+          identity_value: [
+            'a0bb517c-d6de-449f-bfe4-f0bc3f912c66',
+            '2f03b7e0-7569-4c5d-9278-70590a10ce34'
+          ]
+        },
+        {
+          issuer: 'https://sts.contoso-ehr.com/oauth2/default',
+          identity_claim: 'azp',
+          identity_value: ['f9853c9a-25de-4564-a2fa-1a601c913a45']
+        }
+      ],
+      ['note-sections']: normalizeNoteSections({
+        hpi: ['hpi', 'chief-complaint'],
+        assessment: ['assessment', 'plan'],
+        results: ['results'],
+        medications: ['medications'],
+        allergies: null
+      }),
+      instance: ehrInstance
+    })
   },
-
   'api-connector': {
-    name: 'api-connector',
-    description: 'Generic API connector for external healthcare systems',
-    version: '0.0.1',
-    tools: [
-      {
-        name: 'data-connector',
-        description: 'Connects to external APIs to fetch and process healthcare data',
-        endpoint: 'https://api.example.com/connector/v1/process',
-        inputs: [
-          {
-            name: 'api-request',
-            description: 'API request configuration and parameters',
-            data: 'API/Request'
-          }
-        ],
-        outputs: [
-          {
-            name: 'api-response',
-            description: 'Processed API response data',
-            data: 'API/Response'
-          }
-        ]
-      },
-      {
-        name: 'data-transformer',
-        description: 'Transforms external data into Dragon Copilot compatible formats',
-        endpoint: 'https://api.example.com/connector/transformer/v1/process',
-        inputs: [
-          {
-            name: 'raw-data',
-            description: 'Raw data from external systems',
-            data: 'Custom/Data'
-          }
-        ],
-        outputs: [
-          {
-            name: 'transformed-data',
-            description: 'Data transformed to DSP format',
-            data: 'DSP'
-          }
-        ]
-      }
-    ]
+    description: 'API connector manifest with streamlined service-to-service configuration',
+    manifest: createBaseManifest({
+      name: 'api-connector',
+      ['partner-id']: 'contoso.api-hub',
+      ['server-authentication']: [
+        {
+          issuer: 'https://identity.api-hub.contoso.com/oauth2/default',
+          identity_claim: 'azp',
+          identity_value: ['ebe62346-179a-44b0-8cf2-880b4b2871cc']
+        }
+      ],
+      ['note-sections']: normalizeNoteSections({
+        assessment: ['assessment'],
+        results: null,
+        procedures: null
+      }),
+      instance: apiInstance
+    })
   },
-
   'data-sync': {
-    name: 'data-sync',
-    description: 'Bidirectional data synchronization between healthcare systems',
-    version: '0.0.1',
-    tools: [
-      {
-        name: 'patient-data-sync',
-        description: 'Synchronizes patient demographic and clinical data',
-        endpoint: 'https://api.example.com/sync/patient/v1/process',
-        inputs: [
-          {
-            name: 'patient',
-            description: 'Patient demographic and clinical information',
-            data: 'DSP/Patient'
-          },
-          {
-            name: 'encounter',
-            description: 'Patient encounter data',
-            data: 'DSP/Encounter'
-          }
-        ],
-        outputs: [
-          {
-            name: 'sync-status',
-            description: 'Synchronization status and results',
-            data: 'DSP'
-          }
-        ]
-      },
-      {
-        name: 'clinical-note-sync',
-        description: 'Synchronizes clinical notes and documentation',
-        endpoint: 'https://api.example.com/sync/notes/v1/process',
-        inputs: [
-          {
-            name: 'note',
-            description: 'Clinical note or documentation',
-            data: 'DSP/Note'
-          },
-          {
-            name: 'document',
-            description: 'Clinical document',
-            data: 'DSP/Document'
-          }
-        ],
-        outputs: [
-          {
-            name: 'sync-result',
-            description: 'Note synchronization result',
-            data: 'DSP'
-          }
-        ]
-      }
-    ]
+    description: 'Data synchronization manifest highlighting inbound/outbound configuration',
+    manifest: createBaseManifest({
+      name: 'data-sync',
+      ['partner-id']: 'contoso.sync.platform',
+      ['server-authentication']: [
+        {
+          issuer: 'https://login.sync.contoso.com/oauth2/default',
+          identity_claim: 'azp',
+          identity_value: ['71d46c61-715b-4e69-b1f7-76d3b4ab97d8']
+        },
+        {
+          issuer: 'https://customer.sync.contoso.com/oauth2/default',
+          identity_claim: 'sub',
+          identity_value: ['bd864f73-1130-452f-98c8-4d63d1c6a001']
+        }
+      ],
+      ['note-sections']: normalizeNoteSections({
+        hpi: ['hpi'],
+        assessment: ['assessment', 'plan'],
+        results: ['results'],
+        procedures: ['procedures'],
+        'review-of-systems': null
+      }),
+      instance: dataSyncInstance
+    })
   },
-
-  'custom': {
-    name: 'custom-integration',
-    description: 'Custom partner integration template',
-    version: '0.0.1',
-    tools: [
-      {
-        name: 'custom-processor',
-        description: 'Custom data processing tool',
-        endpoint: 'https://api.example.com/custom/v1/process',
-        inputs: [
-          {
-            name: 'input-data',
-            description: 'Custom input data',
-            data: 'Custom/Data'
-          }
-        ],
-        outputs: [
-          {
-            name: 'processed-data',
-            description: 'Processed data output',
-            data: 'DSP'
-          }
-        ]
-      }
-    ]
+  custom: {
+    description: 'Minimal manifest to customize from scratch',
+    manifest: createBaseManifest({
+      name: 'custom-integration',
+      ['partner-id']: 'custom.partner',
+      ['server-authentication']: [
+        {
+          issuer: 'https://login.custom-partner.com/oauth2/default',
+          identity_claim: 'azp',
+          identity_value: ['9c4ebfd9-0407-47a2-902f-3e0f2a5a9620']
+        }
+      ],
+      ['note-sections']: normalizeNoteSections({
+        assessment: null,
+        results: null,
+        procedures: null
+      }),
+      instance: customInstance
+    })
   }
 };
 

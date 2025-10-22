@@ -1,5 +1,5 @@
 import { describe, it, expect } from '@jest/globals';
-import { validateIntegrationName, validateVersion, validateUrl, validateEmail, validateTenantId } from '../shared/prompts';
+import { validateIntegrationName, validateVersion, validateUrl, validateEmail, validatePartnerId, validateGuid, validateIdentityClaim } from '../shared/prompts';
 
 describe('Partner Integration CLI Validation Functions', () => {
   describe('validateIntegrationName', () => {
@@ -60,18 +60,47 @@ describe('Partner Integration CLI Validation Functions', () => {
     });
   });
 
-  describe('validateTenantId', () => {
+  describe('validatePartnerId', () => {
+    it('should accept valid partner IDs', () => {
+      expect(validatePartnerId('contoso-health')).toBe(true);
+      expect(validatePartnerId('partner.integration_01')).toBe(true);
+      expect(validatePartnerId('alpha12')).toBe(true);
+    });
+
+    it('should reject invalid partner IDs', () => {
+      expect(validatePartnerId('')).toContain('required');
+      expect(validatePartnerId('-invalid')).toContain('start and end with alphanumeric');
+      expect(validatePartnerId('Invalid')).toContain('lowercase');
+    });
+  });
+
+  describe('validateGuid', () => {
     it('should accept valid GUID formats', () => {
-      expect(validateTenantId('12345678-1234-1234-1234-123456789abc')).toBe(true);
-      expect(validateTenantId('ABCDEF12-3456-7890-ABCD-EF1234567890')).toBe(true);
-      expect(validateTenantId('00000000-0000-0000-0000-000000000000')).toBe(true);
+      expect(validateGuid('12345678-1234-1234-1234-123456789abc')).toBe(true);
+      expect(validateGuid('ABCDEF12-3456-7890-ABCD-EF1234567890')).toBe(true);
+      expect(validateGuid('00000000-0000-0000-0000-000000000000')).toBe(true);
     });
 
     it('should reject invalid GUID formats', () => {
-      expect(validateTenantId('')).toContain('required');
-      expect(validateTenantId('not-a-guid')).toContain('valid GUID format');
-      expect(validateTenantId('12345678-1234-1234-1234')).toContain('valid GUID format');
-      expect(validateTenantId('12345678-1234-1234-1234-123456789abcde')).toContain('valid GUID format');
+      expect(validateGuid('')).toContain('required');
+      expect(validateGuid('not-a-guid')).toContain('valid GUID');
+      expect(validateGuid('12345678-1234-1234-1234')).toContain('valid GUID');
+      expect(validateGuid('12345678-1234-1234-1234-123456789abcde')).toContain('valid GUID');
+    });
+  });
+
+  describe('validateIdentityClaim', () => {
+    it('should accept three-letter claim identifiers', () => {
+      expect(validateIdentityClaim('azp')).toBe(true);
+      expect(validateIdentityClaim('oid')).toBe(true);
+      expect(validateIdentityClaim('ABC')).toBe(true);
+    });
+
+    it('should reject invalid claim identifiers', () => {
+      expect(validateIdentityClaim('')).toContain('required');
+      expect(validateIdentityClaim('az')).toContain('exactly 3 letters');
+      expect(validateIdentityClaim('azpq')).toContain('exactly 3 letters');
+      expect(validateIdentityClaim('a1c')).toContain('exactly 3 letters');
     });
   });
 });

@@ -1,14 +1,14 @@
 # Partner Integration CLI
 
-A cross-platform CLI tool for Partner Integration development, including manifest generation, publisher configuration, and packaging for distribution.
+A cross-platform CLI tool for Partner Integration development, including manifest generation, publisher configuration, validation, and packaging.
 
 ## Features
 
-- **Interactive Manifest Generation**: Step-by-step wizard to create integration manifests
-- **Publisher Configuration**: Generate and manage publisher.json files
-- **Template-based Generation**: Pre-built templates for common integration use cases
-- **Manifest Validation**: Comprehensive validation with helpful error messages
-- **Integration Packaging**: Create ZIP packages ready for distribution
+- **Interactive Manifest Generation**: Guided wizard to define tokens, authentication, note sections, and runtime settings
+- **Template-based Generation**: Pre-built partner manifest templates for common scenarios
+- **Publisher Configuration**: Generate and manage marketplace metadata (`publisher.json`)
+- **Manifest Validation**: Detailed checks with actionable guidance
+- **Integration Packaging**: Produce deployment-ready ZIP bundles
 - **Cross-platform**: Works on Windows, macOS, and Linux
 
 ## Installation
@@ -17,19 +17,9 @@ A cross-platform CLI tool for Partner Integration development, including manifes
 
 > Note: Not currently available
 
-Download the latest release for your platform:
-
-- **Windows**: `partner-integration-win.exe`
-- **macOS**: `partner-integration-macos`
-- **Linux**: `partner-integration-linux`
-
 ### From npm
 
 > Note: Not currently available
-
-```bash
-npm install -g partner-integration-cli
-```
 
 ### From Source
 
@@ -49,31 +39,26 @@ npm link
 partner-integration init
 ```
 
-Interactive prompts will guide you through creating a new integration manifest and publisher configuration.
+Runs the manifest wizard, optionally creates `publisher.json`, and scaffolds an assets directory.
 
 ### Generate from Template
 
 ```bash
-# EHR integration template
 partner-integration generate --template ehr-integration
-
-# API connector template
 partner-integration generate --template api-connector
-
-# Data synchronization template
 partner-integration generate --template data-sync
-
-# Custom integration template
 partner-integration generate --template custom
 ```
 
-### Add Tools Interactively
+Creates `integration.yaml` using curated templates.
+
+### Regenerate Manifest Interactively
 
 ```bash
 partner-integration generate --interactive
 ```
 
-This will also offer to create or update the publisher.json file.
+Rebuilds the manifest with the wizard and offers to create or refresh `publisher.json`.
 
 ### Validate a Manifest
 
@@ -81,55 +66,202 @@ This will also offer to create or update the publisher.json file.
 partner-integration validate integration.yaml
 ```
 
-This validates both the integration manifest and publisher.json (if present).
+Validates the manifest and `publisher.json` (if present) with detailed feedback.
 
 ### Package Integration
 
 ```bash
-# Basic packaging
 partner-integration package
-
-# Include additional files
-partner-integration package --include images/logo.png
-
-# Custom output name
+partner-integration package --include schemas/
 partner-integration package --output my-integration-v1.0.0.zip
 ```
 
-## File Structure
+Produces a deployment-ready ZIP containing the manifest, publisher metadata, and assets.
 
-A typical Partner Integration project includes:
+### Validate and Package Together
+
+Use the helper script to run validation followed by packaging from a single command:
+
+```bash
+npm run validate-and-package -- --cwd ../my-integration-folder
+```
+
+Run this from the `tools/partner-integration-cli` directory, pointing `--cwd` at the folder containing `integration.yaml` and `publisher.json`.
+
+## File Structure
 
 ```
 my-integration/
-├── integration.yaml    # Integration manifest
-└── publisher.json      # Publisher configuration
+├── integration.yaml    # Partner manifest
+├── publisher.json      # Marketplace configuration
+└── assets/
+    └── logo_large.png  # Required large logo (PNG)
 ```
+
+### Single Page Manifest Builder
+
+The `web/` directory contains a standalone HTML application (`index.html`) that mirrors the CLI wizard. Launching the page lets you:
+
+- Walk through each prompt in a browser and capture the same inputs as the CLI.
+- Generate `integration.yaml` and (optionally) `publisher.json` client-side.
+- Download the outputs and feed them into `partner-integration validate` or `partner-integration package` for verification and bundling.
+
+This is helpful for demonstrations or partner teams that prefer a graphical workflow while still producing CLI-compatible artifacts.
 
 ## Manifest Format
 
-Partner Integration manifests follow this structure:
+Partner Integration manifests capture partner identity, token handling, authorization, and runtime configuration:
 
 ```yaml
-name: my-integration
-description: Description of what the integration does
-version: 0.0.1
-auth:
-  tenantId: 12345678-1234-1234-1234-123456789abc
+#### PARTNER PROVIDED #####
 
-tools:
-  - name: my-tool
-    description: Tool description
-    endpoint: https://api.example.com/v1/process
-    inputs:
-      - name: input-name
-        description: Input description
-        data: DSP/Patient
-    outputs:
-      - name: output-name
-        description: Output description
-        data: DSP
+name: sample-partner ##REQUIRED This will be dynamically rendered (i.e. "RedRover for Meditech)
+description: Dragon Copilot deep integration for sample-partner ##REQUIRED 
+version: 0.0.1 ##REQUIRED 
+partner-id: as defined by app source ##REQUIRED 
+
+## FYI Removed Product field, as 1EHR/env, but multiple products. 
+
+# This section is for authenticaing the partner server calling DDE/Partner API
+server-authentication:
+  - issuer: https://someissuer1.comp ##REQUIRED 
+    identity_claim: azp ##REQUIRED 
+    identity_value:
+      - Guid1 ##REQUIRED 
+      - Guid2 ##OPTIONAL
+  - issuer: https://someissuer2.comp ##OPTIONAL
+    identity_claim: azp ##OPTIONAL
+    identity_value: ##OPTIONAL
+      - Guid3 ##OPTIONAL
+      - Guid4 ##OPTIONAL
+
+# Defines which of the 11 note sections this partner would like generated as well as
+# any mapping of section.  The key is the section, the value is which items the partner
+# would like in the section.  No items means the partner does not want the section
+# generated.
+# This will change if the Dragon Ontology Knownledge base comes to fruition. 
+note-sections: ## OPTIONAL, CAN BE A LIST
+  hpi: 
+    - hpi
+    - chief-complaint
+  chief-complaint:
+  past-medical-history:
+  assessment: 
+    - assessment
+    - plan
+  medications:
+  allergies:
+  review-of-systems:
+  physical-exam: physical-exam
+  procedures: procedures
+  results: results
+
+# This section is for adding an instance of the EHR embedded manifest to an environment. The partner will
+# indicate which items need to collected from a predefined list.  Data items that need to be collected are
+# expressed as objects consisting of a name, data type, description, default value, and a flag indicating
+# if customer admin must provide value.  If a partner does not require an item to be collect they will
+# omit the item from their manifest. 
+instance: 
+  client-authentication: ##REQUIRED  # describes how partner issued, user scoped access tokens are validated.
+    allow-multiple-issuers: yes ## Optional 
+    issuer: # Information to collect for each access token issuer. ##REQUIRED
+      # For most partners, the value will be different for every customer.  There may be some
+      # partners (Athena)  that use the same issuer for all customers.  We need a way for the 
+      # partner to set that value and indicate that DAC should not collect the valaue.
+      access-token-issuer: ## REQUIRED DAC will always prompt for this value.
+        type: url ##REQUIRED Microsoft defines the type for this field.  
+        description: The value of the issuer claim for partner issued, user scoped access tokens.##REQUIRED 
+        default-value: ##Optional
+        required: yes ##REQUIRED Microsoft requires this field to be populated.
+      # For the user-identity-claim and the customer-identity-claim, we need a way for the partner to
+      # indicate they are using partner specific values that will be the same for all customers. i.e. DAC
+      # should not prompt for these.
+      user-identity-claim: ##Optional  DAC will only prompt for this value if the partner includes it in the manifest.
+                           #           If it's not included in the manifest, it will default to 'sub'.
+        type: string ##Optional  Microsoft defines the type.  user-identity-claim is a string.
+        description: Optional name of claim containing the EHR identity of an end user.  Defaults to 'sub' if not collected. ##Optional
+        default-value: sub  ##Optional  Partner can provide a default value.
+        required: no ##Optional
+      customer-identity-claim: ## Optional
+        type: string
+        description: Optional name of claim containing the Microsoft environment ID.
+        default-value: http://customerid.dragon.com
+        required: no ## Optional
+
+
+ ### CUSTOMER ADMIN PROVIDES TO PARTNER -- EITHER SOF OR WEB-LAUNCH IS REQUIRED. #####       
+  
+  web-launch-sof: ##Optional-- If partner uses web app w/ SOF, then required
+    name: access-token-issuer ##Optional
+    type: url ##Optional
+    description: The value of the issued claim when invoking the Dragon Copilot SMART on FHIR endpoint. ##Optional
+    default-value:  ##Optional
+    required: yes ##Optional
+
+  web-launch-token:
+    use-client-authentication: yes # Use the same value that was configured for client-authentication.  If
+                                   # this is set to yes, nothing else is required.
+    allow-multiple-issuers: yes ##Optional
+    issuer: # Information to collect for each access token issuer. ##Optional
+      - name: access-token-issuer ##Optional
+        type: url ##Optional
+        description: The value of the issuer claim for partner issued, user scoped access tokens. ##Optional
+        default-value: ##Optional
+        required: yes ##Optional
+      - name: user-identity-claim ##Optional
+        type: string ##Optional
+        description: Optional name of claim containing the EHR identity of an end user.  Defaults to 'sub' if not collected. ##Optional
+        default-value: sub  ##Optional
+        required: no ##Optional
+
+
+   ###  PARTNER DETERMINES WHAT NEEDS TO BE COLLECTED, BUT FROM CUSTOMER ADMIN #####    
+
+  context-retrieval:##Optional
+    # Interop needs the following items.  These will not be collected because they are part of the environment:
+    #   environment name, environment id, EHR type, product name, partner id
+    # These are the items that may be collected.  The partner includes the items that the partner requires.
+    instance: ##Optional
+      - name: base_url  ##Optional
+        type: url ##Optional
+        description: base url need for API calls.  These are typically FHIR calls. ##Optional
+        required: yes ##Optional  ## PRASHANT COMMENT: "needs clarity if this is the same as the base url for the fhir server that we configure as part of the smart on fhir setup"
+      - name: ehr-user_id ##Optional
+        type: string ##Optional
+        description: optional EHR user id for FHIR API calls. ##Optional
+        required: no ##Optional
+      - name: in-bound-client-id ##Optional
+        type: string ##Optional
+        description: credential for inbound calls to interop ##Optional
+        required: yes ##Optional
+      - name: in-bound-issuer ##Optional
+        type: url ##Optional
+        description: issue claim of access tokens used to partner to call Dragon Copilot Interop
+        required: yes ##Optional
+      - name: out-bound-issuer ##Optional
+        type: url ##Optional
+        description: endpoint used to issue access token for Dragon Copilot Interop to call partner
+        required: yes ##Optional
+      - name: out-bound-client-id ##Optional
+        type: string ##Optional
+        description: partner provided client id to issued access tokens for Dragon Copilot Interop to call partner
+        required: yes ##Optional
+      - name: out-bound-secret ##Optional
+        type: string ##Optional
+        description: partner provided secret to issued access tokens for Dragon Copilot Interop to call partner
+        required: yes ##Optional
+      # The workflow can be inferred from the presense of in-bound/out-bound config. 
+      #- name: workflow
+      #  description: the workflow supported by this integration
+      #  type: multiselect (inbound/outbound)
 ```
+
+### Manifest Sections
+
+- **tokenSpecifications**: Define partner/customer token issuers and claim mappings used during authentication.
+- **serverAuthentication**: Enumerate token references and subject identifiers authorized to call the integration.
+- **noteSections**: Control which documentation sections Dragon Copilot should generate or suppress.
+- **instance**: Specify runtime behaviors such as client authentication defaults, SMART on FHIR launch settings, and contextual values required by the partner service.
 
 ## Publisher Configuration Format
 
@@ -162,72 +294,38 @@ The `publisher.json` file contains publisher information required for integratio
 - **version**: Version of the publisher configuration
 - **contactEmail**: Contact email for support
 - **offerId**: Identifier for the integration offering
-- **defaultLocale**: Must be `en-US` (only supported locale)
-- **supportedLocales**: Must be `["en-US"]` (only supported locale)
-- **scope**: Must be `US` (only supported region)
-- **regions**: Must be `["US"]` (only supported region)
+- **defaultLocale**: Must be `en-US` (current supported locale)
+- **supportedLocales**: Must be `["en-US"]`
+- **scope**: Must be `US`
+- **regions**: Must be `["US"]`
 
 ## Templates
 
 ### ehr-integration
-Provides integration functionality for Electronic Health Record (EHR) systems, including patient data synchronization and appointment management.
+Sample manifest for Electronic Health Record partners that need SMART on FHIR launch configuration and multiple authorized subject groups.
 
 ### api-connector
-Generic API connector for external healthcare systems, with data transformation capabilities.
+Focused on service-to-service API integrations with streamlined client authentication and context expectations.
 
 ### data-sync
-Bidirectional data synchronization between healthcare systems, supporting patient data and clinical notes.
+Demonstrates multi-token scenarios, facility-scoped context, and flexible web-launch defaults for synchronization platforms.
 
 ### custom
-Basic template for custom partner integrations with configurable endpoints and data types.
-
-## Data Types
-
-Partner integrations support various data types:
-
-### Dragon Standard Payload (DSP) Types
-- `DSP/Note` - Clinical notes and documentation
-- `DSP/Patient` - Patient demographic and clinical information
-- `DSP/Encounter` - Healthcare encounters or visits
-- `DSP/Practitioner` - Healthcare provider information
-- `DSP/Transcript` - Speech transcriptions
-- `DSP/Document` - Clinical documents
-
-### EHR Data Types
-- `EHR/PatientRecord` - Electronic health record patient data
-- `EHR/Appointment` - Appointment or scheduling data
-- `EHR/Medication` - Medication and prescription information
-- `EHR/LabResult` - Laboratory test results
-
-### API Data Types
-- `API/Request` - API request data
-- `API/Response` - API response data
-
-### Custom Data Types
-- `Custom/Data` - Custom data formats specific to integrations
+Minimal manifest starter intended for bespoke partner integrations.
 
 ## Development
 
 ```bash
-# Install dependencies
 npm install
-
-# Run in development mode
 npm run dev
-
-# Build for production
 npm run build
-
-# Run tests
 npm test
-
-# Package executables
 npm run package
 ```
 
 ## Contributing
 
-This tool is designed to follow the same contribution pattern as the Dragon Extension CLI:
+This tool follows the same contribution pattern as the Dragon Extension CLI:
 
 1. Fork the repository
 2. Create a feature branch
@@ -238,9 +336,7 @@ This tool is designed to follow the same contribution pattern as the Dragon Exte
 
 ## GitHub Actions Integration
 
-> Note: This is future looking and not currently implemented
-
-This tool is designed to work with GitHub Actions for automated releases:
+> Note: Future-looking example for automated releases.
 
 ```yaml
 name: Release Partner Integration CLI
@@ -262,3 +358,5 @@ jobs:
         with:
           files: tools/partner-integration-cli/releases/*
 ```
+
+<!-- END README -->

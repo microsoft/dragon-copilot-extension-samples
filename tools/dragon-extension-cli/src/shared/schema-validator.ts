@@ -1,12 +1,22 @@
-import Ajv from 'ajv';
-import addFormats from 'ajv-formats';
+import AjvModule from 'ajv';
+import addFormatsModule from 'ajv-formats';
 import { DragonExtensionManifest, PublisherConfig } from '../types.js';
 import { readFileSync } from 'fs';
 import { join, resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
 
+type AjvConstructor = typeof import('ajv').default;
+type AjvInstance = InstanceType<AjvConstructor>;
+type AddFormatsFn = (ajv: AjvInstance) => unknown;
+
+const AjvClass: AjvConstructor =
+  (AjvModule as { default?: AjvConstructor }).default ?? (AjvModule as unknown as AjvConstructor);
+
+const addFormats: AddFormatsFn =
+  (addFormatsModule as { default?: AddFormatsFn }).default ?? (addFormatsModule as unknown as AddFormatsFn);
+
 // Initialize AJV with format support
-const ajv = new Ajv({ allErrors: true, strict: false });
+const ajv = new AjvClass({ allErrors: true, strict: false });
 addFormats(ajv);
 
 // Get the directory of the current module - with fallback for test environments

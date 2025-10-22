@@ -4,7 +4,7 @@ import { Command } from 'commander';
 import { generateManifest } from './commands/generate.js';
 import { initProject } from './commands/init.js';
 import { packageIntegration } from './commands/package.js';
-import { validateManifest } from './commands/validate.js';
+import { runValidateCommand } from './commands/validate.js';
 import chalk from 'chalk';
 
 const program = new Command();
@@ -34,8 +34,8 @@ program
 program
   .command('validate')
   .description('Validate a manifest file')
-  .argument('<file>', 'Manifest file to validate')
-  .action(validateManifest);
+  .argument('[file]', 'Manifest file to validate')
+  .action(runValidateCommand);
 
 program
   .command('package')

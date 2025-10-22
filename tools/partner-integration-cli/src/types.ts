@@ -1,33 +1,121 @@
-export interface PartnerIntegrationManifest {
+export type YesNo = 'yes' | 'no';
+
+export type PartnerDataType =
+  | 'DSP/Note'
+  | 'DSP/IterativeTranscript'
+  | 'DSP/IterativeAudio'
+  | 'DSP/Transcript'
+  | 'DSP/Patient'
+  | 'DSP/Encounter'
+  | 'DSP/Practitioner'
+  | 'DSP/Visit'
+  | 'DSP/MedicalCode'
+  | 'DSP/Document'
+  | 'EHR/PatientRecord'
+  | 'EHR/Appointment'
+  | 'EHR/Medication'
+  | 'EHR/LabResult'
+  | 'API/Response'
+  | 'API/Request'
+  | 'Custom/Data'
+  | 'DSP';
+
+export interface PartnerOutput {
   name: string;
   description: string;
-  version: string;
-  auth: AuthConfig;
-  tools: PartnerTool[];
+  data: string;
+}
+
+export interface ToolInput {
+  name: string;
+  description: string;
+  data: PartnerDataType;
+}
+
+export interface ToolDefinition {
+  name: string;
+  description: string;
+  endpoint: string;
+  inputs: ToolInput[];
+  outputs: PartnerOutput[];
+}
+
+export interface ToolDetails {
+  toolName: string;
+  toolDescription: string;
+  endpoint: string;
+  inputTypes: PartnerDataType[];
+  outputs: PartnerOutput[];
 }
 
 export interface AuthConfig {
   tenantId: string;
 }
 
-export interface PartnerTool {
+export type NoteSectionValue = string | string[] | null;
+
+export interface PartnerIntegrationManifest {
   name: string;
   description: string;
-  endpoint: string;
-  inputs: PartnerInput[];
-  outputs: PartnerOutput[];
+  version: string;
+  ['partner-id']: string;
+  ['server-authentication']: ServerAuthenticationEntry[];
+  ['note-sections']?: Record<string, NoteSectionValue>;
+  instance: InstanceConfig;
+  tools?: ToolDefinition[];
 }
 
-export interface PartnerInput {
-  name: string;
-  description: string;
-  data: string;
+export interface ServerAuthenticationEntry {
+  issuer: string;
+  identity_claim: string;
+  identity_value: string[];
 }
 
-export interface PartnerOutput {
-  name: string;
+export interface InstanceConfig {
+  ['client-authentication']: ClientAuthenticationConfig;
+  ['web-launch-sof']?: NamedFieldConfig;
+  ['web-launch-token']?: WebLaunchTokenConfig;
+  ['context-retrieval']?: ContextRetrievalConfig;
+}
+
+export interface ClientAuthenticationConfig {
+  ['allow-multiple-issuers']?: YesNo;
+  issuer: ClientAuthenticationIssuerFields;
+}
+
+export interface ManifestFieldConfig {
+  type: string;
   description: string;
-  data: string;
+  ['default-value']?: string;
+  required: YesNo;
+}
+
+export interface NamedFieldConfig extends ManifestFieldConfig {
+  name?: string;
+}
+
+export interface ClientAuthenticationIssuerFields {
+  ['access-token-issuer']: ManifestFieldConfig;
+  ['user-identity-claim']?: ManifestFieldConfig;
+  ['customer-identity-claim']?: ManifestFieldConfig;
+}
+
+export interface WebLaunchTokenConfig {
+  ['use-client-authentication']?: YesNo;
+  ['allow-multiple-issuers']?: YesNo;
+  issuer?: NamedFieldConfig[];
+}
+
+export interface ContextRetrievalConfig {
+  instance: ContextRetrievalItem[];
+}
+
+export interface ContextRetrievalItem {
+  name: string;
+  type: string;
+  description: string;
+  required: YesNo;
+  ['default-value']?: string;
 }
 
 export interface PublisherConfig {
@@ -66,63 +154,14 @@ export interface PackageOptions {
 }
 
 export interface TemplateConfig {
-  name: string;
+  manifest: PartnerIntegrationManifest;
   description: string;
-  version: string;
-  tools: ToolTemplate[];
 }
-
-export interface ToolTemplate {
-  name: string;
-  description: string;
-  endpoint: string;
-  inputs: Array<{
-    name: string;
-    description: string;
-    data: string;
-  }>;
-  outputs: Array<{
-    name: string;
-    description: string;
-    data: string;
-  }>;
-}
-
-// Data type definitions for partner integrations
-export type PartnerDataType = 
-  | 'DSP/Note'
-  | 'DSP/Transcript' 
-  | 'DSP/IterativeTranscript'
-  | 'DSP/IterativeAudio'
-  | 'DSP/Patient'
-  | 'DSP/Encounter'
-  | 'DSP/Practitioner'
-  | 'DSP/Visit'
-  | 'DSP/MedicalCode'
-  | 'DSP/Document'
-  | 'DSP'
-  | 'EHR/PatientRecord'
-  | 'EHR/Appointment'
-  | 'EHR/Medication'
-  | 'EHR/LabResult'
-  | 'API/Response'
-  | 'API/Request'
-  | 'Custom/Data';
 
 export interface IntegrationDetails {
   name: string;
   description: string;
   version: string;
-}
-
-export interface AuthDetails {
-  tenantId: string;
-}
-
-export interface ToolDetails {
-  toolName: string;
-  toolDescription: string;
-  endpoint: string;
-  inputTypes: PartnerDataType[];
-  outputs: PartnerOutput[];
+  partnerId: string;
+  rawName?: string;
 }
