@@ -4,8 +4,9 @@ import yaml from 'js-yaml';
 const { load } = yaml;
 import path from 'path';
 import chalk from 'chalk';
-import { DragonExtensionManifest, PublisherConfig } from '../types.js';
-import { validateExtensionManifest, validatePublisherConfig, getFieldDisplayName, SchemaError } from '../shared/schema-validator.js';
+import type { DragonExtensionManifest, PublisherConfig } from '../types.js';
+import { validateExtensionManifest, validatePublisherConfig, getFieldDisplayName } from '../shared/schema-validator.js';
+import type { SchemaError } from '../shared/schema-validator.js';
 
 export async function validateManifest(filePath: string): Promise<void> {
   console.log(chalk.blue('🐉 Validating Dragon Copilot Extension Manifest'));

@@ -3,10 +3,12 @@ export default {
   preset: 'ts-jest/presets/default-esm',
   extensionsToTreatAsEsm: ['.ts'],
   transform: {
-    '^.+\\.ts$': ['ts-jest', { useESM: true }]
+    '^.+\\.ts$': ['ts-jest', { useESM: true, tsconfig: './tsconfig.test.json' }]
   },
   moduleNameMapper: {
-    '^(\\.{1,2}/.*)\\.js$': '$1'
+    '^@dragon-copilot/cli-common$': '<rootDir>/../cli-common/src/index.ts',
+    '^(\\.{1,2}/.*)\\.js$': '$1',
+    '^chalk$': '<rootDir>/src/__tests__/__mocks__/chalk.ts'
   },
   testEnvironment: 'node',
   roots: ['<rootDir>/src'],

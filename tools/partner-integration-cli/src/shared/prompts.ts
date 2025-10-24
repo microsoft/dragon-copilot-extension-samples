@@ -1,59 +1,30 @@
 import { checkbox, confirm, input, select } from '@inquirer/prompts';
-import {
+import { promptPublisherDetails as promptCommonPublisherDetails } from '@dragon-copilot/cli-common';
+import type {
   AuthConfig,
   ContextRetrievalItem,
   IntegrationDetails,
   InstanceConfig,
   ManifestFieldConfig,
   NamedFieldConfig,
-  PartnerDataType,
   PartnerIntegrationManifest,
-  PartnerOutput,
   PublisherConfig,
   ServerAuthenticationEntry,
-  ToolDetails,
   YesNo
 } from '../types.js';
 import {
   EMPTY_NOTE_PLACEHOLDER,
   NOTE_SECTION_LABELS,
-  NOTE_SECTION_ORDER,
-  NoteSectionKey
+  NOTE_SECTION_ORDER
 } from './note-sections.js';
+import type { NoteSectionKey } from './note-sections.js';
 import { buildIntegrationDescription } from './integration-description.js';
 import { CONTEXT_ITEM_CATALOG } from './context-items.js';
-
-export const PARTNER_INPUT_TYPE_CHOICES = [
-  { name: 'Clinical Note (DSP/Note)', value: 'DSP/Note' },
-  { name: 'Iterative Transcript (DSP/IterativeTranscript)', value: 'DSP/IterativeTranscript' },
-  { name: 'Iterative Audio (DSP/IterativeAudio)', value: 'DSP/IterativeAudio' },
-  { name: 'Transcript (DSP/Transcript)', value: 'DSP/Transcript' },
-  { name: 'Patient Data (DSP/Patient)', value: 'DSP/Patient' },
-  { name: 'Encounter Data (DSP/Encounter)', value: 'DSP/Encounter' },
-  { name: 'Practitioner Data (DSP/Practitioner)', value: 'DSP/Practitioner' },
-  { name: 'Visit Data (DSP/Visit)', value: 'DSP/Visit' },
-  { name: 'Medical Code (DSP/MedicalCode)', value: 'DSP/MedicalCode' },
-  { name: 'Document (DSP/Document)', value: 'DSP/Document' },
-  { name: 'EHR Patient Record (EHR/PatientRecord)', value: 'EHR/PatientRecord' },
-  { name: 'EHR Appointment (EHR/Appointment)', value: 'EHR/Appointment' },
-  { name: 'EHR Medication (EHR/Medication)', value: 'EHR/Medication' },
-  { name: 'EHR Lab Result (EHR/LabResult)', value: 'EHR/LabResult' },
-  { name: 'API Response (API/Response)', value: 'API/Response' },
-  { name: 'API Request (API/Request)', value: 'API/Request' },
-  { name: 'Custom Data (Custom/Data)', value: 'Custom/Data' },
-  { name: 'Generic DSP Data (DSP)', value: 'DSP' }
-] as const;
 
 const WEB_LAUNCH_FIELD_TYPE_CHOICES = [
   { name: 'URL', value: 'url' },
   { name: 'String', value: 'string' }
 ] as const;
-
-const DEFAULT_SERVER_AUTH_ENTRY: ServerAuthenticationEntry = {
-  issuer: 'https://login.partnerhealthworks.com/oauth2/default',
-  identity_claim: 'azp',
-  identity_value: ['00000000-0000-0000-0000-000000000000']
-};
 
 const sanitizeListInput = (value: string): string[] =>
   value
@@ -195,18 +166,6 @@ export function validateIdentityClaim(input: string): string | boolean {
   return /^[A-Za-z]{3}$/.test(input.trim()) ? true : 'Identity claim must be exactly 3 letters';
 }
 
-export function validateToolName(
-  input: string,
-  existingManifest?: PartnerIntegrationManifest | null
-): string | boolean {
-  if (!input.trim()) return 'Tool name is required';
-  if (!/^[a-z0-9-]+$/.test(input)) return 'Tool name must contain only lowercase letters, numbers, and hyphens';
-  if (existingManifest?.tools?.find(tool => tool.name === input)) {
-    return 'Tool with this name already exists';
-  }
-  return true;
-}
-
 const gatherIntegrationDetails = async (
   defaults?: Partial<IntegrationDetails>
 ): Promise<IntegrationDetails> => {
@@ -226,7 +185,7 @@ const gatherIntegrationDetails = async (
 
   const partnerId = await input({
     message: 'Partner ID (App Source Id):',
-    default: defaults?.partnerId || '00000000-0000-0000-0000-000000000000',
+    default: defaults?.partnerId,
     validate: validatePartnerId
   });
 
@@ -260,65 +219,38 @@ export async function promptIntegrationDetails(
 export async function promptAuthDetails(): Promise<AuthConfig> {
   const tenantId = await input({
     message: 'Azure Tenant ID (GUID):',
-    default: '00000000-0000-0000-0000-000000000000',
+    default: undefined,
     validate: validateTenantId
   });
 
   return { tenantId };
 }
 
-const gatherPublisherDetails = async (): Promise<PublisherConfig> => {
-  const publisherId = await input({
-    message: 'Publisher ID (e.g., contoso.healthcare):',
-    validate: validatePublisherId
-  });
-
-  const publisherName = await input({
-    message: 'Publisher name:',
-    validate: (value: string) => (value.trim() ? true : 'Publisher name is required')
-  });
-
-  const websiteUrl = await input({
-    message: 'Website URL:',
-    validate: validateUrl
-  });
-
-  const privacyPolicyUrl = await input({
-    message: 'Privacy policy URL:',
-    validate: validateUrl
-  });
-
-  const supportUrl = await input({
-    message: 'Support URL:',
-    validate: validateUrl
-  });
-
-  const contactEmail = await input({
-    message: 'Contact email:',
-    validate: validateEmail
-  });
-
-  const offerId = await input({
-    message: 'Offer ID:',
-    default: `${publisherId.split('.')[0]}-integration-suite`,
-    validate: (value: string) => (value.trim() ? true : 'Offer ID is required')
-  });
-
-  return {
-    publisherId,
-    publisherName,
-    websiteUrl,
-    privacyPolicyUrl,
-    supportUrl,
-    version: '0.0.1',
-    contactEmail,
-    offerId,
+const gatherPublisherDetails = async (): Promise<PublisherConfig> =>
+  promptCommonPublisherDetails({
+    defaults: {
+      version: '0.0.1',
+      defaultLocale: 'en-US',
+      supportedLocales: ['en-US'],
+      regions: ['US'],
+      scope: 'US'
+    },
+    validators: {
+      publisherId: validatePublisherId,
+      publisherName: (value: string) => (value.trim() ? true : 'Publisher name is required'),
+      websiteUrl: validateUrl,
+      privacyPolicyUrl: validateUrl,
+      supportUrl: validateUrl,
+      version: validateVersion,
+      contactEmail: validateEmail,
+      offerId: (value: string) => (value.trim() ? true : 'Offer ID is required')
+    },
+    scope: 'US',
     defaultLocale: 'en-US',
     supportedLocales: ['en-US'],
-    scope: 'US',
-    regions: ['US']
-  };
-};
+    regions: ['US'],
+    offerIdGenerator: (publisherId: string) => `${publisherId.split('.')[0]}-integration-suite`
+  });
 
 const summarizePublisherDetails = (config: PublisherConfig): string[] => [
   `Publisher ID: ${config.publisherId}`,
@@ -326,6 +258,7 @@ const summarizePublisherDetails = (config: PublisherConfig): string[] => [
   `Website: ${config.websiteUrl}`,
   `Privacy Policy: ${config.privacyPolicyUrl}`,
   `Support: ${config.supportUrl}`,
+  `Version: ${config.version}`,
   `Contact Email: ${config.contactEmail}`,
   `Offer ID: ${config.offerId}`
 ];
@@ -334,162 +267,12 @@ export async function promptPublisherDetails(): Promise<PublisherConfig> {
   return collectWithReview('Publisher configuration', gatherPublisherDetails, summarizePublisherDetails);
 }
 
-const gatherToolDetails = async (
-  existingManifest?: PartnerIntegrationManifest | null,
-  options?: {
-    allowMultipleInputs?: boolean;
-    defaults?: {
-      toolName?: string;
-      toolDescription?: string;
-      endpoint?: string;
-    };
-  }
-): Promise<ToolDetails> => {
-  const toolName = await input({
-    message: 'Tool name:',
-    default: options?.defaults?.toolName || 'integration-tool',
-    validate: (value: string) => validateToolName(value, existingManifest)
-  });
-
-  const toolDescription = await input({
-    message: 'Tool description:',
-    default: options?.defaults?.toolDescription || 'Processes integration data',
-    validate: (value: string) => (value.trim() ? true : 'Tool description is required')
-  });
-
-  const endpoint = await input({
-    message: 'Tool endpoint URL:',
-    default: options?.defaults?.endpoint || 'https://api.example.com/v1/process',
-    validate: validateUrl
-  });
-
-  const inputTypes = (await checkbox({
-    message: 'Select input data types:',
-    choices: PARTNER_INPUT_TYPE_CHOICES,
-    required: true,
-    validate: (choices: readonly unknown[]) =>
-      choices.length ? true : 'At least one input type must be selected'
-  })) as PartnerDataType[];
-
-  const outputs: PartnerOutput[] = [];
-  let addMore = true;
-
-  while (addMore && outputs.length < 5) {
-    const index = outputs.length + 1;
-    const name = await input({
-      message: `Output ${index} name:`,
-      default: index === 1 ? 'processed-data' : undefined,
-      validate: (value: string) => {
-        if (!value.trim()) return 'Output name is required';
-        if (outputs.find(output => output.name === value)) return 'Output name must be unique';
-        return true;
-      }
-    });
-
-    const description = await input({
-      message: `Output ${index} description:`,
-      default: index === 1 ? 'Processed integration data' : undefined,
-      validate: (value: string) => (value.trim() ? true : 'Output description is required')
-    });
-
-    const data = await select<string>({
-      message: `Output ${index} data type:`,
-      choices: [
-        { name: 'Generic DSP Data (DSP)', value: 'DSP' },
-        { name: 'Clinical Note (DSP/Note)', value: 'DSP/Note' },
-        { name: 'Patient Data (DSP/Patient)', value: 'DSP/Patient' },
-        { name: 'Encounter Data (DSP/Encounter)', value: 'DSP/Encounter' },
-        { name: 'API Response (API/Response)', value: 'API/Response' },
-        { name: 'Custom Data (Custom/Data)', value: 'Custom/Data' }
-      ],
-      default: 'DSP'
-    });
-
-    outputs.push({ name, description, data });
-
-    if (outputs.length >= 5) {
-      addMore = false;
-    } else {
-      addMore = await confirm({ message: 'Add another output?', default: false });
-    }
-  }
-
-  return {
-    toolName,
-    toolDescription,
-    endpoint,
-    inputTypes,
-    outputs
-  };
-};
-
-const summarizeToolDetails = (details: ToolDetails): string[] => {
-  const lines = [
-    `Tool name: ${details.toolName}`,
-    `Description: ${details.toolDescription}`,
-    `Endpoint: ${details.endpoint}`,
-    `Inputs: ${details.inputTypes.join(', ')}`,
-    `Outputs: ${details.outputs.length}`
-  ];
-
-  details.outputs.forEach((output, index) =>
-    lines.push(`  Output ${index + 1}: ${output.name} (${output.data})`)
-  );
-
-  return lines;
-};
-
-export async function promptToolDetails(
-  existingManifest?: PartnerIntegrationManifest | null,
-  options?: {
-    allowMultipleInputs?: boolean;
-    defaults?: {
-      toolName?: string;
-      toolDescription?: string;
-      endpoint?: string;
-    };
-  }
-): Promise<ToolDetails> {
-  return collectWithReview(
-    'Tool definition',
-    () => gatherToolDetails(existingManifest, options),
-    summarizeToolDetails
-  );
-}
-
-export function getInputDescription(dataType: string): string {
-  const descriptions: Record<string, string> = {
-    'DSP/Note': 'Clinical note or documentation',
-    'DSP/IterativeTranscript': 'Real-time speech transcript data',
-    'DSP/IterativeAudio': 'Real-time audio stream data',
-    'DSP/Transcript': 'Complete speech transcript',
-    'DSP/Patient': 'Patient demographic and clinical information',
-    'DSP/Encounter': 'Healthcare encounter or visit information',
-    'DSP/Practitioner': 'Healthcare provider information',
-    'DSP/Visit': 'Patient visit or appointment data',
-    'DSP/MedicalCode': 'Medical coding information (ICD, SNOMED, etc.)',
-    'DSP/Document': 'Clinical document or report',
-    'EHR/PatientRecord': 'Electronic health record patient data',
-    'EHR/Appointment': 'Appointment or scheduling data',
-    'EHR/Medication': 'Medication and prescription information',
-    'EHR/LabResult': 'Laboratory test results and values',
-    'API/Response': 'API response data from external systems',
-    'API/Request': 'API request data for external systems',
-    'Custom/Data': 'Custom data format specific to integration',
-    DSP: 'Generic Dragon Standard Payload data'
-  };
-
-  return descriptions[dataType] || 'Data input for processing';
-}
-
 const gatherServerAuthenticationEntry = async (
   index: number
 ): Promise<ServerAuthenticationEntry> => {
-  const defaults = index === 0 ? DEFAULT_SERVER_AUTH_ENTRY : undefined;
-
   const issuer = await input({
     message: `Server authentication issuer ${index + 1}:`,
-    default: defaults?.issuer,
+    default: undefined,
     validate: validateUrl
   });
   console.log('');
@@ -502,13 +285,13 @@ logInfo(
 
   const identity_claim = await input({
     message: `Identity claim ${index + 1}:`,
-    default: defaults?.identity_claim || 'azp',
+    default: 'azp',
     validate: validateIdentityClaim
   });
 
   const identityValueRaw = await input({
     message: `Allowed identity values ${index + 1} (comma separated):`,
-    default: defaults?.identity_value.join(', ') || '00000000-0000-0000-0000-000000000000',
+    default: undefined,
     validate: (value: string) => (sanitizeListInput(value).length ? true : 'At least one identity value is required')
   });
 
@@ -622,33 +405,26 @@ const gatherNoteSections = async (): Promise<Record<string, string | string[] | 
       }
     }
 
-    let available = buildAvailable(key);
+    const available = buildAvailable(key);
 
-    while (available.length) {
-      const mapAnother = await confirm({
-        message: `Map another section to ${key}?`,
-        default: false
-      });
-
-      if (!mapAnother) {
-        break;
-      }
-
-      const selection = await select<string>({
-        message: `Select section to map to ${key}:`,
+    if (available.length) {
+      const selections = await checkbox<string>({
+        message: `Select sections to map to ${key} (press Space to toggle, Enter to continue):`,
         choices: available.map(option => ({
           name: `${getSectionLabel(option)} (${option})`,
           value: option
-        }))
+        })),
+        loop: false
       });
 
-      assigned.push(selection);
-      if (selection === PLAN_KEY) {
-        planMapped = true;
+      for (const selection of selections) {
+        assigned.push(selection);
+        if (selection === PLAN_KEY) {
+          planMapped = true;
+        }
+        mappedToOther.add(selection);
+        usedSections.add(selection);
       }
-      mappedToOther.add(selection);
-      usedSections.add(selection);
-      available = buildAvailable(key);
     }
 
     sections[key] = assigned.length === 1 ? assigned[0] : assigned;
@@ -764,8 +540,8 @@ const gatherClientAuthAndWeb = async (): Promise<{
 
   const allowMultipleIssuers = await yesNo('Allow multiple issuers for client authentication?', 'yes');
   const accessTokenIssuerInput = await input({
-    message: 'Client auth. DEFAULT access token issuer URL (leave blank for none):',
-    default: DEFAULT_SERVER_AUTH_ENTRY.issuer,
+    message: 'Default client authentication access token issuer URL (leave blank for none):',
+    default: undefined,
     validate: (value: string) => {
       const trimmed = value.trim();
       if (!trimmed) {
@@ -801,10 +577,12 @@ const gatherClientAuthAndWeb = async (): Promise<{
       validate: (value: string) => (value.trim() ? true : 'Claim name is required')
     });
 
+    const userIdentityRequired = await yesNo('Is the user identity claim required?', 'no');
+
     clientAuth.issuer['user-identity-claim'] = buildManifestField(
       'string',
       'Optional claim containing the EHR identity of an end user. Defaults to "sub".',
-      'no',
+      userIdentityRequired,
       claim
     );
   }
@@ -818,10 +596,12 @@ const gatherClientAuthAndWeb = async (): Promise<{
       validate: (value: string) => (value.trim() ? true : 'Claim name is required')
     });
 
+    const customerIdentityRequired = await yesNo('Is the customer identity claim required?', 'no');
+
     clientAuth.issuer['customer-identity-claim'] = buildManifestField(
       'string',
       'Optional claim containing the Microsoft environment identifier.',
-      'no',
+      customerIdentityRequired,
       claim
     );
   }
@@ -842,8 +622,8 @@ const gatherClientAuthAndWeb = async (): Promise<{
   const configureSof = await confirm({ message: 'Configure SMART on FHIR web launch issuer?', default: false });
   if (configureSof) {
     const sofIssuerInput = await input({
-      message: 'SMART on FHIR issuer URL (leave blank for none):',
-      default: 'https://launch.partnerhealthworks.com/context',
+      message: 'Default SMART on FHIR issuer URL (leave blank for none):',
+      default: undefined,
       validate: (value: string) => {
         const trimmed = value.trim();
         return trimmed ? validateUrl(trimmed) : true;
@@ -889,7 +669,7 @@ const gatherClientAuthAndWeb = async (): Promise<{
     } else {
       const defaultIssuerInput = await input({
         message: 'Default access token issuer for web launch tokens (leave blank for none):',
-        default: accessTokenIssuer,
+        default: undefined,
         validate: (value: string) => {
           const trimmed = value.trim();
           return trimmed ? validateUrl(trimmed) : true;

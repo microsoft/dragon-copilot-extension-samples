@@ -1,5 +1,5 @@
 import { describe, it, expect } from '@jest/globals';
-import { validateIntegrationName, validateVersion, validateUrl, validateEmail, validatePartnerId, validateGuid, validateIdentityClaim } from '../shared/prompts';
+import { validateIntegrationName, validateVersion, validateUrl, validateEmail, validatePartnerId, validateGuid, validateIdentityClaim } from '../shared/prompts.js';
 
 describe('Partner Integration CLI Validation Functions', () => {
   describe('validateIntegrationName', () => {

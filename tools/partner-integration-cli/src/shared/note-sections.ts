@@ -1,4 +1,4 @@
-import { NoteSectionValue } from '../types.js';
+import type { NoteSectionValue } from '../types.js';
 
 export const NOTE_SECTION_ORDER = [
   'hpi',

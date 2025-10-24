@@ -4,7 +4,7 @@ import yaml from 'js-yaml';
 const { load, dump } = yaml;
 import chalk from 'chalk';
 import { confirm } from '@inquirer/prompts';
-import { GenerateOptions, DragonExtensionManifest, DragonTool } from '../types.js';
+import type { GenerateOptions, DragonExtensionManifest, DragonTool } from '../types.js';
 import { getTemplate } from '../templates/index.js';
 import { promptToolDetails, promptPublisherDetails, promptAuthDetails, getInputDescription } from '../shared/prompts.js';
 

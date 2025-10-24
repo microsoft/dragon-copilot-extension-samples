@@ -1,0 +1,18 @@
+{
+  "publisherId": "contsoto.healthcare",
+  "publisherName": "contosos",
+  "websiteUrl": "https://login.microsoftonline.com",
+  "privacyPolicyUrl": "https://login.microsoftonline.com",
+  "supportUrl": "https://login.microsoftonline.com",
+  "version": "0.0.1",
+  "contactEmail": "contosos@con.com",
+  "offerId": "contsoto-integration-suite",
+  "defaultLocale": "en-US",
+  "supportedLocales": [
+    "en-US"
+  ],
+  "scope": "US",
+  "regions": [
+    "US"
+  ]
+}

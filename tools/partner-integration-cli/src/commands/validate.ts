@@ -5,7 +5,7 @@ const { load } = yaml;
 import path from 'path';
 import chalk from 'chalk';
 import { input, select } from '@inquirer/prompts';
-import { ContextRetrievalItem, PartnerIntegrationManifest, PublisherConfig, YesNo } from '../types.js';
+import type { ContextRetrievalItem, PartnerIntegrationManifest, PublisherConfig, YesNo } from '../types.js';
 import { getContextItemDefinition } from '../shared/context-items.js';
 
 const DEFAULT_MANIFEST_PATH = 'integration.yaml';

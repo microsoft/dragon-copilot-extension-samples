@@ -1,4 +1,4 @@
-import { ContextRetrievalItem, PartnerIntegrationManifest, TemplateConfig, YesNo } from '../types.js';
+import type { ContextRetrievalItem, PartnerIntegrationManifest, TemplateConfig, YesNo } from '../types.js';
 import { getDefaultNoteSections, normalizeNoteSections } from '../shared/note-sections.js';
 import { buildIntegrationDescription } from '../shared/integration-description.js';
 import { cloneContextItem } from '../shared/context-items.js';

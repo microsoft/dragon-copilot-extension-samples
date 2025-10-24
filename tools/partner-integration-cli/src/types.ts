@@ -1,52 +1,5 @@
+import type { PublisherConfig as CommonPublisherConfig } from '@dragon-copilot/cli-common';
 export type YesNo = 'yes' | 'no';
-
-export type PartnerDataType =
-  | 'DSP/Note'
-  | 'DSP/IterativeTranscript'
-  | 'DSP/IterativeAudio'
-  | 'DSP/Transcript'
-  | 'DSP/Patient'
-  | 'DSP/Encounter'
-  | 'DSP/Practitioner'
-  | 'DSP/Visit'
-  | 'DSP/MedicalCode'
-  | 'DSP/Document'
-  | 'EHR/PatientRecord'
-  | 'EHR/Appointment'
-  | 'EHR/Medication'
-  | 'EHR/LabResult'
-  | 'API/Response'
-  | 'API/Request'
-  | 'Custom/Data'
-  | 'DSP';
-
-export interface PartnerOutput {
-  name: string;
-  description: string;
-  data: string;
-}
-
-export interface ToolInput {
-  name: string;
-  description: string;
-  data: PartnerDataType;
-}
-
-export interface ToolDefinition {
-  name: string;
-  description: string;
-  endpoint: string;
-  inputs: ToolInput[];
-  outputs: PartnerOutput[];
-}
-
-export interface ToolDetails {
-  toolName: string;
-  toolDescription: string;
-  endpoint: string;
-  inputTypes: PartnerDataType[];
-  outputs: PartnerOutput[];
-}
 
 export interface AuthConfig {
   tenantId: string;
@@ -62,7 +15,6 @@ export interface PartnerIntegrationManifest {
   ['server-authentication']: ServerAuthenticationEntry[];
   ['note-sections']?: Record<string, NoteSectionValue>;
   instance: InstanceConfig;
-  tools?: ToolDefinition[];
 }
 
 export interface ServerAuthenticationEntry {
@@ -118,20 +70,7 @@ export interface ContextRetrievalItem {
   ['default-value']?: string;
 }
 
-export interface PublisherConfig {
-  publisherId: string;
-  publisherName: string;
-  websiteUrl: string;
-  privacyPolicyUrl: string;
-  supportUrl: string;
-  version: string;
-  contactEmail: string;
-  offerId: string;
-  defaultLocale: string;
-  supportedLocales: string[];
-  scope: string;
-  regions: string[];
-}
+export type PublisherConfig = CommonPublisherConfig;
 
 export interface GenerateOptions {
   template?: string;

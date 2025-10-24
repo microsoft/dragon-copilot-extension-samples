@@ -1,4 +1,4 @@
-import { ContextRetrievalItem, YesNo } from '../types.js';
+import type { ContextRetrievalItem, YesNo } from '../types.js';
 
 export interface ContextItemCatalogEntry {
   name: string;
@@ -21,7 +21,7 @@ const RAW_CONTEXT_ITEM_CATALOG: ContextItemCatalogEntry[] = [
     type: 'string',
     description: 'optional EHR user id for FHIR API calls.',
     defaultRequired: 'no',
-    defaultInclude: false
+    defaultInclude: true
   },
   {
     name: 'in-bound-client-id',

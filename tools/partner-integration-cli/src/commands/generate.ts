@@ -4,7 +4,7 @@ import yaml from 'js-yaml';
 const { load } = yaml;
 import chalk from 'chalk';
 import { confirm } from '@inquirer/prompts';
-import { GenerateOptions, IntegrationDetails, PartnerIntegrationManifest } from '../types.js';
+import type { GenerateOptions, IntegrationDetails, PartnerIntegrationManifest } from '../types.js';
 import { getTemplate } from '../templates/index.js';
 import { promptPublisherDetails, runPartnerManifestWizard } from '../shared/prompts.js';
 import { normalizeNoteSections } from '../shared/note-sections.js';

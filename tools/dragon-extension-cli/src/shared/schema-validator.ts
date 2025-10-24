@@ -1,6 +1,6 @@
 import AjvModule from 'ajv';
 import addFormatsModule from 'ajv-formats';
-import { DragonExtensionManifest, PublisherConfig } from '../types.js';
+import type { DragonExtensionManifest, PublisherConfig } from '../types.js';
 import { readFileSync } from 'fs';
 import { join, resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';

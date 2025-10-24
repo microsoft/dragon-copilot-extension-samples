@@ -1,16 +1,13 @@
 import { confirm } from '@inquirer/prompts';
 import fs from 'fs-extra';
-const { writeFileSync, ensureDirSync, copyFileSync, pathExistsSync } = fs;
+const { writeFileSync } = fs;
 import path from 'path';
 import chalk from 'chalk';
-import { InitOptions, PartnerIntegrationManifest } from '../types.js';
+import { bootstrapAssetsDirectory } from '@dragon-copilot/cli-common';
+import type { InitOptions, PartnerIntegrationManifest } from '../types.js';
 import { promptPublisherDetails, runPartnerManifestWizard } from '../shared/prompts.js';
 import { normalizeNoteSections } from '../shared/note-sections.js';
 import { dumpManifestYaml } from '../shared/yaml.js';
-import { fileURLToPath } from 'url';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 export async function initProject(options: InitOptions): Promise<void> {
   console.log(chalk.blue('🤝 Partner Integration Generator'));
@@ -59,22 +56,9 @@ export async function initProject(options: InitOptions): Promise<void> {
   });
 
   if (setupAssets) {
-    const assetsDir = path.join(options.output || '.', 'assets');
-    ensureDirSync(assetsDir);
-
-    // Copy sample logo from CLI resources
-    const sampleLogoPath = path.join(__dirname, '..', 'resources', 'assets', 'logo_large.png');
-    const targetLogoPath = path.join(assetsDir, 'logo_large.png');
-
-    if (pathExistsSync(sampleLogoPath)) {
-      copyFileSync(sampleLogoPath, targetLogoPath);
-      console.log(chalk.green('✅ Sample logo copied to assets/logo_large.png'));
-      console.log(chalk.yellow('⚠️  Remember to replace this with your own logo before packaging!'));
-    } else {
-      // If sample logo doesn't exist, create a placeholder message
-      console.log(chalk.yellow('⚠️  Sample logo not found. Please add your logo to assets/logo_large.png'));
-      console.log(chalk.gray('   Requirements: PNG file, 216x216 to 350x350 pixels'));
-    }
+    await bootstrapAssetsDirectory(options.output || '.', {
+      assetsDirName: 'assets'
+    });
   }
 
   const outputPath = path.join(options.output || '.', 'integration.yaml');

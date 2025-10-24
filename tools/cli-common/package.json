@@ -1,0 +1,31 @@
+{
+  "name": "@dragon-copilot/cli-common",
+  "version": "1.0.0",
+  "description": "Shared utilities for Dragon Copilot CLI tools",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist/**/*"
+  ],
+  "scripts": {
+    "build": "tsc && npm run copy-resources",
+    "clean": "rimraf dist",
+    "copy-resources": "node -e \"const fs = require('fs-extra'); try { fs.copySync('src/resources', 'dist/resources', { errorOnExist: false }); } catch (e) {}\"",
+    "prepare": "npm run build",
+    "prepublishOnly": "npm run clean && npm run build"
+  },
+  "dependencies": {
+    "@inquirer/prompts": "^7.8.6",
+    "chalk": "^5.6.2",
+    "fs-extra": "^11.3.2",
+    "js-yaml": "^4.1.0"
+  },
+  "devDependencies": {
+    "@types/fs-extra": "^11.0.4",
+    "@types/js-yaml": "^4.0.9",
+    "@types/node": "^24.7.2",
+    "rimraf": "^6.0.1",
+    "typescript": "^5.9.3"
+  }
+}

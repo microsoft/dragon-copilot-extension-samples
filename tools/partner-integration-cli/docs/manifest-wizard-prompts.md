@@ -99,6 +99,7 @@ Executed when the CLI is run with publisher generation enabled.
 - **Website URL:** no default
 - **Privacy Policy URL:** no default
 - **Support URL:** no default
+- **Publisher Config Version:** default `0.0.1`
 - **Contact Email:** no default
 - **Offer ID:** default `${publisherId.split('.')[0]}-integration-suite`
 

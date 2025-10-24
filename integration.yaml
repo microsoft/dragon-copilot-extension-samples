@@ -1,0 +1,41 @@
+name: partner-integration
+description: PARTNER INTEGRATION for Dragon Copilot healthcare data processing.
+version: 0.0.1
+partner-id: 00000000-0000-0000-0000-000000000000
+server-authentication:
+  - issuer: https://login.partnerhealthworks.com/oauth2/default
+    identity_claim: azp
+    identity_value:
+      - 00000000-0000-0000-0000-000000000000
+note-sections:
+  hpi: hpi
+  chief-complaint: chief-complaint
+  past-medical-history: past-medical-history
+  assessment:
+    - assessment
+    - plan
+  medications: medications
+  allergies: allergies
+  review-of-systems: review-of-systems
+  physical-exam: physical-exam
+  procedures: procedures
+  results: results
+instance:
+  client-authentication:
+    allow-multiple-issuers: yes
+    issuer:
+      access-token-issuer:
+        type: url
+        description: Issuer claim for partner issued access tokens.
+        required: yes
+        default-value: https://login.partnerhealthworks.com/oauth2/default
+      user-identity-claim:
+        type: string
+        description: Optional claim containing the EHR identity of an end user. Defaults to "sub".
+        required: no
+        default-value: sub
+      customer-identity-claim:
+        type: string
+        description: Optional claim containing the Microsoft environment identifier.
+        required: no
+        default-value: http://customerid.dragon.com
