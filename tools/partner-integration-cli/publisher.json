@@ -1,12 +1,12 @@
 {
-  "publisherId": "contsoto.healthcare",
-  "publisherName": "contosos",
-  "websiteUrl": "https://login.microsoftonline.com",
-  "privacyPolicyUrl": "https://login.microsoftonline.com",
-  "supportUrl": "https://login.microsoftonline.com",
+  "publisherId": "lamna.healthcare",
+  "publisherName": "Lamna Healthcare",
+  "websiteUrl": "https://lamnahc.com",
+  "privacyPolicyUrl": "https://lamnahc.com/policy",
+  "supportUrl": "https://lamnahc.com/support",
   "version": "0.0.1",
-  "contactEmail": "contosos@con.com",
-  "offerId": "contsoto-integration-suite",
+  "contactEmail": "lamnahealthcare@lamnahc.com",
+  "offerId": "lamna-integration-suite",
   "defaultLocale": "en-US",
   "supportedLocales": [
     "en-US"

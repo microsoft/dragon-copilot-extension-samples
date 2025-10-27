@@ -11,7 +11,8 @@ This document captures the console banners, guidance messages, and interactive q
   - **Integration name:** default `partner-integration`
   - Integration description automatically derived from the integration name.
   - **Integration version:** default `0.0.1`
-  - **Partner ID (App Source Id):** no default; validated as lowercase slug
+  - `Do you already have a Partner ID from NMC or Partner Center?` (default `yes` when an ID is detected)
+  - **Partner ID (App Source Id):** no default; validated as lowercase slug. Choosing `no` to the previous question generates a GUID automatically and surfaces it in the review step.
 
 ## Server Authentication (`gatherServerAuthenticationEntries`)
 

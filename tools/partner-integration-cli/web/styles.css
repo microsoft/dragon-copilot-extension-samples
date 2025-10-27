@@ -524,9 +524,28 @@ textarea {
 }
 
 #partner-id {
-  width: 75%;
+  flex: 1 1 260px;
+  width: auto;
   max-width: 100%;
   min-width: min(36ch, 100%);
+}
+
+.partner-id-input-group {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.partner-id-input-group button {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
+.field-hint {
+  margin: 0.35rem 0 0;
+  color: #4b5563;
+  font-size: 0.85rem;
 }
 
 textarea {

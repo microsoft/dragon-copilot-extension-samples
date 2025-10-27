@@ -136,12 +136,35 @@ const NOTE_PLACEHOLDER_QUOTED_REGEX = new RegExp(`: ['"]${EMPTY_NOTE_PLACEHOLDER
 const NOTE_PLACEHOLDER_UNQUOTED_REGEX = new RegExp(`: ${EMPTY_NOTE_PLACEHOLDER}`, 'g');
 const NOTE_LIST_PLACEHOLDER_QUOTED_REGEX = new RegExp(`(-\s*)['"]${EMPTY_NOTE_PLACEHOLDER}['"]`, 'g');
 const NOTE_LIST_PLACEHOLDER_UNQUOTED_REGEX = new RegExp(`(-\s*)${EMPTY_NOTE_PLACEHOLDER}`, 'g');
+const PARTNER_ID_PATTERN = /^[a-z0-9](?:[a-z0-9._-]*[a-z0-9])?$/;
 const sanitizeNotePlaceholders = text =>
   text
     .replace(NOTE_PLACEHOLDER_QUOTED_REGEX, ': ')
     .replace(NOTE_PLACEHOLDER_UNQUOTED_REGEX, ': ')
     .replace(NOTE_LIST_PLACEHOLDER_QUOTED_REGEX, '$1')
     .replace(NOTE_LIST_PLACEHOLDER_UNQUOTED_REGEX, '$1');
+
+const generateGuid = () => {
+  if (typeof crypto !== 'undefined') {
+    if (typeof crypto.randomUUID === 'function') {
+      return crypto.randomUUID().toLowerCase();
+    }
+    if (typeof crypto.getRandomValues === 'function') {
+      const bytes = new Uint8Array(16);
+      crypto.getRandomValues(bytes);
+      bytes[6] = (bytes[6] & 0x0f) | 0x40;
+      bytes[8] = (bytes[8] & 0x3f) | 0x80;
+      const hex = Array.from(bytes, byte => byte.toString(16).padStart(2, '0'));
+      return `${hex.slice(0, 4).join('')}-${hex.slice(4, 6).join('')}-${hex.slice(6, 8).join('')}-${hex.slice(8, 10).join('')}-${hex.slice(10).join('')}`;
+    }
+  }
+
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, char => {
+    const random = Math.floor(Math.random() * 16);
+    const value = char === 'x' ? random : (random & 0x3) | 0x8;
+    return value.toString(16);
+  });
+};
 
 const sanitizeIntegrationNameForDescription = rawName => {
   if (!rawName || !rawName.trim()) {
@@ -258,6 +281,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const uploadNote = document.querySelector('#upload-note');
   const outputContent = document.querySelector('#output-content');
   const downloadAssetsBtn = document.querySelector('#download-assets');
+  const partnerIdInput = document.querySelector('#partner-id');
+  const partnerIdGenerateBtn = document.querySelector('#generate-partner-id');
 
   const downloadButtons = document.querySelectorAll('button[data-download]');
 
@@ -542,6 +567,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const validateRequiredFields = () => {
     const errors = [];
+
+    const partnerIdValue = partnerIdInput ? partnerIdInput.value.trim() : '';
+    if (!partnerIdValue) {
+      errors.push('Enter a Partner ID or use the Generate GUID button.');
+    } else if (!PARTNER_ID_PATTERN.test(partnerIdValue)) {
+      errors.push('Partner ID must be lowercase and can include alphanumeric characters, hyphens, dots, or underscores.');
+    }
 
     const serverItems = Array.from(serverAuthList.querySelectorAll('.item'));
     let validServerCount = 0;
@@ -1531,11 +1563,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const manifestName = normalizedName || 'partner-integration';
     const manifestDescription = buildManifestDescription(rawName || manifestName);
 
+    const partnerIdValue = partnerIdInput ? partnerIdInput.value.trim() : '';
+
     const manifest = {
       name: manifestName,
       description: manifestDescription,
       version: document.querySelector('#integration-version').value.trim() || '0.0.1',
-      'partner-id': document.querySelector('#partner-id').value.trim() || 'contoso.healthworks'
+      'partner-id': partnerIdValue || generateGuid()
     };
 
     const serverAuth = gatherServerAuthentication();
@@ -1673,6 +1707,13 @@ document.addEventListener('DOMContentLoaded', () => {
   customerToggle.addEventListener('change', () => {
     customerFields.style.display = customerToggle.checked ? 'grid' : 'none';
   });
+  if (partnerIdGenerateBtn && partnerIdInput) {
+    partnerIdGenerateBtn.addEventListener('click', () => {
+      const newGuid = generateGuid();
+      partnerIdInput.value = newGuid;
+      partnerIdInput.dispatchEvent(new Event('input', { bubbles: true }));
+    });
+  }
   generateBtn.addEventListener('click', handleGenerate);
   resetBtn.addEventListener('click', resetForm);
   downloadButtons.forEach(button => button.addEventListener('click', handleDownload));

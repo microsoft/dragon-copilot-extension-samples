@@ -1,5 +1,6 @@
 import { checkbox, confirm, input, select } from '@inquirer/prompts';
 import { promptPublisherDetails as promptCommonPublisherDetails } from '@dragon-copilot/cli-common';
+import { randomUUID } from 'node:crypto';
 import type {
   AuthConfig,
   ContextRetrievalItem,
@@ -182,12 +183,24 @@ const gatherIntegrationDetails = async (
   });
 
   logInfo('Partner ID should match the identifier from your app source (e.g. source, Microsoft Partner Center).');
+  logInfo('If you have not received a Partner ID yet, you can generate a GUID now and use it in the manifest.');
 
-  const partnerId = await input({
-    message: 'Partner ID (App Source Id):',
-    default: defaults?.partnerId,
-    validate: validatePartnerId
-  });
+  let partnerId: string;
+  const hasExternalId = await yesNo(
+    'Do you already have a Partner ID from NMC or Partner Center?',
+    defaults?.partnerId ? 'yes' : 'no'
+  );
+
+  if (hasExternalId === 'yes') {
+    partnerId = await input({
+      message: 'Partner ID (App Source Id):',
+      default: defaults?.partnerId,
+      validate: validatePartnerId
+    });
+  } else {
+    partnerId = randomUUID().toLowerCase();
+    logInfo(`Generated Partner ID GUID: ${partnerId}`);
+  }
 
   const normalizedName = normalizeIntegrationName(name);
   const description = buildIntegrationDescription(name);

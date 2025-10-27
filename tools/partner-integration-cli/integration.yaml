@@ -1,13 +1,12 @@
-name: partner-integration
-description: PARTNER INTEGRATION for Dragon Copilot healthcare data processing.
+name: lamana-healthcare
+description: LAMANA HEALTHCARE INTEGRATION for Dragon Copilot healthcare data processing.
 version: 0.0.1
 partner-id: 11111111-2222-3333-4444-555555555555
 server-authentication:
   - issuer: https://login.microsoftonline.com/b1a9452a-630a-4678-b73d-8c3371a86d20/v2.0
-    identity_claim: azp
+    identity_claim: oid
     identity_value:
-      - f70a3c0f-2f60-4358-8bf2-528d7be9447d
-      - ee610e30-025f-4def-990b-c2088a822ce2
+      - 50882c99-c63a-4e14-ab35-3c042c2f73be
 note-sections:
   hpi:
     - hpi
@@ -20,14 +19,8 @@ note-sections:
     - plan
   medications: 
   allergies: 
-  review-of-systems:
-    - review-of-systems
-    - medications
-    - allergies
-  physical-exam:
-    - physical-exam
-    - procedures
-    - results
+  review-of-systems: review-of-systems
+  physical-exam: physical-exam
   procedures: procedures
   results: results
 instance:
@@ -38,6 +31,7 @@ instance:
         type: url
         description: Issuer claim for partner issued access tokens.
         required: yes
+        default-value: https://login.microsoftonline.com/b1a9452a-630a-4678-b73d-8c3371a86d20/v2.0
   web-launch-token:
     use-client-authentication: yes
     allow-multiple-issuers: no

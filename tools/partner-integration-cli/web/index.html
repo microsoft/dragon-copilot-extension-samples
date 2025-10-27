@@ -44,17 +44,21 @@
               <button
                 type="button"
                 class="info-badge info-inline"
-                aria-label="Partner ID guidance. Partner ID should match the identifier from your app source (e.g., Microsoft Partner Center)."
+                aria-label="Partner ID guidance. If you do not have an issued Partner ID (for example from NMC or Partner Center) use Generate GUID to create one."
               >
                 <span class="info-symbol" aria-hidden="true">i</span>
               </button>
               <span class="tooltip-content" role="tooltip">
                 <strong>Partner ID</strong>
-                <span>Partner ID should match the identifier from your app source (e.g., Microsoft Partner Center).</span>
+                <span>Partner ID should match the identifier from your app source (e.g., Microsoft Partner Center). If you have not received one yet, select <em>Generate GUID</em> to create a unique identifier for your manifest.</span>
               </span>
             </span>
           </span>
-          <input id="partner-id" type="text" placeholder="00000000-0000-0000-0000-000000000000" />
+          <div class="partner-id-input-group">
+            <input id="partner-id" type="text" placeholder="00000000-0000-0000-0000-000000000000" aria-describedby="partner-id-helper" />
+            <button type="button" id="generate-partner-id" class="secondary" aria-describedby="partner-id-helper">Generate GUID</button>
+          </div>
+          <p id="partner-id-helper" class="field-hint">Provide the Partner ID issued to you or generate a GUID for new integrations.</p>
         </label>
       </div>
     </section>
