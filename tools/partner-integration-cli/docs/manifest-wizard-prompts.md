@@ -1,118 +1,100 @@
 # Partner Manifest Wizard Prompt Reference
 
-This document captures the console banners, guidance messages, and interactive questions that the Partner Integration CLI presents while running the manifest generation wizard. Use it to review or plan updates to the questionnaire without re-running the CLI.
+This document captures the console banners, guidance messages, and interactive questions surfaced by the Partner Integration CLI during the manifest wizard. Use it to review the experience or plan copy updates without re-running the CLI.
 
-## Partner Information (`promptPartnerDetails`)
-- Console banner: `ℹ️  Partner Information`
-- Context lines:
-  - `Provide details for partner integration identification and configuration.`
-  - `Integration name is dynamically rendered for customers (e.g., Contoso for Lamna Healthcare).`
-  - `Partner ID should match the identifier from your app source (e.g., Microsoft Partner Center).`
-- **Integration name:** default `partner-integration`
-- Integration description automatically derived from the integration name.
-- **Integration version:** default `0.0.1`
-- **Partner ID:** default `00000000-0000-0000-0000-000000000000`
+## Partner Details (`promptIntegrationDetails`)
 
-## Server Authentication (`promptServerAuthenticationEntries`)
+- Console banner: `🤝 Partner Details`
+- Guidance:
+  - `Partner ID should match the identifier from your app source (e.g. source, Microsoft Partner Center).`
+- Prompts:
+  - **Integration name:** default `partner-integration`
+  - Integration description automatically derived from the integration name.
+  - **Integration version:** default `0.0.1`
+  - **Partner ID (App Source Id):** no default; validated as lowercase slug
+
+## Server Authentication (`gatherServerAuthenticationEntries`)
+
 - Console banner: `🔐 Server Authentication`
-- Context line: `This section is for authenticating the partner server calling the DDE/Partner APIs.`
-- Guide for using EntraId as an identity solution: `https://learn.microsoft.com/en-us/industry/healthcare/dragon-copilot/sdk/partner-apis/entra-id`
-- Repeats until the user declines to add another issuer (at least one required):
-  - **Issuer authority URL:** default `https://login.microsoftonline.com/[TENANT_ID]/v2.0`
-  - **Identity claim:** defaults to `oid` for first entry, `sub` afterwards
-  - Nested loop (at least one required):
-    - **Identity Value n:** default `00000000-0000-0000-0000-000000000000`
-    - Confirm: `Add another identity value?` (default `no`)
-  - Confirm: `Add another issuer for server authentication?` (default `no`)
+- Guidance:
+  - `Common Entra ID claims include Enterprise Application Object ID (oid) or Application (Client) ID (azp) values.`
+  - Reference: <https://learn.microsoft.com/en-us/azure/cost-management-billing/manage/assign-roles-azure-service-principals#find-your-service-principal-and-tenant-ids>
+- Loop prompts:
+  1. **Server authentication issuer {n}:** no default; requires valid URL
+  2. **Identity claim {n}:** default `azp`
+  3. **Allowed identity values {n} (comma separated):** no default; must include at least one value
+- After each issuer the CLI asks: `Add another server authentication issuer?` (default `no`). At least one issuer is required.
 
-## Note Generation (`promptNoteSections`)
+## Note Generation (`gatherNoteSections`)
+
 - Console banner: `📋 Note Generation`
-- Context line: `Select note sections to generate as well as mapping of sections.`
-- Confirm: `Generate note sections?` (default `yes`)
-  - If **No**: returns the "No Sections Mapped" note set (keys present with empty string values).
-  - If **Yes**:
-    - Confirm: `Generate all 11 standard note sections individually?` (default `yes`)
-      - If **Yes**: returns standard note set.
-      - If **No**: prompts to build custom mappings:
-        - For each section:
-          - Select: `Select note section {index}:` (remaining unused sections)
-          - Confirm: `Map additional generated items for '{section}'?` (default `no`)
-            - If **Yes**: repeat select prompts for additional items with confirm `Map another generated item?`
-          - Confirm: `Add another note section?` (default `no`)
+- Helper text: `Each note section can be generated individually or mapped to another section.`
+- Flow:
+  1. `Generate <section>?` (default `true`). Selecting `false` omits the section completely.
+  2. When configuring `assessment`, the wizard asks `Map plan to assessment?` (default `true`). When selected, `plan` automatically maps to `assessment` and is skipped later.
+  3. For remaining eligible sections the CLI uses a single multi-select prompt:
+     - `Select sections to map to <section> (press Space to toggle, Enter to continue):`
+     - Multiple destinations can be selected in one prompt; the old "add another mapping" loop has been removed.
+- Sections that have already been mapped are not prompted again.
 
-## Instance Configuration (`promptInstanceConfig`)
-- Console banner: `📦 EHR Embedded Manfiest`
-- Context lines:
-  - `Adding an instance of the EHR embedded manifest to a DAC environment`
-  - `Indicate items to be collected by the customer admin.`
-- Subsection banner: `🔐 Client Authentication`
-  - Confirm: `Allow multiple issuers for client authentication?` (default `yes`)
-  - **Access token issuer default value (leave blank if none):** no default
-  - Confirm: `Prompt client for User identity claim? (no defaults to 'sub')` (default `yes`)
-    - If **Yes**:
-      - **User identity claim default value (leave blank to use 'sub'):** default `sub`
-      - Confirm: `Is the user identity claim required?` (default `no`)
-  - Confirm: `Prompt client for customer identity claim? (no defaults to none)` (default `yes`)
-    - If **Yes**:
-      - **Customer identity claim default value (leave blank if none):** default `http://customerid.dragon.com`
-      - Confirm: `Is the customer identity claim required?` (default `no`)
+## Instance Configuration (`gatherClientAuthAndWeb`)
 
-- Subsection banner: `📋 WebUI Launch Configuration`
-  - Context line: `Partner enablement of SMART on FHIR AND/OR Token launch for web-based integrations.`
-  - Select: `Select web launch enablement mode:` choices `SMART on FHIR`, `Token Launch`, `Both` (default `Both`)
+### Client Authentication
 
-### SMART on FHIR (`promptWebLaunchSof`, forced when mode includes SMART)
-- Console banner: `⚙️  SMART on FHIR Configuration`
-- **Web launch SMART on FHIR issuer name identifier:** default `access-token-issuer`
-- **Web launch SMART on FHIR issuer description:** default `Issuer claim used when invoking the Dragon Copilot SMART on FHIR endpoint`
-- **Web launch SMART on FHIR issuer default value (leave blank if none):** no default
+- Banner: `Client Authentication`
+- Prompts:
+  1. `Allow multiple issuers for client authentication?` (default `yes`).
+  2. `Default client authentication access token issuer URL (leave blank for none):` (no default).
+  3. `Collect user identity claim?` (default `true`).
+     - If `yes`:
+       - `User identity claim name:` default `sub`.
+       - `Is the user identity claim required?` (default `no`).
+  4. `Collect customer identity claim?` (default `false`).
+     - If `yes`:
+       - `Customer identity claim name:` default `http://customerid.dragon.com`.
+       - `Is the customer identity claim required?` (default `no`).
 
-### Token Launch (`promptWebLaunchToken`, forced when mode includes Token)
-- Console banner: `⚙️  Token Launch Configuration`
-- Confirm: `Reuse client authentication configuration?` (default `yes`)
-  - If **Yes**: skips remaining token questions.
-  - If **No**:
-    - Confirm: `Allow multiple issuers for web launch tokens?` (default `no`)
-    - Repeats issuer collection until user declines (at least one required):
-      - **Web launch token issuer data type:** select (default `URL`)
-        - If `Custom`, prompt `Web launch token issuer custom data type:` (default `string`)
-      - **Web launch token issuer description:** default `Issuer claim value for partner-issued, user scoped access tokens during webUI launch`
-      - Confirm: `Web launch token issuer required?` (default `yes`)
-      - **Web launch token issuer default value (leave blank if none):** no default
-      - **Web launch token issuer name identifier:** default `access-token-issuer`
-      - Confirm: `Add another web launch issuer?` (default `no`)
+### Web Launch
 
-### Context Retrieval (`promptContextRetrieval`)
-- Console banner: `📋 Interop Contextual Requirements`
-- Context line: `Partner determined context items to be collected by the customer admin from their environment.`
-- Confirm: `Configure context retrieval items?` (default `yes`)
-  - If **Yes**: iterate through available context keys until user stops:
-    - Select: `Select context item {index}:`
-    - **Description for '{key}':** default from definition
-    - Confirm: `Is '{key}' required?` (default based on definition)
-    - Confirm: `Add another context item?` (default `no`)
+- Banner: `🌐 Web Launch`
+- Helper text links out to SMART on FHIR and Token Launch documentation.
+- Flow:
+  1. `Configure SMART on FHIR web launch issuer?` (default `false`).
+     - If `yes`, prompt `Default SMART on FHIR issuer URL (leave blank for none):` (no default).
+  2. Token Launch configuration is required when SMART on FHIR is disabled. Otherwise the CLI asks `Configure Token Launch?` (default `true`).
+     - `Use client authentication for web launch tokens?` (default `yes`).
+     - `Allow multiple issuers for web launch tokens?` (default `no`).
+     - If not reusing client authentication, the wizard invokes `gatherNamedIssuerFields` to capture issuer name, data type (`url` default with `custom` option), description, required flag, and optional default value. Multiple issuers can be added sequentially.
+
+### Context Retrieval
+
+- Banner: `🧠 Context Retrieval`
+- Guidance reminds that Interop environment metadata can be included automatically.
+- Prompts:
+  1. `Include Interop context values?` (default `true`). Selecting `false` returns `null` and skips the remainder.
+  2. For each catalog entry:
+     - `Include <context-key>?` (defaults follow the catalog; `ehr-user_id` now defaults to `true`).
+     - If included, `Is <context-key> required?` (default from catalog).
 
 ## Publisher Details (`promptPublisherDetails`)
-Executed when the CLI is run with publisher generation enabled.
-- **Publisher ID (e.g., contoso.healthcare):** no default
-- **Publisher Name:** no default
-- **Website URL:** no default
-- **Privacy Policy URL:** no default
-- **Support URL:** no default
-- **Publisher Config Version:** default `0.0.1`
-- **Contact Email:** no default
-- **Offer ID:** default `${publisherId.split('.')[0]}-integration-suite`
+
+- Only shown when the wizard is run with publisher generation enabled.
+- Prompts mirror `@dragon-copilot/cli-common` and validate URLs, emails, and semantic versions:
+  - Publisher ID / Name / Website URL / Privacy Policy URL / Support URL / Contact Email
+  - `Publisher config version:` default `0.0.1`
+  - `Offer ID:` default `${publisherId.split('.')[0]}-integration-suite`
 
 ## Wizard Assembly (`runPartnerManifestWizard`)
-The CLI executes the sections above in order:
-1. Partner Information
-2. Server Authentication
-3. Note Generation (optional custom mappings)
-4. Instance Configuration
-   - Client Authentication
-   - SMART on FHIR (if enabled)
-   - Token Launch (if enabled)
-   - Context Retrieval (optional)
-5. Publisher Details (only when requested)
 
-Use this reference to edit prompt wording, adjust defaults, or coordinate documentation updates without stepping through the interactive flow.
+The CLI executes the sections above in order:
+1. Partner details
+2. Server authentication issuers
+3. Note generation and mappings
+4. Instance configuration
+   - Client authentication
+   - SMART on FHIR (optional)
+   - Token Launch (required when SMART on FHIR is disabled)
+   - Context retrieval (optional)
+5. Publisher details (only when requested)
+
+Use this reference to keep prompt wording, defaults, and documentation aligned with the current CLI experience.

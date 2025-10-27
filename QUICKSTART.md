@@ -1,18 +1,148 @@
-# Quick Start Guide for Dragon Extension Developer
+# Dragon Copilot Extension Samples – Quick Start
 
-## 🚀 Getting Started (Choose One)
+Jump straight into development with the three entry points shipped in this repository:
 
-### Development Prerequisites
-* DotNet 9
-* Node 22.20.0
-* npm 10.9.3
+- **Dragon Extension CLI** – scaffold, validate, and package Dragon Copilot extensions.
+- **Partner Integration CLI** – build embedded partner manifests with the guided wizard or web builder.
+- **Sample Extension Web API** – reference ASP.NET Core host implementing `/v1/process`.
 
-### Local Development Environment
-1. Clone the repository
-1. Open a terminal and navigate to `samples/DragonCopilot/Workflow/SampleExtension.Web`
-1. Issue a `dotnet run`
+Choose one path or explore them all—each shares common models and tooling.
 
-The application will start and be available at http://localhost:5181
+## 🔧 Prerequisites
+
+- .NET 9 SDK
+- Node.js 22.20.0
+- npm 10.9.3
+- Docker Desktop (for container builds)
+
+> Use a PowerShell shell on Windows. Commands assume the repository root unless noted.
+
+## 1. Dragon Extension CLI in Five Minutes
+
+```powershell
+cd tools/dragon-extension-cli
+npm install
+npm run build
+node dist/cli.js init      # or npm link && dragon-extension init
+```
+
+During `init` the shared prompts from `@dragon-copilot/cli-common` help you:
+
+- Name and describe the extension with schema-backed validation.
+- Capture Azure Entra tenant information for authentication.
+- Configure tools with multi-select data inputs and repeatable output definitions.
+- Generate `publisher.json` alongside the manifest and a starter logo inside `assets/`.
+
+Continue with validation and packaging when ready:
+
+```powershell
+node dist/cli.js validate extension.yaml
+node dist/cli.js package --output my-extension.zip
+npm test
+```
+
+Artifacts emitted in the working directory:
+
+- `extension.yaml`
+- `publisher.json`
+- `assets/logo_large.png` (replace before publishing)
+
+## 2. Partner Integration CLI Walkthrough
+
+```powershell
+cd tools/partner-integration-cli
+npm install
+npm run build
+node dist/cli.js init
+```
+
+Key experience highlights after the latest refactors:
+
+- Clean partner ID, issuer, and token prompts with no placeholder GUIDs.
+- Note section mapping handled through a single multi-select per section (no repetitive prompts).
+- Client authentication flow now asks whether collected user/customer identity claims are required.
+- SMART on FHIR and Token Launch setup clearly labels default issuer questions.
+- Context retrieval defaults include `ehr-user_id`, aligning with Interop guidance.
+
+Wrap up with validation, packaging, or automated workflows:
+
+```powershell
+node dist/cli.js validate integration.yaml
+node dist/cli.js package --include assets/
+npm test                        # includes bootstrapAssetsDirectory coverage
+```
+
+Generated assets match the extension CLI layout:
+
+- `integration.yaml`
+- `publisher.json`
+- `assets/logo_large.png`
+
+Prefer a visual experience? Open `tools/partner-integration-cli/web/index.html` in a browser for the single-page manifest builder that mirrors the CLI prompts.
+
+## 3. Sample Extension Web API
+
+```powershell
+cd samples/DragonCopilot/Workflow/SampleExtension.Web
+dotnet restore
+dotnet run
+```
+
+The service listens on `http://localhost:5181`. Validate the endpoints:
+
+```powershell
+curl http://localhost:5181/health
+```
+
+Use the ready-made [SampleExtension.Web.http](./samples/DragonCopilot/Workflow/SampleExtension.Web/SampleExtension.Web.http) file to send sample `/v1/process` requests that demonstrate note processing responses.
+
+### Deploy to Azure Container Apps
+
+```powershell
+# from repository root
+docker build -f samples/DragonCopilot/Workflow/SampleExtension.Web/Dockerfile -t dragon-extension:latest .
+docker run -p 5181:8080 dragon-extension:latest
+
+az login
+az acr login --name <registry>
+docker tag dragon-extension:latest <registry>.azurecr.io/dragon-extension:latest
+docker push <registry>.azurecr.io/dragon-extension:latest
+
+az containerapp update `
+    --name <app-name> `
+    --resource-group <rg> `
+    --image <registry>.azurecr.io/dragon-extension:latest `
+    --set-env-vars `
+        ASPNETCORE_ENVIRONMENT=Production `
+        Authentication__Enabled=true `
+        Authentication__TenantId=<tenant-id> `
+        Authentication__ClientId=<client-id> `
+        Authentication__Instance=https://login.microsoftonline.com/
+
+az containerapp show `
+    --name <app-name> `
+    --resource-group <rg> `
+    --query "properties.latestRevisionFqdn" `
+    --output tsv
+```
+
+Consult [doc/Authentication.md](./doc/Authentication.md) for Entra ID configuration details.
+
+## ✅ Troubleshooting
+
+- `.NET 9` missing ➡️ install the SDK and re-run `dotnet --version`.
+- CLI prompts showing outdated defaults ➡️ rebuild the tool (`npm run build`) to refresh `dist/`.
+- Node errors ➡️ confirm Node 22.x and npm 10.x are active via `node --version` / `npm --version`.
+- API 404s ➡️ ensure `dotnet run` is active and requests follow `dragon-extensibility-api.yaml`.
+
+## 📚 Next Steps
+
+- Study each CLI README for advanced command options.
+- Explore `src/Dragon.Copilot.Models` to understand payload contracts.
+- Replace the sample logos and extend the Jest/.http suites with your scenarios.
+- Track the `feature/partner-integration-cli` branch for the latest shared tooling improvements.
+
+Happy building! Mix the CLIs, web builder, and sample API to deliver end-to-end Dragon Copilot experiences quickly.
 
 ### Call the endpoint
 You can make use of the [SampleExtension.Web.http](./samples/DragonCopilot/Workflow/SampleExtension.Web/SampleExtension.Web.http) file in the sample project to make a call. It contains a sample invocation for an extension listening for `Note` content.
@@ -49,6 +179,7 @@ Transfer-Encoding: chunked
 ## ☁️ Deploy to Azure (Production Ready)
 
 ### Prerequisites for Azure Deployment
+
 - Docker Desktop installed and running
 - Azure subscription with Container Apps deployed
 - Container registry with permissions granted to the Container Apps identity
@@ -91,86 +222,53 @@ docker push <your-registry-name>.azurecr.io/dragon-extension:latest
 
 #### 4. Deploy to Azure Container Apps
 ```powershell
-# Create or update the container app
 az containerapp update `
-  --name <your-container-app-name> `
-  --resource-group <your-resource-group> `
-  --image <your-registry-name>.azurecr.io/dragon-extension:latest
+    --name <your-container-app-name> `
+    --resource-group <your-resource-group> `
+    --image <your-registry-name>.azurecr.io/dragon-extension:latest
+```
 
-# Verify deployment
+Verify the revision status and capture the public endpoint:
+
+```powershell
 az containerapp show `
-  --name <your-container-app-name> `
-  --resource-group <your-resource-group> `
-  --query "properties.latestRevisionFqdn" `
-  --output tsv
+    --name <your-container-app-name> `
+    --resource-group <your-resource-group> `
+    --query "properties.latestRevisionFqdn" `
+    --output tsv
 ```
 
 #### 5. Configure Environment Variables (Production)
-For production deployments, configure authentication and other settings:
 
 ```powershell
 az containerapp update `
-  --name <your-container-app-name> `
-  --resource-group <your-resource-group> `
-  --set-env-vars `
-    ASPNETCORE_ENVIRONMENT=Production `
-    Authentication__Enabled=true `
-    Authentication__TenantId=<your-entra-tenant-id> `
-    Authentication__ClientId=<your-entra-client-id> `
-    Authentication__Instance=https://login.microsoftonline.com/
+    --name <your-container-app-name> `
+    --resource-group <your-resource-group> `
+    --set-env-vars `
+        ASPNETCORE_ENVIRONMENT=Production `
+        Authentication__Enabled=true `
+        Authentication__TenantId=<your-entra-tenant-id> `
+        Authentication__ClientId=<your-entra-client-id> `
+        Authentication__Instance=https://login.microsoftonline.com/
 ```
 
-See [Authentication.md](./doc/Authentication.md) for detailed authentication configuration.
+Consult [doc/Authentication.md](./doc/Authentication.md) for Entra ID configuration guidance.
 
 #### 6. Verify Production Deployment
-```powershell
-# Get the FQDN
-$fqdn = az containerapp show `
-  --name <your-container-app-name> `
-  --resource-group <your-resource-group> `
-  --query "properties.latestRevisionFqdn" `
-  --output tsv
 
-# Test the health endpoint
+```powershell
+$fqdn = az containerapp show `
+    --name <your-container-app-name> `
+    --resource-group <your-resource-group> `
+    --query "properties.latestRevisionFqdn" `
+    --output tsv
+
 curl "https://$fqdn/health"
 
-# View logs
 az containerapp logs show `
-  --name <your-container-app-name> `
-  --resource-group <your-resource-group> `
-  --follow
+    --name <your-container-app-name> `
+    --resource-group <your-resource-group> `
+    --follow
 ```
 
-## 📋 What the Service Does
-
-### Sample Extension (Port 5181)
-- Example implementation of a Dragon Copilot extension
-- Shows proper request/response handling for Dragon Copilot integration
-- Includes health check endpoints
-- Demonstrates error handling patterns
-- Provides comprehensive API documentation via Swagger
-
-## 🔍 Troubleshooting
-
-### Services Won't Start
-- Check .NET 9.0 SDK is installed: `dotnet --version`
-- Make sure that you have nuget available as default source: `dotnet nuget add source https://api.nuget.org/v3/index.json -n nuget.org`
-- Ensure port 5181 is free
-
-### Integration Tests Fail
-- Verify the extension is running and healthy
-- Check extension logs in terminal window
-- Test extension directly using the HTTP test file
-
-## 📚 Next Steps
-
-1. **Explore the APIs**: Use Swagger UI to understand the interfaces
-3. **Create Your Extension**: Use `samples/DragonCopilot/Workflow/SampleExtension.Web` as a starting point
-4. **Customize Business Logic**: Modify `ProcessingService.cs` for your needs
-5. **Add Your Tests**: Extend the http test suite for your scenarios
-
-## 🎉 You're Ready!
-
-Your Dragon Extension Developer environment is now set up and ready for development. Start building your custom extensions and test them locally before deploying to Dragon Copilot.
-
-For detailed documentation, see the individual README files in each project folder.
+If the health probe fails, review the container logs and confirm the environment variables match your Entra ID registration.
