@@ -1,3 +1,4 @@
+#
 # Quick Start Guide for Dragon Extension Developer
 
 ## 🚀 Getting Started (Choose One)
