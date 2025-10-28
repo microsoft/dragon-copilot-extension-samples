@@ -53,6 +53,22 @@ dragon-extension package
 
 See [CLI README](tools/dragon-extension-cli/README.md) for details.
 
+### Partner Integration CLI
+
+CLI for building partner interoperability manifests, publisher metadata, and deployment bundles aligned with Dragon Copilot partner onboarding workflows.
+
+Quick usage:
+
+```bash
+cd tools/partner-integration-cli
+npm run build
+npm link
+partner-integration init
+partner-integration package
+```
+
+See [Partner CLI README](tools/partner-integration-cli/README.md) for full capabilities.
+
 ## 🤝 Contributing
 
 1. Fork the repository

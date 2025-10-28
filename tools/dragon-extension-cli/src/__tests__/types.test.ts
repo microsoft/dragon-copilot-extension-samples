@@ -1,4 +1,4 @@
-import { DragonExtensionManifest, DragonTool } from '../types.js';
+import type { DragonExtensionManifest, DragonTool } from '../types.js';
 
 describe('Types', () => {
   test('should define DragonExtensionManifest interface correctly', () => {

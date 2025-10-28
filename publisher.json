@@ -1,0 +1,18 @@
+{
+  "publisherId": "asdfsadf",
+  "publisherName": "asdfdsafds",
+  "websiteUrl": "https://asdfsdfd.com",
+  "privacyPolicyUrl": "https://asdfsdafsdf.com",
+  "supportUrl": "https://asdfdsfsds.com",
+  "version": "0.0.1",
+  "contactEmail": "asdfdsaf@asdfdsafd.com",
+  "offerId": "asdfasdfdsfsdafsf",
+  "defaultLocale": "en-US",
+  "supportedLocales": [
+    "en-US"
+  ],
+  "scope": "US",
+  "regions": [
+    "US"
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "publisherId": "lamna.healthcare",
+  "publisherName": "Lamna Healthcare",
+  "websiteUrl": "https://lamnahc.com",
+  "privacyPolicyUrl": "https://lamnahc.com/policy",
+  "supportUrl": "https://lamnahc.com/support",
+  "version": "0.0.1",
+  "contactEmail": "lamnahealthcare@lamnahc.com",
+  "offerId": "lamna-integration-suite",
+  "defaultLocale": "en-US",
+  "supportedLocales": [
+    "en-US"
+  ],
+  "scope": "US",
+  "regions": [
+    "US"
+  ]
+}

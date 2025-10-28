@@ -1,4 +1,4 @@
-import { TemplateConfig } from '../types.js';
+import type { TemplateConfig } from '../types.js';
 
 const templates: Record<string, TemplateConfig> = {
   'note-analysis': {

@@ -1,0 +1,18 @@
+{
+  "publisherId": "contoso.healthcare",
+  "publisherName": "Contoso Healthcare Inc.",
+  "websiteUrl": "https://www.contosohealth.com",
+  "privacyPolicyUrl": "https://www.contosohealth.com/privacy",
+  "supportUrl": "https://www.contosohealth.com/support",
+  "version": "0.0.1",
+  "contactEmail": "support@contosohealth.com",
+  "offerId": "contoso-extension-suite",
+  "scope": "Workflow",
+  "defaultLocale": "en-US",
+  "supportedLocales": [
+    "en-US"
+  ],
+  "regions": [
+    "US"
+  ]
+}

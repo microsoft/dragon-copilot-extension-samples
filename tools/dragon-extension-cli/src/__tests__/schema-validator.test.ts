@@ -1,5 +1,5 @@
 import { validateExtensionManifest, validatePublisherConfig } from '../shared/schema-validator.js';
-import { DragonExtensionManifest, PublisherConfig } from '../types.js';
+import type { DragonExtensionManifest, PublisherConfig } from '../types.js';
 
 describe('Schema Validation', () => {
   describe('validateExtensionManifest', () => {

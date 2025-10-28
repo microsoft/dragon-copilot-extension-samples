@@ -1,3 +1,5 @@
+import type { PublisherConfig as CommonPublisherConfig } from '@dragon-copilot/cli-common';
+
 export interface DragonExtensionManifest {
   name: string;
   description: string;
@@ -30,20 +32,7 @@ export interface DragonOutput {
   data: string;
 }
 
-export interface PublisherConfig {
-  publisherId: string;
-  publisherName: string;
-  websiteUrl: string;
-  privacyPolicyUrl: string;
-  supportUrl: string;
-  version: string;
-  contactEmail: string;
-  offerId: string;
-  defaultLocale: string;
-  supportedLocales: string[];
-  scope: string;
-  regions: string[];
-}
+export type PublisherConfig = CommonPublisherConfig;
 
 export interface GenerateOptions {
   template?: string;

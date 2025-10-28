@@ -1,5 +1,6 @@
 import { input, select, checkbox, confirm } from '@inquirer/prompts';
-import { DragonExtensionManifest, PublisherConfig, AuthConfig } from '../types.js';
+import { promptPublisherDetails as promptCommonPublisherDetails } from '@dragon-copilot/cli-common';
+import type { DragonExtensionManifest, PublisherConfig, AuthConfig } from '../types.js';
 import { validateFieldValue } from './schema-validator.js';
 
 export interface ExtensionDetails {
@@ -254,71 +255,42 @@ export async function promptOutputs(): Promise<OutputDetails[]> {
  * Prompts for publisher configuration details
  * Sets fixed values for locale (en-US) and country (US) as per requirements
  */
+const EXTENSION_PUBLISHER_DEFAULTS: Partial<PublisherConfig> = {
+  publisherId: 'contoso.healthcare',
+  publisherName: 'Contoso Healthcare Inc.',
+  websiteUrl: 'https://www.contosohealth.com',
+  privacyPolicyUrl: 'https://www.contosohealth.com/privacy',
+  supportUrl: 'https://www.contosohealth.com/support',
+  version: '0.0.1',
+  contactEmail: 'support@contosohealth.com',
+  offerId: 'contoso-extension-suite',
+  scope: 'Workflow',
+  defaultLocale: 'en-US',
+  supportedLocales: ['en-US'],
+  regions: ['US']
+};
+
 export async function promptPublisherDetails(defaults?: Partial<PublisherConfig>): Promise<PublisherConfig> {
-  const publisherId = await input({
-    message: 'Publisher ID (e.g., contoso.healthcare):',
-    default: defaults?.publisherId || 'contoso.healthcare',
-    validate: validatePublisherId
-  });
-
-  const publisherName = await input({
-    message: 'Publisher Name:',
-    default: defaults?.publisherName || 'Contoso Healthcare Inc.'
-  });
-
-  const websiteUrl = await input({
-    message: 'Website URL:',
-    default: defaults?.websiteUrl || 'https://www.contosohealth.com',
-    validate: validateUrl
-  });
-
-  const privacyPolicyUrl = await input({
-    message: 'Privacy Policy URL:',
-    default: defaults?.privacyPolicyUrl || 'https://www.contosohealth.com/privacy',
-    validate: validateUrl
-  });
-
-  const supportUrl = await input({
-    message: 'Support URL:',
-    default: defaults?.supportUrl || 'https://www.contosohealth.com/support',
-    validate: validateUrl
-  });
-
-  const version = await input({
-    message: 'Publisher Config Version:',
-    default: defaults?.version || '0.0.1',
-    validate: validateVersion
-  });
-
-  const contactEmail = await input({
-    message: 'Contact Email:',
-    default: defaults?.contactEmail || 'support@contosohealth.com',
-    validate: validateEmail
-  });
-
-  const offerId = await input({
-    message: 'Offer ID:',
-    default: defaults?.offerId || 'contoso-extension-suite'
-  });
-
-  // Fixed values as per requirements - only US and en-US supported
-  const defaultLocale = 'en-US';
-  const supportedLocales = ['en-US'];
-  const regions = ['US'];
-  const scope = 'Workflow'; // Fixed scope as per requirements
-
-  return {
-    publisherId,
-    publisherName,
-    websiteUrl,
-    privacyPolicyUrl,
-    supportUrl,
-    version,
-    contactEmail,
-    offerId,
-    scope,
-    defaultLocale,
-    supportedLocales,
-    regions
+  const mergedDefaults: Partial<PublisherConfig> = {
+    ...EXTENSION_PUBLISHER_DEFAULTS,
+    ...defaults
   };
+
+  return promptCommonPublisherDetails({
+    defaults: mergedDefaults,
+    validators: {
+      publisherId: validatePublisherId,
+      publisherName: (value: string) => (value.trim() ? true : 'Publisher Name is required'),
+      websiteUrl: validateUrl,
+      privacyPolicyUrl: validateUrl,
+      supportUrl: validateUrl,
+      version: validateVersion,
+      contactEmail: validateEmail,
+      offerId: (value: string) => (value.trim() ? true : 'Offer ID is required')
+    },
+    scope: mergedDefaults.scope,
+    defaultLocale: mergedDefaults.defaultLocale,
+    supportedLocales: mergedDefaults.supportedLocales,
+    regions: mergedDefaults.regions
+  });
 }

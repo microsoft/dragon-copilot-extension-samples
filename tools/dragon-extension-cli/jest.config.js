@@ -7,10 +7,12 @@ export default {
   testPathIgnorePatterns: ['__mocks__'],
   transform: {
     '^.+\\.ts$': ['ts-jest', {
-      useESM: true
+      useESM: true,
+      tsconfig: './tsconfig.test.json'
     }],
   },
   moduleNameMapper: {
+    '^@dragon-copilot/cli-common$': '<rootDir>/../cli-common/src/index.ts',
     '^(\\.{1,2}/.*)\\.js$': '$1',
     '^chalk$': '<rootDir>/src/__tests__/__mocks__/chalk.ts',
   },
