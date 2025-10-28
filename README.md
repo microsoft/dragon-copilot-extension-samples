@@ -1,4 +1,4 @@
-
+#
 # Dragon Copilot Extension Samples
 
 Welcome! This repository contains sample code illustrating the Dragon Copilot extension. Each sample is a self-contained extension that explains one topic in Dragon Copilot extensibility. You can read, play with or adapt from these samples to create your own extensions.
