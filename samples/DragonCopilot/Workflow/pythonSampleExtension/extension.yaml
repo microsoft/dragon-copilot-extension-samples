@@ -1,0 +1,18 @@
+name: sample-clinical-extraction-py
+description: Python FastAPI version of clinical entity extraction sample
+version: 0.0.1
+tools:
+  - name: clinical-entity-extractor-py
+    description: Extracts certain clinical entities (Python FastAPI)
+    endpoint: http://localhost:5181/v1/process
+    inputs:
+      - name: note
+        description: Note
+        data: DSP/Note
+    outputs:
+      - name: sample-entities
+        description: Coded clinical entities
+        data: DSP
+      - name: sample-entities-adaptive-card
+        description: Coded clinical entities in Adaptive Card format
+        data: DSP
