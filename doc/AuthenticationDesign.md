@@ -10,6 +10,8 @@ Additionally, you will find the threat model applied to the service-to-service r
 
 See [Authentication.md](Authentication.md) for implementation details in the Sample Extension.
 
+> **Related tooling**: The `dragon-copilot` CLI generates manifest version 3 files that capture the same tenant identifiers discussed here. Ensure the values provided to the CLI match the configuration steps below so request validation succeeds.
+
 ## Service-to-Service Authentication Overview
 
 The Dragon Copilot Extension Runtime receives extension configuration including the extension's endpoint and authentication information.
