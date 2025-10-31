@@ -8,6 +8,28 @@
 * Node 22.20.0
 * npm 10.9.3
 
+### Generate Manifests with the CLI
+Use the unified `dragon-copilot` CLI to create and validate manifest version 3 definitions that now support automation scripts, event triggers, and dependency metadata.
+
+```powershell
+cd tools/dragon-copilot-cli
+npm install
+npm run build
+npm link
+
+# Interactive extension wizard (prompts for scripts/triggers/dependencies)
+dragon-copilot extension init
+
+# Validate both extension and publisher configuration together
+dragon-copilot extension validate ./extension.yaml
+
+# Partner manifest workflow
+dragon-copilot partner init
+dragon-copilot partner validate ./integration.yaml
+```
+
+> Tip: The wizard ensures `manifestVersion: 3` is set and collects automation metadata so the generated YAML aligns with the new schema shipped in this repository.
+
 ### Local Development Environment
 1. Clone the repository
 1. Open a terminal and navigate to `samples/DragonCopilot/Workflow/SampleExtension.Web`
