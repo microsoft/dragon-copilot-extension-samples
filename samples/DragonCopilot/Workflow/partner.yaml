@@ -1,0 +1,100 @@
+name: sample-partner
+description: Dragon Copilot deep integration for sample-partner
+version: 0.0.1
+partner-id: 5d0d3b72-2d47-4bf7-9091-8c7c3b03af84
+clinical-application-name: Sample Partner Clinical Application
+server-authentication:
+  - issuer: https://auth.sample-partner.com/v2.0
+    identity_claim: azp
+    identity_value:
+      - 8c2c91b9-1e4f-4b9d-9c27-a24f35e3f4dc
+      - 6aefb6a8-0f1a-45bd-bcf5-0cb1dd0cf9a4
+  - issuer: https://auth-backup.sample-partner.com/v2.0
+    identity_claim: azp
+    identity_value:
+      - 3c4fa8f2-6ca7-45c7-bd62-913df97ec9cd
+      - 7732f3dc-f7f4-4b04-8e5d-3b5639a34c84
+note-sections:
+  hpi:
+    - hpi
+    - chief-complaint
+  chief-complaint:
+  past-medical-history:
+  assessment:
+    - assessment
+    - plan
+  medications:
+  allergies:
+  review-of-systems:
+  physical-exam: physical-exam
+  procedures: procedures
+  results: results
+instance:
+  client-authentication:
+    allow-multiple-issuers: yes
+    issuer:
+      access-token-issuer:
+        type: url
+        description: The value of the issuer claim for partner issued, user scoped access tokens.
+        default-value: https://auth.sample-partner.com/oauth2/v2.0
+        required: yes
+      user-identity-claim:
+        type: string
+        description: Optional name of claim containing the EHR identity of an end user. Defaults to 'sub' if not collected.
+        default-value: sub
+        required: no
+      customer-identity-claim:
+        type: string
+        description: Optional name of claim containing the Microsoft environment ID.
+        default-value: http://customerid.dragon.com
+        required: no
+  web-launch-sof:
+    name: access-token-issuer
+    type: url
+    description: The value of the issuer claim when invoking the Dragon Copilot SMART on FHIR endpoint.
+    default-value: https://smart.sample-partner.com/oauth2
+    required: yes
+  web-launch-token:
+    use-client-authentication: no
+    allow-multiple-issuers: yes
+    issuer:
+      - name: access-token-issuer
+        type: url
+        description: The value of the issuer claim for partner issued, user scoped access tokens.
+        default-value: https://auth.sample-partner.com/oauth2/v2.0
+        required: yes
+      - name: user-identity-claim
+        type: string
+        description: Optional name of claim containing the EHR identity of an end user. Defaults to 'sub' if not collected.
+        default-value: sub
+        required: no
+  context-retrieval:
+    instance:
+      - name: base_url
+        type: url
+        description: Base URL needed for API calls. These are typically FHIR calls.
+        required: yes
+      - name: ehr-user_id
+        type: string
+        description: Optional EHR user id for FHIR API calls.
+        required: no
+      - name: in-bound-client-id
+        type: string
+        description: Credential for inbound calls to interop.
+        required: yes
+      - name: in-bound-issuer
+        type: url
+        description: Issuer claim of access tokens used by the partner to call Dragon Copilot Interop.
+        required: yes
+      - name: out-bound-issuer
+        type: url
+        description: Endpoint used to issue access tokens for Dragon Copilot Interop to call the partner.
+        required: yes
+      - name: out-bound-client-id
+        type: string
+        description: Partner provided client id to issue access tokens for Dragon Copilot Interop to call the partner.
+        required: yes
+      - name: out-bound-secret
+        type: string
+        description: Partner provided secret to issue access tokens for Dragon Copilot Interop to call the partner.
+        required: yes

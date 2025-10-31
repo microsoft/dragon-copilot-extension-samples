@@ -1,0 +1,260 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Dragon Copilot Extension Manifest",
+  "type": "object",
+  "required": ["name", "description", "version", "auth", "tools"],
+  "properties": {
+    "manifestVersion": {
+      "type": "integer",
+      "enum": [3],
+      "description": "Manifest schema version"
+    },
+    "name": {
+      "type": "string",
+      "pattern": "^[a-z0-9-]+$",
+      "minLength": 1,
+      "description": "Extension name (lowercase letters, numbers, and hyphens only)"
+    },
+    "description": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Extension description"
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$",
+      "description": "Version in x.y.z format"
+    },
+    "auth": {
+      "$ref": "#/definitions/AuthConfig",
+      "description": "Authentication configuration"
+    },
+    "tools": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/definitions/DragonTool"
+      },
+      "description": "Array of tools provided by this extension"
+    },
+    "automationScripts": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/AutomationScript"
+      },
+      "description": "Automation scripts available to the extension"
+    },
+    "eventTriggers": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/EventTrigger"
+      },
+      "description": "Event triggers that invoke automation scripts"
+    },
+    "dependencies": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/Dependency"
+      },
+      "description": "External dependencies required by the extension"
+    }
+  },
+  "additionalProperties": false,
+  "definitions": {
+    "AuthConfig": {
+      "type": "object",
+      "required": ["tenantId"],
+      "properties": {
+        "tenantId": {
+          "type": "string",
+          "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$",
+          "description": "Azure Entra ID tenant ID (GUID format)"
+        }
+      },
+      "additionalProperties": false
+    },
+    "DragonTool": {
+      "type": "object",
+      "required": ["name", "description", "endpoint", "inputs", "outputs"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "pattern": "^[a-z0-9-]+$",
+          "minLength": 1,
+          "description": "Tool name (lowercase letters, numbers, and hyphens only)"
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Tool description"
+        },
+        "endpoint": {
+          "type": "string",
+          "format": "uri",
+          "description": "API endpoint URL"
+        },
+        "inputs": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/definitions/DragonInput"
+          },
+          "description": "Array of input definitions"
+        },
+        "outputs": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/definitions/DragonOutput"
+          },
+          "description": "Array of output definitions"
+        }
+      },
+      "additionalProperties": false
+    },
+    "DragonInput": {
+      "type": "object",
+      "required": ["name", "description", "data"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Input name"
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Input description"
+        },
+        "data": {
+          "type": "string",
+          "enum": [
+            "DSP/IterativeAudio",
+            "DSP/IterativeTranscript",
+            "DSP/Note",
+            "DSP/Transcript"
+          ],
+          "description": "Data type identifier"
+        }
+      },
+      "additionalProperties": false
+    },
+    "DragonOutput": {
+      "type": "object",
+      "required": ["name", "description", "data"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Output name"
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Output description"
+        },
+        "data": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Output data type"
+        }
+      },
+      "additionalProperties": false
+    },
+    "AutomationScript": {
+      "type": "object",
+      "required": ["name", "entryPoint", "runtime"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "pattern": "^[a-z0-9-]+$",
+          "minLength": 1,
+          "description": "Script identifier"
+        },
+        "description": {
+          "type": "string",
+          "description": "Script description"
+        },
+        "entryPoint": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Relative path to the script entry point"
+        },
+        "runtime": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Runtime identifier (e.g. nodejs18)"
+        },
+        "timeoutSeconds": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Maximum execution time for the script"
+        },
+        "environment": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          },
+          "description": "Environment variables the script depends on"
+        }
+      },
+      "additionalProperties": false
+    },
+    "EventTrigger": {
+      "type": "object",
+      "required": ["name", "eventType", "scriptName"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "pattern": "^[a-z0-9-]+$",
+          "minLength": 1,
+          "description": "Unique event trigger name"
+        },
+        "description": {
+          "type": "string",
+          "description": "Description of when this trigger fires"
+        },
+        "eventType": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Event identifier that activates the trigger"
+        },
+        "conditions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Optional conditions that further filter the trigger"
+        },
+        "scriptName": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Automation script invoked by this trigger"
+        }
+      },
+      "additionalProperties": false
+    },
+    "Dependency": {
+      "type": "object",
+      "required": ["name", "version"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Dependency identifier"
+        },
+        "version": {
+          "type": "string",
+          "pattern": "^\\d+\\.\\d+\\.\\d+(?:-[0-9A-Za-z-.]+)?$",
+          "description": "Minimum compatible version"
+        },
+        "type": {
+          "type": "string",
+          "enum": ["extension", "service", "package"],
+          "description": "Dependency classification"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

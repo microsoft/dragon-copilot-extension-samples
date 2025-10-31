@@ -1,0 +1,46 @@
+{
+  "name": "dragon-copilot-cli",
+  "version": "1.0.0",
+  "main": "dist/cli.js",
+  "scripts": {
+    "build": "tsc -p tsconfig.json && npm run copy-resources",
+    "copy-resources": "node ./scripts/copy-resources.cjs",
+    "dev": "ts-node src/cli.ts",
+    "start": "node dist/cli.js",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "clean": "rimraf dist"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "description": "Unified Dragon Copilot Extension and Partner CLI",
+  "bin": {
+    "dragon-copilot": "dist/cli.js"
+  },
+  "dependencies": {
+    "@inquirer/prompts": "^7.9.0",
+    "ajv": "^8.17.1",
+    "ajv-formats": "^3.0.1",
+    "archiver": "^7.0.1",
+    "chalk": "^5.6.2",
+    "commander": "^14.0.2",
+    "fs-extra": "^11.3.2",
+    "js-yaml": "^4.1.0"
+  },
+  "devDependencies": {
+    "@types/archiver": "^7.0.0",
+    "@types/fs-extra": "^11.0.4",
+    "@types/jest": "^30.0.0",
+    "@types/js-yaml": "^4.0.9",
+    "@types/node": "^24.9.2",
+    "jest": "^30.2.0",
+    "pkg": "^5.8.1",
+    "rimraf": "^6.0.1",
+    "ts-jest": "^29.4.5",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3"
+  }
+}

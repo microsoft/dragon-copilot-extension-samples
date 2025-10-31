@@ -17,7 +17,7 @@ Welcome! This repository contains sample code illustrating the Dragon Copilot ex
 This repo includes:
 
 - Sample extension with best practices
-- CLI tools to initialize & package extension
+- Unified `dragon-copilot-cli` tooling (extension + partner flows)
 - [Additional Documentation](doc/)
 
 ## 🚀 Quick Start
@@ -37,21 +37,22 @@ cd dragon-copilot-extension-samples
 
 ## 🛠️ Tools
 
-### Dragon Extension CLI
+### Dragon Copilot CLI
 
-CLI to easily generate manifest & package the extension, getting ready to publish or upload the extension.
+The `dragon-copilot-cli` consolidates both the legacy extension and partner CLIs. It now generates **manifest version 3** files with support for automation scripts, event triggers, and dependency metadata.
 
 Quick usage:
 
 ```bash
-cd tools/dragon-extension-cli
+cd tools/dragon-copilot-cli
+npm install
 npm run build
 npm link
-dragon-extension init
-dragon-extension package
+dragon-copilot extension init
+dragon-copilot partner validate ./path/to/integration.yaml
 ```
 
-See [CLI README](tools/dragon-extension-cli/README.md) for details.
+See [tools/dragon-copilot-cli/README.md](tools/dragon-copilot-cli/README.md) for more details, including an automation script scaffolding HOWTO.
 
 ## 🤝 Contributing
 
