@@ -210,19 +210,19 @@ export async function initProject(options) {
         if (publisherConfig) {
             console.log(chalk.yellow('\n📦 Deployment Steps:'));
             console.log(chalk.gray('   1. Review and update publisher configuration'));
-            console.log(chalk.gray('   2. Package your extension: dragon-extension package'));
+            console.log(chalk.gray('   2. Package your extension: dragon-copilot extension package'));
             console.log(chalk.gray('   3. Deploy to the marketplace'));
         }
     }
     else {
         console.log(chalk.yellow('🔧 Next Steps:'));
-        console.log(chalk.gray('   1. Add tools to your extension: dragon-extension add-tool'));
+        console.log(chalk.gray('   1. Add tools to your extension: dragon-copilot extension add-tool'));
         console.log(chalk.gray('   2. Update the manifest with your API endpoints'));
         console.log(chalk.gray('   3. Test and package your extension'));
     }
     console.log(chalk.blue('\n📚 Resources:'));
-    console.log(chalk.gray('   • Validate your extension: dragon-extension validate'));
-    console.log(chalk.gray('   • Add more tools: dragon-extension add-tool'));
-    console.log(chalk.gray('   • Package for deployment: dragon-extension package'));
+    console.log(chalk.gray('   • Validate your extension: dragon-copilot extension validate'));
+    console.log(chalk.gray('   • Add more tools: dragon-copilot extension generate --interactive'));
+    console.log(chalk.gray('   • Package for deployment: dragon-copilot extension package'));
 }
 //# sourceMappingURL=init.js.map
