@@ -15,7 +15,7 @@ Branch protection rules help you enforce certain workflows and requirements befo
 
 ### 1. Navigate to Branch Protection Settings
 
-1. Go to your repository on GitHub: `https://github.com/mfrongillo35/dragon-copilot-extension-samples-test`
+1. Go to your repository on GitHub
 2. Click on **Settings** (top navigation bar)
 3. In the left sidebar, click **Branches** (under "Code and automation")
 
@@ -136,9 +136,12 @@ Rulesets offer advantages like:
 ✅ **Expected behavior** - Create a pull request instead
 
 ### "I can't merge my own PRs"
-- You need at least one approval (from another account if you're the only admin)
-- Or temporarily modify the rule to allow admin override
-- Or use a GitHub App token to auto-approve (not recommended)
+- As a repository admin, you can approve your own PRs by default
+- If you want to require review from another user, you can:
+  - Add more collaborators to the repository
+  - Enable "Require review from Code Owners" and ensure CODEOWNERS includes other users
+  - Or create a second GitHub account for testing purposes
+- Note: Branch protection can be configured to prevent self-approval with additional organization-level settings
 
 ### "Status checks won't complete"
 - Verify the workflow names match exactly
