@@ -10,6 +10,7 @@ Welcome! This repository contains sample code illustrating the Dragon Copilot ex
 - [Samples](#-samples)
 - [Tools](#️-tools)
 - [Contributing](#-contributing)
+- [Repository Security](#-repository-security)
 - [License](#-license)
 
 ## 📝 Overview
@@ -62,6 +63,18 @@ See [tools/dragon-copilot-cli/README.md](tools/dragon-copilot-cli/README.md) for
 4. Add tests
 5. Ensure all tests pass
 6. Submit a pull request
+
+All pull requests require review before merging to main. See the [Branch Protection Guide](doc/BRANCH_PROTECTION.md) for details on repository security settings.
+
+## 🔒 Repository Security
+
+This repository uses branch protection rules and code owners to maintain code quality:
+
+- **Pull Request Reviews Required**: All changes to `main` must go through a reviewed pull request
+- **Code Owners**: The `.github/CODEOWNERS` file automatically assigns reviewers
+- **CI/CD Checks**: All tests and security scans must pass before merging
+
+For setup instructions, see [Branch Protection Setup Guide](doc/BRANCH_PROTECTION.md).
 
 ## 📄 License
 
