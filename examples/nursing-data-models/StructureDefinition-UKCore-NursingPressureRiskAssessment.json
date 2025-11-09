@@ -1,0 +1,22 @@
+{
+  "resourceType": "StructureDefinition",
+  "id": "ukcore-nursing-pressure-risk-assessment",
+  "url": "https://future.nhs.uk/fhir/StructureDefinition/UKCore-NursingPressureRiskAssessment",
+  "name": "UKCoreNursingPressureRiskAssessment",
+  "title": "UK Core Nursing Pressure Risk Assessment Profile",
+  "status": "draft",
+  "kind": "resource",
+  "abstract": false,
+  "type": "Observation",
+  "baseDefinition": "http://hl7.org/fhir/r4/StructureDefinition/Observation",
+  "derivation": "constraint",
+  "differential": {
+    "element": [
+      { "id": "Observation.code", "path": "Observation.code", "mustSupport": true, "binding": { "strength": "required", "valueSet": "https://fhir.loinc.org/ValueSet/9017-7" } },
+      { "id": "Observation.value[x]", "path": "Observation.value[x]", "slicing": { "discriminator": [{ "type": "type", "path": "$this" }], "rules": "open" }, "mustSupport": true, "type": [{ "code": "Quantity" }] },
+      { "id": "Observation.extension:provenance", "path": "Observation.extension", "sliceName": "provenance", "short": "AI Provenance Information", "definition": "Extension to track whether the observation was human-authored, AI-assisted, or AI-generated.", "min": 1, "type": [{ "code": "Extension", "profile": ["https://future.nhs.uk/fhir/StructureDefinition/Extension-AIProvenance"] }] },
+      { "id": "Observation.component", "path": "Observation.component", "slicing": { "discriminator": [{ "type": "value", "path": "code" }], "rules": "open" }, "mustSupport": true },
+      { "id": "Observation.component:sensoryPerception", "path": "Observation.component", "sliceName": "sensoryPerception", "min": 1, "mustSupport": true }
+    ]
+  }
+}
