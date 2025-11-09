@@ -1,0 +1,17 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "MCINDS Nursing Assessment Entry",
+  "description": "A schema representing a single nursing assessment based on MCINDS principles. It mandates provenance and coded clinical concepts.",
+  "type": "object",
+  "properties": {
+    "entryId": { "description": "Unique identifier for this data entry.", "type": "string", "format": "uuid" },
+    "patientId": { "description": "Identifier for the patient.", "type": "string" },
+    "encounterId": { "description": "Identifier for the clinical encounter.", "type": "string" },
+    "timestamp": { "description": "ISO 8601 timestamp of when the assessment was recorded.", "type": "string", "format": "date-time" },
+    "provenance": { "description": "The source of the data entry, critical for audit and liability.", "type": "string", "enum": ["human-authored", "ai-assisted", "ai-generated"] },
+    "author": { "description": "The clinician responsible for signing off on this entry.", "type": "object", "properties": { "practitionerId": { "type": "string" }, "name": { "type": "string" } }, "required": ["practitionerId"] },
+    "focus": { "description": "The clinical focus of the assessment, using a standard terminology.", "type": "object", "properties": { "system": { "type": "string", "enum": ["http://snomed.info/sct", "http://loinc.org"] }, "code": { "type": "string" }, "displayText": { "type": "string" } }, "required": ["system", "code", "displayText"] },
+    "valueCodeableConcept": { "description": "The outcome or value of the assessment.", "type": "object", "properties": { "system": { "type": "string" }, "code": { "type": "string" }, "displayText": { "type": "string" } }, "required": ["system", "code"] }
+  },
+  "required": ["entryId", "patientId", "timestamp", "provenance", "author", "focus", "valueCodeableConcept"]
+}
