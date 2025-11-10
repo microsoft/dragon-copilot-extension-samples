@@ -2,7 +2,137 @@
 
 This guide explains how to extract and run the Dragon Copilot partner initialization tools **without VS Code**.
 
-## Prerequisites
+## Install Required Dependencies
+
+### Step 1: Install Node.js and npm
+
+The Dragon Copilot CLI requires Node.js (which includes npm). Choose the appropriate installation method for your platform:
+
+#### Windows
+
+**Option A: Download from Official Website**
+1. Visit [https://nodejs.org](https://nodejs.org)
+2. Download the **LTS version** (22.20.0 or later)
+3. Run the installer (.msi file)
+4. Follow the installation wizard (accept defaults)
+5. Restart your command prompt/PowerShell
+
+**Option B: Using Package Manager (Chocolatey)**
+```powershell
+# Install Chocolatey if not already installed
+Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
+
+# Install Node.js
+choco install nodejs --version=22.20.0
+```
+
+**Option C: Using Package Manager (Winget)**
+```powershell
+# Install Node.js via Windows Package Manager
+winget install OpenJS.NodeJS
+```
+
+#### macOS
+
+**Option A: Download from Official Website**
+1. Visit [https://nodejs.org](https://nodejs.org)
+2. Download the **LTS version** for macOS
+3. Run the installer (.pkg file)
+4. Follow the installation wizard
+
+**Option B: Using Homebrew**
+```bash
+# Install Homebrew if not already installed
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+
+# Install Node.js
+brew install node@22
+```
+
+**Option C: Using Node Version Manager (nvm)**
+```bash
+# Install nvm
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash
+
+# Restart terminal or run:
+source ~/.bashrc
+
+# Install Node.js
+nvm install 22.20.0
+nvm use 22.20.0
+nvm alias default 22.20.0
+```
+
+#### Linux (Ubuntu/Debian)
+
+**Option A: Using Node Package Manager (nvm) - Recommended**
+```bash
+# Install nvm
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash
+
+# Restart terminal or run:
+source ~/.bashrc
+
+# Install Node.js
+nvm install 22.20.0
+nvm use 22.20.0
+nvm alias default 22.20.0
+```
+
+**Option B: Using apt package manager**
+```bash
+# Update package index
+sudo apt update
+
+# Install Node.js and npm
+curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
+sudo apt-get install -y nodejs
+```
+
+#### Linux (CentOS/RHEL/Fedora)
+
+```bash
+# Using dnf/yum
+sudo dnf install npm nodejs
+
+# Or using nvm (recommended for latest versions)
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash
+source ~/.bashrc
+nvm install 22.20.0
+nvm use 22.20.0
+```
+
+### Step 2: Install .NET (Optional)
+
+If you plan to work with C# extensions, install .NET 9:
+
+#### Windows
+```powershell
+# Using winget
+winget install Microsoft.DotNet.SDK.9
+
+# Or download from: https://dotnet.microsoft.com/download
+```
+
+#### macOS
+```bash
+# Using Homebrew
+brew install --cask dotnet-sdk
+
+# Or download from: https://dotnet.microsoft.com/download
+```
+
+#### Linux
+```bash
+# Ubuntu/Debian
+wget https://packages.microsoft.com/config/ubuntu/22.04/packages-microsoft-prod.deb -O packages-microsoft-prod.deb
+sudo dpkg -i packages-microsoft-prod.deb
+sudo apt-get update && sudo apt-get install -y dotnet-sdk-9.0
+
+# Or follow instructions at: https://dotnet.microsoft.com/download
+```
+
+## Verify Prerequisites
 
 Before you begin, ensure you have the following installed:
 
@@ -19,7 +149,7 @@ npm --version
 dotnet --version
 ```
 
-## Step 1: Extract the Archive
+## Step 3: Extract the Archive
 
 1. **Download/Receive** the Dragon Copilot extension samples zip file
 2. **Extract** the archive to your desired location:
@@ -38,7 +168,7 @@ unzip dragon-copilot-extension-samples.zip -d /your-project-folder
 cd /your-project-folder/dragon-copilot-extension-samples
 ```
 
-## Step 2: Install and Build the CLI Tools
+## Step 4: Install and Build the CLI Tools
 
 Navigate to the CLI tools directory and set up the Dragon Copilot CLI:
 
@@ -63,7 +193,7 @@ This will:
 - Build the TypeScript CLI from source
 - Create a global `dragon-copilot` command available from anywhere
 
-## Step 3: Verify CLI Installation
+## Step 5: Verify CLI Installation
 
 Test that the CLI is properly installed:
 
@@ -73,7 +203,7 @@ dragon-copilot --help
 
 You should see the CLI help menu with available commands.
 
-## Step 4: Initialize Partner Integration
+## Step 6: Initialize Partner Integration
 
 Now you can run the partner initialization wizard:
 
@@ -94,7 +224,7 @@ The wizard will prompt you for:
 - **API endpoints** and configuration
 - **Data access requirements**
 
-## Step 5: Validate Your Configuration
+## Step 7: Validate Your Configuration
 
 After completing the wizard, validate your configuration:
 
@@ -104,7 +234,7 @@ dragon-copilot partner validate ./integration.yaml
 
 This ensures your manifest follows the correct schema and business rules.
 
-## Step 6: Working with Extensions (Optional)
+## Step 8: Working with Extensions (Optional)
 
 If you want to create Dragon Copilot extensions (not just partner integrations):
 
@@ -177,14 +307,17 @@ npm link
 ```
 
 ### Node.js Version Issues
-Ensure you're using Node.js 22.20.0 or compatible version:
+Ensure you're using Node.js 22.20.0 or compatible version. If you need to install or update Node.js, refer to the detailed installation instructions in **Step 1: Install Node.js and npm** section above.
 
+Quick verification:
 ```bash
-# Install via Node Version Manager if needed
-# Windows (using chocolatey)
-choco install nodejs --version=22.20.0
+node --version  # Should show v22.20.0 or later
+npm --version   # Should show v10.9.3 or later
+```
 
-# Linux/Mac (using nvm)
+If you need to switch versions using nvm:
+```bash
+# Linux/Mac/Windows (with nvm-windows)
 nvm install 22.20.0
 nvm use 22.20.0
 ```
