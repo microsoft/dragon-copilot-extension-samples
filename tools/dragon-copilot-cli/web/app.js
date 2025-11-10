@@ -134,7 +134,7 @@ function bindDomElements() {
 const CONTEXT_ITEMS = Object.freeze({
   'base_url': {
     type: 'url',
-    description: 'base url need for API calls.  These are typically FHIR calls.',
+    description: 'base url needed for API calls.  These are typically FHIR calls.',
     required: 'yes'
   },
   'ehr-user_id': {
