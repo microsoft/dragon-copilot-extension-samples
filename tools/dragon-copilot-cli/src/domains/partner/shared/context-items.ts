@@ -33,7 +33,7 @@ const RAW_CONTEXT_ITEM_CATALOG: ContextItemCatalogEntry[] = [
   {
     name: 'in-bound-issuer',
     type: 'url',
-    description: 'issuer claim of access tokens used by partner to call Dragon Copilot Interop',
+    description: 'issuer claim of access tokens used by the partner to call Dragon Copilot Interop',
     defaultRequired: 'yes',
     defaultInclude: true
   },
