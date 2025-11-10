@@ -47,7 +47,7 @@ const RAW_CONTEXT_ITEM_CATALOG: ContextItemCatalogEntry[] = [
   {
     name: 'out-bound-client-id',
     type: 'string',
-    description: 'partner provided client id to issue access tokens for Dragon Copilot Interop to call partner',
+    description: 'Partner-provided client ID used to issue access tokens for Dragon Copilot Interop to call the partner',
     defaultRequired: 'yes',
     defaultInclude: true
   },
