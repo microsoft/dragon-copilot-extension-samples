@@ -12,7 +12,7 @@ const RAW_CONTEXT_ITEM_CATALOG: ContextItemCatalogEntry[] = [
   {
     name: 'base_url',
     type: 'url',
-    description: 'base url needed for API calls.  These are typically FHIR calls.',
+    description: 'base url need for API calls.  These are typically FHIR calls.',
     defaultRequired: 'yes',
     defaultInclude: true
   },
