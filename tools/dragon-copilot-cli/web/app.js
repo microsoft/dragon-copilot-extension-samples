@@ -159,7 +159,7 @@ const CONTEXT_ITEMS = Object.freeze({
   },
   'out-bound-client-id': {
     type: 'string',
-    description: 'partner provided client id to issued access tokens for Dragon Copilot Interop to call partner',
+    description: 'Partner-provided client ID used to issue access tokens for Dragon Copilot Interop to call the partner',
     required: 'yes'
   },
   'out-bound-secret': {
