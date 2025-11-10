@@ -1,0 +1,17 @@
+# CODEOWNERS file for dragon-copilot-extension-samples-test
+# This file defines who should be automatically requested for review on pull requests.
+# 
+# Each line is a file pattern followed by one or more owners.
+# These owners will be automatically requested for review when someone opens a pull request
+# that modifies files matching the pattern.
+#
+# Documentation: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# Default owner for all files in the repository
+# This ensures that @mfrongillo35 is automatically requested to review all pull requests
+* @mfrongillo35
+
+# You can add more specific rules below as needed, for example:
+# /docs/ @mfrongillo35 @documentation-team
+# *.js @mfrongillo35 @frontend-team
+# /samples/ @mfrongillo35 @sample-reviewers

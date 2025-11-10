@@ -1,6 +1,6 @@
 # Sample Requests and Responses
 
-This directory contains sample requests and responses for the Dragon Copilot extension.
+This directory contains sample requests and responses for the Dragon Copilot extension. The examples align with the **manifest version 3** structure produced by the unified CLI.
 
 ## Sample Request: Note Payload
 
@@ -10,10 +10,19 @@ This file contains a sample request payload for an extension that is configured 
 
 Sample Manifest Configuration:
 ```yaml
+    manifestVersion: 3
     inputs:
       - name: note
         description: Note
         data: DSP/Note
+    automationScripts:
+      - name: note-automation
+        entryPoint: scripts/analyze-note/index.js
+        runtime: nodejs18
+    eventTriggers:
+      - name: note-created
+        eventType: note.created
+        scriptName: note-automation
 ```
 
 ## Sample Response: Plugin Result
@@ -28,4 +37,9 @@ Sample Manifest Configuration:
       - name: adaptive-card
         description: Response from the plugin
         data: DSP
+
+    automationScripts:
+      - name: note-automation
+        entryPoint: scripts/analyze-note/index.js
+        runtime: nodejs18
 ```
