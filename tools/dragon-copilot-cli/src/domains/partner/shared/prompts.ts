@@ -190,7 +190,7 @@ const gatherIntegrationDetails = async (
     validate: validateVersion
   });
 
-  logInfo('Partner ID should match the identifier from your app source (e.g. source, Microsoft Partner Center).');
+  logInfo('Partner ID should match the identifier from your app source (e.g., Microsoft Partner Center).');
   logInfo('If you have not received a Partner ID yet, you can generate a GUID now and use it in the manifest.');
 
   let partnerId: string;
