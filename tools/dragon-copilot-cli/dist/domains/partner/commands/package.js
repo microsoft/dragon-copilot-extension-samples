@@ -9,20 +9,20 @@ import { logMessage, validatePngLogo } from '../../../common/index.js';
 export async function packageIntegration(options) {
     const isQuiet = options.silent || process.env.NODE_ENV === 'test';
     logMessage(chalk.blue('🤝 Packaging Partner Integration'), isQuiet);
-    const manifestPath = options.manifest || 'integration.yaml';
+    const manifestPath = options.manifest || 'extension.yaml';
     const publisherPath = 'publisher.json';
     const logoPath = 'assets/logo_large.png';
     // Step 1: Validate required files exist
     logMessage(chalk.blue('📋 Validating required files...'), isQuiet);
     if (!(await pathExists(manifestPath))) {
         logMessage(chalk.red(`❌ Integration manifest not found: ${manifestPath}`), isQuiet);
-        logMessage(chalk.gray('   Create one using: partner-integration init'), isQuiet);
+        logMessage(chalk.gray('   Create one using: dragon-copilot partner init'), isQuiet);
         throw new Error(`Integration manifest not found: ${manifestPath}`);
     }
     if (!(await pathExists(publisherPath))) {
         logMessage(chalk.red(`❌ Publisher configuration not found: ${publisherPath}`), isQuiet);
         logMessage(chalk.gray('   A publisher.json file is required for packaging'), isQuiet);
-        logMessage(chalk.gray('   Create one using: partner-integration init'), isQuiet);
+        logMessage(chalk.gray('   Create one using: dragon-copilot partner init'), isQuiet);
         throw new Error(`Publisher configuration not found: ${publisherPath}`);
     }
     // Step 1.5: Validate required logo
@@ -30,7 +30,7 @@ export async function packageIntegration(options) {
     if (!(await pathExists(logoPath))) {
         logMessage(chalk.red(`❌ Required logo not found: ${logoPath}`), isQuiet);
         logMessage(chalk.gray('   A large logo (PNG, 216x216 to 350x350 px) is required for packaging'), isQuiet);
-        logMessage(chalk.gray('   Create assets directory with logo using: partner-integration init'), isQuiet);
+        logMessage(chalk.gray('   Create assets directory with logo using: dragon-copilot partner init'), isQuiet);
         throw new Error(`Required logo not found: ${logoPath}`);
     }
     const isValidLogo = await validatePngLogo(logoPath, { silent: isQuiet });
@@ -110,7 +110,7 @@ export async function packageIntegration(options) {
             archive.on('error', reject);
             archive.pipe(output);
             // Add core files
-            archive.append(manifestContent, { name: 'integration.yaml' });
+            archive.append(manifestContent, { name: 'extension.yaml' });
             archive.append(readFileSync(publisherPath), { name: 'publisher.json' });
             // Add assets
             if (await pathExists(logoPath)) {

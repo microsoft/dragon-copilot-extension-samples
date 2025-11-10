@@ -32,7 +32,7 @@
               </span>
             </span>
           </span>
-          <input id="integration-name" type="text" placeholder="partner-integration" />
+          <input id="integration-name" type="text" placeholder="my-extension" />
         </label>
         <label>
           <span class="field-label-text">Integration Version<span class="required">*</span></span>
@@ -402,8 +402,8 @@
       <h2>Generated Output</h2>
       <div class="output-grid single-column">
         <div data-output="yaml" class="single">
-          <h3>integration.yaml</h3>
-          <textarea id="manifest-output" readonly rows="16" aria-label="integration.yaml output"></textarea>
+          <h3>extension.yaml</h3>
+          <textarea id="manifest-output" readonly rows="16" aria-label="extension.yaml output"></textarea>
           <button type="button" data-download="yaml" class="secondary" disabled>Download YAML</button>
         </div>
         <div data-output="json" hidden>
@@ -416,7 +416,7 @@
       <div class="run-steps">
         <h3>Validate &amp; Package Checklist</h3>
         <ol class="step-list">
-          <li>Download <code>integration.yaml</code> and (optionally) <code>publisher.json</code> into the same folder.</li>
+          <li>Download <code>extension.yaml</code> and (optionally) <code>publisher.json</code> into the same folder.</li>
           <li>Download the sample assets archive (below) and extract its <code>assets</code> folder beside those files.</li>
           <li>Run <code>pwsh ./scripts/build-validate-and-package.ps1 -ManifestDirectory "path/to/manifest-folder"</code> from <code>tools/dragon-copilot-cli</code>.</li>
           <li id="upload-note">Upload the zip reported by the validation helper script.</li>

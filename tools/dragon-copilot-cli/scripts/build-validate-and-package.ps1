@@ -37,12 +37,12 @@ try {
 
     Push-Location $resolvedManifestDirectory
     try {
-        $manifestPath = Join-Path $PWD 'integration.yaml'
+        $manifestPath = Join-Path $PWD 'extension.yaml'
         $publisherPath = Join-Path $PWD 'publisher.json'
         $logoPath = Join-Path $PWD 'assets/logo_large.png'
 
         if (-not (Test-Path $manifestPath)) {
-            throw "integration.yaml not found in $resolvedManifestDirectory"
+            throw "extension.yaml not found in $resolvedManifestDirectory"
         }
 
         if (-not (Test-Path $publisherPath)) {

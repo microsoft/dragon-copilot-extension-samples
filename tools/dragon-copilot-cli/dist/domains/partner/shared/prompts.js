@@ -207,7 +207,7 @@ const gatherPublisherDetails = async () => promptCommonPublisherDetails({
         defaultLocale: 'en-US',
         supportedLocales: ['en-US'],
         regions: ['US'],
-        scope: 'US'
+        scope: 'EHR Connector'
     },
     validators: {
         publisherId: validatePublisherId,
@@ -219,7 +219,7 @@ const gatherPublisherDetails = async () => promptCommonPublisherDetails({
         contactEmail: validateEmail,
         offerId: (value) => (value.trim() ? true : 'Offer ID is required')
     },
-    scope: 'US',
+    scope: 'EHR Connector',
     defaultLocale: 'en-US',
     supportedLocales: ['en-US'],
     regions: ['US'],

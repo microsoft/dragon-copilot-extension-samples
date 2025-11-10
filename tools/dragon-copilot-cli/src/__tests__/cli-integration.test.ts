@@ -123,7 +123,7 @@ describe('CLI integration paths', () => {
   });
 
   test('partner validate succeeds for a valid manifest', async () => {
-    const manifestPath = join(workingDir, 'integration.yaml');
+    const manifestPath = join(workingDir, 'extension.yaml');
     writeFileSync(manifestPath, PARTNER_MANIFEST, 'utf8');
 
     const program = new Command();

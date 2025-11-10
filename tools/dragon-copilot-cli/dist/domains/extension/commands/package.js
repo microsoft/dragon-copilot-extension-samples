@@ -17,13 +17,13 @@ export async function packageExtension(options) {
     logMessage(chalk.blue('📋 Validating required files...'), isQuiet);
     if (!(await pathExists(manifestPath))) {
         logMessage(chalk.red(`❌ Extension manifest not found: ${manifestPath}`), isQuiet);
-        logMessage(chalk.gray('   Create one using: dragon-extension init'), isQuiet);
+        logMessage(chalk.gray('   Create one using: dragon-copilot extension init'), isQuiet);
         throw new Error(`Extension manifest not found: ${manifestPath}`);
     }
     if (!(await pathExists(publisherPath))) {
         logMessage(chalk.red(`❌ Publisher configuration not found: ${publisherPath}`), isQuiet);
         logMessage(chalk.gray('   A publisher.json file is required for packaging'), isQuiet);
-        logMessage(chalk.gray('   Create one using: dragon-extension init --with-publisher'), isQuiet);
+        logMessage(chalk.gray('   Create one using: dragon-copilot extension init --with-publisher'), isQuiet);
         throw new Error(`Publisher configuration not found: ${publisherPath}`);
     }
     // Step 1.5: Validate required logo
@@ -31,7 +31,7 @@ export async function packageExtension(options) {
     if (!(await pathExists(logoPath))) {
         logMessage(chalk.red(`❌ Required logo not found: ${logoPath}`), isQuiet);
         logMessage(chalk.gray('   A large logo (PNG, 216x216 to 350x350 px) is required for packaging'), isQuiet);
-        logMessage(chalk.gray('   Create assets directory with logo using: dragon-extension init'), isQuiet);
+        logMessage(chalk.gray('   Create assets directory with logo using: dragon-copilot extension init'), isQuiet);
         throw new Error(`Required logo not found: ${logoPath}`);
     }
     const isValidLogo = await validatePngLogo(logoPath, { silent: isQuiet });

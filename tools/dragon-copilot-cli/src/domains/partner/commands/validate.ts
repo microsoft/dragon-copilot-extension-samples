@@ -8,7 +8,7 @@ import { input, select } from '@inquirer/prompts';
 import type { ContextRetrievalItem, PartnerIntegrationManifest, PublisherConfig, YesNo } from '../types.js';
 import { getContextItemDefinition } from '../shared/context-items.js';
 
-const DEFAULT_MANIFEST_PATH = 'integration.yaml';
+const DEFAULT_MANIFEST_PATH = 'extension.yaml';
 
 export async function runValidateCommand(filePath?: string): Promise<void> {
   let targetPath = filePath?.trim();
@@ -16,7 +16,7 @@ export async function runValidateCommand(filePath?: string): Promise<void> {
   if (!targetPath) {
     console.log(chalk.yellow('⚠️  Missing manifest file argument.'));
     console.log(chalk.gray('This usually happens when:'));
-    console.log(chalk.gray('  • `partner-integration validate` is run without a file path.'));
+    console.log(chalk.gray('  • `dragon-copilot partner validate` is run without a file path.'));
     console.log(chalk.gray('  • The manifest file has not been generated in the current directory.'));
 
     const nextStep = await select({
@@ -58,7 +58,7 @@ export async function runValidateCommand(filePath?: string): Promise<void> {
   if (!existsSync(resolvedPath)) {
     console.log(chalk.red('❌ Manifest file not found:'));
     console.log(chalk.red(`  • ${resolvedPath}`));
-    console.log(chalk.gray('Ensure the manifest exists or generate one with `partner-integration init`.'));
+    console.log(chalk.gray('Ensure the manifest exists or generate one with `dragon-copilot partner init`.'));
     process.exit(1);
   }
 
@@ -448,7 +448,7 @@ export async function validateManifest(filePath: string): Promise<void> {
     } else {
       console.log(chalk.yellow('\n⚠️  No publisher.json found'));
       console.log(chalk.gray('  A publisher configuration is required for packaging'));
-      console.log(chalk.gray('  Create one using: partner-integration init'));
+      console.log(chalk.gray('  Create one using: dragon-copilot partner init'));
     }
 
   } catch (parseError) {

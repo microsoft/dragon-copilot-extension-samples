@@ -26,7 +26,7 @@ export async function generateManifest(options: GenerateOptions): Promise<void> 
 async function generateInteractive(options: GenerateOptions): Promise<void> {
   console.log(chalk.gray('Interactive manifest generation...\n'));
 
-  const manifestPath = options.output || 'integration.yaml';
+  const manifestPath = options.output || 'extension.yaml';
   let defaults: Partial<IntegrationDetails> | undefined;
 
   try {
@@ -71,8 +71,8 @@ async function generateInteractive(options: GenerateOptions): Promise<void> {
   console.log(chalk.blue('\n🎯 What\'s Next?'));
   console.log(chalk.gray('   • Review server authentication issuers and identity claims'));
   console.log(chalk.gray('   • Align your integration services with the generated note sections and context requirements'));
-  console.log(chalk.gray('   • Validate the manifest: partner-integration validate'));
-  console.log(chalk.gray('   • Package for deployment: partner-integration package'));
+  console.log(chalk.gray('   • Validate the manifest: dragon-copilot partner validate'));
+  console.log(chalk.gray('   • Package for deployment: dragon-copilot partner package'));
 }
 
 async function generateFromTemplate(options: GenerateOptions): Promise<void> {
@@ -85,7 +85,7 @@ async function generateFromTemplate(options: GenerateOptions): Promise<void> {
     process.exit(1);
   }
 
-  const manifestPath = options.output || 'integration.yaml';
+  const manifestPath = options.output || 'extension.yaml';
   template.manifest['note-sections'] = normalizeNoteSections(template.manifest['note-sections']);
   const yamlContent = dumpManifestYaml(template.manifest);
   writeFileSync(manifestPath, yamlContent);
@@ -103,7 +103,7 @@ async function generateFromTemplate(options: GenerateOptions): Promise<void> {
   console.log(chalk.gray('   • Align context retrieval fields with your runtime'));
   
   console.log(chalk.yellow('\n🔧 Development:'));
-  console.log(chalk.gray('   • Validate: partner-integration validate integration.yaml'));
-  console.log(chalk.gray('   • Regenerate interactively: partner-integration generate --interactive'));
-  console.log(chalk.gray('   • Package: partner-integration package'));
+  console.log(chalk.gray('   • Validate: dragon-copilot partner validate extension.yaml'));
+  console.log(chalk.gray('   • Regenerate interactively: dragon-copilot partner generate --interactive'));
+  console.log(chalk.gray('   • Package: dragon-copilot partner package'));
 }

@@ -83,7 +83,7 @@
     },
     "scope": {
       "type": "string",
-      "enum": ["Workflow", "US"],
+      "enum": ["Workflow", "EHR Connector"],
       "description": "Scope of the offering"
     }
   },

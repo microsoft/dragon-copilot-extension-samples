@@ -61,7 +61,7 @@ export function registerPartnerCommands(program: Command): void {
 		.command('generate')
 		.description('Generate or update an integration manifest')
 		.option('-t, --template <template>', 'Template to use (ehr-integration, api-connector, data-sync, custom)')
-		.option('-o, --output <path>', 'Output file path', 'integration.yaml')
+		.option('-o, --output <path>', 'Output file path', 'extension.yaml')
 		.option('-i, --interactive', 'Interactive mode')
 		.action(async (options: { template?: string; output: string; interactive?: boolean }) => {
 			const normalized: GenerateOptions = { output: options.output };
@@ -87,7 +87,7 @@ export function registerPartnerCommands(program: Command): void {
 	partner
 		.command('package')
 		.description('Package a partner integration into a distributable bundle')
-		.option('-m, --manifest <path>', 'Manifest file path', 'integration.yaml')
+		.option('-m, --manifest <path>', 'Manifest file path', 'extension.yaml')
 		.option('-o, --output <path>', 'Output ZIP file path')
 		.option('-i, --include <patterns...>', 'Additional files to include')
 		.option('--silent', 'Suppress console output')

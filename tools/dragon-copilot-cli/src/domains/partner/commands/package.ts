@@ -13,7 +13,7 @@ export async function packageIntegration(options: PackageOptions): Promise<void>
 
   logMessage(chalk.blue('🤝 Packaging Partner Integration'), isQuiet);
 
-  const manifestPath = options.manifest || 'integration.yaml';
+  const manifestPath = options.manifest || 'extension.yaml';
   const publisherPath = 'publisher.json';
   const logoPath = 'assets/logo_large.png';
 
@@ -138,7 +138,7 @@ export async function packageIntegration(options: PackageOptions): Promise<void>
       archive.pipe(output);
 
       // Add core files
-      archive.append(manifestContent, { name: 'integration.yaml' });
+      archive.append(manifestContent, { name: 'extension.yaml' });
       archive.append(readFileSync(publisherPath), { name: 'publisher.json' });
 
       // Add assets

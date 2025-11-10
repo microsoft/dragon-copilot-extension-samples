@@ -61,7 +61,7 @@ export async function initProject(options: InitOptions): Promise<void> {
     });
   }
 
-  const outputPath = path.join(options.output || '.', 'integration.yaml');
+  const outputPath = path.join(options.output || '.', 'extension.yaml');
   const yamlContent = dumpManifestYaml(manifest);
 
   writeFileSync(outputPath, yamlContent);
@@ -91,19 +91,19 @@ export async function initProject(options: InitOptions): Promise<void> {
   }
 
   console.log(chalk.yellow('🔧 Next Steps:'));
-  console.log(chalk.gray('   1. Review the generated integration.yaml and adjust defaults as needed'));
+  console.log(chalk.gray('   1. Review the generated extension.yaml and adjust defaults as needed'));
   console.log(chalk.gray('   2. Implement your server authentication validation logic'));
   console.log(chalk.gray('   3. Build your partner runtime to honor the manifest configuration'));
 
   if (publisherConfig) {
     console.log(chalk.yellow('\n📦 Deployment Steps:'));
     console.log(chalk.gray('   1. Review and update publisher.json'));
-    console.log(chalk.gray('   2. Package your integration: partner-integration package'));
+    console.log(chalk.gray('   2. Package your integration: dragon-copilot partner package'));
     console.log(chalk.gray('   3. Submit to Dragon Copilot marketplace'));
   }
 
   console.log(chalk.blue('\n📚 Resources:'));
-  console.log(chalk.gray('   • Validate your integration: partner-integration validate'));
-  console.log(chalk.gray('   • Regenerate the manifest interactively: partner-integration generate --interactive'));
-  console.log(chalk.gray('   • Package for deployment: partner-integration package'));
+  console.log(chalk.gray('   • Validate your integration: dragon-copilot partner validate'));
+  console.log(chalk.gray('   • Regenerate the manifest interactively: dragon-copilot partner generate --interactive'));
+  console.log(chalk.gray('   • Package for deployment: dragon-copilot partner package'));
 }

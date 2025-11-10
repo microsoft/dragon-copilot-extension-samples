@@ -269,7 +269,7 @@ const gatherPublisherDetails = async (): Promise<PublisherConfig> =>
       defaultLocale: 'en-US',
       supportedLocales: ['en-US'],
       regions: ['US'],
-      scope: 'US'
+      scope: 'EHR Connector'
     },
     validators: {
       publisherId: validatePublisherId,
@@ -281,7 +281,7 @@ const gatherPublisherDetails = async (): Promise<PublisherConfig> =>
       contactEmail: validateEmail,
       offerId: (value: string) => (value.trim() ? true : 'Offer ID is required')
     },
-    scope: 'US',
+    scope: 'EHR Connector',
     defaultLocale: 'en-US',
     supportedLocales: ['en-US'],
     regions: ['US'],

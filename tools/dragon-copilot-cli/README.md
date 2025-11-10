@@ -33,7 +33,7 @@ Run `npm unlink -g dragon-copilot` only once per workstation; subsequent rebuild
 | Extension  | `dragon-copilot extension validate ./extension.yaml`   | Validates the manifest and optional `publisher.json` against JSON schema + business rules |
 | Extension  | `dragon-copilot extension package --manifest ./extension.yaml` | Produces a zip payload ready for distribution |
 | Partner    | `dragon-copilot partner init`                          | Restores the partner manifest wizard (note sections, context retrieval, authentication) |
-| Partner    | `dragon-copilot partner validate ./integration.yaml`   | Validates partner manifests and publisher settings |
+| Partner    | `dragon-copilot partner validate ./extension.yaml`   | Validates partner manifests and publisher settings |
 
 Use `dragon-copilot --help` or `dragon-copilot <domain> --help` for additional options.
 

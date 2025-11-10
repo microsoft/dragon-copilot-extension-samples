@@ -1362,7 +1362,7 @@ function buildManifest() {
   const tokenConfig = buildWebLaunchTokenConfig();
 
   const rawName = integrationNameInput ? integrationNameInput.value.trim() : '';
-  const manifestName = rawName || 'partner-integration';
+  const manifestName = rawName || 'my-extension';
   const description = buildManifestDescription(rawName || manifestName);
   const version = integrationVersionInput ? integrationVersionInput.value.trim() : '';
   let partnerIdValue = partnerIdInput ? partnerIdInput.value.trim() : '';
@@ -1524,7 +1524,7 @@ function buildPublisherConfig() {
     version: '0.0.1',
     defaultLocale: 'en-US',
     supportedLocales: ['en-US'],
-    scope: 'US',
+    scope: 'EHR Connector',
     regions: ['US']
   };
 }
@@ -1574,7 +1574,7 @@ async function downloadSampleAssets() {
 
 Steps:
 1. Replace assets/${SAMPLE_LOGO_FILENAME} with your branded image (PNG format).
-2. Keep the assets folder beside integration.yaml and publisher.json before packaging.
+2. Keep the assets folder beside extension.yaml and publisher.json before packaging.
 3. Run the packaging script to include your logo in the final zip.
 `;
     zip.file('README.txt', readme);
@@ -1638,7 +1638,7 @@ function generateArtifacts() {
     }
   } catch (error) {
     console.error('Failed to serialize manifest to YAML', error);
-    renderErrors(['Unable to generate integration.yaml. Try again after reloading the page.']);
+    renderErrors(['Unable to generate extension.yaml. Try again after reloading the page.']);
     resetOutputs();
     return;
   }
@@ -1765,7 +1765,7 @@ function attachEventListeners() {
 
   if (downloadYamlBtn) {
     downloadYamlBtn.addEventListener('click', () => {
-      downloadContent(manifestOutput.value, 'integration.yaml', 'text/yaml');
+      downloadContent(manifestOutput.value, 'extension.yaml', 'text/yaml');
     });
     downloadYamlBtn.disabled = true;
   }
