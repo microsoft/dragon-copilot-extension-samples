@@ -149,7 +149,7 @@ const CONTEXT_ITEMS = Object.freeze({
   },
   'in-bound-issuer': {
     type: 'url',
-    description: 'issue claim of access tokens used to partner to call Dragon Copilot Interop',
+    description: 'issuer claim of access tokens used by partner to call Dragon Copilot Interop',
     required: 'yes'
   },
   'out-bound-issuer': {
