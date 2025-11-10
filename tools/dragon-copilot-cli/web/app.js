@@ -164,7 +164,7 @@ const CONTEXT_ITEMS = Object.freeze({
   },
   'out-bound-secret': {
     type: 'string',
-    description: 'partner provided secret to issued access tokens for Dragon Copilot Interop to call partner',
+    description: 'Partner-provided secret used to issue access tokens for Dragon Copilot Interop to call the partner',
     required: 'yes'
   }
 });
