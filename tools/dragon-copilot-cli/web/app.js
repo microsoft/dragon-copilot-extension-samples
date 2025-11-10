@@ -1150,7 +1150,7 @@ function renderServerAuthCard(data = {}, options = {}) {
   issuerRow.className = 'grid server-auth-row issuer-row';
 
   const issuer = createInput(
-    'Issuer URL (optional)',
+    'Issuer URL',
     'text',
     data.issuer || '',
     'https://login.microsoftonline.com/[TENANT_ID]/v2.0'
@@ -1158,14 +1158,18 @@ function renderServerAuthCard(data = {}, options = {}) {
   issuer.label.classList.add('field-with-info');
   const issuerHeading = document.createElement('span');
   issuerHeading.className = 'field-label-text';
-  issuerHeading.textContent = 'Issuer URL (optional)';
+  issuerHeading.textContent = 'Issuer URL';
+  const issuerRequired = document.createElement('span');
+  issuerRequired.className = 'required';
+  issuerRequired.textContent = '*';
+  issuerHeading.append(issuerRequired);
 
   const issuerInfoWrapper = document.createElement('span');
   issuerInfoWrapper.className = 'info-wrapper info-inline';
   const issuerInfoButton = document.createElement('button');
   issuerInfoButton.type = 'button';
   issuerInfoButton.className = 'info-badge info-inline';
-  issuerInfoButton.setAttribute('aria-label', 'Issuer URL guidance. Leave blank when no default issuer is required.');
+  issuerInfoButton.setAttribute('aria-label', 'Issuer URL guidance. The URL used to validate server authentication tokens from your integration.');
   const issuerInfoSymbol = document.createElement('span');
   issuerInfoSymbol.className = 'info-symbol';
   issuerInfoSymbol.setAttribute('aria-hidden', 'true');
@@ -1175,9 +1179,9 @@ function renderServerAuthCard(data = {}, options = {}) {
   issuerTooltip.className = 'tooltip-content';
   issuerTooltip.setAttribute('role', 'tooltip');
   const issuerTooltipTitle = document.createElement('strong');
-  issuerTooltipTitle.textContent = 'Issuer default';
+  issuerTooltipTitle.textContent = 'Issuer URL';
   const issuerTooltipBody = document.createElement('span');
-  issuerTooltipBody.textContent = 'Leave blank for none. Customers can supply their own issuer during setup.';
+  issuerTooltipBody.textContent = 'The URL used to validate server authentication tokens from your integration.';
   issuerTooltip.append(issuerTooltipTitle, issuerTooltipBody);
   issuerInfoWrapper.append(issuerInfoButton, issuerTooltip);
   issuerHeading.append(issuerInfoWrapper);
@@ -1427,9 +1431,6 @@ function renderDefaults() {
 
   if (contextItemsContainer) {
     contextItemsContainer.innerHTML = '';
-    addContextRow('base_url');
-    addContextRow('in-bound-client-id');
-    addContextRow('out-bound-client-id');
   }
 
   if (tokenAccessIssuerInput) {
@@ -1485,6 +1486,31 @@ function validateRequiredFields() {
 
   if (!serverAuthList || !serverAuthList.querySelector('.dynamic-card')) {
     errors.push('Add at least one server authentication issuer.');
+  } else {
+    // Validate that each server auth card has all required fields
+    serverAuthList.querySelectorAll('.dynamic-card').forEach((card, index) => {
+      const issuerInput = card.querySelector('.issuer-row input[type="text"]');
+      const claimInput = card.querySelector('.claim-row input[type="text"]');
+      const valuesTextarea = card.querySelector('textarea[data-identity-list="true"]');
+      
+      if (issuerInput && !issuerInput.value.trim()) {
+        errors.push(`Server authentication issuer ${index + 1}: Issuer URL is required.`);
+      }
+      
+      if (claimInput && !claimInput.value.trim()) {
+        errors.push(`Server authentication issuer ${index + 1}: Identity claim is required.`);
+      }
+      
+      if (valuesTextarea) {
+        const rawValues = valuesTextarea.value
+          .split(/\r?\n/)
+          .map(value => value.trim())
+          .filter(Boolean);
+        if (rawValues.length === 0) {
+          errors.push(`Server authentication issuer ${index + 1}: At least one identity value is required.`);
+        }
+      }
+    });
   }
 
   if (includePublisherToggle && includePublisherToggle.checked) {

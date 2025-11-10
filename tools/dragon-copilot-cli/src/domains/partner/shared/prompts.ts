@@ -538,7 +538,7 @@ const gatherContextRetrievalItems = async (): Promise<ContextRetrievalItem[] | n
 
   const includeInterop = await confirm({
     message: 'Include Interop context values?',
-    default: true
+    default: false
   });
 
   if (!includeInterop) {
@@ -584,7 +584,7 @@ const gatherClientAuthAndWeb = async (): Promise<{
   logInfo('Indicate which items must be collected by the client admin. Items not required by the partner are omitted from the manifest.');
   console.log(''); 
 
-  const allowMultipleIssuers = await yesNo('Allow multiple issuers for client authentication?', 'yes');
+  const allowMultipleIssuers = await yesNo('Allow multiple issuers for client authentication?', 'no');
   const accessTokenIssuerInput = await input({
     message: 'Default client authentication access token issuer URL (leave blank for none):',
     validate: (value: string) => {
@@ -615,7 +615,7 @@ const gatherClientAuthAndWeb = async (): Promise<{
   logInfo('DAC will only prompt for this value if the partner includes it in the manifest.');
   logInfo('If it\'s not included in the manifest, it will default to \'sub\'.');
   console.log('');
-  if (await confirm({ message: 'Collect user identity claim?', default: true })) {
+  if (await confirm({ message: 'Collect user identity claim?', default: false })) {
     const claim = await input({
       message: 'Default user identity claim name:',
       default: 'sub',
