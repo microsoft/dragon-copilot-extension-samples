@@ -312,7 +312,7 @@ const gatherServerAuthenticationEntry = async (
   });
   console.log('');
 logInfo(
-    'Common Entra ID claims include Enterprise Application Object ID (oid) or Application (Client) ID (azp) values.');
+    'Common Entra ID claims include the Enterprise Application Object ID (oid) or the Application (Client) ID (azp) values.');
   logInfo(
     'Find your service principal and tenant IDs: https://learn.microsoft.com/en-us/azure/cost-management-billing/manage/assign-roles-azure-service-principals#find-your-service-principal-and-tenant-ids'
   );
