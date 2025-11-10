@@ -54,7 +54,7 @@ const RAW_CONTEXT_ITEM_CATALOG: ContextItemCatalogEntry[] = [
   {
     name: 'out-bound-secret',
     type: 'string',
-    description: 'partner provided secret to issue access tokens for Dragon Copilot Interop to call partner',
+    description: 'Partner-provided secret used to issue access tokens for Dragon Copilot Interop to call the partner',
     defaultRequired: 'yes',
     defaultInclude: true
   }
