@@ -66,11 +66,11 @@ async def process_endpoint(
     x_ms_correlation_id: str | None = Header(default=None, alias="x-ms-correlation-id"),
 ):
     try:
-        # generate a time for processing incoming request use datetime.now 
+        # Generate a timestamp for the incoming request using datetime.now
         # set timezone to berlin time UTC+2
         start_time = datetime.now(timezone.utc).astimezone(timezone(timedelta(hours=2)))
 
-        logger.info(f"Processing incoming request {start_time}")
+        logger.info("Processing incoming request at %s", start_time)
         resp = service.process(payload, x_ms_request_id, x_ms_correlation_id)
         return resp
     except HTTPException:

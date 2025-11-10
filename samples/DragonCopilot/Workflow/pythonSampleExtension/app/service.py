@@ -36,7 +36,7 @@ class ProcessingService:
             # response.payload["sample-entities"] = sample_entities
             response.payload["dragon-predict-adaptive-card"] = adaptive_card
             # response.payload["samplePluginResult"] = composite_plugin
-            logger.info(f"extension response:\n {response}")
+            logger.info("extension response:\n %s", response)
 
             # TODO: use the payload fields to call out to AI Agents
 
@@ -209,7 +209,7 @@ class ProcessingService:
         # TODO: add extension prefix to title
         return models.VisualizationResource(
             id=str(uuid4()),
-            subtype="note", # hard coded subtype3
+            subtype="note", # hardcoded subtype
             cardTitle=f"{EXTENSION_PREFIX} - Clinical Risk Scores",
             # adaptiveCardPayload={
             adaptive_card_payload={

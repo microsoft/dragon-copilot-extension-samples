@@ -30,7 +30,7 @@ Parity when diff `notes` is empty.
 ### 4. Dependency Sync (Optional)
 Hash `requirements.txt`. If changed:
 ```bash
-/path/python -m pip install -r samples/DragonCopilot/Workflow/pyextension/requirements.txt --no-cache-dir
+/path/python -m pip install -r samples/DragonCopilot/Workflow/pythonSampleExtension/requirements.txt --no-cache-dir
 ```
 Don’t uninstall arbitrary packages.
 
