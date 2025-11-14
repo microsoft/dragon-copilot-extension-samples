@@ -56,9 +56,14 @@ try {
         if (-not $SkipValidate) {
             Write-Host "\n✅ Running manifest validation..." -ForegroundColor Yellow
             node (Join-Path $cliRoot 'dist/cli.js') partner validate $manifestPath
+
+            $validationExitCode = $LASTEXITCODE
+            if ($validationExitCode -ne 0) {
+                throw "Manifest validation failed (exit code $validationExitCode). See CLI output for details."
+            }
+
             Write-Host "📄 Validation complete." -ForegroundColor Green
-        }
-        else {
+        } else {
             Write-Host "\n⏭️  SkipValidate specified - skipping validation." -ForegroundColor Yellow
         }
 
@@ -79,6 +84,12 @@ try {
         }
 
         node (Join-Path $cliRoot 'dist/cli.js') @packageArgs
+
+        $packageExitCode = $LASTEXITCODE
+        if ($packageExitCode -ne 0) {
+            throw "Packaging failed (exit code $packageExitCode). See CLI output for details."
+        }
+
         Write-Host "\n🎉 Package created successfully." -ForegroundColor Green
     }
     finally {

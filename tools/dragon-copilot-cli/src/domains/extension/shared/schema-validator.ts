@@ -77,6 +77,9 @@ function getSchemaPath(): string {
   const candidates = [
     resolve(currentDir, '..', 'schemas'),
     resolve(currentDir, '..', '..', 'schemas'),
+    // Handle scenarios where CLI is invoked from another working directory (e.g., packaging script)
+    // and the compiled files live under dist/schemas instead of the domain subfolder.
+    resolve(currentDir, '..', '..', '..', 'schemas'),
     resolve(process.cwd(), 'src', 'schemas'),
     resolve(process.cwd(), 'dist', 'schemas'),
   ];
