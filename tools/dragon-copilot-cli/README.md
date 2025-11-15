@@ -4,6 +4,18 @@ The `dragon-copilot` CLI unifies the legacy extension and partner tooling into a
 
 ## Installation
 
+### Windows quick start
+
+To automate installation, build, and launch of the partner wizard on Windows, run the helper from the repo root:
+
+```powershell
+pwsh ./tools/dragon-copilot-cli/scripts/setup-partner-cli.ps1
+```
+
+Use `-SkipNodeInstall` to keep your existing Node.js installation or `-SkipBuild` when dependencies are already installed.
+
+### Manual install
+
 From the CLI folder:
 
 ```powershell

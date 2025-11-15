@@ -2,6 +2,25 @@
 
 This guide explains how to extract and run the Dragon Copilot partner initialization tools **without VS Code**.
 
+## Windows Quick Start (Recommended)
+
+If you are on Windows and want an automated setup, run the helper script from the repository root:
+
+```powershell
+pwsh ./tools/dragon-copilot-cli/scripts/setup-partner-cli.ps1
+```
+
+The script will:
+- Check for Node.js 22.20.0+ and install it via `winget` or Chocolatey when available
+- Run `npm install` and `npm run build` inside `tools/dragon-copilot-cli`
+- Launch the partner manifest wizard (`dragon-copilot partner init`) when the CLI is ready
+
+Optional flags:
+- `-SkipNodeInstall` keeps your existing Node.js installation
+- `-SkipBuild` assumes you already ran `npm install` and `npm run build`
+
+Use the manual steps below if you are on macOS/Linux or prefer to perform each step yourself.
+
 ## Install Required Dependencies
 
 ### Step 1: Install Node.js and npm
