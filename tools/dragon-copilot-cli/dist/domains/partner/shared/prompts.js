@@ -145,7 +145,7 @@ const gatherIntegrationDetails = async (defaults) => {
         default: defaults?.version || '0.0.1',
         validate: validateVersion
     });
-    logInfo('Partner ID should match the identifier from your app source (e.g. source, Microsoft Partner Center).');
+    logInfo('Partner ID should match the identifier from your app source (e.g., Microsoft Partner Center).');
     logInfo('If you have not received a Partner ID yet, you can generate a GUID now and use it in the manifest.');
     let partnerId;
     const hasExternalId = await yesNo('Do you already have a Partner ID from NMC or Partner Center?', defaults?.partnerId ? 'yes' : 'no');
@@ -244,7 +244,7 @@ const gatherServerAuthenticationEntry = async (index) => {
         validate: validateUrl
     });
     console.log('');
-    logInfo('Common Entra ID claims include Enterprise Application Object ID (oid) or Application (Client) ID (azp) values.');
+    logInfo('Common Entra ID claims include the Enterprise Application Object ID (oid) or the Application (Client) ID (azp) values.');
     logInfo('Find your service principal and tenant IDs: https://learn.microsoft.com/en-us/azure/cost-management-billing/manage/assign-roles-azure-service-principals#find-your-service-principal-and-tenant-ids');
     console.log('');
     const identity_claim = await input({

@@ -1,5 +1,5 @@
 import fs from 'fs-extra';
-const { readFileSync, existsSync } = fs;
+const { readFileSync, existsSync, statSync } = fs;
 import yaml from 'js-yaml';
 const { load } = yaml;
 import path from 'path';
@@ -62,7 +62,28 @@ export async function runValidateCommand(filePath?: string): Promise<void> {
     process.exit(1);
   }
 
-  await validateManifest(resolvedPath);
+  let manifestPath = resolvedPath;
+
+  try {
+    const stats = statSync(resolvedPath);
+    if (stats.isDirectory()) {
+      const candidatePath = path.join(resolvedPath, DEFAULT_MANIFEST_PATH);
+      if (!existsSync(candidatePath)) {
+        console.log(chalk.red('❌ Provided path is a directory and no manifest file was found inside:'));
+        console.log(chalk.red(`  • Expected ${candidatePath}`));
+        console.log(chalk.gray(`Ensure ${DEFAULT_MANIFEST_PATH} exists in that directory or provide the full file path.`));
+        process.exit(1);
+      }
+      manifestPath = candidatePath;
+    }
+  } catch (error) {
+    console.log(chalk.red('❌ Unable to access manifest path:'));
+    console.log(chalk.red(`  • ${resolvedPath}`));
+    console.log(chalk.gray(String(error)));
+    process.exit(1);
+  }
+
+  await validateManifest(manifestPath);
 }
 
 export async function validateManifest(filePath: string): Promise<void> {

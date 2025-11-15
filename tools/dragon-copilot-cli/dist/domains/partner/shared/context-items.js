@@ -2,7 +2,7 @@ const RAW_CONTEXT_ITEM_CATALOG = [
     {
         name: 'base_url',
         type: 'url',
-        description: 'base url needed for API calls.  These are typically FHIR calls.',
+        description: 'base url need for API calls.  These are typically FHIR calls.',
         defaultRequired: 'yes',
         defaultInclude: true
     },
@@ -23,7 +23,7 @@ const RAW_CONTEXT_ITEM_CATALOG = [
     {
         name: 'in-bound-issuer',
         type: 'url',
-        description: 'issuer claim of access tokens used by partner to call Dragon Copilot Interop',
+        description: 'issuer claim of access tokens used by the partner to call Dragon Copilot Interop',
         defaultRequired: 'yes',
         defaultInclude: true
     },
@@ -37,14 +37,14 @@ const RAW_CONTEXT_ITEM_CATALOG = [
     {
         name: 'out-bound-client-id',
         type: 'string',
-        description: 'partner provided client id to issue access tokens for Dragon Copilot Interop to call partner',
+        description: 'Partner-provided client ID used to issue access tokens for Dragon Copilot Interop to call the partner',
         defaultRequired: 'yes',
         defaultInclude: true
     },
     {
         name: 'out-bound-secret',
         type: 'string',
-        description: 'partner provided secret to issue access tokens for Dragon Copilot Interop to call partner',
+        description: 'Partner-provided secret used to issue access tokens for Dragon Copilot Interop to call the partner',
         defaultRequired: 'yes',
         defaultInclude: true
     }
