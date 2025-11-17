@@ -21,7 +21,7 @@ public class AdaptiveCardPayload
     /// Type of the card (always "AdaptiveCard")
     /// </summary>
     [JsonPropertyName("type")]
-    public string Type { get; } = "AdaptiveCard";
+    public string Type { get; set; } = "AdaptiveCard";
 
     /// <summary>
     /// Adaptive card version
