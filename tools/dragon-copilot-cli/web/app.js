@@ -150,7 +150,7 @@ function bindDomElements() {
 const CONTEXT_ITEMS = Object.freeze({
   'base_url': {
     type: 'url',
-    description: 'base url needed for API calls.  These are typically FHIR calls.',
+    description: 'base url need for API calls.  These are typically FHIR calls.',
     required: 'yes'
   },
   'ehr-user_id': {
@@ -165,7 +165,7 @@ const CONTEXT_ITEMS = Object.freeze({
   },
   'in-bound-issuer': {
     type: 'url',
-    description: 'issuer claim of access tokens used by partner to call Dragon Copilot Interop',
+    description: 'issuer claim of access tokens used by the partner to call Dragon Copilot Interop',
     required: 'yes'
   },
   'out-bound-issuer': {
