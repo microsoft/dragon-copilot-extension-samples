@@ -8,7 +8,7 @@ export default {
   transformIgnorePatterns: ['/node_modules/(?!(chalk)/)'],
   moduleNameMapper: {
     '^(\\.{1,2}/.*)\\.js$': '$1',
-  '^chalk$': '<rootDir>/src/__mocks__/chalk.ts',
+    '^chalk$': '<rootDir>/src/__tests__/stubs/chalk.ts',
   },
   testEnvironment: 'node',
   roots: ['<rootDir>/src'],
