@@ -70,7 +70,7 @@ const PARTNER_MANIFEST = [
   '    instance:',
   '      - name: base_url',
   '        type: url',
-  '        description: base url needed for API calls.  These are typically FHIR calls.',
+  '        description: base url need for API calls.  These are typically FHIR calls.',
   '        required: yes',
 ].join('\n');
 

@@ -74,21 +74,16 @@ const JSZIP_LIB = typeof window !== 'undefined' && window.JSZip ? window.JSZip :
 const SAMPLE_LOGO_BASE64 =
   'ACCYAEAwAYBgAgDBBACCCQAEEwAIJgAQTAAgmABAMAGAYAIAwQQAggkABBMACCYAEEwAGOvj4+nnqWM8fnv7GgwjACW+nD7/uvymbzQON2G2fa8/v36ZOAZbEYAS206Kq+PX4+nDm+MX6L3Sd4zvDxPHYxMCUKIwAC9GzcT5dvp+eeCNR837yCQAJfYJwJ/x+/T54+X5bOPD19+XBxsyBGAcASixZwD+jo33Cj49Xh5g3BCAcQSgxAECcB6b7A/UvxcBGEcAStRPmtmxMgKVV/6nIQDjCECJAwXgPBbeDlTd818OARhHAEq0B6Dpy/7w4/Lfukf38/W1x2xYecwFpukzYREBKLFxAF6YmzS3x4/Tp4nXm7b0Ud/yJxAv31fvZ0I7ASgxLgC9r/9qNN4KLIlM9wpjxvnYyz4TWghAifYJuubL3r9B17AKWPALvzXvgVoCUKImAD3HeRq3rtS9V/915081ASjRPjHXT6DO+/Wrm3N9r3UrJhyPAJSoDEDvVfvKbUDPzv/VkHBUAlCiNgC9V+65Y/bsKcy9BscmACWqA9C3Cpheuref89VVBIcmACXaJ9NWAehavk89DuzZ/Z/6f+6CAJTYIQA9twFTE7gjINudM9UEoMQeAWg/5tQGXvstxPJf+7E/ASjRPhnvLwDu/++ZAJRon4xHCUD7EwABuGcCUKJ9MgoAlQSgRPtkFAAqCUCJ9skoAFQSgBLtk3G7AKx7DNgeAE8B7pkAlNghAB0/5Jn6JWD7U4ANz5lyAlCiPgBrJ3DP/08FhPsgACWqA9B+vNklfMcvAaf2ELgPAlCifUJuEoCO5f/s5O15jbmIcHgCUKI2AO0beNeW7+3n/N+Y2Ejk+ASgRPtkWh2AnqX7jSt3T0jOY/W5U04ASlQFoOPR33nMLf+fdMXkPPwm4N4IQImKAHRO/qZjtZ/38xCBeyIAJdon0u1JOaFrw+7vaLxn73kc+Dyu31r0ON+GLPpMaCIAJUYFoP11X4+eCdq/svh/NEZmysv9h77PhB4CUKJ9orZ82ZddlZ9HyzFe6d4LeDtuH3P+M7r9vywlACXmv9zVY/6x33W9TwS2HAIwjgCUOEgAVizJV90KrBwCMI4AlNg/AEuv/K8s2WzcYAjAOAJQYt8AbDqBdojApufPKwJQYqcA3Pqhz2K1twMCMI4AlKgOQM2Pcao2BgVgHAEoURSAVZt8S41/bwIwjgCUGDRJhi3xl9l2RVCzikknAIzRvVlowu9BACCYAEAwAYBgAgDBBACCCQAEEwAIJgAQTAAgmABAMAGAYAIAwQQAggkABBMACCYAEEwAIJgAQDABgGACAMEEAIIJAAQTAAgmABBMACCYAEAwAYBgAgDBBACCCQAEEwAIJgAQTAAgmABAMAGAYAIAwQQAggkABBMACCYAEEwAIJgAQDABgGACAMEEAIIJAAQTAAgmABBMACCYAEAwAYBgAgDBBACCCQAEEwAIJgAQTAAgmABAMAGAYAIAwQQAggkABBMACCYAEEwAIJgAQDABgGACAMEEAIIJAAQTAAgmABBMACCYAEAwAYBgAgDBBACCCQAEEwAIJgAQTAAgmABAMAGAYAIAwQQAggkABBMACCYAEEwAIJgAQDABgGACAMEEAIIJAAQTAAgmABBMACCYAEAwAYBgAgDBBACCCQAEEwAIJgAQTAAg2L9z0nt1z4GMZAAAAABJRU5ErkJggg==';
 const SAMPLE_LOGO_FILENAME = 'logo_large.png';
-const DEFAULT_MANIFEST_NAME = 'partner-integration';
-
 function normalizeIntegrationName(value) {
   if (!value) {
-    return DEFAULT_MANIFEST_NAME;
+    return '';
   }
 
   const normalized = value
     .trim()
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/-+/g, '-')
-    .replace(/^-|-$/g, '');
+    .replace(/\s+/g, ' ');
 
-  return normalized || DEFAULT_MANIFEST_NAME;
+  return normalized;
 }
 
 function bindDomElements() {
@@ -1383,6 +1378,9 @@ function buildManifest() {
 
   const rawName = integrationNameInput ? integrationNameInput.value.trim() : '';
   const manifestName = normalizeIntegrationName(rawName);
+  if (!manifestName) {
+    throw new Error('Integration name normalization failed. Enter a name with at least one letter or number.');
+  }
   const description = buildManifestDescription(rawName || manifestName);
   const version = integrationVersionInput ? integrationVersionInput.value.trim() : '';
   let partnerIdValue = partnerIdInput ? partnerIdInput.value.trim() : '';
@@ -1490,6 +1488,8 @@ function validateRequiredFields() {
 
   if (!integrationNameInput || !integrationNameInput.value.trim()) {
     errors.push('Integration name is required.');
+  } else if (!normalizeIntegrationName(integrationNameInput.value)) {
+    errors.push('Integration name must include at least one letter or number.');
   }
 
   if (!integrationVersionInput || !integrationVersionInput.value.trim()) {

@@ -36,17 +36,14 @@ const sanitizeListInput = (value: string): string[] =>
 
 const normalizeIntegrationName = (value: string): string => {
   if (!value) {
-    return 'partner-integration';
+    return '';
   }
 
   const normalized = value
     .trim()
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/-+/g, '-')
-    .replace(/^-|-$/g, '');
+    .replace(/\s+/g, ' ');
 
-  return normalized || 'partner-integration';
+  return normalized;
 };
 
 const logSectionHeading = (icon: string, title: string): void => {
@@ -105,12 +102,18 @@ const collectWithReview = async <T>(
 };
 
 export function validateIntegrationName(input: string): string | boolean {
-  if (!input.trim()) return 'Integration name is required';
-  if (input.length < 3) return 'Integration name must be at least 3 characters long';
-  if (input.length > 50) return 'Integration name must be less than 50 characters';
-  if (!/^[a-zA-Z0-9][a-zA-Z0-9\s\-_.]*[a-zA-Z0-9]$/.test(input)) {
+  const trimmed = input.trim();
+  if (!trimmed) return 'Integration name is required';
+  if (trimmed.length < 3) return 'Integration name must be at least 3 characters long';
+  if (trimmed.length > 50) return 'Integration name must be less than 50 characters';
+  if (!/^[a-zA-Z0-9][a-zA-Z0-9\s\-_.]*[a-zA-Z0-9]$/.test(trimmed)) {
     return 'Integration name must start and end with alphanumeric characters and can contain spaces, hyphens, underscores, and periods';
   }
+
+  if (!normalizeIntegrationName(trimmed)) {
+    return 'Integration name must include at least one letter or number';
+  }
+
   return true;
 }
 
@@ -178,11 +181,17 @@ const validateRequiredText = (fieldName: string) => (input: string): string | bo
 const gatherIntegrationDetails = async (
   defaults?: Partial<IntegrationDetails>
 ): Promise<IntegrationDetails> => {
-  const name = await input({
+  const nameDefault = defaults?.rawName || defaults?.name;
+  const namePromptBase = {
     message: 'Integration name:',
-    default: defaults?.rawName || defaults?.name || 'partner-integration',
     validate: validateIntegrationName
-  });
+  };
+
+  const name = await input(
+    nameDefault && nameDefault.trim()
+      ? { ...namePromptBase, default: nameDefault }
+      : namePromptBase
+  );
 
   const version = await input({
     message: 'Integration version:',
@@ -210,8 +219,12 @@ const gatherIntegrationDetails = async (
     logInfo(`Generated Partner ID GUID: ${partnerId}`);
   }
 
-  const normalizedName = normalizeIntegrationName(name);
-  const description = buildIntegrationDescription(name);
+  const trimmedName = name.trim();
+  const normalizedName = normalizeIntegrationName(trimmedName);
+  if (!normalizedName) {
+    throw new Error('Integration name normalization failed. Please enter a name with at least one letter or number.');
+  }
+  const description = buildIntegrationDescription(trimmedName || normalizedName);
   logInfo(`Integration description set to "${description}".`);
 
   console.log('');
@@ -224,7 +237,7 @@ const gatherIntegrationDetails = async (
 
   return {
     name: normalizedName,
-    rawName: name,
+    rawName: trimmedName,
     description,
     version,
     partnerId,
@@ -233,18 +246,21 @@ const gatherIntegrationDetails = async (
 };
 
 const summarizeIntegrationDetails = (details: IntegrationDetails): string[] => {
-  const nameSummary =
-    details.rawName && details.rawName.trim() && details.rawName.trim() !== details.name
-      ? `${details.name} (normalized from "${details.rawName}")`
-      : details.name;
+  const trimmedRaw = details.rawName?.trim();
+  const summary: string[] = [`Manifest name: ${details.name}`];
 
-  return [
-    `Name: ${nameSummary}`,
+  if (trimmedRaw && trimmedRaw !== details.name) {
+    summary.push(`Entered name: ${trimmedRaw}`);
+  }
+
+  summary.push(
     `Description: ${details.description}`,
     `Version: ${details.version}`,
     `Partner ID: ${details.partnerId}`,
     `Clinical application: ${details.clinicalApplicationName}`
-  ];
+  );
+
+  return summary;
 };
 
 export async function promptIntegrationDetails(

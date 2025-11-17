@@ -14,15 +14,12 @@ const sanitizeListInput = (value) => value
     .filter(Boolean);
 const normalizeIntegrationName = (value) => {
     if (!value) {
-        return 'partner-integration';
+        return '';
     }
     const normalized = value
         .trim()
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, '-')
-        .replace(/-+/g, '-')
-        .replace(/^-|-$/g, '');
-    return normalized || 'partner-integration';
+        .replace(/\s+/g, ' ');
+    return normalized;
 };
 const logSectionHeading = (icon, title) => {
     console.log(`\n${icon} ${title}`);
@@ -61,14 +58,18 @@ const collectWithReview = async (sectionName, gather, summarize) => {
     }
 };
 export function validateIntegrationName(input) {
-    if (!input.trim())
+    const trimmed = input.trim();
+    if (!trimmed)
         return 'Integration name is required';
-    if (input.length < 3)
+    if (trimmed.length < 3)
         return 'Integration name must be at least 3 characters long';
-    if (input.length > 50)
+    if (trimmed.length > 50)
         return 'Integration name must be less than 50 characters';
-    if (!/^[a-zA-Z0-9][a-zA-Z0-9\s\-_.]*[a-zA-Z0-9]$/.test(input)) {
+    if (!/^[a-zA-Z0-9][a-zA-Z0-9\s\-_.]*[a-zA-Z0-9]$/.test(trimmed)) {
         return 'Integration name must start and end with alphanumeric characters and can contain spaces, hyphens, underscores, and periods';
+    }
+    if (!normalizeIntegrationName(trimmed)) {
+        return 'Integration name must include at least one letter or number';
     }
     return true;
 }
@@ -135,11 +136,14 @@ const validateRequiredText = (fieldName) => (input) => {
     return true;
 };
 const gatherIntegrationDetails = async (defaults) => {
-    const name = await input({
+    const nameDefault = defaults?.rawName || defaults?.name;
+    const namePromptBase = {
         message: 'Integration name:',
-        default: defaults?.rawName || defaults?.name || 'partner-integration',
         validate: validateIntegrationName
-    });
+    };
+    const name = await input(nameDefault && nameDefault.trim()
+        ? { ...namePromptBase, default: nameDefault }
+        : namePromptBase);
     const version = await input({
         message: 'Integration version:',
         default: defaults?.version || '0.0.1',
@@ -160,8 +164,12 @@ const gatherIntegrationDetails = async (defaults) => {
         partnerId = randomUUID().toLowerCase();
         logInfo(`Generated Partner ID GUID: ${partnerId}`);
     }
-    const normalizedName = normalizeIntegrationName(name);
-    const description = buildIntegrationDescription(name);
+    const trimmedName = name.trim();
+    const normalizedName = normalizeIntegrationName(trimmedName);
+    if (!normalizedName) {
+        throw new Error('Integration name normalization failed. Please enter a name with at least one letter or number.');
+    }
+    const description = buildIntegrationDescription(trimmedName || normalizedName);
     logInfo(`Integration description set to "${description}".`);
     console.log('');
     logInfo('Clinical application name typically matches the embedded EHR or workflow integration that supplies user identity context to Dragon Copilot.');
@@ -172,7 +180,7 @@ const gatherIntegrationDetails = async (defaults) => {
     });
     return {
         name: normalizedName,
-        rawName: name,
+        rawName: trimmedName,
         description,
         version,
         partnerId,
@@ -180,16 +188,13 @@ const gatherIntegrationDetails = async (defaults) => {
     };
 };
 const summarizeIntegrationDetails = (details) => {
-    const nameSummary = details.rawName && details.rawName.trim() && details.rawName.trim() !== details.name
-        ? `${details.name} (normalized from "${details.rawName}")`
-        : details.name;
-    return [
-        `Name: ${nameSummary}`,
-        `Description: ${details.description}`,
-        `Version: ${details.version}`,
-        `Partner ID: ${details.partnerId}`,
-        `Clinical application: ${details.clinicalApplicationName}`
-    ];
+    const trimmedRaw = details.rawName?.trim();
+    const summary = [`Manifest name: ${details.name}`];
+    if (trimmedRaw && trimmedRaw !== details.name) {
+        summary.push(`Entered name: ${trimmedRaw}`);
+    }
+    summary.push(`Description: ${details.description}`, `Version: ${details.version}`, `Partner ID: ${details.partnerId}`, `Clinical application: ${details.clinicalApplicationName}`);
+    return summary;
 };
 export async function promptIntegrationDetails(defaults) {
     return collectWithReview('Integration details', () => gatherIntegrationDetails(defaults), summarizeIntegrationDetails);
