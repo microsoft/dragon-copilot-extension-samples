@@ -45,7 +45,7 @@ public class VisualizationResource : IResource
     /// Adaptive card payload (required)
     /// </summary>
     [JsonPropertyName("adaptive_card_payload")]
-    public required object AdaptiveCardPayload { get; set; }
+    public required AdaptiveCardPayload AdaptiveCardPayload { get; set; }
 
     /// <summary>
     /// Available actions for the card
