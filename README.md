@@ -9,6 +9,7 @@ Welcome! This repository contains sample code illustrating the Dragon Copilot ex
 - [Quick Start](#-quick-start)
 - [Samples](#-samples)
 - [Tools](#️-tools)
+- [Nursing Standards & Profiles](#-nursing-standards--profiles)
 - [Contributing](#-contributing)
 - [License](#-license)
 
@@ -52,6 +53,14 @@ dragon-extension package
 ```
 
 See [CLI README](tools/dragon-extension-cli/README.md) for details.
+
+## 🩺 Nursing Standards & Profiles
+
+For developers building extensions for nursing workflows (e.g., assessments, care plans), referencing a standardized data model is recommended to ensure clinical safety and interoperability.
+
+*   **Open Nursing Core (ONC) Implementation Guide:** A community-led FHIR standard for the nursing process (ADPIE), including profiles for Braden Scale, NEWS2, and Social Determinants.
+    *   [View the Standard](https://clinyqai.github.io/open-nursing-core-ig/)
+    *   [View the Repository](https://github.com/ClinyQAi/open-nursing-core-ig)
 
 ## 🤝 Contributing
 
