@@ -7,7 +7,7 @@ This guide explains how to extract and run the Dragon Copilot partner initializa
 If you are on Windows and want an automated setup, run the helper script from the repository root:
 
 ```powershell
-pwsh ./tools/dragon-copilot-cli/scripts/setup-partner-cli.ps1
+./tools/dragon-copilot-cli/scripts/setup-partner-cli.ps1
 ```
 
 The script will:
