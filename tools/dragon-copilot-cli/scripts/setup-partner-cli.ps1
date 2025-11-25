@@ -122,6 +122,50 @@ function Start-PartnerInit {
     & node (Join-Path $cliRoot 'dist/cli.js') partner init
 }
 
+function Invoke-OptionalPackaging {
+    param(
+        [string]$DefaultManifestDirectory
+    )
+
+    Write-Host ""
+    $response = Read-Host "Run partner validate/package now? (y/N)"
+    if (-not $response -or $response.Trim().ToLowerInvariant().StartsWith('y') -eq $false) {
+        Write-Host "Skipping validation and packaging." -ForegroundColor Yellow
+        return
+    }
+
+    $manifestDirectory = $DefaultManifestDirectory
+    if ($manifestDirectory) {
+        $userInput = Read-Host ("Manifest directory containing extension.yaml [default: {0}]" -f $manifestDirectory)
+        if ($userInput) {
+            $manifestDirectory = $userInput
+        }
+    }
+    else {
+        $manifestDirectory = Read-Host "Enter manifest directory containing extension.yaml"
+    }
+
+    if (-not $manifestDirectory) {
+        Write-Host "Manifest directory not provided. Skipping validation and packaging." -ForegroundColor Yellow
+        return
+    }
+
+    $resolvedManifest = Resolve-Path -Path $manifestDirectory -ErrorAction SilentlyContinue
+    if (-not $resolvedManifest) {
+        Write-Host ("Manifest directory not found: {0}" -f $manifestDirectory) -ForegroundColor Red
+        return
+    }
+
+    $packageScript = Join-Path $scriptRoot 'build-validate-and-package.ps1'
+    try {
+        & $packageScript -ManifestDirectory $resolvedManifest.Path
+    }
+    catch {
+        Write-Host "Packaging helper reported an error." -ForegroundColor Red
+        throw
+    }
+}
+
 Write-Section "Dragon Copilot standalone setup"
 Write-Host "Repository root:" $repoRoot
 Write-Host "CLI root:" $cliRoot
@@ -138,7 +182,9 @@ try {
         Write-Host "Skipping npm install/build as requested." -ForegroundColor Yellow
     }
 
+    Invoke-Npm -Arguments @('link') -Description "Registering dragon-copilot command globally (npm link)..."
     Start-PartnerInit
+    Invoke-OptionalPackaging
 } finally {
     Pop-Location
 }

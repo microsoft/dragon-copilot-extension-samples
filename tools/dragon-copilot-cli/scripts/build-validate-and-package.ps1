@@ -13,19 +13,21 @@ $ErrorActionPreference = 'Stop'
 
 $cliRoot = Split-Path -Parent $PSScriptRoot
 
-Write-Host "📦 Dragon Copilot Partner Packaging Helper" -ForegroundColor Cyan
-Write-Host "📁 CLI root:" $cliRoot
+Write-Host "=== Dragon Copilot Partner Packaging Helper ===" -ForegroundColor Cyan
+Write-Host ("CLI root: {0}" -f $cliRoot)
 
 Push-Location $cliRoot
 try {
     if (-not $SkipBuild) {
-        Write-Host "\n🔧 Ensuring CLI is built (npm install && npm run build)..." -ForegroundColor Yellow
+        Write-Host ""
+        Write-Host "Building CLI (npm install; npm run build)..." -ForegroundColor Yellow
         npm install | Out-Null
         npm run build | Out-Null
-        Write-Host "✅ CLI build complete." -ForegroundColor Green
+        Write-Host "CLI build complete." -ForegroundColor Green
     }
     else {
-        Write-Host "\n⏭️  SkipBuild specified - using existing build output." -ForegroundColor Yellow
+        Write-Host ""
+        Write-Host "SkipBuild specified - using existing build output." -ForegroundColor Yellow
     }
 
     if (-not (Test-Path $ManifestDirectory)) {
@@ -33,7 +35,8 @@ try {
     }
 
     $resolvedManifestDirectory = (Resolve-Path $ManifestDirectory).Path
-    Write-Host "\n🗂️  Preparing manifest workspace:" $resolvedManifestDirectory
+    Write-Host ""
+    Write-Host ("Preparing manifest workspace: {0}" -f $resolvedManifestDirectory)
 
     Push-Location $resolvedManifestDirectory
     try {
@@ -50,11 +53,12 @@ try {
         }
 
         if (-not (Test-Path $logoPath)) {
-            throw "assets/logo_large.png not found. Run the manifest builder's Assets Helper or add your branded logo (PNG, 216-350px square)."
+            throw "assets/logo_large.png not found. Run the manifest builder Assets Helper or add your branded logo (PNG, 216-350px square)."
         }
 
         if (-not $SkipValidate) {
-            Write-Host "\n✅ Running manifest validation..." -ForegroundColor Yellow
+            Write-Host ""
+            Write-Host "Running manifest validation..." -ForegroundColor Yellow
             node (Join-Path $cliRoot 'dist/cli.js') partner validate $manifestPath
 
             $validationExitCode = $LASTEXITCODE
@@ -62,9 +66,10 @@ try {
                 throw "Manifest validation failed (exit code $validationExitCode). See CLI output for details."
             }
 
-            Write-Host "📄 Validation complete." -ForegroundColor Green
+            Write-Host "Validation complete." -ForegroundColor Green
         } else {
-            Write-Host "\n⏭️  SkipValidate specified - skipping validation." -ForegroundColor Yellow
+            Write-Host ""
+            Write-Host "SkipValidate specified - skipping validation." -ForegroundColor Yellow
         }
 
         $packageArgs = @('partner', 'package')
@@ -77,10 +82,12 @@ try {
                 $resolvedOutput = $resolvedOutput.Path
             }
             $packageArgs += @('--output', $resolvedOutput)
-            Write-Host "\n📦 Packaging to: $resolvedOutput" -ForegroundColor Yellow
+            Write-Host ""
+            Write-Host ("Packaging to: {0}" -f $resolvedOutput) -ForegroundColor Yellow
         }
         else {
-            Write-Host "\n📦 Packaging with default output name (manifestName-version.zip)." -ForegroundColor Yellow
+            Write-Host ""
+            Write-Host "Packaging with default output name (manifestName-version.zip)." -ForegroundColor Yellow
         }
 
         node (Join-Path $cliRoot 'dist/cli.js') @packageArgs
@@ -90,7 +97,8 @@ try {
             throw "Packaging failed (exit code $packageExitCode). See CLI output for details."
         }
 
-        Write-Host "\n🎉 Package created successfully." -ForegroundColor Green
+        Write-Host ""
+        Write-Host "Package created successfully." -ForegroundColor Green
     }
     finally {
         Pop-Location

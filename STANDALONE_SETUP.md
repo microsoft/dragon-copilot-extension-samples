@@ -10,6 +10,7 @@ If you are on Windows and want an automated setup, run the helper script from th
 ./tools/dragon-copilot-cli/scripts/setup-partner-cli.ps1
 ```
 
+
 The script will:
 - Check for Node.js 22.20.0+ and install it via `winget` or Chocolatey when available
 - Run `npm install` and `npm run build` inside `tools/dragon-copilot-cli`
@@ -18,6 +19,14 @@ The script will:
 Optional flags:
 - `-SkipNodeInstall` keeps your existing Node.js installation
 - `-SkipBuild` assumes you already ran `npm install` and `npm run build`
+
+After the wizard finishes creating your manifest workspace, package the assets with the helper script:
+
+```powershell
+./tools/dragon-copilot-cli/scripts/build-validate-and-package.ps1 -ManifestDirectory <path-to-manifest>
+```
+
+When you run `setup-partner-cli.ps1`, the wizard creates the manifest files in the directory where you started the script (for example, `C:\your-project-folder\dragon-copilot-extension-samples`). Use that path for `<path-to-manifest>`. The setup script now offers to run validation/packaging automatically; accept the prompt or run the command manually later. Use `-SkipBuild` or `-SkipValidate` if you already performed those steps.
 
 Use the manual steps below if you are on macOS/Linux or prefer to perform each step yourself.
 
