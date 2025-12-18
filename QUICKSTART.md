@@ -69,10 +69,9 @@ We are now going to package our extension using the dragon-extension CLI tool. [
 5. Issue a `dragon-extension init` command
   You will be asked for information on your extension.  
     - Ensure the tenantId specified is for where you will upload your extension to.
-    - Ensure the api endpoint points to the process method using the devtunnel address you outlined earlier (https://<connecttunneluri>/v1/process)
+    - Ensure the api endpoint points to the process method using the devtunnel address you generated earlier.
 6. Issue a `dragon-extension package` command
-
-You now have a valid zip file that represents your extension.
+You now have a valid zip file that represents your extension!
 
 ##  Create an Application in Azure portal that represents your application.
 1. Log into http://entra.microsoft.com
@@ -89,26 +88,26 @@ You now have a valid zip file that represents your extension.
 
       ![](doc/entra-expose-an-api.png)
 6. Add an Application ID URI.  The format should be: `api://tenantid/devtunnelpath`
+   - (i.e. api://1abcdefg3-n2g4-56dd-jj10-i34lmn5p7rst/k2dkm8r-7156.use.devtunnels.ms)
 
-7. Click the "Save" button
-
-8. In the application details navigation, select "Token Configuration"
+5. Click the "Save" button
+6. In the application details navigation, select "Token Configuration"
 
     ![](doc/entra-token-configuration.png)
-9. Select "Add Optional Claim" in the details section
-
+7. Select "Add Optional Claim" in the details section
+    
     ![](doc/entra-optional-claim.png)
-10. For token type select "Access" and in the list of claims select "idtyp"
+8. For token type select "Access" and in the list of claims select "idtyp"
 
     ![](doc/entra-optional-claim-details.png)
-11. Click the "Add" button
-12. In the application details navigation, select "Manifest"
+9. Click the "Add" button
+10. In the application details navigation, select "Manifest"
 
     ![](doc/entra-manifest.png)
-13. Find the property "requestedAccessTokenVersion" and change the value from `null` to `2`
+11. Find the property "requestedAccessTokenVersion" and change the value from `null` to `2`
 
     ![](doc/entra-manifest-details.png)
-14. Click the "Save" button
+12. Click the "Save" button
 
 ## Installing your Extension
 
@@ -191,132 +190,3 @@ You now have a valid zip file that represents your extension.
 
 9. Click the "Note" tab and scroll to the bottom to see your results
 	![tab-note.png](doc/tab-note.png)
-
-## ☁️ Deploy to Azure (Production Ready)
-
-### Prerequisites for Azure Deployment
-- Docker Desktop installed and running
-- Azure subscription with Container Apps deployed
-- Container registry with permissions granted to the Container Apps identity
-
-### Steps
-
-#### 1. Build the Docker Image
-From the **repository root directory**, build the Docker image:
-
-```powershell
-# Build the Docker image
-docker build -f samples/DragonCopilot/Workflow/SampleExtension.Web/Dockerfile -t dragon-extension:latest .
-```
-
-> **Note**: The Dockerfile must be built from the repository root because it references files from both `src/Dragon.Copilot.Models/` and `samples/DragonCopilot/Workflow/SampleExtension.Web/`.
-
-#### 2. Test the Docker Image Locally (Optional but Recommended)
-```powershell
-# Run the container locally
-docker run -p 5181:8080 dragon-extension:latest
-
-# Test the health endpoint
-curl http://localhost:5181/health
-```
-
-#### 3. Tag and Push to Azure Container Registry
-```powershell
-# Login to Azure
-az login
-
-# Login to your Azure Container Registry
-az acr login --name <your-registry-name>
-
-# Tag the image for your registry
-docker tag dragon-extension:latest <your-registry-name>.azurecr.io/dragon-extension:latest
-
-# Push the image
-docker push <your-registry-name>.azurecr.io/dragon-extension:latest
-```
-
-#### 4. Deploy to Azure Container Apps
-```powershell
-# Create or update the container app
-az containerapp update `
-  --name <your-container-app-name> `
-  --resource-group <your-resource-group> `
-  --image <your-registry-name>.azurecr.io/dragon-extension:latest
-
-# Verify deployment
-az containerapp show `
-  --name <your-container-app-name> `
-  --resource-group <your-resource-group> `
-  --query "properties.latestRevisionFqdn" `
-  --output tsv
-```
-
-#### 5. Configure Environment Variables (Production)
-For production deployments, configure authentication and other settings:
-
-```powershell
-az containerapp update `
-  --name <your-container-app-name> `
-  --resource-group <your-resource-group> `
-  --set-env-vars `
-    ASPNETCORE_ENVIRONMENT=Production `
-    Authentication__Enabled=true `
-    Authentication__TenantId=<your-entra-tenant-id> `
-    Authentication__ClientId=<your-entra-client-id> `
-    Authentication__Instance=https://login.microsoftonline.com/
-```
-
-See [Authentication.md](./doc/Authentication.md) for detailed authentication configuration.
-
-#### 6. Verify Production Deployment
-```powershell
-# Get the FQDN
-$fqdn = az containerapp show `
-  --name <your-container-app-name> `
-  --resource-group <your-resource-group> `
-  --query "properties.latestRevisionFqdn" `
-  --output tsv
-
-# Test the health endpoint
-curl "https://$fqdn/health"
-
-# View logs
-az containerapp logs show `
-  --name <your-container-app-name> `
-  --resource-group <your-resource-group> `
-  --follow
-```
-
-## 📋 What the Service Does
-
-### Sample Extension (Port 5181)
-- Example implementation of a Dragon Copilot extension
-- Shows proper request/response handling for Dragon Copilot integration
-- Includes health check endpoints
-- Demonstrates error handling patterns
-- Provides comprehensive API documentation via Swagger
-
-## 🔍 Troubleshooting
-
-### Services Won't Start
-- Check .NET 9.0 SDK is installed: `dotnet --version`
-- Make sure that you have nuget available as default source: `dotnet nuget add source https://api.nuget.org/v3/index.json -n nuget.org`
-- Ensure port 5181 is free
-
-### Integration Tests Fail
-- Verify the extension is running and healthy
-- Check extension logs in terminal window
-- Test extension directly using the HTTP test file
-
-## 📚 Next Steps
-
-1. **Explore the APIs**: Use Swagger UI to understand the interfaces
-3. **Create Your Extension**: Use `samples/DragonCopilot/Workflow/SampleExtension.Web` as a starting point
-4. **Customize Business Logic**: Modify `ProcessingService.cs` for your needs
-5. **Add Your Tests**: Extend the http test suite for your scenarios
-
-## 🎉 You're Ready!
-
-Your Dragon Extension Developer environment is now set up and ready for development. Start building your custom extensions and test them locally before deploying to Dragon Copilot.
-
-For detailed documentation, see the individual README files in each project folder.
