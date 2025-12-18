@@ -58,6 +58,8 @@ dragon-extension package
 
 See [CLI README](tools/dragon-extension-cli/README.md) for details.
 
+Explanation of entire flow located here: (QUICKSTART.md)
+
 ## 🤝 Contributing
 
 1. Fork the repository
