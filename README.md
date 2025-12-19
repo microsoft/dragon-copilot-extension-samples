@@ -60,7 +60,7 @@ See [CLI README](tools/dragon-extension-cli/README.md) for details.
 
 
 
-Look here for a guide describing the process from downloading your code to testing it in Dragon Copilot: [QUICKSTART.md](/QUICKSTART.md)
+Look here for a guide describing the process from downloading code to testing it in Dragon Copilot: [QUICKSTART.md](/QUICKSTART.md)
 
 ## 🤝 Contributing
 
