@@ -40,6 +40,8 @@ cd dragon-copilot-extension-samples
 | Workflow Extension | C# Asp.Net WebApplication showing Dragon workflow extension API Contract | [SampleExtension.Web](./samples/DragonCopilot/Workflow/SampleExtension.Web/) |
 | Audio Samples | Synthetic audio recordings of clinical encounters | [Audio-Recordings](./samples/audio-recordings/) |
 
+Look here for a guide describing the process from downloading code to testing it in Dragon Copilot: [QUICKSTART.md](/QUICKSTART.md)
+
 ## 🛠️ Tools
 
 ### Dragon Extension CLI
@@ -57,10 +59,6 @@ dragon-extension package
 ```
 
 See [CLI README](tools/dragon-extension-cli/README.md) for details.
-
-
-
-Look here for a guide describing the process from downloading code to testing it in Dragon Copilot: [QUICKSTART.md](/QUICKSTART.md)
 
 ## 🤝 Contributing
 
