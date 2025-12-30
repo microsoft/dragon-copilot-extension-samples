@@ -1,6 +1,3 @@
-# Quick Start Guide for Dragon Extension Developer
-This document is a quick‑start guide for building, testing, packaging, and deploying a custom Dragon Copilot extension. Its purpose is to walk an extension developer through the full development lifecycle—from setting up the environment to validating the extension inside the Dragon Copilot application. 
-
 # Table of Contents
 - [Quick Start Guide for Dragon Extension Developer](#quick-start-guide-for-dragon-extension-developer)
 - [Running Locally](#-running-locally)
@@ -14,6 +11,8 @@ This document is a quick‑start guide for building, testing, packaging, and dep
 - [Installing your Extension](#installing-your-extension)
 - [Testing your Extension](#testing-your-extension)
 
+# Quick Start Guide for Dragon Extension Developer
+This document is a quick‑start guide for building, testing, packaging, and deploying a custom Dragon Copilot extension. Its purpose is to walk an extension developer through the full development lifecycle—from setting up the environment to validating the extension inside the Dragon Copilot application. 
 
 ## 🚀 Running Locally
 
