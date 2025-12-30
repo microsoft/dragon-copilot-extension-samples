@@ -1,6 +1,21 @@
 # Quick Start Guide for Dragon Extension Developer
+This document is a quick‑start guide for building, testing, packaging, and deploying a custom Dragon Copilot extension. Its purpose is to walk an extension developer through the full development lifecycle—from setting up the environment to validating the extension inside the Dragon Copilot application. 
 
-## 🚀 Getting Started (Choose One)
+# Table of Contents
+- [Quick Start Guide for Dragon Extension Developer](#quick-start-guide-for-dragon-extension-developer)
+- [Running Locally](#-running-locally)
+  - [Development Prerequisites](#development-prerequisites)
+  - [Local Development Environment](#local-development-environment)
+  - [Call the endpoint](#call-the-endpoint)
+  - [Making Code Changes](#making-code-changes)
+- [Using DevTunnels](#using-devtunnels)
+- [Packaging your extension](#packaging-your-extension)
+- [Create an Application in Azure portal that represents your application](#create-an-application-in-azure-portal-that-represents-your-application)
+- [Installing your Extension](#installing-your-extension)
+- [Testing your Extension](#testing-your-extension)
+
+
+## 🚀 Running Locally
 
 ### Development Prerequisites
 * DotNet 9
@@ -45,7 +60,7 @@ Transfer-Encoding: chunked
     }
 }
 ```
-## Making Code Changes
+### Making Code Changes
 The majority of the code changes for your extension should fall underneath the Process API method.  The Process API will be called by Dragon Copilot to execute your extension.
 
 ##  Using DevTunnels
@@ -87,7 +102,7 @@ You now have a valid zip file that represents your extension!
 5. Once complete go to the "Expose an API" on the left side.
 
       ![](doc/entra-expose-an-api.png)
-6. Add an Application ID URI.  The format should be: `api://tenantid/devtunnelpath`
+6. Add an Application ID URI.  The format should be: `api://{entra-tenantid}/{devtunnelpath}`
    - (i.e. api://1abcdefg3-n2g4-56dd-jj10-i34lmn5p7rst/k2dkm8r-7156.use.devtunnels.ms)
 
 5. Click the "Save" button
@@ -125,7 +140,7 @@ You now have a valid zip file that represents your extension!
     ![](doc/dac-upload-custom-details.png)
 6. Click the "Upload custom" button
 
-##Testing your Extension
+## Testing your Extension
 1. Open the browser and go to `https://www.copilot.us.dragon.com`
 2. Click "Sign In"
 3. Allow the use of the microphone in the popup in the top left.
