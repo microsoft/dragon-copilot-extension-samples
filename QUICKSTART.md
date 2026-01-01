@@ -1,15 +1,17 @@
 # Table of Contents
 - [Quick Start Guide for Dragon Extension Developer](#quick-start-guide-for-dragon-extension-developer)
 - [Running Locally](#-running-locally)
-  - [Development Prerequisites](#development-prerequisites)
-  - [Local Development Environment](#local-development-environment)
-  - [Call the endpoint](#call-the-endpoint)
-  - [Making Code Changes](#making-code-changes)
+  - Provides prerequisites and information on how to run the application locally. 
 - [Using DevTunnels](#using-devtunnels)
+  - How to create a secure way to expose your local web service to the internet without actually deploying.
 - [Packaging your extension](#packaging-your-extension)
+  - How to package your extension using the dragon extension tool to to the DAC (Dragon Admin Center) site.
 - [Create an Application in Azure portal that represents your application](#create-an-application-in-azure-portal-that-represents-your-application)
+  - How to register your extension in the Azure portal so it can be used with Dragon Copilot.
 - [Installing your Extension](#installing-your-extension)
+  - How to install your extension you created onto the DAC site. 
 - [Testing your Extension](#testing-your-extension)
+  - How to test your extension in Dragon Copilot.
 
 # Quick Start Guide for Dragon Extension Developer
 This document is a quick‑start guide for building, testing, packaging, and deploying a custom Dragon Copilot extension. Its purpose is to walk an extension developer through the full development lifecycle—from setting up the environment to validating the extension inside the Dragon Copilot application. 
