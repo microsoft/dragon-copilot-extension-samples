@@ -13,8 +13,10 @@
 - [Testing your Extension](#testing-your-extension)
   - How to test your extension in Dragon Copilot.
 
-# Quick Start Guide for Dragon Extension Developer
+# Quick Start Guide for a Dragon Extension Developer
 This document is a quick‑start guide for building, testing, packaging, and deploying a custom Dragon Copilot extension. Its purpose is to walk an extension developer through the full development lifecycle—from setting up the environment to validating the extension inside the Dragon Copilot application. 
+
+Prior to running through this document, you may want to read through the Microsoft Learn [documentation](https://learn.microsoft.com/en-us/industry/healthcare/dragon-copilot/extensions/workflow-app-overview) outlining how your extension will interface with the overall Dragon Copilot solution.
 
 ## 🚀 Running Locally
 
@@ -30,6 +32,7 @@ This document is a quick‑start guide for building, testing, packaging, and dep
 
 The application will start and be available at http://localhost:5181
 
+Some additional development concepts are located in the following Microsoft Learn [documentation](https://learn.microsoft.com/en-us/industry/healthcare/dragon-copilot/extensions/workflow-app-concepts).
 ### Call the endpoint
 You can make use of the [SampleExtension.Web.http](./samples/DragonCopilot/Workflow/SampleExtension.Web/SampleExtension.Web.http) file in the sample project to make a call. It contains a sample invocation for an extension listening for `Note` content.
 
@@ -61,6 +64,8 @@ Transfer-Encoding: chunked
     }
 }
 ```
+Details about an adaptive card structure and what fields are valid is located in the [Adaptive Card Specification](https://learn.microsoft.com/en-us/industry/healthcare/dragon-copilot/extensions/adaptive-card-spec).
+
 ### Making Code Changes
 The majority of the code changes for your extension should fall underneath the Process API method.  The Process API will be called by Dragon Copilot to execute your extension.
 
