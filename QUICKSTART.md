@@ -192,7 +192,9 @@ You now have a valid zip file that represents your extension!
     ![create-patient-session.png](doc/create-patient-session.png)
 8. Create an ambient recording by clicking the button to the right of the prompt box in the bottom.
     ![ambient-button.png](doc/ambient-button.png)
-9. Sample script:
+   
+   You can refer to [audio recordings](./samples/audio-recordings) contained in the repository for examples of typical recordings.
+10. Sample script:
 
   > Mr. John Doe is a 55-year-old male here for follow-up on hypertension. He's taking lisinopril 20 milligrams daily with good adherence. Blood pressure today is 128 over 78, heart  rate 72. He reports no chest pain, shortness of breath, or headaches. He does note occasional mild dizziness when standing quickly, otherwise feels well. Exam is unremarkable, lungs are clear, heart regular, no edema.
   > 
