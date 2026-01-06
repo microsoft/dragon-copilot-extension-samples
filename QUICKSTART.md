@@ -67,7 +67,7 @@ Transfer-Encoding: chunked
 Details about an adaptive card structure and what fields are valid is located in the [Adaptive Card Specification](https://learn.microsoft.com/en-us/industry/healthcare/dragon-copilot/extensions/adaptive-card-spec).
 
 ### Making Code Changes
-The majority of the code changes for your extension should fall underneath the Process API method.  The Process API will be called by Dragon Copilot to execute your extension.
+The majority of the code changes for your extension should fall underneath the [Process API](./samples/DragonCopilot/Workflow/SampleExtension.Web/Controllers/ProcessController.cs#L58-L95) method.  The Process API will be called by Dragon Copilot to execute your extension.
 
 ##  Using DevTunnels
 DevTunnels provide a secure way to expose your local web service to the internet without actually deploying.
@@ -81,7 +81,7 @@ DevTunnels provide a secure way to expose your local web service to the internet
     ![devtunnel-url.png](doc/devtunnel-url.png)
 
 ##  Packaging your extension
-We are now going to package our extension using the dragon-extension CLI tool. [instructions on the GitHub repository](https://github.com/microsoft/dragon-copilot-extension-samples?tab=readme-ov-file#dragon-extension-cli). 
+We are now going to package our extension using the dragon-extension CLI tool.
 
 1. Open a new terminal window
 2. Traverse to tools/dragon-extension-cli
