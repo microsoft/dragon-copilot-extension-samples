@@ -95,7 +95,7 @@ We are now going to package our extension using the dragon-extension CLI tool.
 You now have a valid zip file that represents your extension!
 
 ##  Add the Service Principal to your tenant
-We will need to register the "Microsoft.HealthPlatform" resource provider in an Azure subscription that belongs to your tenant. This will inject a Service Principal (a.k.a. "Enterprise Application") for the Dragon Copilot Extension Runtime application registration into the Extension vendor's tenant.
+We need to register the "Microsoft.HealthPlatform" resource provider in an Azure subscription that belongs to your tenant. This will inject a Service Principal (a.k.a. "Enterprise Application") for the Dragon Copilot Extension Runtime application registration into the Extension vendor's tenant. This step will only need to be done once for your tenant.
 
 1. Log into http://entra.microsoft.com
 2. Go to Subscriptions and select your subscription.
