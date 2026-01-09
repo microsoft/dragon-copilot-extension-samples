@@ -67,6 +67,15 @@
           "format": "uri",
           "description": "API endpoint URL"
         },
+        "trigger": {
+          "type": "string",
+          "enum": [
+            "AutoRun",
+            "AdaptiveCardAction"
+          ],
+          "default": "AutoRun",
+          "description": "How this tool is triggered (default: AutoRun)"
+        },
         "inputs": {
           "type": "array",
           "minItems": 1,
