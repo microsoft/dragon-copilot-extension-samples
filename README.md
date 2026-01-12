@@ -25,7 +25,7 @@ This repo includes:
 - [Additional Documentation](doc/)
 
 ## 🚀 Quick Start
-
+Look here for a guide describing the process from downloading code to testing it in Dragon Copilot: [QUICKSTART.md](/QUICKSTART.md)
 ### 1. Clone & Start (Windows)
 
 ```powershell
