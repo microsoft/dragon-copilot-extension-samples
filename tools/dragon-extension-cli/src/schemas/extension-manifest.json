@@ -98,7 +98,7 @@
     "DragonInput": {
       "type": "object",
       "required": ["name", "description"],
-      "anyOf": [
+      "oneOf": [
         { "required": ["data"] },
         { "required": ["content-type"] }
       ],
