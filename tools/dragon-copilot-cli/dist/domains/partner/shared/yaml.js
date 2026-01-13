@@ -5,8 +5,8 @@ const YES_NO_COLON_REGEX = /(:\s*)(['\"])(yes|no)\2/g;
 const YES_NO_LIST_REGEX = /(-\s*)(['\"])(yes|no)\2/g;
 const NOTE_PLACEHOLDER_QUOTED_REGEX = new RegExp(`: ['"]${EMPTY_NOTE_PLACEHOLDER}['"]`, 'g');
 const NOTE_PLACEHOLDER_UNQUOTED_REGEX = new RegExp(`: ${EMPTY_NOTE_PLACEHOLDER}`, 'g');
-const NOTE_LIST_PLACEHOLDER_QUOTED_REGEX = new RegExp(`(-\s*)['"]${EMPTY_NOTE_PLACEHOLDER}['"]`, 'g');
-const NOTE_LIST_PLACEHOLDER_UNQUOTED_REGEX = new RegExp(`(-\s*)${EMPTY_NOTE_PLACEHOLDER}`, 'g');
+const NOTE_LIST_PLACEHOLDER_QUOTED_REGEX = new RegExp(`(-\\s*)['"]${EMPTY_NOTE_PLACEHOLDER}['"]`, 'g');
+const NOTE_LIST_PLACEHOLDER_UNQUOTED_REGEX = new RegExp(`(-\\s*)${EMPTY_NOTE_PLACEHOLDER}`, 'g');
 const sanitizeYamlText = (text) => text
     .replace(YES_NO_COLON_REGEX, '$1$3')
     .replace(YES_NO_LIST_REGEX, '$1$3')
