@@ -1,34 +1,29 @@
-#
-# Quick Start Guide for Dragon Extension Developer
+# Table of Contents
+- [Quick Start Guide for Dragon Extension Developer](#quick-start-guide-for-dragon-extension-developer)
+- [Running Locally](#-running-locally)
+  - Provides prerequisites and information on how to run the application locally. 
+- [Using DevTunnels](#using-devtunnels)
+  - How to create a secure way to expose your local web service to the internet without actually deploying.
+- [Packaging your extension](#packaging-your-extension)
+  - How to package your extension using the dragon extension tool to to the DAC (Dragon Admin Center) site.
+- [Create an Application in Azure portal that represents your application](#create-an-application-in-azure-portal-that-represents-your-application)
+  - How to register your extension in the Azure portal so it can be used with Dragon Copilot.
+- [Installing your Extension](#installing-your-extension)
+  - How to install your extension you created onto the DAC site. 
+- [Testing your Extension](#testing-your-extension)
+  - How to test your extension in Dragon Copilot.
 
-## 🚀 Getting Started (Choose One)
+# Quick Start Guide for a Dragon Extension Developer
+This document is a quick‑start guide for building, testing, packaging, and deploying a custom Dragon Copilot extension. Its purpose is to walk an extension developer through the full development lifecycle—from setting up the environment to validating the extension inside the Dragon Copilot application. 
+
+Prior to running through this document, you may want to read through the Microsoft Learn [documentation](https://learn.microsoft.com/en-us/industry/healthcare/dragon-copilot/extensions/workflow-app-overview) outlining how your extension will interface with the overall Dragon Copilot solution.
+
+## 🚀 Running Locally
 
 ### Development Prerequisites
 * DotNet 9
 * Node 22.20.0
 * npm 10.9.3
-
-### Generate Manifests with the CLI
-Use the unified `dragon-copilot` CLI to create and validate manifest version 3 definitions that now support automation scripts, event triggers, and dependency metadata.
-
-```powershell
-cd tools/dragon-copilot-cli
-npm install
-npm run build
-npm link
-
-# Interactive extension wizard (prompts for scripts/triggers/dependencies)
-dragon-copilot extension init
-
-# Validate both extension and publisher configuration together
-dragon-copilot extension validate ./extension.yaml
-
-# Partner manifest workflow
-dragon-copilot partner init
-dragon-copilot partner validate ./integration.yaml
-```
-
-> Tip: The wizard ensures `manifestVersion: 3` is set and collects automation metadata so the generated YAML aligns with the new schema shipped in this repository.
 
 ### Local Development Environment
 1. Clone the repository
@@ -37,6 +32,7 @@ dragon-copilot partner validate ./integration.yaml
 
 The application will start and be available at http://localhost:5181
 
+Some additional development concepts are located in the following Microsoft Learn [documentation](https://learn.microsoft.com/en-us/industry/healthcare/dragon-copilot/extensions/workflow-app-concepts).
 ### Call the endpoint
 You can make use of the [SampleExtension.Web.http](./samples/DragonCopilot/Workflow/SampleExtension.Web/SampleExtension.Web.http) file in the sample project to make a call. It contains a sample invocation for an extension listening for `Note` content.
 
@@ -68,132 +64,171 @@ Transfer-Encoding: chunked
     }
 }
 ```
+Details about an adaptive card structure and what fields are valid is located in the [Adaptive Card Specification](https://learn.microsoft.com/en-us/industry/healthcare/dragon-copilot/extensions/adaptive-card-spec).
 
-## ☁️ Deploy to Azure (Production Ready)
+### Making Code Changes
+The majority of the code changes for your extension should fall underneath the [Process API](./samples/DragonCopilot/Workflow/SampleExtension.Web/Controllers/ProcessController.cs#L58-L95) method.  The Process API will be called by Dragon Copilot to execute your extension.
 
-### Prerequisites for Azure Deployment
-- Docker Desktop installed and running
-- Azure subscription with Container Apps deployed
-- Container registry with permissions granted to the Container Apps identity
+##  Using DevTunnels
+DevTunnels provide a secure way to expose your local web service to the internet without actually deploying.
+1. [Install dev tunnel](https://learn.microsoft.com/en-us/azure/developer/dev-tunnels/get-started?tabs=windows#install).
+2. In a terminal, issue a `devtunnel login` command and select your appropriate account.
+3. Issue a `devtunnel create name-of-tunnel -a` command
+4. Issue a `devtunnel port create name-of-tunnel -p 5181` command
+5. Issue a `devtunnel host name-of-tunnel` command
+6. Copy the URL that is output in the terminal. Make sure to copy the dev tunnel "connect via browser url" as shown in example below.
 
-### Steps
+    ![devtunnel-url.png](doc/devtunnel-url.png)
 
-#### 1. Build the Docker Image
-From the **repository root directory**, build the Docker image:
+##  Packaging your extension
+We are now going to package our extension using the dragon-extension CLI tool.
 
-```powershell
-# Build the Docker image
-docker build -f samples/DragonCopilot/Workflow/SampleExtension.Web/Dockerfile -t dragon-extension:latest .
-```
+1. Open a new terminal window
+2. Traverse to tools/dragon-extension-cli
+3. Issue a `npm run build` command
+4. Issue a `npm link` command
+5. Issue a `dragon-extension init` command
+  You will be asked for information on your extension.  
+    - Ensure the tenantId specified is for where you will upload your extension to.
+    - Ensure the api endpoint points to the process method using the devtunnel address you generated earlier.
+6. Issue a `dragon-extension package` command
+You now have a valid zip file that represents your extension!
 
-> **Note**: The Dockerfile must be built from the repository root because it references files from both `src/Dragon.Copilot.Models/` and `samples/DragonCopilot/Workflow/SampleExtension.Web/`.
+##  Add the Service Principal to your tenant
+> NOTE: We need to register the "Microsoft.HealthPlatform" resource provider in an Azure subscription that belongs to your tenant. This will inject a Service Principal (a.k.a. "Enterprise Application") for the Dragon Copilot Extension Runtime application registration into the Extension vendor's tenant. This step will only need to be done once for your tenant.
 
-#### 2. Test the Docker Image Locally (Optional but Recommended)
-```powershell
-# Run the container locally
-docker run -p 5181:8080 dragon-extension:latest
+1. Log into http://entra.microsoft.com
+2. Go to Subscriptions and select your subscription.
+      ![](doc/subscriptions.png)
+   
+5. Select Resource Providers on the left hand menu.
 
-# Test the health endpoint
-curl http://localhost:5181/health
-```
+   ![](doc/resource-providers.png)
+   
+6. Search for "Microsoft.HealthPlatform".
 
-#### 3. Tag and Push to Azure Container Registry
-```powershell
-# Login to Azure
-az login
+   ![](doc/health-platform-search.png)
+   
+7. Select the entry and click the Register button.
 
-# Login to your Azure Container Registry
-az acr login --name <your-registry-name>
+   ![](doc/health-platform-register.png)
 
-# Tag the image for your registry
-docker tag dragon-extension:latest <your-registry-name>.azurecr.io/dragon-extension:latest
+##  Create an Application in Azure portal that represents your application.
+1. Log into http://entra.microsoft.com
+2. Go to App registrations on the left menu
 
-# Push the image
-docker push <your-registry-name>.azurecr.io/dragon-extension:latest
-```
+      ![](doc/entra-app-reg-menu.png)
+3. Create a new registration
 
-#### 4. Deploy to Azure Container Apps
-```powershell
-# Create or update the container app
-az containerapp update `
-  --name <your-container-app-name> `
-  --resource-group <your-resource-group> `
-  --image <your-registry-name>.azurecr.io/dragon-extension:latest
+      ![](doc/entra-new-registration.png)
+4. Name your application what you want and ensure it is a "Single tenant Application"
 
-# Verify deployment
-az containerapp show `
-  --name <your-container-app-name> `
-  --resource-group <your-resource-group> `
-  --query "properties.latestRevisionFqdn" `
-  --output tsv
-```
+      ![](doc/entra-new-registration-name.png)
+5. Once complete go to the "Expose an API" on the left side.
 
-#### 5. Configure Environment Variables (Production)
-For production deployments, configure authentication and other settings:
+      ![](doc/entra-expose-an-api.png)
+6. Add an Application ID URI.  The format should be: `api://{entra-tenantid}/{devtunnelpath}`
+   - (i.e. api://1abcdefg3-n2g4-56dd-jj10-i34lmn5p7rst/k2dkm8r-7156.use.devtunnels.ms)
 
-```powershell
-az containerapp update `
-  --name <your-container-app-name> `
-  --resource-group <your-resource-group> `
-  --set-env-vars `
-    ASPNETCORE_ENVIRONMENT=Production `
-    Authentication__Enabled=true `
-    Authentication__TenantId=<your-entra-tenant-id> `
-    Authentication__ClientId=<your-entra-client-id> `
-    Authentication__Instance=https://login.microsoftonline.com/
-```
+5. Click the "Save" button
+6. In the application details navigation, select "Token Configuration"
 
-See [Authentication.md](./doc/Authentication.md) for detailed authentication configuration.
+    ![](doc/entra-token-configuration.png)
+7. Select "Add Optional Claim" in the details section
+    
+    ![](doc/entra-optional-claim.png)
+8. For token type select "Access" and in the list of claims select "idtyp"
 
-#### 6. Verify Production Deployment
-```powershell
-# Get the FQDN
-$fqdn = az containerapp show `
-  --name <your-container-app-name> `
-  --resource-group <your-resource-group> `
-  --query "properties.latestRevisionFqdn" `
-  --output tsv
+    ![](doc/entra-optional-claim-details.png)
+9. Click the "Add" button
+10. In the application details navigation, select "Manifest"
 
-# Test the health endpoint
-curl "https://$fqdn/health"
+    ![](doc/entra-manifest.png)
+11. Find the property "requestedAccessTokenVersion" and change the value from `null` to `2`
 
-# View logs
-az containerapp logs show `
-  --name <your-container-app-name> `
-  --resource-group <your-resource-group> `
-  --follow
-```
+    ![](doc/entra-manifest-details.png)
+12. Click the "Save" button
 
-## 📋 What the Service Does
+## Installing your Extension
 
-### Sample Extension (Port 5181)
-- Example implementation of a Dragon Copilot extension
-- Shows proper request/response handling for Dragon Copilot integration
-- Includes health check endpoints
-- Demonstrates error handling patterns
-- Provides comprehensive API documentation via Swagger
+1. Open the browser and go to `https://admin.healthplatform.microsoft.com/extensions`
+2. Click the dropdown at the top to select the environment on the card you were given.
 
-## 🔍 Troubleshooting
+    ![](doc/switch-environment-menu.png)
+3. In the page navigation click "Upload custom"
 
-### Services Won't Start
-- Check .NET 9.0 SDK is installed: `dotnet --version`
-- Make sure that you have nuget available as default source: `dotnet nuget add source https://api.nuget.org/v3/index.json -n nuget.org`
-- Ensure port 5181 is free
+    ![](doc/dac-upload-custom.png)
+4. Select the previously created zip file in the folder `tools/dragon`
 
-### Integration Tests Fail
-- Verify the extension is running and healthy
-- Check extension logs in terminal window
-- Test extension directly using the HTTP test file
+5. Agree to the terms
 
-## 📚 Next Steps
+    ![](doc/dac-upload-custom-details.png)
+6. Click the "Upload custom" button
 
-1. **Explore the APIs**: Use Swagger UI to understand the interfaces
-3. **Create Your Extension**: Use `samples/DragonCopilot/Workflow/SampleExtension.Web` as a starting point
-4. **Customize Business Logic**: Modify `ProcessingService.cs` for your needs
-5. **Add Your Tests**: Extend the http test suite for your scenarios
+## Testing your Extension
+1. Open the browser and go to `https://www.copilot.us.dragon.com`
+2. Click "Sign In"
+3. Allow the use of the microphone in the popup in the top left.
+4. Go through the initial setup
+    1. Select any Primary specialty
+    2. Click "Next"
+    3. Select any role
+    4. Click "Next"
+    5. Click "Complete setup"
+5. Switch environment using following steps:
+    1. Click "Settings"
+    ![settings-switch-environment-1.png](doc/settings-switch-environment-1.png)
+    2. Click "General"
+    3. Select your assigned environment from the dropdown
+    ![settings-switch-environment-2.png](doc/settings-switch-environment-2.png)
+    4. Click "Reload app" in Change Environment popup
+    ![settings-switch-environment-3.png](doc/settings-switch-environment-3.png)
+    5. Go through step 4 i.e. initial setup of selecting specialties.
 
-## 🎉 You're Ready!
+6. Ensure "Auto-style" is enabled
+    1. Click the gear icon in the top right
+    
+       ![settings-gear.png](doc/settings-gear.png)
+    3. Click "Note style & format" in the menu
+    
+    	![settings-note-style.png](doc/settings-note-style.png)
+    5. Click "Style" in the menu
+    
+    	![settings-style.png](doc/settings-style.png)
+    7. Toggle "Auto-style" to enabled
+    
+    	 ![settings-auto-style.png](doc/settings-auto-style.png)
+    9. This setting is auto-saved and only needs to happen once
+6. Ensure other extensions disabled
+    1. Click the gear icon in the top right
+    
+       ![settings-gear.png](doc/settings-gear.png)
+    2. Click "Extensions" in the menu
+    3. Select extensions besides your own
+    4. Toggle the extension off
+    5. This setting is auto-saved and only needs to happen once
+7. Click "Create patient session" in the bottom left
+    ![create-patient-session.png](doc/create-patient-session.png)
+8. Create an ambient recording by clicking the button to the right of the prompt box in the bottom.
+    ![ambient-button.png](doc/ambient-button.png)
+   
+   You can refer to [audio recordings](./samples/audio-recordings) contained in the repository for examples of typical recordings.
+10. Sample script:
 
-Your Dragon Extension Developer environment is now set up and ready for development. Start building your custom extensions and test them locally before deploying to Dragon Copilot.
+  > Mr. John Doe is a 55-year-old male here for follow-up on hypertension. He's taking lisinopril 20 milligrams daily with good adherence. Blood pressure today is 128 over 78, heart  rate 72. He reports no chest pain, shortness of breath, or headaches. He does note occasional mild dizziness when standing quickly, otherwise feels well. Exam is unremarkable, lungs are clear, heart regular, no edema.
+  > 
+  > Assessment: Hypertension, well controlled. Mild orthostatic dizziness likely related to medication but not impacting daily function.
+  >
+  > Plan: Continue current lisinopril dose. Encourage hydration and slower positional changes. Reinforced diet and exercise recommendations. Ordered labs for next visit. Follow up in six months or sooner if symptoms worsen.
 
-For detailed documentation, see the individual README files in each project folder.
+7. Click the same button to stop recording.
+
+8. After recording is complete you should see a number of things happen:
+    * Recording uploaded
+    * Note generated
+    * Auto-style executed
+    * Extension executed and displayed in the Note section.
+ 	![timeline-output.png](doc/timeline-output.png)
+
+9. Click the "Note" tab and scroll to the bottom to see your results
+	![tab-note.png](doc/tab-note.png)
