@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dragon Copilot Partner Manifest Builder</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <main class="app-shell">
+    <header>
+      <h1>Dragon Copilot Partner Manifest Builder</h1>
+      <p class="lead">Generate partner integration manifests using the same metadata collected by the unified CLI.</p>
+    </header>
+
+    <section class="card" id="partner-details">
+      <h2>Partner Details</h2>
+      <div class="field-grid">
+        <label class="field-with-info">
+          <span class="field-label-text">Integration Name<span class="required">*</span>
+            <span class="info-wrapper info-inline">
+              <button
+                type="button"
+                class="info-badge info-inline"
+                aria-label="Integration name guidance. Integration name is dynamically rendered for customers (e.g., Contoso for Lamna Healthcare)."
+              >
+                <span class="info-symbol" aria-hidden="true">i</span>
+              </button>
+              <span class="tooltip-content" role="tooltip">
+                <strong>Integration name</strong>
+                <span>Integration name is dynamically rendered for customers (e.g., Contoso for Lamna Healthcare).</span>
+              </span>
+            </span>
+          </span>
+          <input id="integration-name" type="text" placeholder="my-extension" />
+        </label>
+        <label>
+          <span class="field-label-text">Integration Version<span class="required">*</span></span>
+          <input id="integration-version" type="text" placeholder="0.0.1" />
+        </label>
+        <label class="partner-id-field field-with-info">
+          <span class="field-label-text">Partner ID<span class="required">*</span>
+            <span class="info-wrapper info-inline">
+              <button
+                type="button"
+                class="info-badge info-inline"
+                aria-label="Partner ID guidance. If you do not have an issued Partner ID (for example from NMC or Partner Center) use Generate GUID to create one."
+              >
+                <span class="info-symbol" aria-hidden="true">i</span>
+              </button>
+              <span class="tooltip-content" role="tooltip">
+                <strong>Partner ID</strong>
+                <span>Partner ID should match the identifier from your app source (e.g., Microsoft Partner Center). If you have not received one yet, select <em>Generate GUID</em> to create a unique identifier for your manifest.</span>
+              </span>
+            </span>
+          </span>
+          <div class="partner-id-input-group">
+            <input id="partner-id" type="text" placeholder="00000000-0000-0000-0000-000000000000" aria-describedby="partner-id-helper" />
+            <button id="generate-partner-id" type="button" class="secondary" aria-describedby="partner-id-helper">Generate GUID</button>
+          </div>
+          <p id="partner-id-helper" class="field-hint">Provide the Partner ID issued to you or generate a GUID for new integrations.</p>
+        </label>
+        <label class="field-with-info">
+          <span class="field-label-text">Clinical Application Name<span class="required">*</span>
+            <span class="info-wrapper info-inline">
+              <button
+                type="button"
+                class="info-badge info-inline"
+                aria-label="Clinical application name guidance. Display name surfaced to clinicians inside Dragon Copilot launchers. Often the EHR or EMR name."
+              >
+                <span class="info-symbol" aria-hidden="true">i</span>
+              </button>
+              <span class="tooltip-content" role="tooltip">
+                <strong>Clinical application name</strong>
+                <span>Display name surfaced to clinicians inside Dragon Copilot launchers.  Often the EHR or EMR name.</span>
+              </span>
+            </span>
+          </span>
+          <input id="clinical-application" type="text" placeholder="Contoso EHR Launchpad" />
+        </label>
+      </div>
+    </section>
+
+    <section class="card" id="server-auth">
+      <h2 class="title-with-info">Server Authentication
+        <span class="info-wrapper">
+          <button
+            type="button"
+            class="info-badge"
+            aria-label="Server Authentication guidance. This section is for authenticating the partner server calling DDE/Partner API. Learn more about using Entra ID as the identity solution."
+          >
+            <span class="info-symbol" aria-hidden="true">i</span>
+          </button>
+          <span class="tooltip-content" role="tooltip">
+            <strong>Server authentication</strong>
+            <span>This section is for authenticating the partner server calling DDE/Partner API.</span>
+          <br />
+            <a href="https://learn.microsoft.com/en-us/industry/healthcare/dragon-copilot/sdk/partner-apis/entra-id" target="_blank" rel="noopener noreferrer">EntraId as an identity solution</a>
+          </span>
+        </span>
+      </h2>
+      <p class="hint">Add at least one issuer to validate inbound partner calls.</p>
+      <div id="server-auth-list" class="dynamic-list"></div>
+      <button id="add-server-auth" type="button" class="secondary">Add Issuer</button>
+    </section>
+
+    <section class="card" id="note-sections">
+      <h2>Note Sections</h2>
+      <p class="hint">Choose how Dragon Copilot should map generated sections. Select "All Standard Sections" for the default eleven sections.</p>
+      <div class="field-grid">
+        <label>
+          <span class="field-label-text">Section Strategy</span>
+          <select id="note-strategy">
+            <option value="all" selected>All Standard Sections</option>
+            <option value="manual">Manual Selection</option>
+            <option value="optional">No Sections Mapped</option>
+          </select>
+        </label>
+      </div>
+      <div id="manual-note-config" class="stack"></div>
+    </section>
+
+    <section class="card" id="instance">
+      <h2 class="title-with-info">Instance Configuration
+        <span class="info-wrapper">
+          <button
+            type="button"
+            class="info-badge"
+            aria-label="Instance configuration guidance. This section is for adding a partner manifest instance to a client environment. Indicate which items must be collected by the client. Items not required by the partner are omitted from the manifest."
+          >
+            <span class="info-symbol" aria-hidden="true">i</span>
+          </button>
+          <span class="tooltip-content" role="tooltip">
+            <strong>Instance configuration</strong>
+            <span>This section is for adding a partner manifest instance to a client environment.</span>
+            <span>Indicate which items must be collected by the client admin. Items not required by the partner are omitted from the manifest.</span>
+          </span>
+        </span>
+      </h2>
+
+      <article class="sub-card">
+        <h3>Client Authentication</h3>
+        <div class="field-grid">
+          <label>
+            <span class="field-label-text">Allow Multiple Issuers?<span class="required">*</span></span>
+            <select id="client-allow-multiple">
+              <option value="yes" selected>Yes</option>
+              <option value="no">No</option>
+            </select>
+          </label>
+          <label class="full field-with-info">
+            <span class="field-label-text">Access Token Issuer Default (optional)</span>
+            <input id="client-access-issuer" type="text" placeholder="https://login.microsoftonline.com/[TENANT_ID]/v2.0" />
+            <p class="field-hint">Leave blank when customers should provide their own issuer value.</p>
+          </label>
+        </div>
+        <fieldset class="toggle">
+          <legend class="title-with-info">User Identity Claim
+            <span class="info-wrapper info-inline">
+              <button
+                type="button"
+                class="info-badge info-inline"
+                aria-label="User identity claim guidance. Optional claim containing the EHR identity of an end user. Defaults to 'sub'."
+              >
+                <span class="info-symbol" aria-hidden="true">i</span>
+              </button>
+              <span class="tooltip-content" role="tooltip">
+                <strong>User identity claim</strong>
+                <span>Optional claim containing the EHR identity of an end user. Defaults to &quot;sub&quot;.</span>
+              </span>
+            </span>
+          </legend>
+          <label class="toggle-field">
+            <input type="checkbox" id="client-include-user" />
+            <span>Prompt client for user identity claim</span>
+          </label>
+          <div id="client-user-fields" class="field-grid nested is-hidden">
+            <label>
+              <span class="field-label-text">Default Value</span>
+              <input id="client-user-default" type="text" value="sub" />
+            </label>
+            <label>
+              <span class="field-label-text">Required?</span>
+              <select id="client-user-required">
+                <option value="no" selected>No</option>
+                <option value="yes">Yes</option>
+              </select>
+            </label>
+          </div>
+        </fieldset>
+        <fieldset class="toggle">
+          <legend class="title-with-info">Customer Identity Claim
+            <span class="info-wrapper info-inline">
+              <button
+                type="button"
+                class="info-badge info-inline"
+                aria-label="Customer identity claim guidance. Optional claim containing the Microsoft environment identifier."
+              >
+                <span class="info-symbol" aria-hidden="true">i</span>
+              </button>
+              <span class="tooltip-content" role="tooltip">
+                <strong>Customer identity claim</strong>
+                <span>Optional claim containing the Microsoft environment identifier.</span>
+              </span>
+            </span>
+          </legend>
+          <label class="toggle-field">
+            <input type="checkbox" id="client-include-customer" />
+            <span>Prompt client for customer identity claim</span>
+          </label>
+          <div id="client-customer-fields" class="field-grid nested is-hidden">
+            <label>
+              <span class="field-label-text">Default Value</span>
+              <input id="client-customer-default" type="text" value="http://customerid.dragon.com" />
+            </label>
+            <label>
+              <span class="field-label-text">Required?</span>
+              <select id="client-customer-required">
+                <option value="no" selected>No</option>
+                <option value="yes">Yes</option>
+              </select>
+            </label>
+          </div>
+        </fieldset>
+      </article>
+
+      <article class="sub-card">
+        <h3 class="title-with-info">Web Launch
+          <span class="info-wrapper info-inline">
+            <button
+              type="button"
+              class="info-badge info-inline"
+              aria-label="Web launch guidance. Dragon Copilot embedded web UI offers SMART on FHIR and Token Launch. Partners must support one or both options. Follow the documentation links for each launch mode."
+            >
+              <span class="info-symbol" aria-hidden="true">i</span>
+            </button>
+            <span class="tooltip-content" role="tooltip">
+              <strong>Web launch options</strong>
+              <span>Dragon Copilot embedded web UI offers SMART on FHIR and Token Launch. Partners must support one or both options.</span>
+              <br />
+              <a href="https://learn.microsoft.com/en-us/industry/healthcare/dragon-copilot/sdk/embedded-desktop/smart-fhir-app-launch" target="_blank" rel="noopener noreferrer">SMART on FHIR documentation</a>
+              <a href="https://learn.microsoft.com/en-us/industry/healthcare/dragon-copilot/sdk/embedded-desktop/token-launch" target="_blank" rel="noopener noreferrer">Token Launch documentation</a>
+            </span>
+          </span>
+        </h3>
+        <p class="hint">Choose the launch mode first. Configure SMART on FHIR and Token Launch details only when they apply.</p>
+        <div class="field-grid">
+          <label class="full">
+            <span class="field-label-text">Launch Mode<span class="required">*</span></span>
+            <select id="web-launch-mode">
+              <option value="both" selected>SMART on FHIR and Token Launch</option>
+              <option value="smart-only">SMART on FHIR only</option>
+              <option value="token-only">Token Launch only</option>
+            </select>
+          </label>
+        </div>
+        <div id="web-launch-sof-config" class="launch-section">
+          <h4 id="web-launch-sof-heading" class="launch-subheading">SMART on FHIR</h4>
+          <div class="field-grid">
+            <label class="full field-with-info">
+              <span class="field-label-text">Issuer URL (optional)
+                <span class="info-wrapper info-inline">
+                  <button
+                    type="button"
+                    class="info-badge info-inline"
+                    aria-label="SMART on FHIR issuer guidance. Leave blank when no default issuer should be provided.">
+                    <span class="info-symbol" aria-hidden="true">i</span>
+                  </button>
+                  <span class="tooltip-content" role="tooltip">
+                    <strong>SMART on FHIR issuer</strong>
+                    <span>Leave blank when Dragon Copilot should not include a default issuer value for SMART on FHIR launches.</span>
+                  </span>
+                </span>
+              </span>
+              <input id="web-launch-sof-url" type="text" placeholder="https://launch.example.com/context" />
+            </label>
+          </div>
+        </div>
+        <div id="web-launch-token-config" class="launch-section">
+          <h4 id="web-launch-token-heading" class="launch-subheading">Token Launch</h4>
+          <div class="field-grid">
+            <label>
+              <span class="field-label-text">Reuse Client Authentication?<span class="required">*</span></span>
+              <select id="web-launch-use-client">
+                <option value="yes" selected>Yes</option>
+                <option value="no">No</option>
+              </select>
+            </label>
+          </div>
+          <div id="token-direct-fields" class="launch-section-body is-hidden">
+            <div class="field-grid">
+              <label class="full field-with-info">
+                <span class="field-label-text">Token Launch Issuer Default (optional)</span>
+                <input id="token-access-issuer" type="text" placeholder="https://login.microsoftonline.com/[TENANT_ID]/v2.0" />
+                <p class="field-hint">Leave blank when customers should provide their own issuer value.</p>
+              </label>
+            </div>
+            <fieldset class="toggle launch-subsection">
+              <legend class="title-with-info">User Identity Claim
+                <span class="info-wrapper info-inline">
+                  <button
+                    type="button"
+                    class="info-badge info-inline"
+                    aria-label="Token user identity claim guidance. Optional claim containing the EHR identity of an end user. Defaults to 'sub'."
+                  >
+                    <span class="info-symbol" aria-hidden="true">i</span>
+                  </button>
+                  <span class="tooltip-content" role="tooltip">
+                    <strong>User identity claim</strong>
+                    <span>Optional claim containing the EHR identity of an end user. Defaults to &quot;sub&quot;.</span>
+                  </span>
+                </span>
+              </legend>
+              <label class="toggle-field">
+                <input type="checkbox" id="token-include-user" />
+                <span>Prompt client for user identity claim</span>
+              </label>
+              <div id="token-user-fields" class="field-grid nested is-hidden">
+                <label>
+                  <span class="field-label-text">Default Value</span>
+                  <input id="token-user-default" type="text" value="sub" />
+                </label>
+                <label>
+                  <span class="field-label-text">Required?</span>
+                  <select id="token-user-required">
+                    <option value="no" selected>No</option>
+                    <option value="yes">Yes</option>
+                  </select>
+                </label>
+              </div>
+            </fieldset>
+          </div>
+        </div>
+      </article>
+
+      <article class="sub-card">
+        <h3 class="title-with-info">Context Retrieval
+          <span class="info-wrapper">
+            <button type="button" class="info-badge" aria-label="Context Retrieval guidance. Interop service ONLY. Items the partner wishes to include and to be collected by the customer administrator.">
+              <span class="info-symbol" aria-hidden="true">i</span>
+            </button>
+            <span class="tooltip-content" role="tooltip">
+              <strong>Context retrieval</strong>
+              <span>Interop service ONLY. Items the partner wishes to include and to be collected by the customer administrator.</span>
+            </span>
+          </span>
+        </h3>
+        <p class="hint">Select context values that the customer can provide. Leave empty when none are required.</p>
+        <p class="hint">Interop environment values (environment name, environment id, EHR type, product name, partner id) are collected automatically.</p>
+        <p class="hint">Context item names, types, and descriptions are fixed. Toggle only whether each item is required.</p>
+        <div id="context-item-list" class="stack"></div>
+        <button type="button" id="add-context-item" class="secondary">Add Context Item</button>
+      </article>
+    </section>
+
+    <section class="card">
+      <h2>Publisher Configuration (optional)</h2>
+      <label class="toggle-field">
+        <input id="include-publisher" type="checkbox" checked />
+        <span>Generate publisher.json metadata</span>
+      </label>
+  <div id="publisher-fields" class="field-grid">
+        <label class="field">
+          <span class="field-heading"><span>Publisher ID</span></span>
+          <input id="publisher-id" type="text" placeholder="contoso.healthcare" />
+        </label>
+        <label class="field">
+          <span class="field-heading"><span>Publisher name</span></span>
+          <input id="publisher-name" type="text" placeholder="Contoso Health" />
+        </label>
+        <label class="field">
+          <span class="field-heading"><span>Website URL</span></span>
+          <input id="publisher-website" type="text" placeholder="https://contoso.com" />
+        </label>
+        <label class="field">
+          <span class="field-heading"><span>Privacy policy URL</span></span>
+          <input id="publisher-privacy" type="text" placeholder="https://contoso.com/privacy" />
+        </label>
+        <label class="field">
+          <span class="field-heading"><span>Support URL</span></span>
+          <input id="publisher-support" type="text" placeholder="https://contoso.com/support" />
+        </label>
+        <label class="field">
+          <span class="field-heading"><span>Contact email</span></span>
+          <input id="publisher-email" type="email" placeholder="support@contoso.com" />
+        </label>
+        <label class="field">
+          <span class="field-heading"><span>Offer ID</span></span>
+          <input id="publisher-offer" type="text" placeholder="contoso-integration-suite" />
+        </label>
+      </div>
+    </section>
+
+    <section id="form-errors" class="error-panel" role="alert" aria-live="assertive" hidden tabindex="-1"></section>
+
+    <section class="card actions">
+      <button id="generate" type="button" class="primary">Generate files</button>
+      <button id="reset" type="button" class="secondary">Reset form</button>
+    </section>
+
+  <section class="card output" id="output-content" hidden>
+      <h2>Generated Output</h2>
+      <div class="output-grid single-column">
+        <div data-output="yaml" class="single">
+          <h3>extension.yaml</h3>
+          <textarea id="manifest-output" readonly rows="16" aria-label="extension.yaml output"></textarea>
+          <button type="button" data-download="yaml" class="secondary" disabled>Download YAML</button>
+        </div>
+        <div data-output="json" hidden>
+          <h3>publisher.json</h3>
+          <textarea id="publisher-output" readonly rows="16" aria-label="publisher.json output"></textarea>
+          <button type="button" data-download="json" class="secondary" disabled>Download JSON</button>
+        </div>
+      </div>
+      <p class="hint">Use the packaged script to validate and bundle your manifest before uploading.</p>
+      <div class="run-steps">
+        <h3>Validate &amp; Package Checklist</h3>
+        <ol class="step-list">
+          <li>Download <code>extension.yaml</code> and (optionally) <code>publisher.json</code> into the same folder.</li>
+          <li>Download the sample assets archive (below) and extract its <code>assets</code> folder beside those files.</li>
+          <li>Run <code>./scripts/build-validate-and-package.ps1 -ManifestDirectory "path/to/manifest-folder"</code> from <code>tools/dragon-copilot-cli</code>.</li>
+          <li id="upload-note">Upload the zip reported by the validation helper script.</li>
+        </ol>
+        <p class="hint">Already ran the build? Append <code>-SkipBuild</code> to reuse the previous output.</p>
+      </div>
+
+      <article class="sub-card" id="assets-helper" hidden>
+        <h3>Assets Helper</h3>
+        <p class="hint">Download a starter <code>assets</code> folder that includes <code>logo_large.png</code>. Place the folder next to your manifest before packaging.</p>
+        <button type="button" id="download-assets" class="secondary" disabled>Download Sample Assets</button>
+        <p class="hint">Replace the placeholder logo with your branded image before submitting to Dragon Copilot.</p>
+      </article>
+    </section>
+  </main>
+  <script src="https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/dist/js-yaml.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+  <script src="app.js" type="module"></script>
+</body>
+</html>

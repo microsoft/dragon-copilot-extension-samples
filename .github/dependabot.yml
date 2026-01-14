@@ -34,7 +34,7 @@ updates:
 
   # Enable version updates for npm dependencies
   - package-ecosystem: "npm"
-    directory: "/tools/dragon-extension-cli"
+    directory: "/tools/dragon-copilot-cli"
     schedule:
       interval: "weekly"
       day: "monday"
