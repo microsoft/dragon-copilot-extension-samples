@@ -67,6 +67,15 @@
           "format": "uri",
           "description": "API endpoint URL"
         },
+        "trigger": {
+          "type": "string",
+          "enum": [
+            "AutoRun",
+            "AdaptiveCardAction"
+          ],
+          "default": "AutoRun",
+          "description": "How this tool is triggered (default: AutoRun)"
+        },
         "inputs": {
           "type": "array",
           "minItems": 1,
@@ -88,7 +97,11 @@
     },
     "DragonInput": {
       "type": "object",
-      "required": ["name", "description", "data"],
+      "required": ["name", "description"],
+      "oneOf": [
+        { "required": ["data"] },
+        { "required": ["content-type"] }
+      ],
       "properties": {
         "name": {
           "type": "string",
@@ -108,14 +121,31 @@
             "DSP/Note",
             "DSP/Transcript"
           ],
-          "description": "Data type identifier"
+          "description": "Deprecated: use content-type. EOL: 2026-03-30",
+          "deprecated": true
+        },
+        "content-type": {
+          "type": "string",
+          "enum": [
+            "application/vnd.ms-dragon.dsp+json",
+            "application/vnd.ms-dragon.dsp.transcript+json",
+            "application/vnd.ms-dragon.dsp.note+json",
+            "application/vnd.ms-dragon.dsp.iterative-audio+json",
+            "application/vnd.ms-dragon.dsp.iterative-transcript+json",
+            "application/vnd.ms-dragon.adaptivecard-content+json"
+          ],
+          "description": "Content type identifier (IANA MIME type)"
         }
       },
       "additionalProperties": false
     },
     "DragonOutput": {
       "type": "object",
-      "required": ["name", "description", "data"],
+      "required": ["name", "description"],
+      "oneOf": [
+        { "required": ["data"] },
+        { "required": ["content-type"] }
+      ],
       "properties": {
         "name": {
           "type": "string",
@@ -130,7 +160,15 @@
         "data": {
           "type": "string",
           "minLength": 1,
-          "description": "Output data type"
+          "description": "Deprecated: use content-type. EOL: 2026-03-30",
+          "deprecated": true
+        },
+        "content-type": {
+          "type": "string",
+          "enum": [
+            "application/vnd.ms-dragon.dsp+json"
+          ],
+          "description": "Content type identifier (IANA MIME type)"
         }
       },
       "additionalProperties": false
