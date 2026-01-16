@@ -166,8 +166,7 @@
         "content-type": {
           "type": "string",
           "enum": [
-            "application/vnd.ms-dragon.dsp+json",
-            "application/vnd.ms-dragon.adaptivecard-content+json"
+            "application/vnd.ms-dragon.dsp+json"
           ],
           "description": "Content type identifier (IANA MIME type)"
         }
