@@ -200,17 +200,14 @@ public class ProcessingService : IProcessingService
             {
                 type = "TextBlock",
                 text = "🔍 Clinical Entities Extracted",
-                weight = "Bolder",
-                size = "Large",
-                color = "Accent"
+                weight = "bolder",
             },
             new
             {
                 type = "TextBlock",
                 text = $"Found {entities.Count} clinical {(entities.Count == 1 ? "entity" : "entities")} in the note",
                 wrap = true,
-                size = "Medium",
-                spacing = "Small"
+                spacing = "small"
             }
         };
 
@@ -227,7 +224,7 @@ public class ProcessingService : IProcessingService
                 {
                     type = "Container",
                     style = "emphasis",
-                    spacing = "Medium",
+                    spacing = "medium",
                     items = new object[]
                     {
                         new
@@ -245,8 +242,7 @@ public class ProcessingService : IProcessingService
                                         {
                                             type = "TextBlock",
                                             text = GetEntityIcon(entityType),
-                                            size = "Large",
-                                            spacing = "None"
+                                            spacing = "none"
                                         }
                                     }
                                 },
@@ -260,25 +256,21 @@ public class ProcessingService : IProcessingService
                                         {
                                             type = "TextBlock",
                                             text = $"**{GetEntityTypeDisplayName(entityType)}**",
-                                            weight = "Bolder",
-                                            size = "Medium",
-                                            spacing = "None"
+                                            weight = "bolder",
+                                            spacing = "none"
                                         },
                                         new
                                         {
                                             type = "TextBlock",
                                             text = entityName,
-                                            color = "Accent",
-                                            spacing = "None"
+                                            spacing = "none"
                                         },
                                         new
                                         {
                                             type = "TextBlock",
                                             text = entityValue,
                                             wrap = true,
-                                            size = "Small",
-                                            color = "Default",
-                                            spacing = "Small"
+                                            spacing = "small"
                                         }
                                     }
                                 }
@@ -314,22 +306,22 @@ public class ProcessingService : IProcessingService
         {
             type = "TextBlock",
             text = $"Processed at {DateTime.UtcNow:yyyy-MM-dd HH:mm:ss} UTC",
-            size = "Small",
             horizontalAlignment = "Right",
-            spacing = "Medium"
+            spacing = "medium"
         });
 
         return new VisualizationResource
         {
             Id = Guid.NewGuid().ToString(),
             Type = "AdaptiveCard",
-            Subtype = VisualizationSubtype.Note,
+            Subtype = VisualizationSubtype.Timeline,
             CardTitle = "Clinical Entities Extracted",
-            AdaptiveCardPayload = new
+            PartnerLogo = "https://example.com/assets/sample-extension-logo.png",
+            AdaptiveCardPayload = new AdaptiveCardPayload
             {
-                type = "AdaptiveCard",
-                version = "1.3",
-                body = bodyElements.ToArray()
+                Type = "AdaptiveCard",
+                Version = "1.3",
+                Body = bodyElements.ToArray(),
             },
             Actions = new List<VisualizationAction>
             {
@@ -337,13 +329,14 @@ public class ProcessingService : IProcessingService
                 {
                     Title = "Accept Analysis",
                     Action = VisualizationActionType.Accept,
-                    ActionType = ActionButtonType.Primary
+                    ActionType = ActionButtonType.Accept,
+                    Code = "Accept",
                 },
                 new()
                 {
                     Title = "Copy to Note",
                     Action = VisualizationActionType.Copy,
-                    ActionType = ActionButtonType.Secondary,
+                    ActionType = ActionButtonType.Copy,
                     Code = "CLINICAL ENTITY ANALYSIS\n\nEntities detected:\n" +
                            string.Join("\n", entities.Select(e => $"- {GetEntityNameFromResource(e)} ({GetEntityTypeFromResource(e)})"))
                 },
@@ -351,9 +344,11 @@ public class ProcessingService : IProcessingService
                 {
                     Title = "Reject Analysis",
                     Action = VisualizationActionType.Reject,
-                    ActionType = ActionButtonType.Tertiary
+                    ActionType = ActionButtonType.Reject,
+                    Code = "Reject"
                 }
             },
+            References = new List<VisualizationReference>(),
             PayloadSources = new List<PayloadSource>
             {
                 new()
