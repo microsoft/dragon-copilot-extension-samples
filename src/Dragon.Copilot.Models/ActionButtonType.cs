@@ -12,17 +12,22 @@ namespace Dragon.Copilot.Models;
 public enum ActionButtonType
 {
     /// <summary>
-    /// Primary action button style
+    /// Accept action button
     /// </summary>
-    Primary,
+    Accept,
 
     /// <summary>
-    /// Secondary action button style
+    /// Copy action button
     /// </summary>
-    Secondary,
+    Copy,
 
     /// <summary>
-    /// Tertiary action button style
+    /// Reject action button
     /// </summary>
-    Tertiary
+    Reject,
+
+    /// <summary>
+    /// Update note action button
+    /// </summary>
+    UpdateNote
 }
