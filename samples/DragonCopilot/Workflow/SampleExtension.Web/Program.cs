@@ -70,7 +70,6 @@ app.MapControllers();
 
 // Add health check endpoint (PUBLIC - no authentication required)
 app.MapGet("/health", () => Results.Ok(new { status = "healthy", timestamp = DateTime.UtcNow }))
-    .WithName("HealthCheck")
-    .WithOpenApi();
+    .WithName("HealthCheck");
 
 app.Run();
