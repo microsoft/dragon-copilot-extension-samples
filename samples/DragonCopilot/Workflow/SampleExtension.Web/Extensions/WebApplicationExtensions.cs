@@ -1,11 +1,11 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
-using System;
+using System.Collections.Generic;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.OpenApi.Models;
+using Microsoft.OpenApi;
 using SampleExtension.Web.Configuration;
 using SampleExtension.Web.Middleware;
 
@@ -64,19 +64,14 @@ internal static class WebApplicationExtensions
                     BearerFormat = "JWT"
                 });
 
-                c.AddSecurityRequirement(new OpenApiSecurityRequirement
+                c.AddSecurityRequirement(document =>
                 {
+                    OpenApiSecuritySchemeReference schemeRef = new("Bearer", document);
+
+                    return new OpenApiSecurityRequirement
                     {
-                        new OpenApiSecurityScheme
-                        {
-                            Reference = new OpenApiReference
-                            {
-                                Type = ReferenceType.SecurityScheme,
-                                Id = "Bearer"
-                            }
-                        },
-                        Array.Empty<string>()
-                    }
+                        [schemeRef] = new List<string>()
+                    };
                 });
             }
 
@@ -92,19 +87,14 @@ internal static class WebApplicationExtensions
                     Type = SecuritySchemeType.ApiKey
                 });
 
-                c.AddSecurityRequirement(new OpenApiSecurityRequirement
+                c.AddSecurityRequirement(document =>
                 {
+                    OpenApiSecuritySchemeReference schemeRef = new("LicenseKey", document);
+
+                    return new OpenApiSecurityRequirement
                     {
-                        new OpenApiSecurityScheme
-                        {
-                            Reference = new OpenApiReference
-                            {
-                                Type = ReferenceType.SecurityScheme,
-                                Id = "LicenseKey"
-                            }
-                        },
-                        Array.Empty<string>()
-                    }
+                        [schemeRef] = new List<string>()
+                    };
                 });
             }
         });
