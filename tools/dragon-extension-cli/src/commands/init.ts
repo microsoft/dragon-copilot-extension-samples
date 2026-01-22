@@ -6,7 +6,7 @@ const { dump } = yaml;
 import path from 'path';
 import chalk from 'chalk';
 import { InitOptions, DragonExtensionManifest } from '../types.js';
-import { promptExtensionDetails, promptToolDetails, promptPublisherDetails, promptAuthDetails, getInputDescription } from '../shared/prompts.js';
+import { promptExtensionDetails, promptToolDetails, promptPublisherDetails, promptAuthDetails, getInputDescription, getContentTypeFromDataType } from '../shared/prompts.js';
 import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -118,7 +118,7 @@ export async function initProject(options: InitOptions): Promise<void> {
               dataType === 'DSP/Transcript' ? 'transcript' :
               `input-${index + 1}`,
         description: getInputDescription(dataType),
-        data: dataType
+        'content-type': getContentTypeFromDataType(dataType)
       })),
       outputs: toolDetails.outputs
     });

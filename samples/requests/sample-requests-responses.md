@@ -6,28 +6,30 @@ This directory contains sample requests and responses for the Dragon Copilot ext
 
 File: [note-payload.json](./note-payload.json)
 
-This file contains a sample request payload for an extension that is configured to handle an input of type `DSP/Note`. The name of the parameter is `note`, which is defined in the extension's manifest.
+This file contains a sample request payload for an extension that is configured to handle an input of content-type `application/vnd.ms-dragon.dsp.note+json`. The name of the parameter is `note`, which is defined in the extension's manifest.
 
 Sample Manifest Configuration:
 ```yaml
     inputs:
       - name: note
         description: Note
-        data: DSP/Note
+        content-type: application/vnd.ms-dragon.dsp.note+json
 ```
 
 ## Sample Request: Iterative Audio Payload
 
 File: [iterative-audio-payload.json](./iterative-audio-payload.json)
 
-This file contains a sample request payload for an extension that is configured to handle an input of type `DSP/IterativeAudio`. The name of the parameter is `iterativeAudio`, which is defined in the extension's manifest.
+This file contains a sample request payload for an extension that is configured to handle an input of content-type `application/vnd.ms-dragon.dsp.iterative-audio+json`. The name of the parameter is `iterativeAudio`, which is defined in the extension's manifest.
 
 Sample Manifest Configuration:
 ```yaml
     inputs:
       - name: iterativeAudio
         description: Audio
-        data: DSP/IterativeAudio
+        content-type: application/vnd.ms-dragon.dsp.iterative-audio+json
+```
+
 ## Sample Response: Plugin Result
 
 File: [plugin-result.json](./plugin-result.json)
@@ -39,5 +41,5 @@ Sample Manifest Configuration:
     outputs:
       - name: adaptive-card
         description: Response from the plugin
-        data: DSP
+        content-type: application/vnd.ms-dragon.dsp+json
 ```

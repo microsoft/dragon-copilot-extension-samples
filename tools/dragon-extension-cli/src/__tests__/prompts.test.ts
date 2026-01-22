@@ -28,7 +28,7 @@ describe('Prompts', () => {
       expect(result).toEqual({
         name: 'adaptive-card',
         description: 'Adaptive card response',
-        data: 'DSP'
+        'content-type': 'application/vnd.ms-dragon.dsp+json'
       });
 
       // Verify the correct defaults were used
@@ -56,7 +56,7 @@ describe('Prompts', () => {
       expect(result).toEqual({
         name: 'custom-output',
         description: 'Custom output description',
-        data: 'DSP'
+        'content-type': 'application/vnd.ms-dragon.dsp+json'
       });
 
       // Verify custom defaults were used

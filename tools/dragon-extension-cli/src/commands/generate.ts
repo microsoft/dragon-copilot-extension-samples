@@ -6,7 +6,7 @@ import chalk from 'chalk';
 import { confirm } from '@inquirer/prompts';
 import { GenerateOptions, DragonExtensionManifest, DragonTool } from '../types.js';
 import { getTemplate } from '../templates/index.js';
-import { promptToolDetails, promptPublisherDetails, promptAuthDetails, getInputDescription } from '../shared/prompts.js';
+import { promptToolDetails, promptPublisherDetails, promptAuthDetails, getInputDescription, getContentTypeFromDataType } from '../shared/prompts.js';
 
 export async function generateManifest(options: GenerateOptions): Promise<void> {
   console.log(chalk.blue('🐉 Generating Dragon Copilot Manifest'));
@@ -85,7 +85,7 @@ async function generateInteractive(options: GenerateOptions): Promise<void> {
             dataType === 'DSP/Transcript' ? 'transcript' :
             `input-${index + 1}`,
       description: getInputDescription(dataType),
-      data: dataType
+      'content-type': getContentTypeFromDataType(dataType)
     })),
     outputs: answers.outputs
   };
