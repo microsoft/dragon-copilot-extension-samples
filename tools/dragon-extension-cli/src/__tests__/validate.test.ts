@@ -37,11 +37,11 @@ tools:
     inputs:
       - name: note
         description: Clinical note
-        data: DSP/Note
+        content-type: application/vnd.ms-dragon.dsp.note+json
     outputs:
       - name: result
         description: Processed result
-        data: DSP
+        content-type: application/vnd.ms-dragon.dsp+json
 `;
 
     writeFileSync(testManifestPath, validManifest);

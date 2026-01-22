@@ -27,12 +27,12 @@ describe('Types', () => {
       inputs: [{
         name: 'input1',
         description: 'Test input',
-        data: 'DSP/Note'
+        'content-type': 'application/vnd.ms-dragon.dsp.note+json'
       }],
       outputs: [{
         name: 'output1',
         description: 'Test output',
-        data: 'DSP'
+        'content-type': 'application/vnd.ms-dragon.dsp+json'
       }]
     };
 
