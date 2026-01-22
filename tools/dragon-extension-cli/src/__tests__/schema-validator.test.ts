@@ -20,14 +20,14 @@ describe('Schema Validation', () => {
               {
                 name: 'note',
                 description: 'Clinical note',
-                data: 'DSP/Note'
+                'content-type': 'application/vnd.ms-dragon.dsp.note+json'
               }
             ],
             outputs: [
               {
                 name: 'result',
                 description: 'Processed result',
-                data: 'DSP'
+                'content-type': 'application/vnd.ms-dragon.dsp+json'
               }
             ]
           }
@@ -56,14 +56,14 @@ describe('Schema Validation', () => {
               {
                 name: 'note',
                 description: 'Clinical note',
-                data: 'DSP/Note'
+                'content-type': 'application/vnd.ms-dragon.dsp.note+json'
               }
             ],
             outputs: [
               {
                 name: 'result',
                 description: 'Processed result',
-                data: 'DSP'
+                'content-type': 'application/vnd.ms-dragon.dsp+json'
               }
             ]
           }
@@ -84,6 +84,194 @@ describe('Schema Validation', () => {
       const result = validateExtensionManifest(manifest);
       expect(result.isValid).toBe(false);
       expect(result.errors.length).toBeGreaterThan(0);
+    });
+
+    test('should validate manifest with trigger property', () => {
+      const manifest: DragonExtensionManifest = {
+        name: 'test-extension',
+        description: 'A test extension',
+        version: '1.0.0',
+        auth: {
+          tenantId: '12345678-1234-1234-1234-123456789abc'
+        },
+        tools: [
+          {
+            name: 'test-tool',
+            description: 'A test tool',
+            endpoint: 'https://api.example.com/test',
+            trigger: 'AutoRun',
+            inputs: [
+              {
+                name: 'note',
+                description: 'Clinical note',
+                'content-type': 'application/vnd.ms-dragon.dsp.note+json'
+              }
+            ],
+            outputs: [
+              {
+                name: 'result',
+                description: 'Processed result',
+                'content-type': 'application/vnd.ms-dragon.dsp+json'
+              }
+            ]
+          }
+        ]
+      };
+
+      const result = validateExtensionManifest(manifest);
+      expect(result.isValid).toBe(true);
+      expect(result.errors).toHaveLength(0);
+    });
+
+    test('should validate manifest with AdaptiveCardAction trigger', () => {
+      const manifest: DragonExtensionManifest = {
+        name: 'test-extension',
+        description: 'A test extension',
+        version: '1.0.0',
+        auth: {
+          tenantId: '12345678-1234-1234-1234-123456789abc'
+        },
+        tools: [
+          {
+            name: 'test-tool',
+            description: 'A test tool',
+            endpoint: 'https://api.example.com/test',
+            trigger: 'AdaptiveCardAction',
+            inputs: [
+              {
+                name: 'note',
+                description: 'Clinical note',
+                'content-type': 'application/vnd.ms-dragon.dsp.note+json'
+              }
+            ],
+            outputs: [
+              {
+                name: 'result',
+                description: 'Processed result',
+                'content-type': 'application/vnd.ms-dragon.dsp+json'
+              }
+            ]
+          }
+        ]
+      };
+
+      const result = validateExtensionManifest(manifest);
+      expect(result.isValid).toBe(true);
+      expect(result.errors).toHaveLength(0);
+    });
+
+    test('should reject invalid trigger value', () => {
+      const manifest = {
+        name: 'test-extension',
+        description: 'A test extension',
+        version: '1.0.0',
+        auth: {
+          tenantId: '12345678-1234-1234-1234-123456789abc'
+        },
+        tools: [
+          {
+            name: 'test-tool',
+            description: 'A test tool',
+            endpoint: 'https://api.example.com/test',
+            trigger: 'InvalidTrigger', // Invalid trigger value
+            inputs: [
+              {
+                name: 'note',
+                description: 'Clinical note',
+                'content-type': 'application/vnd.ms-dragon.dsp.note+json'
+              }
+            ],
+            outputs: [
+              {
+                name: 'result',
+                description: 'Processed result',
+                'content-type': 'application/vnd.ms-dragon.dsp+json'
+              }
+            ]
+          }
+        ]
+      } as any;
+
+      const result = validateExtensionManifest(manifest);
+      expect(result.isValid).toBe(false);
+      expect(result.errors.some((e: any) => e.instancePath.includes('trigger'))).toBe(true);
+    });
+
+    test('should validate manifest with deprecated data field for backward compatibility', () => {
+      const manifest = {
+        name: 'test-extension',
+        description: 'A test extension',
+        version: '1.0.0',
+        auth: {
+          tenantId: '12345678-1234-1234-1234-123456789abc'
+        },
+        tools: [
+          {
+            name: 'test-tool',
+            description: 'A test tool',
+            endpoint: 'https://api.example.com/test',
+            inputs: [
+              {
+                name: 'note',
+                description: 'Clinical note',
+                data: 'DSP/Note' // Deprecated field
+              }
+            ],
+            outputs: [
+              {
+                name: 'result',
+                description: 'Processed result',
+                data: 'DSP' // Deprecated field
+              }
+            ]
+          }
+        ]
+      } as any;
+
+      const result = validateExtensionManifest(manifest);
+      expect(result.isValid).toBe(true);
+      expect(result.errors).toHaveLength(0);
+    });
+
+    test('should validate manifest with mixed old and new format', () => {
+      const manifest = {
+        name: 'test-extension',
+        description: 'A test extension',
+        version: '1.0.0',
+        auth: {
+          tenantId: '12345678-1234-1234-1234-123456789abc'
+        },
+        tools: [
+          {
+            name: 'test-tool',
+            description: 'A test tool',
+            endpoint: 'https://api.example.com/test',
+            inputs: [
+              {
+                name: 'note',
+                description: 'Clinical note',
+                data: 'DSP/Note' // Old format
+              },
+              {
+                name: 'transcript',
+                description: 'Transcript',
+                'content-type': 'application/vnd.ms-dragon.dsp.transcript+json' // New format
+              }
+            ],
+            outputs: [
+              {
+                name: 'result',
+                description: 'Processed result',
+                'content-type': 'application/vnd.ms-dragon.dsp+json'
+              }
+            ]
+          }
+        ]
+      } as any;
+
+      const result = validateExtensionManifest(manifest);
+      expect(result.isValid).toBe(true);
+      expect(result.errors).toHaveLength(0);
     });
   });
 

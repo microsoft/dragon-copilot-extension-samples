@@ -108,20 +108,36 @@ Dragon Copilot manifests follow this structure:
 name: my-extension
 description: Description of what the extension does
 version: 0.0.1
+auth:
+  tenantId: 12345678-1234-1234-1234-123456789abc
 
 tools:
   - name: my-tool
     description: Tool description
     endpoint: https://api.example.com/v1/process
+    trigger: AutoRun  # Optional: AutoRun (default) or AdaptiveCardAction
     inputs:
       - name: input-name
         description: Input description
-        data: DSP/Note
+        content-type: application/vnd.ms-dragon.dsp.note+json
     outputs:
       - name: output-name
         description: Output description
-        data: DSP
+        content-type: application/vnd.ms-dragon.dsp+json
 ```
+
+### Content Types
+
+The CLI supports the following content types for inputs:
+
+- `application/vnd.ms-dragon.dsp+json` - General Dragon Standard Payload
+- `application/vnd.ms-dragon.dsp.note+json` - Clinical Note
+- `application/vnd.ms-dragon.dsp.transcript+json` - Complete Transcript
+- `application/vnd.ms-dragon.dsp.iterative-audio+json` - Iterative Audio
+- `application/vnd.ms-dragon.dsp.iterative-transcript+json` - Iterative Transcript
+- `application/vnd.ms-dragon.adaptivecard-content+json` - Adaptive Card Content
+
+Outputs typically use `application/vnd.ms-dragon.dsp+json`.
 
 ## Publisher Configuration Format
 

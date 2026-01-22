@@ -26,11 +26,11 @@ tools:
     inputs:
       - name: note
         description: Clinical note
-        data: DSP/Note
+        content-type: application/vnd.ms-dragon.dsp.note+json
     outputs:
       - name: result
         description: Result
-        data: DSP`;
+        content-type: application/vnd.ms-dragon.dsp+json`;
 
     await fs.writeFile(manifestPath, manifest);
 

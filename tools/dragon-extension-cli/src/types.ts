@@ -14,6 +14,7 @@ export interface DragonTool {
   name: string;
   description: string;
   endpoint: string;
+  trigger?: 'AutoRun' | 'AdaptiveCardAction';
   inputs: DragonInput[];
   outputs: DragonOutput[];
 }
@@ -21,13 +22,15 @@ export interface DragonTool {
 export interface DragonInput {
   name: string;
   description: string;
-  data: string;
+  data?: string; // Deprecated: use content-type. EOL: 2026-03-30
+  'content-type'?: string;
 }
 
 export interface DragonOutput {
   name: string;
   description: string;
-  data: string;
+  data?: string; // Deprecated: use content-type. EOL: 2026-03-30
+  'content-type'?: string;
 }
 
 export interface PublisherConfig {
@@ -76,14 +79,17 @@ export interface ToolTemplate {
   name: string;
   description: string;
   endpoint: string;
+  trigger?: 'AutoRun' | 'AdaptiveCardAction';
   inputs: Array<{
     name: string;
     description: string;
-    data: string;
+    data?: string; // Deprecated
+    'content-type'?: string;
   }>;
   outputs: Array<{
     name: string;
     description: string;
-    data: string;
+    data?: string; // Deprecated
+    'content-type'?: string;
   }>;
 }

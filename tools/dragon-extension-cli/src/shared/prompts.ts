@@ -12,6 +12,7 @@ export interface ToolDetails {
   toolName: string;
   toolDescription: string;
   endpoint: string;
+  trigger?: 'AutoRun' | 'AdaptiveCardAction';
   inputTypes: string[];
   outputs: OutputDetails[];
 }
@@ -19,14 +20,15 @@ export interface ToolDetails {
 export interface OutputDetails {
   name: string;
   description: string;
-  data: string;
+  data?: string; // Deprecated
+  'content-type'?: string;
 }
 
 export const INPUT_TYPE_CHOICES = [
-  { name: 'Clinical Note (DSP/Note)', value: 'DSP/Note' },
-  { name: 'Iterative Transcript (DSP/IterativeTranscript)', value: 'DSP/IterativeTranscript' },
-  { name: 'Iterative Audio (DSP/IterativeAudio)', value: 'DSP/IterativeAudio' },
-  { name: 'Transcript (DSP/Transcript)', value: 'DSP/Transcript' },
+  { name: 'Clinical Note (DSP/Note)', value: 'DSP/Note', contentType: 'application/vnd.ms-dragon.dsp.note+json' },
+  { name: 'Iterative Transcript (DSP/IterativeTranscript)', value: 'DSP/IterativeTranscript', contentType: 'application/vnd.ms-dragon.dsp.iterative-transcript+json' },
+  { name: 'Iterative Audio (DSP/IterativeAudio)', value: 'DSP/IterativeAudio', contentType: 'application/vnd.ms-dragon.dsp.iterative-audio+json' },
+  { name: 'Transcript (DSP/Transcript)', value: 'DSP/Transcript', contentType: 'application/vnd.ms-dragon.dsp.transcript+json' },
 ];
 
 /**
@@ -199,6 +201,14 @@ export function getInputDescription(dataType: string): string {
 }
 
 /**
+ * Gets content-type from legacy data type
+ */
+export function getContentTypeFromDataType(dataType: string): string {
+  const choice = INPUT_TYPE_CHOICES.find(c => c.value === dataType);
+  return choice?.contentType || 'application/vnd.ms-dragon.dsp+json';
+}
+
+/**
  * Prompts for output details
  */
 export async function promptOutputDetails(defaults?: { name?: string; description?: string }): Promise<OutputDetails> {
@@ -215,7 +225,7 @@ export async function promptOutputDetails(defaults?: { name?: string; descriptio
   return {
     name,
     description,
-    data: 'DSP'
+    'content-type': 'application/vnd.ms-dragon.dsp+json'
   };
 }
 
