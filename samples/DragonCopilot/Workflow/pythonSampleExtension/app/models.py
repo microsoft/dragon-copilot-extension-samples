@@ -21,7 +21,7 @@ class Context(BaseModel):
 
 class BaseResource(BaseModel):
     id: Optional[str] = None
-    context: Optional[Context] = None
+    # context: Optional[Context] = None
 
 class MedicalCode(BaseResource):
     type: str = Field("MedicalCode", frozen=True)
@@ -44,9 +44,8 @@ class VisualizationResource(BaseResource):
     type: str = Field("AdaptiveCard", frozen=True)
     subtype: str | None = None
     cardTitle: str | None = None
-    # adaptiveCardPayload: Any | None = None
     adaptive_card_payload: Any | None = None
-    actions: List[Dict[str, Any]] | None = None
+    # actions: List[Dict[str, Any]] | None = None
     payloadSources: List[Dict[str, Any]] | None = None
     dragonCopilotCopyData: str | None = None
     partnerLogo: str | None = None
