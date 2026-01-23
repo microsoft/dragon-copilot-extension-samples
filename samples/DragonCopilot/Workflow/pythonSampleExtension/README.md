@@ -10,6 +10,21 @@ A Python FastAPI implementation that mirrors the C# `SampleExtension.Web` for Dr
 
 > Disclaimer: This is a learning/sample artifact – not production hardened. Do **not** use with real PHI. Authentication is intentionally disabled for development.
 
+--- 
+## 📚 Contents
+
+- [Dragon Copilot Python Sample Extension](#dragon-copilot-python-sample-extension)
+  - [1. Features](#1-features)
+  - [2. Quick Start](#2-quick-start)
+  	- [2.1 Quick Start for Linux and Mac](#21-quick-start-for-linux-and-mac)
+    - [2.2 Quick Start for Windows](#22-quick-start-for-windows)
+  - [3. Access the Swagger / OpenAPI](#3-access-the-swagger--openapi)
+  - [4. Testing APIs with Sample Requests](#4-testing-apis-with-sample-requests)
+	- [4.1 Testing APIs for Linux / Mac](#41-testing-apis-for-linux--mac)
+	- [4.2 Testing APIs for Windows](#42-testing-apis-for-windows)
+  - [5. Response Structure Example](#5-response-structure-example)
+  - [6. License](#6-license)
+
 ---
 ## 1. Features
 **Implemented**
@@ -117,13 +132,54 @@ You shall see the workflow sample server returns response similar to the followi
 		},
 		"sample-entities-adaptive-card": {
 			"schema_version": "0.1",
-			"resources": [ { "type": "AdaptiveCard", "adaptiveCardPayload": { "type": "AdaptiveCard", "version": "1.3" } } ]
+			"resources": [ 
+				{ 
+					"id": "card1",
+					"type": "AdaptiveCard",
+					"subtype": "note",
+					"adaptive_card_payload": { 
+						"type": "AdaptiveCard",
+                		"$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+                		"version": "1.6",
+						"body": []
+					},
+					"payloadSources": [],
+					"dragonCopilotCopyData": "metadata_for_platform"
+				}
+			]
 		},
 		"samplePluginResult": {
 			"schema_version": "0.1",
 			"resources": [
-				{ "type": "AdaptiveCard", "cardTitle": "Medication Summary & Recommendations (Demo)" },
-				{ "type": "AdaptiveCard", "cardTitle": "Recent Clinical Entities Timeline (Demo)" }
+				{ 
+					"id": "top1",
+					"type": "AdaptiveCard",
+					"subtype": "note", 
+					"cardTitle": "Medication Summary & Recommendations (Demo)",
+					"adaptive_card_payload": { 
+						"type": "AdaptiveCard",
+                		"$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+                		"version": "1.6",
+						"body": []
+					},
+					"payloadSources": [],
+					"dragonCopilotCopyData": "metadata_for_platform"
+
+				},
+				{ 
+					"id": "bottom1",
+					"type": "AdaptiveCard",
+					"subtype": "timeline",
+					"cardTitle": "Recent Clinical Entities Timeline (Demo)",
+					"adaptive_card_payload": { 
+						"type": "AdaptiveCard",
+                		"$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+                		"version": "1.6",
+						"body": []
+					},
+					"payloadSources": [],
+					"dragonCopilotCopyData": "metadata_for_platform"
+				}
 			]
 		}
 	}
