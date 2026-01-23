@@ -123,15 +123,14 @@ class ProcessingService:
                 "type": "TextBlock",
                 "text": "🔍 Clinical Entities Extracted",
                 "weight": "Bolder",
-                "size": "Large",
-                "color": "Accent",
+                "size": "Default"
             },
             {
                 "type": "TextBlock",
                 "text": f"Found {len(entities)} clinical {'entity' if len(entities)==1 else 'entities'} in the note",
                 "wrap": True,
-                "size": "Medium",
-                "spacing": "Small",
+                "size": "Default",
+                "spacing": "Small"
             },
         ]
         if entities:
@@ -143,7 +142,7 @@ class ProcessingService:
                     "style": "emphasis",
                     "spacing": "Medium",
                     "items": [
-                        {"type": "TextBlock", "text": f"**{etype}**", "weight": "Bolder", "size": "Medium"},
+                        {"type": "TextBlock", "text": f"**{etype}**", "weight": "Bolder", "size": "Default"},
                         {"type": "TextBlock", "text": eid, "size": "Small", "wrap": True},
                     ],
                 })
@@ -159,7 +158,7 @@ class ProcessingService:
             "type": "TextBlock",
             "text": f"Processed at {datetime.now(timezone.utc).isoformat()}",
             "size": "Small",
-            "horizontalAlignment": "Right",
+            # "horizontalAlignment": "Right",
             "spacing": "Medium",
         })
 
@@ -212,22 +211,32 @@ class ProcessingService:
             id=str(uuid4()),
             subtype="note", # hardcoded subtype
             cardTitle=f"{EXTENSION_PREFIX}",
-            # adaptiveCardPayload={
             adaptive_card_payload={
                 "type": "AdaptiveCard",
-                "version": "1.3",
+                "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+                "version": "1.6",
                 "body": body,
-                # "actions": [
-                #     {"type": "Action.Submit", "title": "Accept Analysis", "data": {"action": "accept"}},
-                #     {"type": "Action.Submit", "title": "Copy to Note", "data": {"action": "copy"}},
-                #     {"type": "Action.Submit", "title": "Reject Analysis", "data": {"action": "reject"}},
-                # ],
+                "actions": [
+                    {
+                        "type": "Action.Execute",
+                        "title": "Append to note",
+                        "verb": "appendToNoteSection",
+                        "id": "appendToNoteSectionAction",
+                        "data": {
+                            "dragonAppendContent": "appended text content"
+                        }
+                    },
+                    {
+                        "type": "Action.Execute",
+                        "title": "Dismiss",
+                        "verb": "reject",
+                        "id": "rejectAction",
+                        "data": {
+                            "dragonExtensionToolName": "RejectCardTool"
+                        }
+                    }
+                ]
             },
-            actions=[
-                {"title": "Accept Analysis", "action": "Accept", "actionType": "Primary"},
-                {"title": "Copy to Note", "action": "Copy", "actionType": "Secondary"},
-                {"title": "Reject Analysis", "action": "Reject", "actionType": "Tertiary"},
-            ],
             payloadSources=[
                 {
                     "identifier": str(uuid4()),
@@ -236,6 +245,8 @@ class ProcessingService:
                 }
             ],
             dragonCopilotCopyData="Clinical entities extracted from note content",
+            partnerLogo="https://contoso.com/logo.png",
+            references=[],
         )
 
     def _composite_medication_summary(self, entities: List[Any]) -> models.VisualizationResource:
@@ -245,7 +256,7 @@ class ProcessingService:
                 "type": "Container",
                 "spacing": "Medium",
                 "items": [
-                    {"type": "TextBlock", "text": "Patient Medication Analysis", "weight": "Bolder", "size": "Large", "spacing": "None"},
+                    {"type": "TextBlock", "text": "Patient Medication Analysis", "weight": "Bolder", "size": "Default", "spacing": "None"},
                     {"type": "TextBlock", "text": "Demo analysis based on detected entities", "size": "Small", "spacing": "Small", "wrap": True}
                 ]
             }
@@ -264,23 +275,31 @@ class ProcessingService:
 
         return models.VisualizationResource(
             id=str(uuid4()),
-            subtype="Note",
+            subtype="note",
             cardTitle="Medication Summary & Recommendations (Demo)",
-            partnerLogo="https://contoso.com/logo.png",
-            adaptiveCardPayload={
+            adaptive_card_payload={
                 "type": "AdaptiveCard",
-                "version": "1.3",
-                "body": body
+                "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+                "version": "1.6",
+                "body": body,
+                "actions": [
+                    {
+                        "type": "Action.Execute",
+                        "title": "Dismiss",
+                        "verb": "reject",
+                        "id": "rejectAction",
+                        "data": {
+                            "dragonExtensionToolName": "RejectCardTool"
+                        }
+                    }
+                ]
             },
-            actions=[
-                {"title": "Accept Recommendations", "action": "accept", "actionType": "primary"},
-                {"title": "Reject Changes", "action": "reject", "actionType": "secondary"},
-                {"title": "Copy Full Analysis", "action": "copy", "actionType": "tertiary", "code": "DEMO ANALYSIS\nEntities summary included."}
-            ],
             payloadSources=[
                 {"identifier": str(uuid4()), "description": "Python Demo Medication Analysis Service", "url": "http://localhost/v1/process"}
             ],
-            dragonCopilotCopyData="medication_analysis|demo:1|generated:" + datetime.now(timezone.utc).isoformat()
+            dragonCopilotCopyData="medication_analysis|demo:1|generated:" + datetime.now(timezone.utc).isoformat(),
+            references=[],
+            partnerLogo="https://contoso.com/logo.png",
         )
 
     def _timeline_card(self, entities: List[Any]) -> models.VisualizationResource:
@@ -289,7 +308,7 @@ class ProcessingService:
             {
                 "type": "Container",
                 "items": [
-                    {"type": "TextBlock", "text": "Lab / Clinical Trend Analysis (Demo)", "weight": "Bolder", "size": "Medium"},
+                    {"type": "TextBlock", "text": "Lab / Clinical Trend Analysis (Demo)", "weight": "Bolder", "size": "Default"},
                     {"type": "TextBlock", "text": f"Detected {len(entities)} entities to date", "size": "Small", "spacing": "Small"}
                 ]
             }
@@ -298,17 +317,27 @@ class ProcessingService:
             id=str(uuid4()),
             subtype="timeline",
             cardTitle="Recent Clinical Entities Timeline (Demo)",
-            adaptiveCardPayload={
+            adaptive_card_payload={
                 "type": "AdaptiveCard",
-                "version": "1.3",
-                "body": body
+                "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+                "version": "1.6",
+                "body": body,
+                "actions": [
+                    {
+                        "type": "Action.Execute",
+                        "title": "Dismiss",
+                        "verb": "reject",
+                        "id": "rejectAction",
+                        "data": {
+                            "dragonExtensionToolName": "RejectCardTool"
+                        }
+                    }
+                ]
             },
-            actions=[
-                {"title": "View Full Results", "action": "accept", "actionType": "primary"},
-                {"title": "Copy Timeline Data", "action": "copy", "actionType": "tertiary", "code": "TIMELINE DEMO\nNo real data."}
-            ],
             payloadSources=[
                 {"identifier": str(uuid4()), "description": "Python Demo Timeline Service", "url": "http://localhost/v1/process"}
             ],
-            dragonCopilotCopyData="lab_timeline|demo:1|generated:" + datetime.now(timezone.utc).isoformat()
+            dragonCopilotCopyData="lab_timeline|demo:1|generated:" + datetime.now(timezone.utc).isoformat(),
+            partnerLogo="https://contoso.com/logo.png",
+            references=[],         
         )
