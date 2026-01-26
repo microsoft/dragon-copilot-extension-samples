@@ -2,12 +2,20 @@
 
 import { Command } from 'commander';
 import chalk from 'chalk';
-import { select } from '@inquirer/prompts';
+import { select, confirm } from '@inquirer/prompts';
 import { registerCommands } from './commands/index.js';
 
 const VERSION = '1.0.0';
 
-async function showInteractiveMenu(): Promise<void> {
+// Custom error class for intercepted exits
+class InteractiveExitError extends Error {
+	constructor(public code: number) {
+		super(`Process exit intercepted with code ${code}`);
+		this.name = 'InteractiveExitError';
+	}
+}
+
+async function showInteractiveMenu(): Promise<string[]> {
 	console.log(chalk.cyan('\n🐉 Dragon Copilot CLI v' + VERSION + '\n'));
 	
 	const choice = await select({
@@ -17,7 +25,8 @@ async function showInteractiveMenu(): Promise<void> {
 			{ name: 'Initialize a new Connector project', value: 'connector-init' },
 			{ name: 'Package an Extension', value: 'extension-package' },
 			{ name: 'Package a Connector', value: 'connector-package' },
-			{ name: 'Validate a manifest file', value: 'validate' },
+			{ name: 'Validate an Extension manifest', value: 'extension-validate' },
+			{ name: 'Validate a Connector manifest', value: 'connector-validate' },
 			{ name: 'Show help', value: 'help' },
 			{ name: 'Exit', value: 'exit' },
 		],
@@ -29,22 +38,92 @@ async function showInteractiveMenu(): Promise<void> {
 		'connector-init': ['connector', 'init'],
 		'extension-package': ['extension', 'package'],
 		'connector-package': ['connector', 'package'],
-		'validate': ['extension', 'validate', '--help'],
+		'extension-validate': ['extension', 'validate'],
+		'connector-validate': ['connector', 'validate'],
 		'help': ['--help'],
 		'exit': [],
 	};
 
-	const args = commandMap[choice];
-	if (!args || args.length === 0) {
-		console.log(chalk.green('\nGoodbye! 👋\n'));
-		return;
-	}
+	return commandMap[choice] ?? [];
+}
 
-	// Re-run with selected command
-	process.argv = [process.argv[0]!, process.argv[1]!, ...args];
+async function runInteractiveLoop(): Promise<void> {
+	let continueLoop = true;
+	
+	// Store the original process.exit
+	const originalExit = process.exit;
+	
+	while (continueLoop) {
+		const args = await showInteractiveMenu();
+		
+		if (args.length === 0) {
+			console.log(chalk.green('\nGoodbye! 👋\n'));
+			break;
+		}
+
+		// Create a fresh program instance for each command
+		const program = new Command();
+		program
+			.name('dragon-copilot')
+			.description('Unified CLI for Dragon Copilot extensions and integrations')
+			.version(VERSION)
+			.exitOverride(); // Prevent Commander from calling process.exit()
+
+		registerCommands(program);
+
+		// Intercept process.exit during command execution
+		process.exit = ((code?: number) => {
+			throw new InteractiveExitError(code ?? 0);
+		}) as never;
+
+		try {
+			// Reset exit code before each command
+			process.exitCode = 0;
+			
+			// Parse with the selected command
+			await program.parseAsync(['node', 'dragon-copilot', ...args]);
+		} catch (error: unknown) {
+			if (error instanceof InteractiveExitError) {
+				// Command called process.exit() - this is expected behavior for errors
+				if (error.code !== 0) {
+					// Error exit - already logged by the command
+				}
+			} else if (error instanceof Error && error.message !== 'commander.helpDisplayed') {
+				// Commander throws on --help, which is expected
+				console.error(chalk.red('\nCommand failed:'), error.message);
+			}
+		} finally {
+			// Restore original process.exit
+			process.exit = originalExit;
+		}
+
+		console.log(chalk.dim('\n' + '─'.repeat(50) + '\n'));
+		
+		// Ask if user wants to continue
+		try {
+			continueLoop = await confirm({
+				message: 'Would you like to perform another action?',
+				default: true,
+			});
+		} catch {
+			// User pressed Ctrl+C
+			console.log(chalk.green('\nGoodbye! 👋\n'));
+			break;
+		}
+	}
 }
 
 async function main(): Promise<void> {
+	// Check if running without arguments (interactive mode)
+	const hasArgs = process.argv.length > 2;
+	
+	if (!hasArgs && process.stdin.isTTY) {
+		// Interactive mode - run the loop
+		await runInteractiveLoop();
+		return;
+	}
+
+	// Command-line mode - run single command
 	const program = new Command();
 
 	program
@@ -53,20 +132,6 @@ async function main(): Promise<void> {
 		.version(VERSION);
 
 	registerCommands(program);
-
-	// Check if running without arguments (interactive mode)
-	const hasArgs = process.argv.length > 2;
-	
-	if (!hasArgs) {
-		// Check if running in an interactive terminal
-		if (process.stdin.isTTY) {
-			await showInteractiveMenu();
-			// If exit was chosen, don't parse
-			if (process.argv.length <= 2) {
-				return;
-			}
-		}
-	}
 
 	await program.parseAsync();
 }
