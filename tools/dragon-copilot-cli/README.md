@@ -86,8 +86,51 @@ You can update scripts later via `dragon-copilot extension generate --interactiv
 - `npm run build` emits compiled JS plus copies schemas/resources into `dist/`.
 - `npm test` covers extension + connector flows (command registration, schema validation, CLI integration).
 
+## Building Standalone Executables
+
+The CLI can be packaged as a standalone executable using Node.js Single Executable Applications (SEA). This allows distribution without requiring Node.js to be installed on the target machine.
+
+### Prerequisites
+
+- Node.js 20.x or later (SEA support required)
+- Windows, macOS, or Linux
+
+### Build Commands
+
+```powershell
+# Build for current platform
+npm run build:sea
+```
+
+This creates a standalone executable at `dist/bin/dragon-copilot.exe` (Windows) or `dist/bin/dragon-copilot` (macOS/Linux).
+
+### How It Works
+
+The build process:
+1. **Bundles** TypeScript/ESM to a single CommonJS file using esbuild
+2. **Embeds** schemas and resources directly into the bundle
+3. **Generates** a SEA preparation blob using Node.js
+4. **Injects** the blob into a copy of the Node.js binary using postject
+
+### Output Size
+
+The executable is approximately 85-90 MB as it includes the full Node.js runtime.
+
+### Distribution
+
+The generated executable is self-contained and can be distributed directly:
+
+```powershell
+# Copy to a system location
+Copy-Item .\dist\bin\dragon-copilot.exe C:\tools\
+
+# Run from anywhere
+dragon-copilot --help
+```
+
 ## Troubleshooting
 
 - **CLI Not Found**: Ensure `npm link` completes without error and your Node install adds the npm global bin directory to PATH.
-- **Process Exit during Tests**: Tests set `process.exitCode` and mock logging. If you add new commands, ensure they don’t call `process.exit()` directly in unit scenarios.
+- **Process Exit during Tests**: Tests set `process.exitCode` and mock logging. If you add new commands, ensure they don't call `process.exit()` directly in unit scenarios.
 - **Schema Errors**: Check the `src/schemas/*.json` files for the latest manifest requirements.
+- **SEA Build Fails**: Ensure you're using Node.js 20.x or later. Check that `postject` is installed correctly.
