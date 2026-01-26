@@ -1,11 +1,13 @@
 # Table of Contents
 - [Quick Start Guide for Dragon Extension Developer](#quick-start-guide-for-dragon-extension-developer)
+- [Extensions vs. Clinical Application Connectors](#extensions-vs-clinical-application-connectors)
 - [Running Locally](#-running-locally)
   - Provides prerequisites and information on how to run the application locally. 
 - [Using DevTunnels](#using-devtunnels)
   - How to create a secure way to expose your local web service to the internet without actually deploying.
-- [Packaging your extension](#packaging-your-extension)
-  - How to package your extension using the dragon extension tool to to the DAC (Dragon Admin Center) site.
+- [Packaging your Integration](#packaging-your-integration)
+  - [Packaging a Workflow Extension](#packaging-a-workflow-extension)
+  - [Packaging a Clinical Application Connector](#packaging-a-clinical-application-connector)
 - [Create an Application in Azure portal that represents your application](#create-an-application-in-azure-portal-that-represents-your-application)
   - How to register your extension in the Azure portal so it can be used with Dragon Copilot.
 - [Installing your Extension](#installing-your-extension)
@@ -14,9 +16,20 @@
   - How to test your extension in Dragon Copilot.
 
 # Quick Start Guide for a Dragon Extension Developer
-This document is a quick‑start guide for building, testing, packaging, and deploying a custom Dragon Copilot extension. Its purpose is to walk an extension developer through the full development lifecycle—from setting up the environment to validating the extension inside the Dragon Copilot application. 
+This document is a quick‑start guide for building, testing, packaging, and deploying a custom Dragon Copilot integration. Its purpose is to walk a developer through the full development lifecycle—from setting up the environment to validating the integration inside the Dragon Copilot application. 
 
 Prior to running through this document, you may want to read through the Microsoft Learn [documentation](https://learn.microsoft.com/en-us/industry/healthcare/dragon-copilot/extensions/workflow-app-overview) outlining how your extension will interface with the overall Dragon Copilot solution.
+
+## Extensions vs. Clinical Application Connectors
+
+Dragon Copilot supports two types of integrations:
+
+| Type | Description | CLI Domain | When to Use |
+|------|-------------|------------|-------------|
+| **Workflow Extension** | Custom AI-powered extensions with automation scripts, event triggers, and dependencies | `dragon-copilot extension` | Extend Dragon Copilot with custom clinical data processing, note analysis, or AI workflows |
+| **Clinical Application Connector** | EHR integrations and API connectors that interface with clinical applications | `dragon-copilot connector` | Connect Dragon Copilot to external clinical systems, EHRs, or enterprise APIs |
+
+The sample project in this repository demonstrates a **Workflow Extension**. The CLI supports both types of integrations with similar commands but different manifest schemas.
 
 ## 🚀 Running Locally
 
@@ -80,18 +93,72 @@ DevTunnels provide a secure way to expose your local web service to the internet
 
     ![devtunnel-url.png](doc/devtunnel-url.png)
 
-##  Packaging your extension
-We are now going to package our extension using the dragon-copilot CLI tool.
+##  Packaging your Integration
+
+We are now going to package our integration using the dragon-copilot CLI tool. The CLI supports both **Workflow Extensions** and **Clinical Application Connectors** with separate command domains.
+
+### CLI Installation (One-time Setup)
 
 1. Open a new terminal window
-2. Traverse to tools/dragon-copilot-cli
-3. Issue a `npm run build` command
-4. Issue a `npm link` command
-5. Issue a `dragon-copilot connector init` command
-  You will be asked for information on your Clinical Application Connector.  
-    - Ensure the tenantId specified is for where you will upload your connector to.
-    - Ensure the api endpoint points to the process method using the devtunnel address you generated earlier.
-6. Issue a `dragon-copilot connector package` command
+2. Navigate to `tools/dragon-copilot-cli`
+3. Run the following commands:
+```bash
+npm install
+npm run build
+npm link
+```
+
+This exposes the `dragon-copilot` command globally. To refresh an existing install after changes:
+```bash
+npm unlink -g dragon-copilot
+npm link
+```
+
+---
+
+### Packaging a Workflow Extension
+
+Use the `extension` commands for Workflow Extensions with automation scripts, event triggers, and dependencies.
+
+1. Issue a `dragon-copilot extension init` command
+   
+   You will be asked for information on your Workflow Extension:
+   - Extension name (lowercase with hyphens)
+   - Description of your extension
+   - Version (defaults to 0.0.1)
+   - Ensure the API endpoint points to the process method using the devtunnel address you generated earlier
+   - Optionally configure automation scripts, event triggers, and dependencies
+
+2. (Optional) Validate your manifest:
+   ```bash
+   dragon-copilot extension validate ./extension.yaml
+   ```
+
+3. Issue a `dragon-copilot extension package --manifest ./extension.yaml` command
+
+You now have a valid zip file that represents your Workflow Extension!
+
+---
+
+### Packaging a Clinical Application Connector
+
+Use the `connector` commands for Clinical Application Connectors (EHR integrations, API connectors).
+
+1. Issue a `dragon-copilot connector init` command
+   
+   You will be asked for information on your Clinical Application Connector:
+   - Clinical application name—typically the embedded EHR or workflow integration that issues user identities to Dragon Copilot
+   - Ensure the tenantId specified is for where you will upload your connector to
+   - Ensure the API endpoint points to the process method using the devtunnel address you generated earlier
+   - Configure note sections, context retrieval, and authentication settings
+
+2. (Optional) Validate your manifest:
+   ```bash
+   dragon-copilot connector validate ./extension.yaml
+   ```
+
+3. Issue a `dragon-copilot connector package --manifest ./extension.yaml` command
+
 You now have a valid zip file that represents your Clinical Application Connector!
 
 ##  Add the Service Principal to your tenant
