@@ -16,7 +16,7 @@
   "author": "",
   "license": "ISC",
   "type": "module",
-  "description": "Unified Dragon Copilot Extension and Partner CLI",
+  "description": "Unified Dragon Copilot Extension and Clinical Application Connector CLI",
   "bin": {
     "dragon-copilot": "dist/cli.js"
   },

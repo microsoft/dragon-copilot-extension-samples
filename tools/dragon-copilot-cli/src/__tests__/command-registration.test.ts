@@ -10,7 +10,7 @@ describe('registerCommands', () => {
     registerCommands(program);
 
     const commandNames = program.commands.map(command => command.name());
-    expect(commandNames).toEqual(expect.arrayContaining(['extension', 'partner']));
+    expect(commandNames).toEqual(expect.arrayContaining(['extension', 'connector']));
   });
 
   test('registers expected extension subcommands', () => {
@@ -29,7 +29,7 @@ describe('registerCommands', () => {
     const program = new Command();
     registerCommands(program);
 
-    const partner = program.commands.find(command => command.name() === 'partner');
+    const partner = program.commands.find(command => command.name() === 'connector');
     expect(partner).toBeDefined();
     const subCommands = partner?.commands.map(command => command.name()) ?? [];
     expect(subCommands).toEqual(
@@ -39,15 +39,15 @@ describe('registerCommands', () => {
 });
 
 describe('schema field validation', () => {
-  test('validates partner tool name using definitions path', () => {
+  test('validates connector tool name using definitions path', () => {
     expect(
-      validateFieldValue('valid-tool', 'definitions.PartnerTool.properties.name', 'partner-manifest'),
+      validateFieldValue('valid-tool', 'definitions.ConnectorTool.properties.name', 'connector-manifest'),
     ).toBe(true);
 
     const result = validateFieldValue(
       'Invalid Tool',
-      'definitions.PartnerTool.properties.name',
-      'partner-manifest',
+      'definitions.ConnectorTool.properties.name',
+      'connector-manifest',
     );
 
     expect(typeof result).toBe('string');
@@ -56,3 +56,4 @@ describe('schema field validation', () => {
     }
   });
 });
+

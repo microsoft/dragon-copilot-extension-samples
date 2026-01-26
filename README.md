@@ -12,7 +12,7 @@ Welcome! This repository contains sample code illustrating the Dragon Copilot ex
     - [1. Clone \& Start (Windows)](#1-clone--start-windows)
   - [📦 Samples](#-samples)
   - [🛠️ Tools](#️-tools)
-    - [Dragon Extension CLI](#dragon-extension-cli)
+    - [Dragon Copilot CLI](#dragon-copilot-cli)
   - [🤝 Contributing](#-contributing)
   - [📄 License](#-license)
 
@@ -42,21 +42,21 @@ cd dragon-copilot-extension-samples
 
 ## 🛠️ Tools
 
-### Dragon Extension CLI
+### Dragon Copilot CLI
 
 CLI to easily generate manifest & package the extension, getting ready to publish or upload the extension.
 
 Quick usage:
 
 ```bash
-cd tools/dragon-extension-cli
+cd tools/dragon-copilot-cli
 npm run build
 npm link
-dragon-extension init
-dragon-extension package
+dragon-copilot connector init
+dragon-copilot connector package
 ```
 
-See [CLI README](tools/dragon-extension-cli/README.md) for details.
+See [CLI README](tools/dragon-copilot-cli/README.md) for details.
 
 ## 🤝 Contributing
 

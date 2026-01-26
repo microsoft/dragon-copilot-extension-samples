@@ -1,11 +1,11 @@
 import { describe, expect, it } from '@jest/globals';
 import {
   validateExtensionManifest,
-  validatePartnerManifest,
+  validateConnectorManifest,
   type SchemaError,
 } from '../shared/schema-validator.js';
 import type { DragonExtensionManifest } from '../domains/extension/types.js';
-import type { PartnerIntegrationManifest } from '../domains/partner/types.js';
+import type { ConnectorIntegrationManifest } from '../domains/connector/types.js';
 
 const TENANT_ID = '00000000-0000-0000-0000-000000000001';
 
@@ -66,10 +66,10 @@ function buildValidExtensionManifest(): DragonExtensionManifest {
   };
 }
 
-function buildValidPartnerManifest(): PartnerIntegrationManifest {
+function buildValidPartnerManifest(): ConnectorIntegrationManifest {
   return {
     name: 'sample-partner',
-    description: 'Partner manifest used for validation tests',
+    description: 'Connector Manifest used for validation tests',
     version: '0.9.9',
     auth: {
       tenantId: TENANT_ID,
@@ -95,7 +95,7 @@ function buildValidPartnerManifest(): PartnerIntegrationManifest {
         ],
       },
     ],
-  } as unknown as PartnerIntegrationManifest;
+  } as unknown as ConnectorIntegrationManifest;
 }
 
 describe('validateExtensionManifest', () => {
@@ -138,11 +138,11 @@ describe('validateExtensionManifest', () => {
   });
 });
 
-describe('validatePartnerManifest', () => {
+describe('validateConnectorManifest', () => {
   it('returns valid when manifest satisfies schema requirements', () => {
     const manifest = buildValidPartnerManifest();
 
-    const result = validatePartnerManifest(manifest);
+    const result = validateConnectorManifest(manifest);
 
     expect(result.isValid).toBe(true);
     expect(result.errors).toHaveLength(0);
@@ -152,10 +152,11 @@ describe('validatePartnerManifest', () => {
     const manifest = buildValidPartnerManifest();
     (manifest as any).tools[0].endpoint = 'not-a-url';
 
-    const result = validatePartnerManifest(manifest);
+    const result = validateConnectorManifest(manifest);
 
     expect(result.isValid).toBe(false);
     expect(result.errors).not.toHaveLength(0);
     expect(result.errors[0].message?.toLowerCase()).toContain('must match format "uri"');
   });
 });
+

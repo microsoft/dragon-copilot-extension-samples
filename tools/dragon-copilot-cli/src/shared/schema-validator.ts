@@ -7,9 +7,9 @@ import { readFileSync } from 'fs';
 import { join, resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import type { DragonExtensionManifest, PublisherConfig } from '../domains/extension/types.js';
-import type { PartnerIntegrationManifest } from '../domains/partner/types.js';
+import type { ConnectorIntegrationManifest } from '../domains/connector/types.js';
 
-type ManifestLike = DragonExtensionManifest | PartnerIntegrationManifest;
+type ManifestLike = DragonExtensionManifest | ConnectorIntegrationManifest;
 
 const ajv = new Ajv({ allErrors: true, strict: false });
 addFormats(ajv);
@@ -69,11 +69,11 @@ function getSchemaPath(): string {
 
 const schemaDir = getSchemaPath();
 const extensionManifestSchema = JSON.parse(readFileSync(join(schemaDir, 'extension-manifest.json'), 'utf8'));
-const partnerManifestSchema = JSON.parse(readFileSync(join(schemaDir, 'partner-manifest.json'), 'utf8'));
+const connectorManifestSchema = JSON.parse(readFileSync(join(schemaDir, 'connector-manifest.json'), 'utf8'));
 const publisherSchema = JSON.parse(readFileSync(join(schemaDir, 'publisher-config.json'), 'utf8'));
 
 const validateExtensionSchema = ajv.compile(extensionManifestSchema);
-const validatePartnerSchema = ajv.compile(partnerManifestSchema);
+const validateConnectorSchema = ajv.compile(connectorManifestSchema);
 const validatePublisherSchemaInternal = ajv.compile(publisherSchema);
 
 export interface SchemaError {
@@ -100,8 +100,8 @@ export function validateExtensionManifest(manifest: DragonExtensionManifest): Va
   };
 }
 
-export function validatePartnerManifest(manifest: PartnerIntegrationManifest): ValidationResult {
-  const schemaResult = validatePartnerManifestSchema(manifest);
+export function validateConnectorManifest(manifest: ConnectorIntegrationManifest): ValidationResult {
+  const schemaResult = validateConnectorManifestSchema(manifest);
   const businessRuleErrors = validateExtensionBusinessRules(manifest);
 
   return {
@@ -122,11 +122,11 @@ export function validateExtensionManifestSchema(manifest: DragonExtensionManifes
   };
 }
 
-export function validatePartnerManifestSchema(manifest: PartnerIntegrationManifest): ValidationResult {
-  const isValid = validatePartnerSchema(manifest);
+export function validateConnectorManifestSchema(manifest: ConnectorIntegrationManifest): ValidationResult {
+  const isValid = validateConnectorSchema(manifest);
   return {
     isValid,
-    errors: isValid ? [] : (validatePartnerSchema.errors || []).map(convertAjvError)
+    errors: isValid ? [] : (validateConnectorSchema.errors || []).map(convertAjvError)
   };
 }
 
@@ -238,13 +238,13 @@ function convertAjvError(ajvError: ErrorObject): SchemaError {
 export function validateFieldValue(
   value: unknown,
   fieldPath: string,
-  schemaType: 'extension-manifest' | 'partner-manifest' | 'publisher'
+  schemaType: 'extension-manifest' | 'connector-manifest' | 'publisher'
 ): string | true {
   const schema =
     schemaType === 'extension-manifest'
       ? extensionManifestSchema
-      : schemaType === 'partner-manifest'
-        ? partnerManifestSchema
+      : schemaType === 'connector-manifest'
+        ? connectorManifestSchema
         : publisherSchema;
   const fieldSchema = extractFieldSchema(fieldPath, schema);
 
@@ -314,4 +314,4 @@ export function getFieldDisplayName(path: string): string {
   return fieldNames[path] || path;
 }
 
-export { extensionManifestSchema, partnerManifestSchema, publisherSchema };
+export { extensionManifestSchema, connectorManifestSchema, publisherSchema };

@@ -43,9 +43,9 @@ const EXTENSION_MANIFEST = [
 
 const PARTNER_MANIFEST = [
   'name: integration-partner',
-  'description: Partner manifest used in integration tests',
+  'description: Connector Manifest used in integration tests',
   'version: 0.0.1',
-  'partner-id: contoso.integration.test',
+  'connector-id: contoso.integration.test',
   'server-authentication:',
   '  - issuer: https://login.contoso.com/oauth2/default',
   '    identity_claim: azp',
@@ -129,7 +129,7 @@ describe('CLI integration paths', () => {
     const program = new Command();
     registerCommands(program);
 
-    await program.parseAsync(['node', 'cli', 'partner', 'validate', manifestPath]);
+    await program.parseAsync(['node', 'cli', 'connector', 'validate', manifestPath]);
 
     const combinedLogs = logSpy.mock.calls.flat().join(' ');
     expect(combinedLogs.toLowerCase()).toContain('integration manifest is valid');
@@ -137,3 +137,4 @@ describe('CLI integration paths', () => {
     expect(process.exitCode).toBe(0);
   });
 });
+

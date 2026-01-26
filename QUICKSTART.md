@@ -81,18 +81,18 @@ DevTunnels provide a secure way to expose your local web service to the internet
     ![devtunnel-url.png](doc/devtunnel-url.png)
 
 ##  Packaging your extension
-We are now going to package our extension using the dragon-extension CLI tool.
+We are now going to package our extension using the dragon-copilot CLI tool.
 
 1. Open a new terminal window
-2. Traverse to tools/dragon-extension-cli
+2. Traverse to tools/dragon-copilot-cli
 3. Issue a `npm run build` command
 4. Issue a `npm link` command
-5. Issue a `dragon-extension init` command
-  You will be asked for information on your extension.  
-    - Ensure the tenantId specified is for where you will upload your extension to.
+5. Issue a `dragon-copilot connector init` command
+  You will be asked for information on your Clinical Application Connector.  
+    - Ensure the tenantId specified is for where you will upload your connector to.
     - Ensure the api endpoint points to the process method using the devtunnel address you generated earlier.
-6. Issue a `dragon-extension package` command
-You now have a valid zip file that represents your extension!
+6. Issue a `dragon-copilot connector package` command
+You now have a valid zip file that represents your Clinical Application Connector!
 
 ##  Add the Service Principal to your tenant
 > NOTE: We need to register the "Microsoft.HealthPlatform" resource provider in an Azure subscription that belongs to your tenant. This will inject a Service Principal (a.k.a. "Enterprise Application") for the Dragon Copilot Extension Runtime application registration into the Extension vendor's tenant. This step will only need to be done once for your tenant.

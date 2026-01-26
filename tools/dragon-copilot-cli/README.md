@@ -1,24 +1,13 @@
 # Dragon Copilot CLI
 
-The `dragon-copilot` CLI unifies the legacy extension and partner tooling into a single package. It now targets **manifest version 3** so you can author manifests that describe automation scripts, event triggers, and extension dependencies alongside the traditional tool definitions.
+The `dragon-copilot` CLI unifies the legacy extension and Clinical Application Connector tooling into a single package. It now targets **manifest version 3** so you can author manifests that describe automation scripts, event triggers, and extension dependencies alongside the traditional tool definitions.
 
 ## Installation
-
-### Windows quick start
-
-To automate installation, build, and launch of the partner wizard on Windows, run the helper from the repo root:
-
-```powershell
-pwsh ./tools/dragon-copilot-cli/scripts/setup-partner-cli.ps1
-```
-
-Use `-SkipNodeInstall` to keep your existing Node.js installation or `-SkipBuild` when dependencies are already installed.
-
-### Manual install
 
 From the CLI folder:
 
 ```powershell
+cd tools/dragon-copilot-cli
 npm install
 npm run build
 npm link
@@ -44,12 +33,12 @@ Run `npm unlink -g dragon-copilot` only once per workstation; subsequent rebuild
 | Extension  | `dragon-copilot extension init`                        | Interactive wizard that captures manifestVersion 3 data (automation scripts, event triggers, dependencies) and publisher configuration |
 | Extension  | `dragon-copilot extension validate ./extension.yaml`   | Validates the manifest and optional `publisher.json` against JSON schema + business rules |
 | Extension  | `dragon-copilot extension package --manifest ./extension.yaml` | Produces a zip payload ready for distribution |
-| Partner    | `dragon-copilot partner init`                          | Restores the partner manifest wizard (note sections, context retrieval, authentication) |
-| Partner    | `dragon-copilot partner validate ./extension.yaml`   | Validates partner manifests and publisher settings |
+| Connector  | `dragon-copilot connector init`                          | Clinical Application Connector manifest wizard (note sections, context retrieval, authentication) |
+| Connector  | `dragon-copilot connector validate ./extension.yaml`   | Validates Clinical Application Connector manifests and publisher settings |
 
 Use `dragon-copilot --help` or `dragon-copilot <domain> --help` for additional options.
 
-During the partner wizard you will now confirm a **clinical application name**—typically the embedded EHR or workflow integration that issues user identities to Dragon Copilot—so the manifest captures that metadata consistently.
+During the connector wizard you will now confirm a **clinical application name**—typically the embedded EHR or workflow integration that issues user identities to Dragon Copilot—so the manifest captures that metadata consistently.
 
 ## HOWTO: Automation Script Scaffolding
 
@@ -95,7 +84,7 @@ You can update scripts later via `dragon-copilot extension generate --interactiv
 
 - Shared helpers now live under `src/common`, keeping the CLI self-contained without external workspaces.
 - `npm run build` emits compiled JS plus copies schemas/resources into `dist/`.
-- `npm test` covers extension + partner flows (command registration, schema validation, CLI integration).
+- `npm test` covers extension + connector flows (command registration, schema validation, CLI integration).
 
 ## Troubleshooting
 

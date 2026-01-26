@@ -55,10 +55,10 @@ function getSchemaPath() {
 }
 const schemaDir = getSchemaPath();
 const extensionManifestSchema = JSON.parse(readFileSync(join(schemaDir, 'extension-manifest.json'), 'utf8'));
-const partnerManifestSchema = JSON.parse(readFileSync(join(schemaDir, 'partner-manifest.json'), 'utf8'));
+const connectorManifestSchema = JSON.parse(readFileSync(join(schemaDir, 'connector-manifest.json'), 'utf8'));
 const publisherSchema = JSON.parse(readFileSync(join(schemaDir, 'publisher-config.json'), 'utf8'));
 const validateExtensionSchema = ajv.compile(extensionManifestSchema);
-const validatePartnerSchema = ajv.compile(partnerManifestSchema);
+const validateConnectorSchema = ajv.compile(connectorManifestSchema);
 const validatePublisherSchemaInternal = ajv.compile(publisherSchema);
 export function validateExtensionManifest(manifest) {
     const schemaResult = validateExtensionManifestSchema(manifest);
@@ -68,8 +68,8 @@ export function validateExtensionManifest(manifest) {
         errors: [...schemaResult.errors, ...businessRuleErrors]
     };
 }
-export function validatePartnerManifest(manifest) {
-    const schemaResult = validatePartnerManifestSchema(manifest);
+export function validateConnectorManifest(manifest) {
+    const schemaResult = validateConnectorManifestSchema(manifest);
     const businessRuleErrors = validateExtensionBusinessRules(manifest);
     return {
         isValid: schemaResult.isValid && businessRuleErrors.length === 0,
@@ -86,11 +86,11 @@ export function validateExtensionManifestSchema(manifest) {
         errors: isValid ? [] : (validateExtensionSchema.errors || []).map(convertAjvError)
     };
 }
-export function validatePartnerManifestSchema(manifest) {
-    const isValid = validatePartnerSchema(manifest);
+export function validateConnectorManifestSchema(manifest) {
+    const isValid = validateConnectorSchema(manifest);
     return {
         isValid,
-        errors: isValid ? [] : (validatePartnerSchema.errors || []).map(convertAjvError)
+        errors: isValid ? [] : (validateConnectorSchema.errors || []).map(convertAjvError)
     };
 }
 export function validatePublisherSchema(config) {
@@ -187,8 +187,8 @@ function convertAjvError(ajvError) {
 export function validateFieldValue(value, fieldPath, schemaType) {
     const schema = schemaType === 'extension-manifest'
         ? extensionManifestSchema
-        : schemaType === 'partner-manifest'
-            ? partnerManifestSchema
+        : schemaType === 'connector-manifest'
+            ? connectorManifestSchema
             : publisherSchema;
     const fieldSchema = extractFieldSchema(fieldPath, schema);
     if (!fieldSchema) {
@@ -248,5 +248,5 @@ export function getFieldDisplayName(path) {
     };
     return fieldNames[path] || path;
 }
-export { extensionManifestSchema, partnerManifestSchema, publisherSchema };
+export { extensionManifestSchema, connectorManifestSchema, publisherSchema };
 //# sourceMappingURL=schema-validator.js.map
