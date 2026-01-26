@@ -1,0 +1,127 @@
+name: Release CLI Executables
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'  # Triggers on version tags like v1.0.0, v2.1.3, etc.
+  workflow_dispatch:  # Allows manual triggering for testing
+
+permissions:
+  contents: write  # Required to create releases and upload assets
+
+jobs:
+  build:
+    name: Build ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: windows-latest
+            artifact_name: dragon-copilot.exe
+            asset_name: dragon-copilot-windows-x64.exe
+          - os: ubuntu-latest
+            artifact_name: dragon-copilot
+            asset_name: dragon-copilot-linux-x64
+          - os: macos-latest
+            artifact_name: dragon-copilot
+            asset_name: dragon-copilot-macos-arm64
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: tools/dragon-copilot-cli/package-lock.json
+
+      - name: Install dependencies
+        working-directory: tools/dragon-copilot-cli
+        run: npm ci
+
+      - name: Build SEA executable
+        working-directory: tools/dragon-copilot-cli
+        run: npm run build:sea
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.asset_name }}
+          path: tools/dragon-copilot-cli/dist/bin/${{ matrix.artifact_name }}
+          retention-days: 7
+
+  release:
+    name: Create Release
+    needs: build
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download Windows artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: dragon-copilot-windows-x64.exe
+          path: ./release-assets/
+
+      - name: Download Linux artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: dragon-copilot-linux-x64
+          path: ./release-assets/
+
+      - name: Download macOS artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: dragon-copilot-macos-arm64
+          path: ./release-assets/
+
+      - name: Rename artifacts for release
+        run: |
+          mv ./release-assets/dragon-copilot.exe ./release-assets/dragon-copilot-windows-x64.exe 2>/dev/null || true
+          mv ./release-assets/dragon-copilot ./release-assets/dragon-copilot-linux-x64 2>/dev/null || true
+          # Handle macOS - there might be two 'dragon-copilot' files, need to differentiate
+          ls -la ./release-assets/
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: Dragon Copilot CLI ${{ github.ref_name }}
+          body: |
+            ## Dragon Copilot CLI ${{ github.ref_name }}
+            
+            ### Downloads
+            
+            | Platform | Architecture | Download |
+            |----------|--------------|----------|
+            | Windows | x64 | `dragon-copilot-windows-x64.exe` |
+            | Linux | x64 | `dragon-copilot-linux-x64` |
+            | macOS | ARM64 (Apple Silicon) | `dragon-copilot-macos-arm64` |
+            
+            ### Installation
+            
+            1. Download the executable for your platform
+            2. **Windows**: Run `dragon-copilot-windows-x64.exe` directly
+            3. **Linux/macOS**: Make executable with `chmod +x dragon-copilot-*` then run
+            
+            ### Usage
+            
+            ```bash
+            # Interactive mode (double-click or run without arguments)
+            ./dragon-copilot
+            
+            # Command line mode
+            ./dragon-copilot extension init
+            ./dragon-copilot connector init
+            ./dragon-copilot --help
+            ```
+          files: |
+            ./release-assets/*
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
