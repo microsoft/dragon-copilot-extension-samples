@@ -30,6 +30,7 @@ async function showInteractiveMenu(): Promise<string[]> {
 			{ name: 'Show help', value: 'help' },
 			{ name: 'Exit', value: 'exit' },
 		],
+		loop: false, // Don't wrap around when reaching the end of the list
 	});
 
 	// Map choices to command arguments
