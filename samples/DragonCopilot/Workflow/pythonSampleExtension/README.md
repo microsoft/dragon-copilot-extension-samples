@@ -44,7 +44,7 @@ We recommend Python 3.12 over 3.14 in this python sample extension, as a number 
 From `pythonSampleExtension` dir:
 
 ### 2.1 Quick Start for Linux and Mac
-Ensure python3.12 is installed and can be executed from your cmd shell as `python3.12`.
+Ensure `python3.12` is installed and can be executed from your cmd shell as `python3.12`.
 
 Run the following cmds in bash/zsh to start server.
 ```shell
