@@ -10,6 +10,21 @@ A Python FastAPI implementation that mirrors the C# `SampleExtension.Web` for Dr
 
 > Disclaimer: This is a learning/sample artifact – not production hardened. Do **not** use with real PHI. Authentication is intentionally disabled for development.
 
+--- 
+## 📚 Contents
+
+- [Dragon Copilot Python Sample Extension](#dragon-copilot-python-sample-extension)
+  - [1. Features](#1-features)
+  - [2. Quick Start](#2-quick-start)
+  	- [2.1 Quick Start for Linux and Mac](#21-quick-start-for-linux-and-mac)
+    - [2.2 Quick Start for Windows](#22-quick-start-for-windows)
+  - [3. Access the Swagger / OpenAPI](#3-access-the-swagger--openapi)
+  - [4. Testing APIs with Sample Requests](#4-testing-apis-with-sample-requests)
+	- [4.1 Testing APIs for Linux / Mac](#41-testing-apis-for-linux--mac)
+	- [4.2 Testing APIs for Windows](#42-testing-apis-for-windows)
+  - [5. Response Structure Example](#5-response-structure-example)
+  - [6. License](#6-license)
+
 ---
 ## 1. Features
 **Implemented**
@@ -18,80 +33,100 @@ A Python FastAPI implementation that mirrors the C# `SampleExtension.Web` for Dr
 	- `sample-entities`
 	- `sample-entities-adaptive-card`
 	- `samplePluginResult` (Medication Summary + Timeline cards)
-- Visualization actions (Accept / Copy / Reject variants)
-- Interpreter auto-detection (`scripts/start-python-dev.sh`)
-- Test suite (entity extraction + composite plugin result)
-- Cross-language comparison script (`scripts/compare_extensions.py`)
-
-**Planned**
-- Auth stubs (JWT + license key)
-- Structured JSON logging
-- Transcript & streaming payload support
-- Lint/format script flags (ruff / black)
-- CI workflow (GitHub Actions .NET + Python)
-- Additional provenance & reference metadata
 
 ---
 ## 2. Quick Start
-From repository root:
-```bash
-./scripts/start-python-dev.sh --install   # one-time dependency install
-./scripts/start-python-dev.sh             # start on port 5181
-PORT=5182 ./scripts/start-python-dev.sh   # alternate port
-```
-Swagger / OpenAPI: http://localhost:5181/docs
 
-Run tests only:
-```bash
-./scripts/start-python-dev.sh --tests
+**Choosing Python 3.12**\
+We recommend Python 3.12 over 3.14 in this python sample extension, as a number of ML/AI (especially OSS) Python SDKs do not yet fully support 3.14, which may lead to avoidable integration issues.
+
+**Starting Directory**\
+From `pythonSampleExtension` dir:
+
+### 2.1 Quick Start for Linux and Mac
+Ensure `python3.12` is installed and can be executed from your cmd shell as `python3.12`.
+
+Run the following cmds in bash/zsh to start server.
+```shell
+# 1. change to the pythonSampleExtension directory
+cd ./samples/DragonCopilot/Workflow/pythonSampleExtension;
+
+# 2. create venv, activate venv and install packages
+python3.12 -m venv .venv && source .venv/bin/activate && python3.12 -m pip install --upgrade pip && python3.12 -m pip install -r requirements.txt;
+
+# 3. start server with uvicorn invocation
+python3.12 -m uvicorn app.main:app --host 0.0.0.0 --port 5181 --reload
 ```
 
-Direct (advanced) uvicorn invocation:
-```bash
-python -m uvicorn app.main:app --host 0.0.0.0 --port 5181 --reload
+### 2.2 Quick Start for Windows
+Ensure `python3.12` is installed over Microsoft Store and can be executed from your powershell as `python3.12`.
+
+Run the following cmds in the Powershell to start server.
+```powershell
+# 1. change to the pythonSampleExtension directory
+cd .\samples\DragonCopilot\Workflow\pythonSampleExtension;
+
+# 2. create venv, activate venv and install packages
+python3.12 -m venv .venv && .\.venv\Scripts\activate && python3.12 -m pip install --upgrade pip && python3.12 -m pip install -r requirements.txt;
+
+# 3. start server with uvicorn invocation
+python3.12 -m uvicorn app.main:app --host 0.0.0.0 --port 5181 --reload
 ```
+
+## 3 Access the Swagger / OpenAPI 
+After server start, you shall be able to access the python workflow sample server via Swagger / OpenAPI from your browser with the: `http://localhost:5181/docs`
 
 ---
-## 3. Scripts Overview
-| Script | Purpose |
-|--------|---------|
-| `scripts/start-python-dev.sh` | Interpreter discovery, optional install, test or run server. |
-| `scripts/start-csharp-dev.sh` | Launch C# sample extension (adds dotnet path if needed). |
-| `scripts/compare_extensions.py` | Posts a shared payload to both services and summarizes differences. |
+## 4. Testing APIs with Sample Requests
+After server started successfully, you can test the python workflow samples from commandline.
 
-Interpreter selection order:
-1. Active virtual environment (`$VIRTUAL_ENV`)
-2. VS Code `python.defaultInterpreterPath`
-3. `python3` or `python` in PATH
-4. Fallback: run `uvicorn` directly
-
-Flags (Python script):
-```
---install   install dependencies
---tests     run pytest instead of serving
-PORT=XXXX   override port
+### 4.1 Testing APIs for Linux / Mac
+**Health API**:
+```shell
+curl -s http://localhost:5181/health | jq
+curl -s http://localhost:5181/v1/health | jq
 ```
 
----
-## 4. Comparison With C# Service
-Start both (example: Python on 5182, C# on 5181):
-```bash
-(PORT=5182 ./scripts/start-python-dev.sh &) && ./scripts/start-csharp-dev.sh
+**Process API**:
+Minimal process payload:
+```shell
+curl -s -X POST http://localhost:5181/v1/process \
+	-H 'Content-Type: application/json' \
+	-d '{"note":{"resources":[{"content":"Patient has history of diabetes and currently taking metformin. BP recorded."}]}}' | jq
 ```
-Run comparison:
-```bash
-python3 scripts/compare_extensions.py --payload samples/requests/note-payload.json
-```
-Output shows:
-- top key diff
-- payload key diff
-- resource counts & type sets
 
-When parity is complete, `notes` array is empty.
+Include IDs:
+```shell
+curl -s -X POST http://localhost:5181/v1/process \
+	-H 'Content-Type: application/json' \
+	-H 'x-ms-request-id: demo-req-1' \
+	-H 'x-ms-correlation-id: demo-corr-1' \
+	-d '{"note":{"resources":[{"content":"BP 145/98 mmHg; Diabetes risk; taking metformin"}]}}' | jq
+```
+
+### 4.2 Testing APIs for Windows
+**Health API**:
+```powershell
+Invoke-RestMethod -Uri "http://localhost:5181/health" | ConvertTo-Json -Depth 5
+Invoke-RestMethod -Uri "http://localhost:5181/v1/health" | ConvertTo-Json -Depth 5
+```
+
+**Process API**:
+Minimal process payload:
+```powershell
+Invoke-RestMethod -Uri "http://localhost:5181/v1/process" -Method Post -ContentType "application/json" -Body '{"note":{"resources":[{"content":"Patient has history of diabetes and currently taking metformin. BP recorded."}]}}' | ConvertTo-Json -Depth 10
+```
+
+Include IDs:
+```powershell
+Invoke-RestMethod -Uri "http://localhost:5181/v1/process" -Method Post -ContentType "application/json" -Headers @{"x-ms-request-id"="demo-req-1"; "x-ms-correlation-id"="demo-corr-1"} -Body '{"note":{"resources":[{"content":"BP 145/98 mmHg; Diabetes risk; taking metformin"}]}}' | ConvertTo-Json -Depth 10
+```
 
 ---
 ## 5. Response Structure Example
-```jsonc
+You shall see the workflow sample server returns response similar to the following response structure.
+
+```json
 {
 	"success": true,
 	"message": "Payload processed successfully",
@@ -102,115 +137,59 @@ When parity is complete, `notes` array is empty.
 		},
 		"sample-entities-adaptive-card": {
 			"schema_version": "0.1",
-			"resources": [ { "type": "AdaptiveCard", "adaptiveCardPayload": { "type": "AdaptiveCard", "version": "1.3" } } ]
+			"resources": [ 
+				{ 
+					"id": "card1",
+					"type": "AdaptiveCard",
+					"subtype": "note",
+					"adaptive_card_payload": { 
+						"type": "AdaptiveCard",
+                		"$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+                		"version": "1.6",
+						"body": []
+					},
+					"payloadSources": [],
+					"dragonCopilotCopyData": "metadata_for_platform"
+				}
+			]
 		},
 		"samplePluginResult": {
 			"schema_version": "0.1",
 			"resources": [
-				{ "type": "AdaptiveCard", "cardTitle": "Medication Summary & Recommendations (Demo)" },
-				{ "type": "AdaptiveCard", "cardTitle": "Recent Clinical Entities Timeline (Demo)" }
+				{ 
+					"id": "top1",
+					"type": "AdaptiveCard",
+					"subtype": "note", 
+					"cardTitle": "Medication Summary & Recommendations (Demo)",
+					"adaptive_card_payload": { 
+						"type": "AdaptiveCard",
+                		"$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+                		"version": "1.6",
+						"body": []
+					},
+					"payloadSources": [],
+					"dragonCopilotCopyData": "metadata_for_platform"
+
+				},
+				{ 
+					"id": "bottom1",
+					"type": "AdaptiveCard",
+					"subtype": "timeline",
+					"cardTitle": "Recent Clinical Entities Timeline (Demo)",
+					"adaptive_card_payload": { 
+						"type": "AdaptiveCard",
+                		"$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+                		"version": "1.6",
+						"body": []
+					},
+					"payloadSources": [],
+					"dragonCopilotCopyData": "metadata_for_platform"
+				}
 			]
 		}
 	}
 }
 ```
-
-Key differences vs C# naming:
-- Python uses `adaptiveCardPayload` (camelCase) internally; C# serialized uses snake_case due to serializer configuration.
-
 ---
-## 6. Sectioned Clinical Note Testing
-`test_clinic_note.py` programmatically splits a realistic clinic note into sections (HPI, Vitals, Labs, Exam, Impression, Plan, Follow‑up) assigning representative LOINC codes. This mirrors the shape of `samples/requests/note-payload.json` while keeping deterministic entity extraction (blood pressure, diabetes, medication keywords).
-
-`test_sample_plugin_result.py` validates:
-- Presence of `samplePluginResult`
-- Two AdaptiveCard resources (summary + timeline)
-- Each card has actions & adaptive card payload
-- Copy data markers (demo metadata)
-
-Run all tests:
-```bash
-pytest -q app/tests
-```
-
-Run single test:
-```bash
-pytest -q app/tests/test_sample_plugin_result.py::test_sample_plugin_result_structure
-```
-
----
-## 7. Sample Requests
-Health:
-```bash
-curl -s http://localhost:5181/health | jq
-curl -s http://localhost:5181/v1/health | jq
-```
-
-Minimal process payload:
-```bash
-curl -s -X POST http://localhost:5181/v1/process \
-	-H 'Content-Type: application/json' \
-	-d '{"note":{"resources":[{"content":"Patient has history of diabetes and currently taking metformin. BP recorded."}]}}' | jq
-```
-
-Include IDs:
-```bash
-curl -s -X POST http://localhost:5181/v1/process \
-	-H 'Content-Type: application/json' \
-	-H 'x-ms-request-id: demo-req-1' \
-	-H 'x-ms-correlation-id: demo-corr-1' \
-	-d '{"note":{"resources":[{"content":"BP 145/98 mmHg; Diabetes risk; taking metformin"}]}}' | jq
-```
-
----
-## 8. Roadmap
-| Area | Next Step |
-|------|-----------|
-| Auth | Add JWT & license-key middleware toggled by env config |
-| Logging | Structured JSON (requestId, correlationId, latency) |
-| Data Types | Transcript + iterative transcript stubs |
-| Quality | Lint/format (`--lint`, `--format` flags) |
-| CI | GitHub Actions build + test matrix (.NET / Python) |
-| Testing | Additional card action + provenance tests |
-| Tooling | Dependency hash cache in start script |
-
----
-## 9. Troubleshooting
-| Issue | Resolution |
-|-------|------------|
-| `ModuleNotFoundError: app` | Run from project root or add pyextension path to `PYTHONPATH`. |
-| Port already in use | Stop prior server or run `PORT=5182 ./scripts/start-python-dev.sh`. |
-| Missing entities | Ensure note text includes keywords (BP, diabetes, medication). |
-| Pydantic deprecation warning | Plan migration to `ConfigDict` (safe short-term). |
-| C# service not starting | Install .NET 9+ or ensure PATH; use `scripts/start-csharp-dev.sh`. |
-
----
-## 10. Security & Compliance (Sample Caveats)
-- No PHI in test inputs.
-- Auth intentionally disabled – add before any real deployment.
-- Logging currently minimal; not production ready.
-
----
-## 11. Appendix: Manual Environment Setup
-Create & activate a virtual environment manually (alternative to scripts):
-```bash
-python3.12 -m venv .venv
-source .venv/bin/activate
-pip install --upgrade pip
-pip install -r requirements.txt
-```
-
-Then run:
-```bash
-./scripts/start-python-dev.sh
-```
-
-Coverage (optional):
-```bash
-pip install pytest-cov
-pytest --cov=app --cov-report=term-missing app/tests
-```
-
----
-## 12. License
+## 6. License
 See root `LICENSE`.
