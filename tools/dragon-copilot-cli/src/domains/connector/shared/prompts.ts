@@ -41,7 +41,11 @@ const normalizeIntegrationName = (value: string): string => {
 
   const normalized = value
     .trim()
-    .replace(/\s+/g, ' ');
+    .toLowerCase()
+    .replace(/[\s_]+/g, '-')
+    .replace(/[^a-z0-9-]/g, '')
+    .replace(/-{2,}/g, '-')
+    .replace(/^-+|-+$/g, '');
 
   return normalized;
 };
@@ -106,8 +110,8 @@ export function validateIntegrationName(input: string): string | boolean {
   if (!trimmed) return 'Integration name is required';
   if (trimmed.length < 3) return 'Integration name must be at least 3 characters long';
   if (trimmed.length > 50) return 'Integration name must be less than 50 characters';
-  if (!/^[a-zA-Z0-9][a-zA-Z0-9\s\-_.]*[a-zA-Z0-9]$/.test(trimmed)) {
-    return 'Integration name must start and end with alphanumeric characters and can contain spaces, hyphens, underscores, and periods';
+  if (!/^[a-zA-Z0-9][a-zA-Z0-9\s\-_]*[a-zA-Z0-9]$/.test(trimmed)) {
+    return 'Integration name must start and end with alphanumeric characters and can only contain letters, numbers, spaces, hyphens, and underscores';
   }
 
   if (!normalizeIntegrationName(trimmed)) {
@@ -347,8 +351,8 @@ logInfo(
 
   return {
     issuer,
-    identity_claim,
-    identity_value: sanitizeListInput(identityValueRaw)
+    'identity-claim': identity_claim,
+    'identity-value': sanitizeListInput(identityValueRaw)
   };
 };
 
@@ -370,8 +374,8 @@ const summarizeServerAuthentication = (entries: ServerAuthenticationEntry[]): st
   }
 
   return entries.map((entry, index) => {
-    const identities = entry.identity_value.join(', ');
-    return `Issuer ${index + 1}: ${entry.issuer} (${entry.identity_claim} → ${identities})`;
+    const identities = entry['identity-value'].join(', ');
+    return `Issuer ${index + 1}: ${entry.issuer} (${entry['identity-claim']} → ${identities})`;
   });
 };
 

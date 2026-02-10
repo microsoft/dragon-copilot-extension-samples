@@ -5,13 +5,13 @@ partner-id: 5d0d3b72-2d47-4bf7-9091-8c7c3b03af84
 clinical-application-name: Sample Partner Clinical Application
 server-authentication:
   - issuer: https://auth.sample-partner.com/v2.0
-    identity_claim: azp
-    identity_value:
+    identity-claim: azp
+    identity-value:
       - 8c2c91b9-1e4f-4b9d-9c27-a24f35e3f4dc
       - 6aefb6a8-0f1a-45bd-bcf5-0cb1dd0cf9a4
   - issuer: https://auth-backup.sample-partner.com/v2.0
-    identity_claim: azp
-    identity_value:
+    identity-claim: azp
+    identity-value:
       - 3c4fa8f2-6ca7-45c7-bd62-913df97ec9cd
       - 7732f3dc-f7f4-4b04-8e5d-3b5639a34c84
 note-sections:
