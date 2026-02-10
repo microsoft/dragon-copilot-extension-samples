@@ -20,8 +20,8 @@ export interface ConnectorIntegrationManifest {
 
 export interface ServerAuthenticationEntry {
   issuer: string;
-  identity_claim: string;
-  identity_value: string[];
+  ['identity-claim']: string;
+  ['identity-value']: string[];
 }
 
 export interface InstanceConfig {

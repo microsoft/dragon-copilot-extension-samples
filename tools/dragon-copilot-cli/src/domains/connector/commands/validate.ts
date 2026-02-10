@@ -259,6 +259,10 @@ export async function validateManifest(filePath: string): Promise<void> {
     requireString(manifest.name, 'name');
     requireString(manifest.description, 'description');
 
+    if (manifest.name && !/^[a-z0-9][a-z0-9-]*[a-z0-9]$/.test(manifest.name)) {
+      errors.push('name: Must be lowercase with hyphens only (e.g., my-integration), starting and ending with a letter or number');
+    }
+
     if (version && !/^\d+\.\d+\.\d+$/.test(version)) {
       errors.push('version: Must be in format x.y.z (e.g., 1.0.0)');
     }
@@ -278,19 +282,19 @@ export async function validateManifest(filePath: string): Promise<void> {
           validateUrl(issuer, `${prefix}.issuer`);
         }
 
-        const identityClaim = requireString(entry?.identity_claim, `${prefix}.identity_claim`);
+        const identityClaim = requireString(entry?.['identity-claim'], `${prefix}.identity-claim`);
         if (identityClaim && !/^[A-Za-z]{3}$/.test(identityClaim)) {
-          errors.push(`${prefix}.identity_claim: Must be exactly 3 letters`);
+          errors.push(`${prefix}.identity-claim: Must be exactly 3 letters`);
         }
 
-        if (!Array.isArray(entry?.identity_value) || entry.identity_value.length === 0) {
-          errors.push(`${prefix}.identity_value: Provide at least one subject identifier`);
+        if (!Array.isArray(entry?.['identity-value']) || entry['identity-value'].length === 0) {
+          errors.push(`${prefix}.identity-value: Provide at least one subject identifier`);
         } else {
-          entry.identity_value.forEach((value: unknown, valueIndex: number) => {
+          entry['identity-value'].forEach((value: unknown, valueIndex: number) => {
             if (typeof value !== 'string' || !value.trim()) {
-              errors.push(`${prefix}.identity_value[${valueIndex}]: Value is required`);
+              errors.push(`${prefix}.identity-value[${valueIndex}]: Value is required`);
             } else {
-              validateGuid(value, `${prefix}.identity_value[${valueIndex}]`);
+              validateGuid(value, `${prefix}.identity-value[${valueIndex}]`);
             }
           });
         }

@@ -86,8 +86,8 @@ const createBaseManifest = (overrides: Partial<ConnectorIntegrationManifest> = {
     'server-authentication': overrides['server-authentication'] ?? [
       {
         issuer: 'https://login.partnerhealthworks.com/oauth2/default',
-        identity_claim: 'azp',
-        identity_value: ['a0bb517c-d6de-449f-bfe4-f0bc3f912c66']
+        'identity-claim': 'azp',
+        'identity-value': ['a0bb517c-d6de-449f-bfe4-f0bc3f912c66']
       }
     ],
   'note-sections': JSON.parse(JSON.stringify(noteSections)) as NoteSections,
@@ -261,16 +261,16 @@ const templates: Record<string, TemplateConfig> = {
       ['server-authentication']: [
         {
           issuer: 'https://login.contoso-ehr.com/oauth2/default',
-          identity_claim: 'azp',
-          identity_value: [
+          'identity-claim': 'azp',
+          'identity-value': [
             'a0bb517c-d6de-449f-bfe4-f0bc3f912c66',
             '2f03b7e0-7569-4c5d-9278-70590a10ce34'
           ]
         },
         {
           issuer: 'https://sts.contoso-ehr.com/oauth2/default',
-          identity_claim: 'azp',
-          identity_value: ['f9853c9a-25de-4564-a2fa-1a601c913a45']
+          'identity-claim': 'azp',
+          'identity-value': ['f9853c9a-25de-4564-a2fa-1a601c913a45']
         }
       ],
       ['note-sections']: normalizeNoteSections({
@@ -291,8 +291,8 @@ const templates: Record<string, TemplateConfig> = {
       ['server-authentication']: [
         {
           issuer: 'https://identity.api-hub.contoso.com/oauth2/default',
-          identity_claim: 'azp',
-          identity_value: ['ebe62346-179a-44b0-8cf2-880b4b2871cc']
+          'identity-claim': 'azp',
+          'identity-value': ['ebe62346-179a-44b0-8cf2-880b4b2871cc']
         }
       ],
       ['note-sections']: normalizeNoteSections({
@@ -311,13 +311,13 @@ const templates: Record<string, TemplateConfig> = {
       ['server-authentication']: [
         {
           issuer: 'https://login.sync.contoso.com/oauth2/default',
-          identity_claim: 'azp',
-          identity_value: ['71d46c61-715b-4e69-b1f7-76d3b4ab97d8']
+          'identity-claim': 'azp',
+          'identity-value': ['71d46c61-715b-4e69-b1f7-76d3b4ab97d8']
         },
         {
           issuer: 'https://customer.sync.contoso.com/oauth2/default',
-          identity_claim: 'sub',
-          identity_value: ['bd864f73-1130-452f-98c8-4d63d1c6a001']
+          'identity-claim': 'sub',
+          'identity-value': ['bd864f73-1130-452f-98c8-4d63d1c6a001']
         }
       ],
       ['note-sections']: normalizeNoteSections({
@@ -338,8 +338,8 @@ const templates: Record<string, TemplateConfig> = {
       ['server-authentication']: [
         {
           issuer: 'https://login.custom-partner.com/oauth2/default',
-          identity_claim: 'azp',
-          identity_value: ['9c4ebfd9-0407-47a2-902f-3e0f2a5a9620']
+          'identity-claim': 'azp',
+          'identity-value': ['9c4ebfd9-0407-47a2-902f-3e0f2a5a9620']
         }
       ],
       ['note-sections']: normalizeNoteSections({
