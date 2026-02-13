@@ -28,7 +28,6 @@ A sample C# Web API project that demonstrates how to create an extension that ca
 - **Structured Logging**: Comprehensive logging for debugging and monitoring
 - **Error Handling**: Robust error handling with appropriate HTTP status codes
 - **Dockerfile**: Build your application as a container.
-- **Manifest v3 Example**: The accompanying `extension.yaml` demonstrates automation scripts, event triggers, and dependency declarations required by the latest schema.
 
 ## API Endpoints
 
@@ -40,7 +39,7 @@ A sample C# Web API project that demonstrates how to create an extension that ca
 
 ## Request/Response Examples
 
-Example request and response models are available in the [requests](../../../requests) directory. Those samples align with the manifest v3 automation script and trigger metadata shipped with this project.
+Example request and response models are available in the [requests](../../../requests) directory.
 
 ## Getting Started
 

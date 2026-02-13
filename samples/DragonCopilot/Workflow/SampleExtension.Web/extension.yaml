@@ -1,9 +1,6 @@
-manifestVersion: 3
 name: sample-clinical-extraction
 description: Extracts certain clinical entities
 version: 0.0.1
-auth:
-  tenantId: 00000000-0000-0000-0000-000000000000
 tools:
   - name: clinical-entity-extractor
     description: Extracts certain clinical entities
@@ -19,18 +16,3 @@ tools:
       - name: adaptive-card
         description: Coded clinical entities in Adaptive Card format
         data: DSP
-automationScripts:
-  - name: note-automation
-    description: Generates insights whenever a note is processed
-    entryPoint: scripts/analyze-note/index.js
-    runtime: nodejs18
-    timeoutSeconds: 120
-eventTriggers:
-  - name: note-created
-    description: Runs the automation script when a new note arrives
-    eventType: note.created
-    scriptName: note-automation
-dependencies:
-  - name: terminology-service
-    version: 1.0.0
-    type: service
