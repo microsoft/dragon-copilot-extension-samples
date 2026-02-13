@@ -45,7 +45,7 @@ const PARTNER_MANIFEST = [
   'name: integration-partner',
   'description: Connector Manifest used in integration tests',
   'version: 0.0.1',
-  'connector-id: contoso.integration.test',
+  'partner-id: 11111111-2222-3333-4444-555555555555',
   'server-authentication:',
   '  - issuer: https://login.contoso.com/oauth2/default',
   '    identity-claim: azp',

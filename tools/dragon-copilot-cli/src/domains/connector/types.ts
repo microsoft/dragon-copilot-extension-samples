@@ -11,7 +11,7 @@ export interface ConnectorIntegrationManifest {
   name: string;
   description: string;
   version: string;
-  ['connector-id']: string;
+  ['partner-id']: string;
   ['clinical-application-name']: string;
   ['server-authentication']: ServerAuthenticationEntry[];
   ['note-sections']?: Record<string, NoteSectionValue>;
@@ -102,7 +102,7 @@ export interface IntegrationDetails {
   name: string;
   description: string;
   version: string;
-  connectorId: string;
+  partnerId: string;
   clinicalApplicationName: string;
   rawName?: string;
 }

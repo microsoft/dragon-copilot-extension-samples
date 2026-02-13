@@ -255,7 +255,7 @@ export async function validateManifest(filePath: string): Promise<void> {
     };
 
   const version = requireString(manifest.version, 'version');
-  const connectorId = requireString(manifest['connector-id'], 'connector-id');
+  const partnerId = requireString(manifest['partner-id'], 'partner-id');
     requireString(manifest.name, 'name');
     requireString(manifest.description, 'description');
 
@@ -267,8 +267,8 @@ export async function validateManifest(filePath: string): Promise<void> {
       errors.push('version: Must be in format x.y.z (e.g., 1.0.0)');
     }
 
-    if (connectorId && !/^[a-z0-9][a-z0-9\-_.]*[a-z0-9]$/.test(connectorId)) {
-      errors.push('connector-id: Must start and end with alphanumeric characters and can include lowercase letters, numbers, hyphens, underscores, or periods');
+    if (partnerId) {
+      validateGuid(partnerId, 'partner-id');
     }
 
     const serverAuthentication = manifest['server-authentication'];
@@ -407,7 +407,7 @@ export async function validateManifest(filePath: string): Promise<void> {
       console.log(chalk.gray(`  Name: ${manifest.name}`));
       console.log(chalk.gray(`  Description: ${manifest.description}`));
       console.log(chalk.gray(`  Version: ${manifest.version}`));
-  console.log(chalk.gray(`  Connector ID: ${manifest['connector-id']}`));
+  console.log(chalk.gray(`  Partner ID: ${manifest['partner-id']}`));
   console.log(chalk.gray(`  Server authentication issuers: ${manifest['server-authentication']?.length || 0}`));
   console.log(chalk.gray(`  Note sections configured: ${Object.keys(manifest['note-sections'] ?? {}).length}`));
   console.log(chalk.gray(`  Context retrieval items: ${manifest.instance?.['context-retrieval']?.instance?.length || 0}`));
