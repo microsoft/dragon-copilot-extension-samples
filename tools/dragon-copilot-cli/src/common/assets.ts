@@ -1,18 +1,14 @@
 import fs from 'fs-extra';
 import path from 'path';
+import { fileURLToPath } from 'url';
 import { logMessage } from './logging.js';
 
-const SAMPLE_LOGO_BYTES = [
-  0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a,
-  0x00, 0x00, 0x00, 0x0d, 0x49, 0x48, 0x44, 0x52,
-  0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01,
-  0x08, 0x06, 0x00, 0x00, 0x00, 0x1f, 0x15, 0xc4,
-  0x89, 0x00, 0x00, 0x00, 0x0a, 0x49, 0x44, 0x41,
-  0x54, 0x78, 0x9c, 0x63, 0x00, 0x01, 0x00, 0x00,
-  0x05, 0x00, 0x01, 0x0d, 0x0a, 0x2d, 0xb4, 0x00,
-  0x00, 0x00, 0x00, 0x49, 0x45, 0x4e, 0x44, 0xae,
-  0x42, 0x60, 0x82
-];
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+function getResourceLogoPath(): string {
+  return path.resolve(__dirname, '..', 'resources', 'assets', 'logo_large.png');
+}
 
 export interface AssetBootstrapOptions {
   assetsDirName?: string;
@@ -41,7 +37,8 @@ export async function bootstrapAssetsDirectory(
   const shouldWrite = overwrite || !(await fs.pathExists(targetLogoPath));
 
   if (shouldWrite) {
-    await fs.writeFile(targetLogoPath, Buffer.from(SAMPLE_LOGO_BYTES));
+    const sourceLogoPath = getResourceLogoPath();
+    await fs.copy(sourceLogoPath, targetLogoPath);
     logMessage(`✅ Sample logo copied to ${assetsDirName}/logo_large.png`, silent);
     logMessage('⚠️  Remember to replace this with your own logo before packaging!', silent);
     return { assetsDir, logoPath: targetLogoPath, copied: true };

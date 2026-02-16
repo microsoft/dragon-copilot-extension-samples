@@ -1,6 +1,6 @@
 # Dragon Copilot CLI
 
-The `dragon-copilot` CLI unifies the legacy extension and Clinical Application Connector tooling into a single package. It now targets **manifest version 3** so you can author manifests that describe automation scripts, event triggers, and extension dependencies alongside the traditional tool definitions.
+The `dragon-copilot` CLI allows you to generate, validate, and package manifests for Dragon Copilot Workflow Extensions and Clinical Application Connectors.
 
 ## Installation
 
@@ -30,55 +30,16 @@ Run `npm unlink -g dragon-copilot` only once per workstation; subsequent rebuild
 
 | Domain     | Command Example                                       | Description |
 |------------|--------------------------------------------------------|-------------|
-| Extension  | `dragon-copilot extension init`                        | Interactive wizard that captures manifestVersion 3 data (automation scripts, event triggers, dependencies) and publisher configuration |
+| Extension  | `dragon-copilot extension init`                        | Interactive wizard that generates an extension manifest and publisher configuration |
 | Extension  | `dragon-copilot extension validate ./extension.yaml`   | Validates the manifest and optional `publisher.json` against JSON schema + business rules |
-| Extension  | `dragon-copilot extension package --manifest ./extension.yaml` | Produces a zip payload ready for distribution |
+| Extension  | `dragon-copilot extension package`                     | Produces a zip payload ready for distribution |
 | Connector  | `dragon-copilot connector init`                          | Clinical Application Connector manifest wizard (note sections, context retrieval, authentication) |
 | Connector  | `dragon-copilot connector validate ./extension.yaml`   | Validates Clinical Application Connector manifests and publisher settings |
+| Connector  | `dragon-copilot connector package`                     | Produces a zip payload ready for distribution |
 
 Use `dragon-copilot --help` or `dragon-copilot <domain> --help` for additional options.
 
-During the connector wizard you will now confirm a **clinical application name**—typically the embedded EHR or workflow integration that issues user identities to Dragon Copilot—so the manifest captures that metadata consistently.
-
-## HOWTO: Automation Script Scaffolding
-
-When you run `dragon-copilot extension init`, the wizard now includes an **automation script** section.
-
-1. **Enable Scripts** – choose "yes" when prompted to add automation scripts. The CLI will keep asking until you decline.
-2. **Script Details** – provide:
-   - Script name (lowercase with hyphens)
-   - Optional description
-   - Entry point (relative path, e.g. `scripts/note/index.js`)
-   - Runtime (Node.js 18, Python 3.11, .NET 8)
-   - Optional timeout in seconds
-3. **Event Triggers** – if scripts exist, the wizard asks whether to wire triggers:
-   - Trigger name, description, event type (e.g. `note.created`)
-   - Optional conditions (string expressions)
-   - Script selection (from scripts defined in step 2)
-4. **Dependencies** – declare external services, extensions, or packages:
-   - Name and semantic version (minimum compatible version)
-   - Optional type (`service`, `extension`, `package`)
-
-The generated `extension.yaml` will include:
-
-```yaml
-manifestVersion: 3
-automationScripts:
-  - name: example-script
-    entryPoint: scripts/example/index.js
-    runtime: nodejs18
-    timeoutSeconds: 120
-eventTriggers:
-  - name: note-created
-    eventType: note.created
-    scriptName: example-script
-dependencies:
-  - name: terminology-service
-    version: 1.0.0
-    type: service
-```
-
-You can update scripts later via `dragon-copilot extension generate --interactive`, which reuses the same prompts while preserving existing values.
+During the connector wizard you will be asked to confirm a **clinical application name**—typically the embedded EHR or workflow integration that issues user identities to Dragon Copilot—so the manifest captures that metadata consistently.
 
 ## Development Notes
 
