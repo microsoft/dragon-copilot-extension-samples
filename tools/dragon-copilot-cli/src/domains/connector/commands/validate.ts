@@ -7,6 +7,12 @@ import chalk from 'chalk';
 import { input, select } from '@inquirer/prompts';
 import type { ContextRetrievalItem, ConnectorIntegrationManifest, PublisherConfig, YesNo } from '../types.js';
 import { getContextItemDefinition } from '../shared/context-items.js';
+import {
+  validateConnectorManifest as validateConnectorManifestSchema,
+  validatePublisherConfig as validatePublisherConfigSchema,
+  getFieldDisplayName
+} from '../shared/schema-validator.js';
+import type { SchemaError } from '../shared/schema-validator.js';
 
 const DEFAULT_MANIFEST_PATH = 'extension.yaml';
 
@@ -102,6 +108,19 @@ export async function validateManifest(filePath: string): Promise<void> {
     
     const errors: string[] = [];
     const warnings: string[] = [];
+
+    // Step 1: JSON Schema validation (matches Dragon Admin Center schema check)
+    console.log(chalk.blue('🔍 Running schema validation...'));
+    const schemaResult = validateConnectorManifestSchema(manifest);
+    if (schemaResult.errors.length > 0) {
+      schemaResult.errors.forEach((error: SchemaError) => {
+        const fieldPath = error.instancePath.replace(/^\//, '').replace(/\//g, '.');
+        const fieldName = fieldPath || 'manifest';
+        errors.push(`${fieldName}: ${error.message}`);
+      });
+    }
+
+    // Step 2: Additional business rule validation
 
     const validateUrl = (url: string, field: string): void => {
       try {
@@ -424,6 +443,16 @@ export async function validateManifest(filePath: string): Promise<void> {
         const publisherConfig = JSON.parse(publisherContent) as PublisherConfig;
 
         const publisherErrors: string[] = [];
+
+        // Schema validation for publisher config
+        const publisherSchemaResult = validatePublisherConfigSchema(publisherConfig);
+        if (publisherSchemaResult.errors.length > 0) {
+          publisherSchemaResult.errors.forEach((error: SchemaError) => {
+            const fieldPath = error.instancePath.replace(/^\//, '').replace(/\//g, '.');
+            const fieldName = getFieldDisplayName(fieldPath) || fieldPath || 'config';
+            publisherErrors.push(`${fieldName}: ${error.message}`);
+          });
+        }
         
         // Basic publisher validation
         if (!publisherConfig.publisherId) publisherErrors.push('publisherId: Field is required');

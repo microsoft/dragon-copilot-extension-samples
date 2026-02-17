@@ -107,6 +107,29 @@ export function validatePublisherSchema(config: PublisherConfig): ValidationResu
 
 function validateManifestBusinessRules(manifest: ConnectorIntegrationManifest): SchemaError[] {
   const errors: SchemaError[] = [];
+
+  // Check for duplicate server-authentication issuers
+  const serverAuth = Array.isArray(manifest['server-authentication'])
+    ? manifest['server-authentication']
+    : [];
+
+  if (serverAuth.length > 1) {
+    const issuers = serverAuth.map((entry: any) => entry?.issuer).filter(Boolean);
+    const duplicateIssuers = issuers.filter((issuer: string, index: number) => issuers.indexOf(issuer) !== index);
+
+    if (duplicateIssuers.length > 0) {
+      const uniqueDuplicates = [...new Set(duplicateIssuers)];
+      errors.push({
+        instancePath: '/server-authentication',
+        keyword: 'uniqueIssuers',
+        message: `Duplicate server-authentication issuers found: ${uniqueDuplicates.join(', ')}`,
+        data: serverAuth,
+        schemaPath: '#/server-authentication',
+        params: { duplicates: uniqueDuplicates }
+      });
+    }
+  }
+
   return errors;
 }
 

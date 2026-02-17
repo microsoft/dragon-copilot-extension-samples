@@ -4,11 +4,6 @@
   "type": "object",
   "required": ["name", "description", "version", "auth", "tools"],
   "properties": {
-    "manifestVersion": {
-      "type": "integer",
-      "enum": [3],
-      "description": "Manifest schema version"
-    },
     "name": {
       "type": "string",
       "pattern": "^[a-z0-9-]+$",
@@ -36,27 +31,6 @@
         "$ref": "#/definitions/DragonTool"
       },
       "description": "Array of tools provided by this extension"
-    },
-    "automationScripts": {
-      "type": "array",
-      "items": {
-        "$ref": "#/definitions/AutomationScript"
-      },
-      "description": "Automation scripts available to the extension"
-    },
-    "eventTriggers": {
-      "type": "array",
-      "items": {
-        "$ref": "#/definitions/EventTrigger"
-      },
-      "description": "Event triggers that invoke automation scripts"
-    },
-    "dependencies": {
-      "type": "array",
-      "items": {
-        "$ref": "#/definitions/Dependency"
-      },
-      "description": "External dependencies required by the extension"
     }
   },
   "additionalProperties": false,
@@ -93,6 +67,15 @@
           "format": "uri",
           "description": "API endpoint URL"
         },
+        "trigger": {
+          "type": "string",
+          "enum": [
+            "AutoRun",
+            "AdaptiveCardAction"
+          ],
+          "default": "AutoRun",
+          "description": "How this tool is triggered (default: AutoRun)"
+        },
         "inputs": {
           "type": "array",
           "minItems": 1,
@@ -114,7 +97,11 @@
     },
     "DragonInput": {
       "type": "object",
-      "required": ["name", "description", "data"],
+      "required": ["name", "description"],
+      "oneOf": [
+        { "required": ["data"] },
+        { "required": ["content-type"] }
+      ],
       "properties": {
         "name": {
           "type": "string",
@@ -134,14 +121,31 @@
             "DSP/Note",
             "DSP/Transcript"
           ],
-          "description": "Data type identifier"
+          "description": "Deprecated: use content-type. EOL: 2026-03-30",
+          "deprecated": true
+        },
+        "content-type": {
+          "type": "string",
+          "enum": [
+            "application/vnd.ms-dragon.dsp+json",
+            "application/vnd.ms-dragon.dsp.transcript+json",
+            "application/vnd.ms-dragon.dsp.note+json",
+            "application/vnd.ms-dragon.dsp.iterative-audio+json",
+            "application/vnd.ms-dragon.dsp.iterative-transcript+json",
+            "application/vnd.ms-dragon.adaptivecard-content+json"
+          ],
+          "description": "Content type identifier (IANA MIME type)"
         }
       },
       "additionalProperties": false
     },
     "DragonOutput": {
       "type": "object",
-      "required": ["name", "description", "data"],
+      "required": ["name", "description"],
+      "oneOf": [
+        { "required": ["data"] },
+        { "required": ["content-type"] }
+      ],
       "properties": {
         "name": {
           "type": "string",
@@ -156,102 +160,15 @@
         "data": {
           "type": "string",
           "minLength": 1,
-          "description": "Output data type"
-        }
-      },
-      "additionalProperties": false
-    },
-    "AutomationScript": {
-      "type": "object",
-      "required": ["name", "entryPoint", "runtime"],
-      "properties": {
-        "name": {
-          "type": "string",
-          "pattern": "^[a-z0-9-]+$",
-          "minLength": 1,
-          "description": "Script identifier"
+          "description": "Deprecated: use content-type. EOL: 2026-03-30",
+          "deprecated": true
         },
-        "description": {
+        "content-type": {
           "type": "string",
-          "description": "Script description"
-        },
-        "entryPoint": {
-          "type": "string",
-          "minLength": 1,
-          "description": "Relative path to the script entry point"
-        },
-        "runtime": {
-          "type": "string",
-          "minLength": 1,
-          "description": "Runtime identifier (e.g. nodejs18)"
-        },
-        "timeoutSeconds": {
-          "type": "integer",
-          "minimum": 1,
-          "description": "Maximum execution time for the script"
-        },
-        "environment": {
-          "type": "object",
-          "additionalProperties": {
-            "type": "string"
-          },
-          "description": "Environment variables the script depends on"
-        }
-      },
-      "additionalProperties": false
-    },
-    "EventTrigger": {
-      "type": "object",
-      "required": ["name", "eventType", "scriptName"],
-      "properties": {
-        "name": {
-          "type": "string",
-          "pattern": "^[a-z0-9-]+$",
-          "minLength": 1,
-          "description": "Unique event trigger name"
-        },
-        "description": {
-          "type": "string",
-          "description": "Description of when this trigger fires"
-        },
-        "eventType": {
-          "type": "string",
-          "minLength": 1,
-          "description": "Event identifier that activates the trigger"
-        },
-        "conditions": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          },
-          "description": "Optional conditions that further filter the trigger"
-        },
-        "scriptName": {
-          "type": "string",
-          "minLength": 1,
-          "description": "Automation script invoked by this trigger"
-        }
-      },
-      "additionalProperties": false
-    },
-    "Dependency": {
-      "type": "object",
-      "required": ["name", "version"],
-      "properties": {
-        "name": {
-          "type": "string",
-          "minLength": 1,
-          "description": "Dependency identifier"
-        },
-        "version": {
-          "type": "string",
-          "pattern": "^\\d+\\.\\d+\\.\\d+(?:-[0-9A-Za-z-.]+)?$",
-          "description": "Minimum compatible version"
-        },
-        "type": {
-          "type": "string",
-          "enum": ["extension", "service", "package"],
-          "description": "Dependency classification"
+          "enum": [
+            "application/vnd.ms-dragon.dsp+json"
+          ],
+          "description": "Content type identifier (IANA MIME type)"
         }
       },
       "additionalProperties": false
