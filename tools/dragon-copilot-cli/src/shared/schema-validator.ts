@@ -159,68 +159,6 @@ function validateExtensionBusinessRules(manifest: ManifestLike): SchemaError[] {
     }
   }
 
-  const automationScripts = Array.isArray((manifest as any).automationScripts)
-    ? (manifest as any).automationScripts
-    : [];
-
-  if (automationScripts.length > 1) {
-    const scriptNames = automationScripts.map((script: any) => script?.name).filter(Boolean);
-    const duplicateScripts = scriptNames.filter((name: string, index: number) => scriptNames.indexOf(name) !== index);
-
-    if (duplicateScripts.length > 0) {
-      const uniqueDuplicates = [...new Set(duplicateScripts)];
-      errors.push({
-        instancePath: '/automationScripts',
-        keyword: 'uniqueAutomationScriptNames',
-        message: `Duplicate automation script names found: ${uniqueDuplicates.join(', ')}`,
-        data: automationScripts,
-        schemaPath: '#/automationScripts',
-        params: { duplicates: uniqueDuplicates }
-      });
-    }
-  }
-
-  const eventTriggers = Array.isArray((manifest as any).eventTriggers)
-    ? (manifest as any).eventTriggers
-    : [];
-
-  if (eventTriggers.length > 1) {
-    const triggerNames = eventTriggers.map((trigger: any) => trigger?.name).filter(Boolean);
-    const duplicateTriggers = triggerNames.filter((name: string, index: number) => triggerNames.indexOf(name) !== index);
-
-    if (duplicateTriggers.length > 0) {
-      const uniqueDuplicates = [...new Set(duplicateTriggers)];
-      errors.push({
-        instancePath: '/eventTriggers',
-        keyword: 'uniqueEventTriggerNames',
-        message: `Duplicate event trigger names found: ${uniqueDuplicates.join(', ')}`,
-        data: eventTriggers,
-        schemaPath: '#/eventTriggers',
-        params: { duplicates: uniqueDuplicates }
-      });
-    }
-  }
-
-  if (eventTriggers.length > 0) {
-    const scriptNames = new Set(automationScripts.map((script: any) => script?.name).filter(Boolean));
-
-    eventTriggers.forEach((trigger: any) => {
-      if (trigger?.scriptName && !scriptNames.has(trigger.scriptName)) {
-        errors.push({
-          instancePath: '/eventTriggers',
-          keyword: 'missingAutomationScript',
-          message: `Event trigger '${trigger?.name ?? 'unknown'}' references unknown script '${trigger?.scriptName}'`,
-          data: trigger,
-          schemaPath: '#/eventTriggers/items',
-          params: {
-            trigger: trigger?.name,
-            script: trigger?.scriptName
-          }
-        });
-      }
-    });
-  }
-
   return errors;
 }
 

@@ -1,15 +1,11 @@
 import type { PublisherConfig as CommonPublisherConfig } from '../../common/index.js';
 
 export interface DragonExtensionManifest {
-  manifestVersion?: number;
   name: string;
   description: string;
   version: string;
   auth: AuthConfig;
   tools: DragonTool[];
-  automationScripts?: AutomationScript[];
-  eventTriggers?: EventTrigger[];
-  dependencies?: Dependency[];
 }
 
 export interface AuthConfig {
@@ -27,36 +23,13 @@ export interface DragonTool {
 export interface DragonInput {
   name: string;
   description: string;
-  data: string;
+  'content-type': string;
 }
 
 export interface DragonOutput {
   name: string;
   description: string;
-  data: string;
-}
-
-export interface AutomationScript {
-  name: string;
-  description?: string;
-  entryPoint: string;
-  runtime: string;
-  timeoutSeconds?: number;
-  environment?: Record<string, string>;
-}
-
-export interface EventTrigger {
-  name: string;
-  description?: string;
-  eventType: string;
-  conditions?: string[];
-  scriptName: string;
-}
-
-export interface Dependency {
-  name: string;
-  version: string;
-  type?: 'extension' | 'service' | 'package';
+  'content-type': string;
 }
 
 export type PublisherConfig = CommonPublisherConfig;
@@ -82,14 +55,10 @@ export interface PackageOptions {
 }
 
 export interface TemplateConfig {
-  manifestVersion?: number;
   name: string;
   description: string;
   version: string;
   tools: ToolTemplate[];
-  automationScripts?: AutomationScriptTemplate[];
-  eventTriggers?: EventTriggerTemplate[];
-  dependencies?: Dependency[];
 }
 
 export interface ToolTemplate {
@@ -99,26 +68,11 @@ export interface ToolTemplate {
   inputs: Array<{
     name: string;
     description: string;
-    data: string;
+    'content-type': string;
   }>;
   outputs: Array<{
     name: string;
     description: string;
-    data: string;
+    'content-type': string;
   }>;
-}
-
-export interface AutomationScriptTemplate {
-  name: string;
-  description: string;
-  entryPoint: string;
-  runtime: string;
-  timeoutSeconds?: number;
-}
-
-export interface EventTriggerTemplate {
-  name: string;
-  description: string;
-  eventType: string;
-  scriptName: string;
 }

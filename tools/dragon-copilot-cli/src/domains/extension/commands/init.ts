@@ -8,20 +8,15 @@ import chalk from 'chalk';
 import { bootstrapAssetsDirectory } from '../../../common/index.js';
 import type {
   InitOptions,
-  DragonExtensionManifest,
-  AutomationScript,
-  EventTrigger,
-  Dependency
+  DragonExtensionManifest
 } from '../types.js';
 import {
   promptExtensionDetails,
   promptToolDetails,
   promptPublisherDetails,
   promptAuthDetails,
-  promptAutomationScriptDetails,
-  promptEventTriggerDetails,
-  promptDependencyDetails,
-  getInputDescription
+  getInputDescription,
+  getInputName
 } from '../shared/prompts.js';
 
 export async function initProject(options: InitOptions): Promise<void> {
@@ -86,7 +81,6 @@ export async function initProject(options: InitOptions): Promise<void> {
   });
 
   const manifest: DragonExtensionManifest = {
-    manifestVersion: 3,
     name: extensionDetails.name,
     description: extensionDetails.description,
     version: extensionDetails.version,
@@ -111,129 +105,14 @@ export async function initProject(options: InitOptions): Promise<void> {
       name: toolDetails.toolName,
       description: toolDetails.toolDescription,
       endpoint: toolDetails.endpoint,
-      inputs: toolDetails.inputTypes.map((dataType, index) => ({
-        name: dataType === 'DSP/Note' ? 'note' :
-              dataType === 'DSP/IterativeTranscript' ? 'iterative-transcript' :
-              dataType === 'DSP/IterativeAudio' ? 'iterative-audio' :
-              dataType === 'DSP/Transcript' ? 'transcript' :
-              `input-${index + 1}`,
-        description: getInputDescription(dataType),
-        data: dataType
+      inputs: toolDetails.inputTypes.map((contentType, index) => ({
+        name: getInputName(contentType, index),
+        description: getInputDescription(contentType),
+        'content-type': contentType
       })),
       outputs: toolDetails.outputs
     });
   }
-
-    const automationScripts: AutomationScript[] = [];
-    const configureAutomationScripts = await confirm({
-      message: 'Add automation scripts for your extension?',
-      default: false
-    });
-
-    if (configureAutomationScripts) {
-      let addAnotherScript = true;
-
-      while (addAnotherScript) {
-        const scriptDetails = await promptAutomationScriptDetails(automationScripts);
-        const script: AutomationScript = {
-          name: scriptDetails.name,
-          entryPoint: scriptDetails.entryPoint,
-          runtime: scriptDetails.runtime
-        };
-
-        if (scriptDetails.description) {
-          script.description = scriptDetails.description;
-        }
-
-        if (typeof scriptDetails.timeoutSeconds === 'number') {
-          script.timeoutSeconds = scriptDetails.timeoutSeconds;
-        }
-
-        automationScripts.push(script);
-
-        addAnotherScript = await confirm({
-          message: 'Add another automation script?',
-          default: false
-        });
-      }
-    }
-
-    if (automationScripts.length > 0) {
-      manifest.automationScripts = automationScripts;
-    }
-
-    const eventTriggers: EventTrigger[] = [];
-    if (automationScripts.length > 0) {
-      const configureEventTriggers = await confirm({
-        message: 'Configure event triggers that call automation scripts?',
-        default: true
-      });
-
-      if (configureEventTriggers) {
-        let addAnotherTrigger = true;
-
-        while (addAnotherTrigger) {
-          const triggerDetails = await promptEventTriggerDetails(eventTriggers, automationScripts);
-          const trigger: EventTrigger = {
-            name: triggerDetails.name,
-            eventType: triggerDetails.eventType,
-            scriptName: triggerDetails.scriptName
-          };
-
-          if (triggerDetails.description) {
-            trigger.description = triggerDetails.description;
-          }
-
-          if (triggerDetails.conditions) {
-            trigger.conditions = triggerDetails.conditions;
-          }
-
-          eventTriggers.push(trigger);
-
-          addAnotherTrigger = await confirm({
-            message: 'Add another event trigger?',
-            default: false
-          });
-        }
-      }
-    }
-
-    if (eventTriggers.length > 0) {
-      manifest.eventTriggers = eventTriggers;
-    }
-
-    const dependencies: Dependency[] = [];
-    const addDependencies = await confirm({
-      message: 'Declare external dependencies?',
-      default: false
-    });
-
-    if (addDependencies) {
-      let addAnotherDependency = true;
-
-      while (addAnotherDependency) {
-        const dependencyDetails = await promptDependencyDetails(dependencies);
-        const dependency: Dependency = {
-          name: dependencyDetails.name,
-          version: dependencyDetails.version
-        };
-
-        if (dependencyDetails.type) {
-          dependency.type = dependencyDetails.type;
-        }
-
-        dependencies.push(dependency);
-
-        addAnotherDependency = await confirm({
-          message: 'Add another dependency?',
-          default: false
-        });
-      }
-    }
-
-    if (dependencies.length > 0) {
-      manifest.dependencies = dependencies;
-    }
 
   const outputPath = path.join(options.output || '.', 'extension.yaml');
   const yamlContent = dump(manifest, { lineWidth: -1 });

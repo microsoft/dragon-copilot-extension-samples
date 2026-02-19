@@ -27,14 +27,14 @@ function buildValidExtensionManifest(): DragonExtensionManifest {
           {
             name: 'note',
             description: 'Clinical note payload',
-            data: 'DSP/Note',
+            'content-type': 'application/vnd.ms-dragon.dsp.note+json',
           },
         ],
         outputs: [
           {
             name: 'result-card',
             description: 'Adaptive Card output',
-            data: 'DSP',
+            'content-type': 'application/vnd.ms-dragon.dsp+json',
           },
         ],
       },
@@ -202,13 +202,13 @@ describe('validateExtensionManifest', () => {
       {
         name: 'note',
         description: 'Clinical note',
-        data: 'DSP/Note', // Old format
+        'content-type': 'application/vnd.ms-dragon.dsp.note+json',
       },
       {
         name: 'transcript',
         description: 'Transcript',
-        'content-type': 'application/vnd.ms-dragon.dsp.transcript+json', // New format
-      } as any,
+        'content-type': 'application/vnd.ms-dragon.dsp.transcript+json',
+      },
     ];
 
     const result = validateExtensionManifest(manifest);
