@@ -41,6 +41,7 @@ function getSchemaPath(): string {
   const candidates = [
     resolve(currentDir, '..', 'schemas'),
     resolve(currentDir, '..', '..', 'schemas'),
+    resolve(currentDir, '..', '..', '..', 'schemas'),
     resolve(process.cwd(), 'src', 'schemas'),
     resolve(process.cwd(), 'dist', 'schemas'),
   ];
