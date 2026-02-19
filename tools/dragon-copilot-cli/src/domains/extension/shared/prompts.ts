@@ -20,6 +20,7 @@ export interface ToolDetails {
   toolName: string;
   toolDescription: string;
   endpoint: string;
+  trigger?: 'AutoRun' | 'AdaptiveCardAction';
   inputTypes: string[];
   outputs: OutputDetails[];
 }

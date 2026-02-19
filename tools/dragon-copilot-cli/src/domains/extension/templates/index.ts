@@ -10,6 +10,7 @@ const templates: Record<string, TemplateConfig> = {
         name: 'note-analyzer',
         description: 'Provides analysis of a note',
         endpoint: 'https://publisher.example.com/note-analysis',
+        trigger: 'AutoRun',
         inputs: [
           {
             name: 'note',
@@ -42,6 +43,7 @@ const templates: Record<string, TemplateConfig> = {
         name: 'speech-analysis',
         description: 'Provides analysis of iterative speech',
         endpoint: 'https://publisher.example.com/speech-analysis',
+        trigger: 'AutoRun',
         inputs: [
           {
             name: 'iterative-transcript',

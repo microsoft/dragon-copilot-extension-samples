@@ -16,6 +16,7 @@ export interface DragonTool {
   name: string;
   description: string;
   endpoint: string;
+  trigger?: 'AutoRun' | 'AdaptiveCardAction';
   inputs: DragonInput[];
   outputs: DragonOutput[];
 }
@@ -65,6 +66,7 @@ export interface ToolTemplate {
   name: string;
   description: string;
   endpoint: string;
+  trigger?: 'AutoRun' | 'AdaptiveCardAction';
   inputs: Array<{
     name: string;
     description: string;
