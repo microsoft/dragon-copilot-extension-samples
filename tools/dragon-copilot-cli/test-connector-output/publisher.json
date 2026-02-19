@@ -1,0 +1,18 @@
+{
+  "publisherId": "lamna.healthcare",
+  "publisherName": "Lamna Healthcare",
+  "websiteUrl": "http://lamnahc.com",
+  "privacyPolicyUrl": "http://lamnahc.com",
+  "supportUrl": "http://lamnahc.com",
+  "version": "0.0.1",
+  "contactEmail": "lamnahc@lamnahealthcare.com",
+  "offerId": "lamna-integration-suite",
+  "defaultLocale": "en-US",
+  "supportedLocales": [
+    "en-US"
+  ],
+  "scope": "EHR Connector",
+  "regions": [
+    "US"
+  ]
+}

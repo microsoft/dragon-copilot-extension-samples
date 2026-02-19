@@ -520,7 +520,7 @@ export async function validateManifest(filePath: string): Promise<void> {
   if (hasErrors) {
     console.log(chalk.red('❌ Validation failed with errors'));
     console.log(chalk.gray('Fix the errors above before packaging your integration'));
-    process.exit(1);
+    process.exitCode = 1;
   } else if (hasWarnings) {
     console.log(chalk.yellow('⚠️  Validation passed with warnings'));
     console.log(chalk.gray('Consider addressing the warnings above'));

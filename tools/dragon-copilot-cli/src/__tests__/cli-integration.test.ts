@@ -30,6 +30,7 @@ const PARTNER_MANIFEST = [
   'description: Connector Manifest used in integration tests',
   'version: 0.0.1',
   'partner-id: 11111111-2222-3333-4444-555555555555',
+  'clinical-application-name: Integration Test EHR',
   'server-authentication:',
   '  - issuer: https://login.contoso.com/oauth2/default',
   '    identity-claim: azp',

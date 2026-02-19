@@ -39,14 +39,14 @@ describe('registerCommands', () => {
 });
 
 describe('schema field validation', () => {
-  test('validates connector tool name using definitions path', () => {
+  test('validates connector name using properties path', () => {
     expect(
-      validateFieldValue('valid-tool', 'definitions.ConnectorTool.properties.name', 'connector-manifest'),
+      validateFieldValue('valid-connector', 'properties.name', 'connector-manifest'),
     ).toBe(true);
 
     const result = validateFieldValue(
-      'Invalid Tool',
-      'definitions.ConnectorTool.properties.name',
+      'Invalid Connector',
+      'properties.name',
       'connector-manifest',
     );
 

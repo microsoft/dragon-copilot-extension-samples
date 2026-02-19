@@ -7,9 +7,9 @@
     "copy-resources": "node ./scripts/copy-resources.cjs",
     "dev": "ts-node src/cli.ts",
     "start": "node dist/cli.js",
-    "test": "jest",
-    "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage",
+    "test": "node --experimental-vm-modules ./node_modules/jest/bin/jest.js",
+    "test:watch": "node --experimental-vm-modules ./node_modules/jest/bin/jest.js --watch",
+    "test:coverage": "node --experimental-vm-modules ./node_modules/jest/bin/jest.js --coverage",
     "clean": "rimraf dist"
   },
   "keywords": [],
