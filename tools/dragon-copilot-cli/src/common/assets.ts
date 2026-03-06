@@ -3,11 +3,26 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { logMessage } from './logging.js';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+function getCurrentDir(): string {
+  if (typeof __dirname === 'string' && __dirname.length > 0) {
+    return __dirname;
+  }
+
+  try {
+    if (typeof import.meta !== 'undefined' && typeof import.meta.url === 'string' && import.meta.url.length > 0) {
+      return path.dirname(fileURLToPath(import.meta.url));
+    }
+  } catch {
+    // Ignore and fall back below
+  }
+
+  return process.cwd();
+}
+
+const currentDir = getCurrentDir();
 
 function getResourceLogoPath(): string {
-  return path.resolve(__dirname, '..', 'resources', 'assets', 'logo_large.png');
+  return path.resolve(currentDir, '..', 'resources', 'assets', 'logo_large.png');
 }
 
 export interface AssetBootstrapOptions {
