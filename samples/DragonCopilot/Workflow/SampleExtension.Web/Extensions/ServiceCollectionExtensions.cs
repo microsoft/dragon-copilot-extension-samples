@@ -112,7 +112,8 @@ public static class ServiceCollectionExtensions
 
                         // Log audience claims
                         var audClaims = principal.Claims?.Where(c => c.Type == "aud")?.Select(c => c.Value) ?? Enumerable.Empty<string>();
-                        logger.LogTokenAudiences(string.Join(", ", audClaims));
+                        var audClaimsStr = string.Join(", ", audClaims);
+                        logger.LogTokenAudiences(audClaimsStr);
 
                         // Log required claims for authorization debugging
                         if (authOptions?.RequiredClaims.Any() == true)

@@ -6,7 +6,7 @@ import chalk from 'chalk';
 import { confirm } from '@inquirer/prompts';
 import type { GenerateOptions, DragonExtensionManifest, DragonTool } from '../types.js';
 import { getTemplate } from '../templates/index.js';
-import { promptToolDetails, promptPublisherDetails, promptAuthDetails, getInputDescription } from '../shared/prompts.js';
+import { promptToolDetails, promptPublisherDetails, promptAuthDetails, getInputDescription, getInputName } from '../shared/prompts.js';
 
 export async function generateManifest(options: GenerateOptions): Promise<void> {
   console.log(chalk.blue('🐉 Generating Dragon Copilot Manifest'));
@@ -78,14 +78,10 @@ async function generateInteractive(options: GenerateOptions): Promise<void> {
     name: answers.toolName,
     description: answers.toolDescription,
     endpoint: answers.endpoint,
-    inputs: answers.inputTypes.map((dataType: string, index: number) => ({
-      name: dataType === 'DSP/Note' ? 'note' :
-            dataType === 'DSP/IterativeTranscript' ? 'iterative-transcript' :
-            dataType === 'DSP/IterativeAudio' ? 'iterative-audio' :
-            dataType === 'DSP/Transcript' ? 'transcript' :
-            `input-${index + 1}`,
-      description: getInputDescription(dataType),
-      data: dataType
+    inputs: answers.inputTypes.map((contentType: string, index: number) => ({
+      name: getInputName(contentType, index),
+      description: getInputDescription(contentType),
+      'content-type': contentType
     })),
     outputs: answers.outputs
   };
@@ -101,17 +97,13 @@ async function generateInteractive(options: GenerateOptions): Promise<void> {
     const authDetails = await promptAuthDetails();
 
     manifest = {
-      manifestVersion: 3,
       name: 'my-extension',
       description: 'A Dragon Copilot extension',
       version: '0.0.1',
       auth: {
         tenantId: authDetails.tenantId
       },
-      tools: [newTool],
-      automationScripts: [],
-      eventTriggers: [],
-      dependencies: []
+      tools: [newTool]
     };
   }
 

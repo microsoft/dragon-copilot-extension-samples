@@ -1,4 +1,3 @@
-manifestVersion: 3
 name: sample-clinical-extraction
 description: Extracts certain clinical entities
 version: 0.0.1
@@ -8,29 +7,15 @@ tools:
   - name: clinical-entity-extractor
     description: Extracts certain clinical entities
     endpoint: http://localhost:5181/v1/process
+    trigger: AutoRun
     inputs:
       - name: note
-        description: Clinical note captured by Dragon Copilot
-        data: DSP/Note
+        description: Note
+        content-type: application/vnd.ms-dragon.dsp.note+json
     outputs:
       - name: sample-entities
         description: Coded clinical entities
-        data: DSP
+        content-type: application/vnd.ms-dragon.dsp+json
       - name: adaptive-card
         description: Coded clinical entities in Adaptive Card format
-        data: DSP
-automationScripts:
-  - name: note-automation
-    description: Generates insights whenever a note is processed
-    entryPoint: scripts/analyze-note/index.js
-    runtime: nodejs18
-    timeoutSeconds: 120
-eventTriggers:
-  - name: note-created
-    description: Runs the automation script when a new note arrives
-    eventType: note.created
-    scriptName: note-automation
-dependencies:
-  - name: terminology-service
-    version: 1.0.0
-    type: service
+        content-type: application/vnd.ms-dragon.dsp+json

@@ -200,14 +200,14 @@ public class ProcessingService : IProcessingService
             {
                 type = "TextBlock",
                 text = "🔍 Clinical Entities Extracted",
-                weight = "bolder",
+                weight = "Bolder",
             },
             new
             {
                 type = "TextBlock",
                 text = $"Found {entities.Count} clinical {(entities.Count == 1 ? "entity" : "entities")} in the note",
                 wrap = true,
-                spacing = "small"
+                spacing = "Small"
             }
         };
 
@@ -224,7 +224,7 @@ public class ProcessingService : IProcessingService
                 {
                     type = "Container",
                     style = "emphasis",
-                    spacing = "medium",
+                    spacing = "Medium",
                     items = new object[]
                     {
                         new
@@ -242,7 +242,7 @@ public class ProcessingService : IProcessingService
                                         {
                                             type = "TextBlock",
                                             text = GetEntityIcon(entityType),
-                                            spacing = "none"
+                                            spacing = "None"
                                         }
                                     }
                                 },
@@ -256,21 +256,21 @@ public class ProcessingService : IProcessingService
                                         {
                                             type = "TextBlock",
                                             text = $"**{GetEntityTypeDisplayName(entityType)}**",
-                                            weight = "bolder",
-                                            spacing = "none"
+                                            weight = "Bolder",
+                                            spacing = "None"
                                         },
                                         new
                                         {
                                             type = "TextBlock",
                                             text = entityName,
-                                            spacing = "none"
+                                            spacing = "None"
                                         },
                                         new
                                         {
                                             type = "TextBlock",
                                             text = entityValue,
                                             wrap = true,
-                                            spacing = "small"
+                                            spacing = "Small"
                                         }
                                     }
                                 }
@@ -306,8 +306,7 @@ public class ProcessingService : IProcessingService
         {
             type = "TextBlock",
             text = $"Processed at {DateTime.UtcNow:yyyy-MM-dd HH:mm:ss} UTC",
-            horizontalAlignment = "Right",
-            spacing = "medium"
+            spacing = "Medium"
         });
 
         return new VisualizationResource

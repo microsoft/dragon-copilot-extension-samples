@@ -1,28 +1,33 @@
 # Sample Requests and Responses
 
-This directory contains sample requests and responses for the Dragon Copilot extension. The examples align with the **manifest version 3** structure produced by the unified CLI.
+This directory contains sample requests and responses for the Dragon Copilot extension.
 
 ## Sample Request: Note Payload
 
 File: [note-payload.json](./note-payload.json)
 
-This file contains a sample request payload for an extension that is configured to handle an input of type `DSP/Note`. The name of the parameter is `note`, which is defined in the extension's manifest.
+This file contains a sample request payload for an extension that is configured to handle an input of content-type `application/vnd.ms-dragon.dsp.note+json`. The name of the parameter is `note`, which is defined in the extension's manifest.
 
 Sample Manifest Configuration:
 ```yaml
-    manifestVersion: 3
     inputs:
       - name: note
         description: Note
-        data: DSP/Note
-    automationScripts:
-      - name: note-automation
-        entryPoint: scripts/analyze-note/index.js
-        runtime: nodejs18
-    eventTriggers:
-      - name: note-created
-        eventType: note.created
-        scriptName: note-automation
+        content-type: application/vnd.ms-dragon.dsp.note+json
+```
+
+## Sample Request: Iterative Audio Payload
+
+File: [iterative-audio-payload.json](./iterative-audio-payload.json)
+
+This file contains a sample request payload for an extension that is configured to handle an input of content-type `application/vnd.ms-dragon.dsp.iterative-audio+json`. The name of the parameter is `iterativeAudio`, which is defined in the extension's manifest.
+
+Sample Manifest Configuration:
+```yaml
+    inputs:
+      - name: iterativeAudio
+        description: Audio
+        content-type: application/vnd.ms-dragon.dsp.iterative-audio+json
 ```
 
 ## Sample Response: Plugin Result
@@ -36,10 +41,5 @@ Sample Manifest Configuration:
     outputs:
       - name: adaptive-card
         description: Response from the plugin
-        data: DSP
-
-    automationScripts:
-      - name: note-automation
-        entryPoint: scripts/analyze-note/index.js
-        runtime: nodejs18
+        content-type: application/vnd.ms-dragon.dsp+json
 ```

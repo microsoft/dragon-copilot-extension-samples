@@ -61,18 +61,21 @@ public async Task<ProcessResponse> ProcessAsync([FromBody] ProcessRequest reques
 name: extension-name
 description: Extension description
 version: 0.0.1
+auth:
+  tenantId: 12345678-1234-1234-1234-123456789abc
 tools:
   - name: tool-name
     description: Tool description
     endpoint: https://api.example.com/v1/process
+    trigger: AutoRun  # Optional: AutoRun (default) or AdaptiveCardAction
     inputs:
       - name: note
         description: Clinical note input
-        data: DSP/Note
+        content-type: application/vnd.ms-dragon.dsp.note+json
     outputs:
       - name: processed-data
         description: Processed results
-        data: DSP
+        content-type: application/vnd.ms-dragon.dsp+json
 ```
 
 ## Common Development Workflows

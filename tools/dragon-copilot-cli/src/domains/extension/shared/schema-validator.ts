@@ -195,58 +195,6 @@ function validateManifestBusinessRules(manifest: DragonExtensionManifest): Schem
     }
   }
 
-  // Check for duplicate automation script names
-  if (manifest.automationScripts && manifest.automationScripts.length > 0) {
-    const scriptNames = manifest.automationScripts.map(script => script.name).filter(Boolean);
-    const duplicateScripts = scriptNames.filter((name, index) => scriptNames.indexOf(name) !== index);
-
-    if (duplicateScripts.length > 0) {
-      errors.push({
-        instancePath: '/automationScripts',
-        keyword: 'uniqueAutomationScriptNames',
-        message: `Duplicate automation script names found: ${[...new Set(duplicateScripts)].join(', ')}`,
-        data: manifest.automationScripts,
-        schemaPath: '#/automationScripts',
-        params: { duplicates: [...new Set(duplicateScripts)] }
-      });
-    }
-  }
-
-  // Check for duplicate event trigger names
-  if (manifest.eventTriggers && manifest.eventTriggers.length > 1) {
-    const triggerNames = manifest.eventTriggers.map(trigger => trigger.name).filter(Boolean);
-    const duplicateTriggers = triggerNames.filter((name, index) => triggerNames.indexOf(name) !== index);
-
-    if (duplicateTriggers.length > 0) {
-      errors.push({
-        instancePath: '/eventTriggers',
-        keyword: 'uniqueEventTriggerNames',
-        message: `Duplicate event trigger names found: ${[...new Set(duplicateTriggers)].join(', ')}`,
-        data: manifest.eventTriggers,
-        schemaPath: '#/eventTriggers',
-        params: { duplicates: [...new Set(duplicateTriggers)] }
-      });
-    }
-  }
-
-  // Verify event triggers reference valid automation scripts
-  if (manifest.eventTriggers && manifest.eventTriggers.length > 0) {
-    const scriptNames = new Set((manifest.automationScripts || []).map(script => script.name));
-
-    manifest.eventTriggers.forEach(trigger => {
-      if (trigger.scriptName && !scriptNames.has(trigger.scriptName)) {
-        errors.push({
-          instancePath: '/eventTriggers',
-          keyword: 'missingAutomationScript',
-          message: `Event trigger '${trigger.name}' references unknown script '${trigger.scriptName}'`,
-          data: trigger,
-          schemaPath: '#/eventTriggers/items',
-          params: { trigger: trigger.name, script: trigger.scriptName }
-        });
-      }
-    });
-  }
-
   return errors;
 }
 

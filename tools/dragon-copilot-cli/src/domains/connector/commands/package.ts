@@ -65,7 +65,7 @@ export async function packageIntegration(options: PackageOptions): Promise<void>
       !manifest.name ||
       !manifest.description ||
       !manifest.version ||
-      !manifest['connector-id'] ||
+      !manifest['partner-id'] ||
       !manifest['clinical-application-name']
     ) {
       logMessage(chalk.red('❌ Integration manifest validation failed: Missing required fields'), isQuiet);
@@ -108,7 +108,7 @@ export async function packageIntegration(options: PackageOptions): Promise<void>
     logMessage(chalk.gray(`🏢 Publisher: ${publisherConfig.publisherName} (${publisherConfig.publisherId})`), isQuiet);
     logMessage(chalk.gray(`📄 Integration: ${manifest.name} v${manifest.version}`), isQuiet);
     logMessage(chalk.gray(`🩺 Clinical application: ${manifest['clinical-application-name']}`), isQuiet);
-    logMessage(chalk.gray(`🔑 Connector ID: ${manifest['connector-id']}`), isQuiet);
+    logMessage(chalk.gray(`🔑 Partner ID: ${manifest['partner-id']}`), isQuiet);
     logMessage(chalk.gray(`🔐 Server authentication issuers: ${manifest['server-authentication'].length}`), isQuiet);
 
     // Create archive

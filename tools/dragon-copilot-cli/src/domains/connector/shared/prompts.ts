@@ -151,13 +151,9 @@ export function validatePublisherId(input: string): string | boolean {
   return true;
 }
 
-export function validateconnectorId(input: string): string | boolean {
-  if (!input.trim()) return 'Connector ID is required';
-  if (input !== input.toLowerCase()) return 'Connector ID must be lowercase';
-  if (!/^[a-z0-9](?:[a-z0-9._-]*[a-z0-9])?$/.test(input)) {
-    return 'Connector ID must start and end with alphanumeric characters and can include hyphens, dots, or underscores';
-  }
-  return true;
+export function validatePartnerId(input: string): string | boolean {
+  if (!input.trim()) return 'Partner ID is required';
+  return validateGuid(input);
 }
 
 export function validateGuid(input: string): string | boolean {
@@ -203,24 +199,24 @@ const gatherIntegrationDetails = async (
     validate: validateVersion
   });
 
-  logInfo('Connector ID should match the identifier from your app source (e.g., Microsoft Partner Center).');
-  logInfo('If you have not received a Connector ID yet, you can generate a GUID now and use it in the manifest.');
+  logInfo('Partner ID should match the identifier from your app source (e.g., Microsoft Partner Center).');
+  logInfo('If you have not received a Partner ID yet, you can generate a GUID now and use it in the manifest.');
 
-  let connectorId: string;
+  let partnerId: string;
   const hasExternalId = await yesNo(
-    'Do you already have a Connector ID from NMC or Partner Center?',
-    defaults?.connectorId ? 'yes' : 'no'
+    'Do you already have a Partner ID from NMC or Partner Center?',
+    defaults?.partnerId ? 'yes' : 'no'
   );
 
   if (hasExternalId === 'yes') {
-    connectorId = await input({
-      message: 'Connector ID (App Source Id):',
-      ...(defaults?.connectorId ? { default: defaults.connectorId } : {}),
-      validate: validateconnectorId
+    partnerId = await input({
+      message: 'Partner ID (App Source Id):',
+      ...(defaults?.partnerId ? { default: defaults.partnerId } : {}),
+      validate: validatePartnerId
     });
   } else {
-    connectorId = randomUUID().toLowerCase();
-    logInfo(`Generated Connector ID GUID: ${connectorId}`);
+    partnerId = randomUUID().toLowerCase();
+    logInfo(`Generated Partner ID GUID: ${partnerId}`);
   }
 
   const trimmedName = name.trim();
@@ -244,7 +240,7 @@ const gatherIntegrationDetails = async (
     rawName: trimmedName,
     description,
     version,
-    connectorId,
+    partnerId,
     clinicalApplicationName
   };
 };
@@ -260,7 +256,7 @@ const summarizeIntegrationDetails = (details: IntegrationDetails): string[] => {
   summary.push(
     `Description: ${details.description}`,
     `Version: ${details.version}`,
-    `Connector ID: ${details.connectorId}`,
+    `Partner ID: ${details.partnerId}`,
     `Clinical application: ${details.clinicalApplicationName}`
   );
 
@@ -925,7 +921,7 @@ export async function runConnectorManifestWizard(
     name: integration.name,
     description: integration.description,
     version: integration.version,
-    'connector-id': integration.connectorId,
+    'partner-id': integration.partnerId,
     'clinical-application-name': integration.clinicalApplicationName,
     'server-authentication': serverAuthentication,
     'note-sections': noteSections,

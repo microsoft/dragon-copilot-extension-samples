@@ -81,7 +81,7 @@ const createBaseManifest = (overrides: Partial<ConnectorIntegrationManifest> = {
     name: manifestName,
     description: manifestDescription,
     version: overrides.version ?? '0.0.1',
-    'connector-id': overrides['connector-id'] ?? 'contoso.healthworks',
+    'partner-id': overrides['partner-id'] ?? '11111111-2222-3333-4444-555555555555',
     'clinical-application-name': overrides['clinical-application-name'] ?? 'Contoso HealthWorks EHR',
     'server-authentication': overrides['server-authentication'] ?? [
       {
@@ -257,7 +257,7 @@ const templates: Record<string, TemplateConfig> = {
     description: 'Sample EHR Connector Manifest with SMART on FHIR launch support',
     manifest: createBaseManifest({
       name: 'ehr-integration',
-      ['connector-id']: 'contoso-ehr-suite',
+      ['partner-id']: '11111111-2222-3333-4444-555555555555',
       ['server-authentication']: [
         {
           issuer: 'https://login.contoso-ehr.com/oauth2/default',
@@ -287,7 +287,7 @@ const templates: Record<string, TemplateConfig> = {
     description: 'API connector manifest with streamlined service-to-service configuration',
     manifest: createBaseManifest({
       name: 'api-connector',
-      ['connector-id']: 'contoso.api-hub',
+      ['partner-id']: '22222222-3333-4444-5555-666666666666',
       ['server-authentication']: [
         {
           issuer: 'https://identity.api-hub.contoso.com/oauth2/default',
@@ -307,7 +307,7 @@ const templates: Record<string, TemplateConfig> = {
     description: 'Data synchronization manifest highlighting inbound/outbound configuration',
     manifest: createBaseManifest({
       name: 'data-sync',
-      ['connector-id']: 'contoso.sync.platform',
+      ['partner-id']: '33333333-4444-5555-6666-777777777777',
       ['server-authentication']: [
         {
           issuer: 'https://login.sync.contoso.com/oauth2/default',
@@ -334,7 +334,7 @@ const templates: Record<string, TemplateConfig> = {
     description: 'Minimal manifest to customize from scratch',
     manifest: createBaseManifest({
       name: 'custom-integration',
-      ['connector-id']: 'custom.partner',
+      ['partner-id']: '44444444-5555-6666-7777-888888888888',
       ['server-authentication']: [
         {
           issuer: 'https://login.custom-partner.com/oauth2/default',

@@ -122,19 +122,16 @@ Use the `extension` commands for Workflow Extensions with automation scripts, ev
 
 1. Issue a `dragon-copilot extension init` command
    
-   You will be asked for information on your Workflow Extension:
-   - Extension name (lowercase with hyphens)
-   - Description of your extension
-   - Version (defaults to 0.0.1)
-   - Ensure the API endpoint points to the process method using the devtunnel address you generated earlier
-   - Optionally configure automation scripts, event triggers, and dependencies
+   You will be asked for information on your extension.
+   - Ensure the tenantId specified is for where you will upload your extension to.
+   - Ensure the API endpoint points to the process method using the devtunnel address you generated earlier.
 
 2. (Optional) Validate your manifest:
    ```bash
    dragon-copilot extension validate ./extension.yaml
    ```
 
-3. Issue a `dragon-copilot extension package --manifest ./extension.yaml` command
+3. Issue a `dragon-copilot extension package` command
 
 You now have a valid zip file that represents your Workflow Extension!
 
@@ -149,7 +146,6 @@ Use the `connector` commands for Clinical Application Connectors (EHR integratio
    You will be asked for information on your Clinical Application Connector:
    - Clinical application name—typically the embedded EHR or workflow integration that issues user identities to Dragon Copilot
    - Ensure the tenantId specified is for where you will upload your connector to
-   - Ensure the API endpoint points to the process method using the devtunnel address you generated earlier
    - Configure note sections, context retrieval, and authentication settings
 
 2. (Optional) Validate your manifest:
@@ -157,7 +153,7 @@ Use the `connector` commands for Clinical Application Connectors (EHR integratio
    dragon-copilot connector validate ./extension.yaml
    ```
 
-3. Issue a `dragon-copilot connector package --manifest ./extension.yaml` command
+3. Issue a `dragon-copilot connector package` command
 
 You now have a valid zip file that represents your Clinical Application Connector!
 

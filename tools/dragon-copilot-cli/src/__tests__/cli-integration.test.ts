@@ -6,7 +6,6 @@ import { Command } from 'commander';
 import { registerCommands } from '../commands/index.js';
 
 const EXTENSION_MANIFEST = [
-  'manifestVersion: 3',
   'name: integration-extension',
   'description: Extension manifest used in integration tests',
   'version: 0.0.1',
@@ -24,28 +23,14 @@ const EXTENSION_MANIFEST = [
   '      - name: result',
   '        description: Inference output payload',
   '        data: DSP',
-  'automationScripts:',
-  '  - name: note-automation',
-  '    description: Handles post-note processing',
-  '    entryPoint: scripts/note/index.js',
-  '    runtime: nodejs18',
-  '    timeoutSeconds: 90',
-  'eventTriggers:',
-  '  - name: note-created',
-  '    description: Runs whenever a note is created',
-  '    eventType: note.created',
-  '    scriptName: note-automation',
-  'dependencies:',
-  '  - name: terminology-service',
-  '    version: 1.0.0',
-  '    type: service',
 ].join('\n');
 
 const PARTNER_MANIFEST = [
   'name: integration-partner',
   'description: Connector Manifest used in integration tests',
   'version: 0.0.1',
-  'connector-id: contoso.integration.test',
+  'partner-id: 11111111-2222-3333-4444-555555555555',
+  'clinical-application-name: Integration Test EHR',
   'server-authentication:',
   '  - issuer: https://login.contoso.com/oauth2/default',
   '    identity-claim: azp',

@@ -37,7 +37,7 @@ async function generateInteractive(options: GenerateOptions): Promise<void> {
       name: parsed.name,
       description: parsed.description,
       version: parsed.version,
-      connectorId: parsed['connector-id'],
+      partnerId: parsed['partner-id'] ?? (parsed as unknown as Record<string, string>)['connector-id'],
       clinicalApplicationName: parsed['clinical-application-name']
     };
   } catch {
@@ -98,7 +98,7 @@ async function generateFromTemplate(options: GenerateOptions): Promise<void> {
 
   console.log(chalk.blue('\n🎯 What\'s Next?'));
   console.log(chalk.yellow('⚠️  Required Updates:'));
-  console.log(chalk.gray('   • Update integration name, description, and Connector ID to match your organization'));
+  console.log(chalk.gray('   • Update integration name, description, and Partner ID to match your organization'));
   console.log(chalk.gray('   • Verify issuer URLs, identity claims, and collected context'));
   console.log(chalk.gray('   • Align context retrieval fields with your runtime'));
   

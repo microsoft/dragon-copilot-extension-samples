@@ -7,6 +7,12 @@ import chalk from 'chalk';
 import { input, select } from '@inquirer/prompts';
 import type { ContextRetrievalItem, ConnectorIntegrationManifest, PublisherConfig, YesNo } from '../types.js';
 import { getContextItemDefinition } from '../shared/context-items.js';
+import {
+  validateConnectorManifest as validateConnectorManifestSchema,
+  validatePublisherConfig as validatePublisherConfigSchema,
+  getFieldDisplayName
+} from '../shared/schema-validator.js';
+import type { SchemaError } from '../shared/schema-validator.js';
 
 const DEFAULT_MANIFEST_PATH = 'extension.yaml';
 
@@ -102,6 +108,19 @@ export async function validateManifest(filePath: string): Promise<void> {
     
     const errors: string[] = [];
     const warnings: string[] = [];
+
+    // Step 1: JSON Schema validation (matches Dragon Admin Center schema check)
+    console.log(chalk.blue('🔍 Running schema validation...'));
+    const schemaResult = validateConnectorManifestSchema(manifest);
+    if (schemaResult.errors.length > 0) {
+      schemaResult.errors.forEach((error: SchemaError) => {
+        const fieldPath = error.instancePath.replace(/^\//, '').replace(/\//g, '.');
+        const fieldName = fieldPath || 'manifest';
+        errors.push(`${fieldName}: ${error.message}`);
+      });
+    }
+
+    // Step 2: Additional business rule validation
 
     const validateUrl = (url: string, field: string): void => {
       try {
@@ -255,7 +274,7 @@ export async function validateManifest(filePath: string): Promise<void> {
     };
 
   const version = requireString(manifest.version, 'version');
-  const connectorId = requireString(manifest['connector-id'], 'connector-id');
+  const partnerId = requireString(manifest['partner-id'], 'partner-id');
     requireString(manifest.name, 'name');
     requireString(manifest.description, 'description');
 
@@ -267,8 +286,8 @@ export async function validateManifest(filePath: string): Promise<void> {
       errors.push('version: Must be in format x.y.z (e.g., 1.0.0)');
     }
 
-    if (connectorId && !/^[a-z0-9][a-z0-9\-_.]*[a-z0-9]$/.test(connectorId)) {
-      errors.push('connector-id: Must start and end with alphanumeric characters and can include lowercase letters, numbers, hyphens, underscores, or periods');
+    if (partnerId) {
+      validateGuid(partnerId, 'partner-id');
     }
 
     const serverAuthentication = manifest['server-authentication'];
@@ -407,7 +426,7 @@ export async function validateManifest(filePath: string): Promise<void> {
       console.log(chalk.gray(`  Name: ${manifest.name}`));
       console.log(chalk.gray(`  Description: ${manifest.description}`));
       console.log(chalk.gray(`  Version: ${manifest.version}`));
-  console.log(chalk.gray(`  Connector ID: ${manifest['connector-id']}`));
+  console.log(chalk.gray(`  Partner ID: ${manifest['partner-id']}`));
   console.log(chalk.gray(`  Server authentication issuers: ${manifest['server-authentication']?.length || 0}`));
   console.log(chalk.gray(`  Note sections configured: ${Object.keys(manifest['note-sections'] ?? {}).length}`));
   console.log(chalk.gray(`  Context retrieval items: ${manifest.instance?.['context-retrieval']?.instance?.length || 0}`));
@@ -424,6 +443,16 @@ export async function validateManifest(filePath: string): Promise<void> {
         const publisherConfig = JSON.parse(publisherContent) as PublisherConfig;
 
         const publisherErrors: string[] = [];
+
+        // Schema validation for publisher config
+        const publisherSchemaResult = validatePublisherConfigSchema(publisherConfig);
+        if (publisherSchemaResult.errors.length > 0) {
+          publisherSchemaResult.errors.forEach((error: SchemaError) => {
+            const fieldPath = error.instancePath.replace(/^\//, '').replace(/\//g, '.');
+            const fieldName = getFieldDisplayName(fieldPath) || fieldPath || 'config';
+            publisherErrors.push(`${fieldName}: ${error.message}`);
+          });
+        }
         
         // Basic publisher validation
         if (!publisherConfig.publisherId) publisherErrors.push('publisherId: Field is required');
@@ -491,7 +520,7 @@ export async function validateManifest(filePath: string): Promise<void> {
   if (hasErrors) {
     console.log(chalk.red('❌ Validation failed with errors'));
     console.log(chalk.gray('Fix the errors above before packaging your integration'));
-    process.exit(1);
+    process.exitCode = 1;
   } else if (hasWarnings) {
     console.log(chalk.yellow('⚠️  Validation passed with warnings'));
     console.log(chalk.gray('Consider addressing the warnings above'));

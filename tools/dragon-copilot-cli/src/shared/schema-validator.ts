@@ -102,7 +102,7 @@ export function validateExtensionManifest(manifest: DragonExtensionManifest): Va
 
 export function validateConnectorManifest(manifest: ConnectorIntegrationManifest): ValidationResult {
   const schemaResult = validateConnectorManifestSchema(manifest);
-  const businessRuleErrors = validateExtensionBusinessRules(manifest);
+  const businessRuleErrors = validateConnectorBusinessRules(manifest);
 
   return {
     isValid: schemaResult.isValid && businessRuleErrors.length === 0,
@@ -159,66 +159,32 @@ function validateExtensionBusinessRules(manifest: ManifestLike): SchemaError[] {
     }
   }
 
-  const automationScripts = Array.isArray((manifest as any).automationScripts)
-    ? (manifest as any).automationScripts
+  return errors;
+}
+
+function validateConnectorBusinessRules(manifest: ConnectorIntegrationManifest): SchemaError[] {
+  const errors: SchemaError[] = [];
+
+  // Check for duplicate server-authentication issuers
+  const serverAuth = Array.isArray((manifest as any)['server-authentication'])
+    ? (manifest as any)['server-authentication']
     : [];
 
-  if (automationScripts.length > 1) {
-    const scriptNames = automationScripts.map((script: any) => script?.name).filter(Boolean);
-    const duplicateScripts = scriptNames.filter((name: string, index: number) => scriptNames.indexOf(name) !== index);
+  if (serverAuth.length > 1) {
+    const issuers = serverAuth.map((entry: any) => entry?.issuer).filter(Boolean);
+    const duplicateIssuers = issuers.filter((issuer: string, index: number) => issuers.indexOf(issuer) !== index);
 
-    if (duplicateScripts.length > 0) {
-      const uniqueDuplicates = [...new Set(duplicateScripts)];
+    if (duplicateIssuers.length > 0) {
+      const uniqueDuplicates = [...new Set(duplicateIssuers)];
       errors.push({
-        instancePath: '/automationScripts',
-        keyword: 'uniqueAutomationScriptNames',
-        message: `Duplicate automation script names found: ${uniqueDuplicates.join(', ')}`,
-        data: automationScripts,
-        schemaPath: '#/automationScripts',
+        instancePath: '/server-authentication',
+        keyword: 'uniqueIssuers',
+        message: `Duplicate server-authentication issuers found: ${uniqueDuplicates.join(', ')}`,
+        data: serverAuth,
+        schemaPath: '#/server-authentication',
         params: { duplicates: uniqueDuplicates }
       });
     }
-  }
-
-  const eventTriggers = Array.isArray((manifest as any).eventTriggers)
-    ? (manifest as any).eventTriggers
-    : [];
-
-  if (eventTriggers.length > 1) {
-    const triggerNames = eventTriggers.map((trigger: any) => trigger?.name).filter(Boolean);
-    const duplicateTriggers = triggerNames.filter((name: string, index: number) => triggerNames.indexOf(name) !== index);
-
-    if (duplicateTriggers.length > 0) {
-      const uniqueDuplicates = [...new Set(duplicateTriggers)];
-      errors.push({
-        instancePath: '/eventTriggers',
-        keyword: 'uniqueEventTriggerNames',
-        message: `Duplicate event trigger names found: ${uniqueDuplicates.join(', ')}`,
-        data: eventTriggers,
-        schemaPath: '#/eventTriggers',
-        params: { duplicates: uniqueDuplicates }
-      });
-    }
-  }
-
-  if (eventTriggers.length > 0) {
-    const scriptNames = new Set(automationScripts.map((script: any) => script?.name).filter(Boolean));
-
-    eventTriggers.forEach((trigger: any) => {
-      if (trigger?.scriptName && !scriptNames.has(trigger.scriptName)) {
-        errors.push({
-          instancePath: '/eventTriggers',
-          keyword: 'missingAutomationScript',
-          message: `Event trigger '${trigger?.name ?? 'unknown'}' references unknown script '${trigger?.scriptName}'`,
-          data: trigger,
-          schemaPath: '#/eventTriggers/items',
-          params: {
-            trigger: trigger?.name,
-            script: trigger?.scriptName
-          }
-        });
-      }
-    });
   }
 
   return errors;
