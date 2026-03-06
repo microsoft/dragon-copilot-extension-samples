@@ -548,7 +548,7 @@ const gatherNamedIssuerFields = async (): Promise<NamedFieldConfig[]> => {
 const gatherContextRetrievalItems = async (): Promise<ContextRetrievalItem[] | null> => {
   logSectionHeading('🧠', 'Context Retrieval');
   logInfo('Select context values that the customer can provide. Leave empty when none are required.');
-  logInfo('Interop environment values such as environment name, environment id, EHR type, product name, and Connector ID are collected automatically.');
+  logInfo('Interop environment values such as environment name, environment id, EHR type, product name, and Partner ID are collected automatically.');
   logInfo('Names, types, and descriptions are fixed. You can only change whether each item is required.');
   console.log('');
 
