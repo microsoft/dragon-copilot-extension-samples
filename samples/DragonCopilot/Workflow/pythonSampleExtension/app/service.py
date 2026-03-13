@@ -32,9 +32,13 @@ class ProcessingService:
             except Exception:  # noqa: BLE001
                 logger.exception("Failed to log note model")
 
-            sample_entities, adaptive_card, composite_plugin = self._process_note(payload.note)
-            # response.payload["sample-entities"] = sample_entities
-            response.payload["dragon-predict-adaptive-card"] = adaptive_card
+            sample_entities, adaptive_card = self._process_note(payload.note)
+            response.payload["sample-entities"] = sample_entities
+            response.payload["adaptive-card"] = adaptive_card
+            # NOTE: "samplePluginResult" output is not currently supported by the
+            # consuming application and has been removed from the response.
+            # Uncomment the line below (and restore the composite logic in
+            # _process_note) when samplePluginResult support is re-enabled.
             # response.payload["samplePluginResult"] = composite_plugin
             logger.info("extension response:\n %s", response)
 
@@ -74,21 +78,26 @@ class ProcessingService:
             resources=[adaptive_card_resource],
         )
 
-        # Composite plugin style result (mirrors C# samplePluginResult concept)
-        composite = models.DspResponse(
-            schema_version="0.1",
-            document={
-                "title": note.document.get("title") if note.document else "Clinical Note Analysis",
-                "type": (note.document or {}).get("type") if note.document else {"text": "note"}
-            },
-            resources=[self._composite_medication_summary(resources), self._timeline_card(resources)],
-        )
-        return dsp_entities, adaptive_card, composite
+        # NOTE: Composite plugin result (samplePluginResult) is not currently
+        # supported by the consuming application. The composite construction
+        # below has been removed. To re-enable, uncomment this block and update
+        # _process_note to return (dsp_entities, adaptive_card, composite).
+        # Also uncomment _composite_medication_summary and _timeline_card below.
+        #
+        # composite = models.DspResponse(
+        #     schema_version="0.1",
+        #     document={
+        #         "title": note.document.get("title") if note.document else "Clinical Note Analysis",
+        #         "type": (note.document or {}).get("type") if note.document else {"text": "note"}
+        #     },
+        #     resources=[self._composite_medication_summary(resources), self._timeline_card(resources)],
+        # )
+
+        return dsp_entities, adaptive_card
 
     def _medical_code(self, code_value: str, description: str) -> models.MedicalCode:
         return models.MedicalCode(
             id=str(uuid4()),
-            context=models.Context(id="medical-code-context", contentType="medical-code", displayDescription="Medical coding for clinical entities"),
             code={
                 "identifier": code_value,
                 "description": description,
@@ -102,7 +111,6 @@ class ProcessingService:
     def _vital_sign(self, value: float, unit: str) -> models.ObservationNumber:
         return models.ObservationNumber(
             id=str(uuid4()),
-            context=models.Context(id="vital-sign-context", contentType="vital-sign", displayDescription="Vital sign measurement"),
             value=value,
             valueUnit=unit,
             priority=models.Priority.High,
@@ -111,122 +119,86 @@ class ProcessingService:
     def _observation_concept(self, concept_text: str, concept_id: str) -> models.ObservationConcept:
         return models.ObservationConcept(
             id=str(uuid4()),
-            context=models.Context(id="observation-context", contentType="clinical-observation", displayDescription="Clinical observation finding"),
             value=models.ObservationValue(text=concept_text, conceptId=concept_id),
             priority=models.Priority.Medium,
         )
 
     def _adaptive_card(self, entities: List[Any]) -> models.VisualizationResource:
         # Build card body similar in spirit to C# version
-        # body: List[Dict[str, Any]] = [
-        #     {
-        #         "type": "TextBlock",
-        #         "text": "🔍 Clinical Entities Extracted",
-        #         "weight": "Bolder",
-        #         "size": "Large",
-        #         "color": "Accent",
-        #     },
-        #     {
-        #         "type": "TextBlock",
-        #         "text": f"Found {len(entities)} clinical {'entity' if len(entities)==1 else 'entities'} in the note",
-        #         "wrap": True,
-        #         "size": "Medium",
-        #         "spacing": "Small",
-        #     },
-        # ]
-        # if entities:
-        #     for e in entities:
-        #         etype = getattr(e, 'type', 'Entity')
-        #         eid = getattr(e, 'id', '')
-        #         body.append({
-        #             "type": "Container",
-        #             "style": "emphasis",
-        #             "spacing": "Medium",
-        #             "items": [
-        #                 {"type": "TextBlock", "text": f"**{etype}**", "weight": "Bolder", "size": "Medium"},
-        #                 {"type": "TextBlock", "text": eid, "size": "Small", "wrap": True},
-        #             ],
-        #         })
-        # else:
-        #     body.append({
-        #         "type": "Container",
-        #         "style": "attention",
-        #         "items": [
-        #             {"type": "TextBlock", "text": "ℹ️ No clinical entities were detected in this note.", "wrap": True}
-        #         ],
-        #     })
-        # body.append({
-        #     "type": "TextBlock",
-        #     "text": f"Processed at {datetime.now(timezone.utc).isoformat()}",
-        #     "size": "Small",
-        #     "horizontalAlignment": "Right",
-        #     "spacing": "Medium",
-        # })
-
-        # Test structure body provided by user request
-        # body: List[Dict[str, Any]] = [
-        #     {
-        #         "type": "ColumnSet",
-        #         "columns": [
-        #             {
-        #                 "type": "Column",
-        #                 "width": "stretch",
-        #                 "items": [
-        #                     {
-        #                         "type": "Image",
-        #                         "url": "/resources/logo_large.png",
-        #                         "altText": "conflicted dragon transparent",
-        #                         "size": "Small",
-        #                         "spacing": "None",
-        #                     },
-        #                     {
-        #                         "type": "TextBlock",
-        #                         "text": "Clinical Risk Analysis",
-        #                         "size": "Large",
-        #                         "weight": "Bolder",
-        #                         "wrap": True,
-        #                     },
-        #                 ],
-        #                 "verticalContentAlignment": "Center",
-        #             }
-        #         ],
-        #     },
-        #     {
-        #         "type": "TextBlock",
-        #         "text": "Your risk towards high blood pressure is 87%. Your chance of developing hypertension in 3 years is 53.31%, 6 years is 70.51% and 9 years is 87.07%.",
-        #         "wrap": True,
-        #     },
-        # ]
-
         body: List[Dict[str, Any]] = [
             {
                 "type": "TextBlock",
-                "text": "Your risk towards high blood pressure is 87%. Your chance of developing hypertension in 3 years is 53.31%, 6 years is 70.51% and 9 years is 87.07%.",
+                "text": "🔍 Clinical Entities Extracted",
+                "weight": "Bolder",
+                "size": "Default"
+            },
+            {
+                "type": "TextBlock",
+                "text": f"Found {len(entities)} clinical {'entity' if len(entities)==1 else 'entities'} in the note",
                 "wrap": True,
+                "size": "Default",
+                "spacing": "Small"
             },
         ]
-        
+        if entities:
+            for e in entities:
+                etype = getattr(e, 'type', 'Entity')
+                eid = getattr(e, 'id', '')
+                body.append({
+                    "type": "Container",
+                    "style": "emphasis",
+                    "spacing": "Medium",
+                    "items": [
+                        {"type": "TextBlock", "text": f"**{etype}**", "weight": "Bolder", "size": "Default"},
+                        {"type": "TextBlock", "text": eid, "size": "Small", "wrap": True},
+                    ],
+                })
+        else:
+            body.append({
+                "type": "Container",
+                "style": "attention",
+                "items": [
+                    {"type": "TextBlock", "text": "ℹ️ No clinical entities were detected in this note.", "wrap": True}
+                ],
+            })
+        body.append({
+            "type": "TextBlock",
+            "text": f"Processed at {datetime.now(timezone.utc).isoformat()}",
+            "size": "Small",
+            "spacing": "Medium",
+        })
+
         # TODO: add extension prefix to title
         return models.VisualizationResource(
             id=str(uuid4()),
-            subtype="note", # hardcoded subtype
-            cardTitle=f"{EXTENSION_PREFIX} - Clinical Risk Scores",
-            # adaptiveCardPayload={
+            subtype="note",
+            cardTitle=EXTENSION_PREFIX,
             adaptive_card_payload={
                 "type": "AdaptiveCard",
-                "version": "1.3",
+                "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+                "version": "1.6",
                 "body": body,
-                # "actions": [
-                #     {"type": "Action.Submit", "title": "Accept Analysis", "data": {"action": "accept"}},
-                #     {"type": "Action.Submit", "title": "Copy to Note", "data": {"action": "copy"}},
-                #     {"type": "Action.Submit", "title": "Reject Analysis", "data": {"action": "reject"}},
-                # ],
+                "actions": [
+                    {
+                        "type": "Action.Execute",
+                        "title": "Append to note",
+                        "verb": "appendToNoteSection",
+                        "id": "appendToNoteSectionAction",
+                        "data": {
+                            "dragonAppendContent": "appended text content"
+                        }
+                    },
+                    {
+                        "type": "Action.Execute",
+                        "title": "Dismiss",
+                        "verb": "reject",
+                        "id": "rejectAction",
+                        "data": {
+                            "dragonExtensionToolName": "RejectCardTool"
+                        }
+                    }
+                ]
             },
-            actions=[
-                {"title": "Accept Analysis", "action": "Accept", "actionType": "Primary"},
-                {"title": "Copy to Note", "action": "Copy", "actionType": "Secondary"},
-                {"title": "Reject Analysis", "action": "Reject", "actionType": "Tertiary"},
-            ],
             payloadSources=[
                 {
                     "identifier": str(uuid4()),
@@ -235,79 +207,105 @@ class ProcessingService:
                 }
             ],
             dragonCopilotCopyData="Clinical entities extracted from note content",
-        )
-
-    def _composite_medication_summary(self, entities: List[Any]) -> models.VisualizationResource:
-        # Simplified medication summary card (parity style example)
-        body: List[Dict[str, Any]] = [
-            {
-                "type": "Container",
-                "spacing": "Medium",
-                "items": [
-                    {"type": "TextBlock", "text": "Patient Medication Analysis", "weight": "Bolder", "size": "Large", "spacing": "None"},
-                    {"type": "TextBlock", "text": "Demo analysis based on detected entities", "size": "Small", "spacing": "Small", "wrap": True}
-                ]
-            }
-        ]
-        fact_items: List[Dict[str, str]] = []
-        med_count = sum(1 for e in entities if getattr(e, 'type', None) == 'ObservationConcept')
-        condition_count = sum(1 for e in entities if getattr(e, 'type', None) == 'MedicalCode')
-        vital_count = sum(1 for e in entities if getattr(e, 'type', None) == 'ObservationNumber')
-        fact_items.append({"title": "Medications Detected:", "value": f"{med_count}"})
-        fact_items.append({"title": "Conditions Detected:", "value": f"{condition_count}"})
-        fact_items.append({"title": "Vitals Detected:", "value": f"{vital_count}"})
-        body.append({
-            "type": "FactSet",
-            "facts": fact_items
-        })
-
-        return models.VisualizationResource(
-            id=str(uuid4()),
-            subtype="Note",
-            cardTitle="Medication Summary & Recommendations (Demo)",
             partnerLogo="https://contoso.com/logo.png",
-            adaptiveCardPayload={
-                "type": "AdaptiveCard",
-                "version": "1.3",
-                "body": body
-            },
-            actions=[
-                {"title": "Accept Recommendations", "action": "accept", "actionType": "primary"},
-                {"title": "Reject Changes", "action": "reject", "actionType": "secondary"},
-                {"title": "Copy Full Analysis", "action": "copy", "actionType": "tertiary", "code": "DEMO ANALYSIS\nEntities summary included."}
-            ],
-            payloadSources=[
-                {"identifier": str(uuid4()), "description": "Python Demo Medication Analysis Service", "url": "http://localhost/v1/process"}
-            ],
-            dragonCopilotCopyData="medication_analysis|demo:1|generated:" + datetime.now(timezone.utc).isoformat()
+            references=[],
         )
 
-    def _timeline_card(self, entities: List[Any]) -> models.VisualizationResource:
-        # Simplified timeline card
-        body: List[Dict[str, Any]] = [
-            {
-                "type": "Container",
-                "items": [
-                    {"type": "TextBlock", "text": "Lab / Clinical Trend Analysis (Demo)", "weight": "Bolder", "size": "Medium"},
-                    {"type": "TextBlock", "text": f"Detected {len(entities)} entities to date", "size": "Small", "spacing": "Small"}
-                ]
-            }
-        ]
-        return models.VisualizationResource(
-            id=str(uuid4()),
-            subtype="timeline",
-            cardTitle="Recent Clinical Entities Timeline (Demo)",
-            adaptiveCardPayload={
-                "type": "AdaptiveCard",
-                "version": "1.3",
-                "body": body
-            },
-            actions=[
-                {"title": "View Full Results", "action": "accept", "actionType": "primary"},
-                {"title": "Copy Timeline Data", "action": "copy", "actionType": "tertiary", "code": "TIMELINE DEMO\nNo real data."}
-            ],
-            payloadSources=[
-                {"identifier": str(uuid4()), "description": "Python Demo Timeline Service", "url": "http://localhost/v1/process"}
-            ],
-            dragonCopilotCopyData="lab_timeline|demo:1|generated:" + datetime.now(timezone.utc).isoformat()
-        )
+    # NOTE: _composite_medication_summary and _timeline_card are not currently
+    # used because the samplePluginResult output is not supported by the
+    # consuming application. Uncomment these methods (and the composite
+    # construction in _process_note) when samplePluginResult support is
+    # re-enabled.
+    #
+    # def _composite_medication_summary(self, entities: List[Any]) -> models.VisualizationResource:
+    #     # Simplified medication summary card (parity style example)
+    #     body: List[Dict[str, Any]] = [
+    #         {
+    #             "type": "Container",
+    #             "spacing": "Medium",
+    #             "items": [
+    #                 {"type": "TextBlock", "text": "Patient Medication Analysis", "weight": "Bolder", "size": "Default", "spacing": "None"},
+    #                 {"type": "TextBlock", "text": "Demo analysis based on detected entities", "size": "Small", "spacing": "Small", "wrap": True}
+    #             ]
+    #         }
+    #     ]
+    #     fact_items: List[Dict[str, str]] = []
+    #     med_count = sum(1 for e in entities if getattr(e, 'type', None) == 'ObservationConcept')
+    #     condition_count = sum(1 for e in entities if getattr(e, 'type', None) == 'MedicalCode')
+    #     vital_count = sum(1 for e in entities if getattr(e, 'type', None) == 'ObservationNumber')
+    #     fact_items.append({"title": "Medications Detected:", "value": f"{med_count}"})
+    #     fact_items.append({"title": "Conditions Detected:", "value": f"{condition_count}"})
+    #     fact_items.append({"title": "Vitals Detected:", "value": f"{vital_count}"})
+    #     body.append({
+    #         "type": "FactSet",
+    #         "facts": fact_items
+    #     })
+    #
+    #     return models.VisualizationResource(
+    #         id=str(uuid4()),
+    #         subtype="note",
+    #         cardTitle="Medication Summary & Recommendations (Demo)",
+    #         adaptive_card_payload={
+    #             "type": "AdaptiveCard",
+    #             "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+    #             "version": "1.6",
+    #             "body": body,
+    #             "actions": [
+    #                 {
+    #                     "type": "Action.Execute",
+    #                     "title": "Dismiss",
+    #                     "verb": "reject",
+    #                     "id": "rejectAction",
+    #                     "data": {
+    #                         "dragonExtensionToolName": "RejectCardTool"
+    #                     }
+    #                 }
+    #             ]
+    #         },
+    #         payloadSources=[
+    #             {"identifier": str(uuid4()), "description": "Python Demo Medication Analysis Service", "url": "http://localhost/v1/process"}
+    #         ],
+    #         dragonCopilotCopyData="medication_analysis|demo:1|generated:" + datetime.now(timezone.utc).isoformat(),
+    #         references=[],
+    #         partnerLogo="https://contoso.com/logo.png",
+    #     )
+    #
+    # def _timeline_card(self, entities: List[Any]) -> models.VisualizationResource:
+    #     # Simplified timeline card
+    #     body: List[Dict[str, Any]] = [
+    #         {
+    #             "type": "Container",
+    #             "items": [
+    #                 {"type": "TextBlock", "text": "Lab / Clinical Trend Analysis (Demo)", "weight": "Bolder", "size": "Default"},
+    #                 {"type": "TextBlock", "text": f"Detected {len(entities)} entities to date", "size": "Small", "spacing": "Small"}
+    #             ]
+    #         }
+    #     ]
+    #     return models.VisualizationResource(
+    #         id=str(uuid4()),
+    #         subtype="timeline",
+    #         cardTitle="Recent Clinical Entities Timeline (Demo)",
+    #         adaptive_card_payload={
+    #             "type": "AdaptiveCard",
+    #             "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+    #             "version": "1.6",
+    #             "body": body,
+    #             "actions": [
+    #                 {
+    #                     "type": "Action.Execute",
+    #                     "title": "Dismiss",
+    #                     "verb": "reject",
+    #                     "id": "rejectAction",
+    #                     "data": {
+    #                         "dragonExtensionToolName": "RejectCardTool"
+    #                     }
+    #                 }
+    #             ]
+    #         },
+    #         payloadSources=[
+    #             {"identifier": str(uuid4()), "description": "Python Demo Timeline Service", "url": "http://localhost/v1/process"}
+    #         ],
+    #         dragonCopilotCopyData="lab_timeline|demo:1|generated:" + datetime.now(timezone.utc).isoformat(),
+    #         partnerLogo="https://contoso.com/logo.png",
+    #         references=[],
+    #     )
