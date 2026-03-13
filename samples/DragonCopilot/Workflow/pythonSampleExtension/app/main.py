@@ -1,18 +1,19 @@
 from fastapi import FastAPI, Header, HTTPException, Request
-from fastapi.exceptions import RequestValidationError
+# RequestValidationError import kept for reference; handler is commented out below
+# from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse, RedirectResponse
 from .models import DragonStandardPayload, ProcessResponse
 from .service import ProcessingService
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone
 from .config import get_settings
 import logging
 
 logger = logging.getLogger("dragon.pyextension")
 logging.basicConfig(level=logging.INFO, format="[%(asctime)s] %(levelname)s %(name)s - %(message)s")
 
-app = FastAPI(title="Dragon Sample Extension (Python)", version="1.0.0")
-service = ProcessingService()
 settings = get_settings()
+app = FastAPI(title=settings.app_name, version=settings.version)
+service = ProcessingService()
 
 @app.middleware("http")
 async def header_logging_middleware(request: Request, call_next):  # basic structured log of tracing headers
@@ -33,7 +34,7 @@ async def root_redirect():
 
 @app.get("/health")
 async def root_health():
-    return {"status": "healthy", "timestamp": settings.version}
+    return {"status": "healthy", "version": settings.version}
 
 @app.get("/v1/health")
 async def versioned_health():
@@ -66,12 +67,11 @@ async def process_endpoint(
     x_ms_correlation_id: str | None = Header(default=None, alias="x-ms-correlation-id"),
 ):
     try:
-        # Generate a timestamp for the incoming request using datetime.now
-        # set timezone to berlin time UTC+2
-        start_time = datetime.now(timezone.utc).astimezone(timezone(timedelta(hours=2)))
-
+        start_time = datetime.now(timezone.utc)
         logger.info("Processing incoming request at %s", start_time)
         resp = service.process(payload, x_ms_request_id, x_ms_correlation_id)
+        elapsed = datetime.now(timezone.utc) - start_time
+        logger.info("Request processed in %s", elapsed)
         return resp
     except HTTPException:
         raise

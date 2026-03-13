@@ -23,7 +23,8 @@ A Python FastAPI implementation that mirrors the C# `SampleExtension.Web` for Dr
 	- [4.1 Testing APIs for Linux / Mac](#41-testing-apis-for-linux--mac)
 	- [4.2 Testing APIs for Windows](#42-testing-apis-for-windows)
   - [5. Response Structure Example](#5-response-structure-example)
-  - [6. License](#6-license)
+  - [6. Deploying Your Extension](#6-deploying-your-extension)
+  - [7. License](#7-license)
 
 ---
 ## 1. Features
@@ -191,5 +192,10 @@ You shall see the workflow sample server returns response similar to the followi
 }
 ```
 ---
-## 6. License
+## 6. Deploying Your Extension
+
+The steps above cover running and testing the Python sample extension locally. To fully deploy your extension—including setting up DevTunnels, packaging with the dragon-extension CLI, registering in Azure, uploading to the Dragon Admin Center, and testing inside Dragon Copilot—follow the instructions in the repository root [QUICKSTART.md](../../../../QUICKSTART.md).
+
+---
+## 7. License
 See root `LICENSE`.

@@ -1,6 +1,6 @@
 from __future__ import annotations
-from typing import Any, Dict, List, Optional, Callable
-from pydantic import BaseModel, Field, ConfigDict
+from typing import Any, Dict, List, Optional
+from pydantic import BaseModel, Field
 from enum import Enum
 
 # Expanded model layer to better mirror the C# sample (not full parity but structurally closer)
@@ -14,14 +14,8 @@ class ObservationValue(BaseModel):
     text: Optional[str] = None
     conceptId: Optional[str] = None
 
-class Context(BaseModel):
-    id: Optional[str] = Field(None, alias="id")
-    contentType: Optional[str] = None
-    displayDescription: Optional[str] = None
-
 class BaseResource(BaseModel):
     id: Optional[str] = None
-    # context: Optional[Context] = None
 
 class MedicalCode(BaseResource):
     type: str = Field("MedicalCode", frozen=True)
@@ -45,7 +39,6 @@ class VisualizationResource(BaseResource):
     subtype: str | None = None
     cardTitle: str | None = None
     adaptive_card_payload: Any | None = None
-    # actions: List[Dict[str, Any]] | None = None
     payloadSources: List[Dict[str, Any]] | None = None
     dragonCopilotCopyData: str | None = None
     partnerLogo: str | None = None
@@ -55,9 +48,11 @@ class NoteResource(BaseModel):
     content: Optional[str] = None
 
 ## subtype of note shall be lower case 'note'
-def _lower_alias(field_name: str) -> str:
-    """Generate lowercase aliases for JSON serialization."""
-    return field_name.lower()
+# _lower_alias is not currently used because the alias config on Note is
+# commented out. Uncomment when alias generation is re-enabled.
+# def _lower_alias(field_name: str) -> str:
+#     """Generate lowercase aliases for JSON serialization."""
+#     return field_name.lower()
 
 class Note(BaseModel):
     # Ensure all fields serialize with lowercase keys (even if Python attribute had capitals)
