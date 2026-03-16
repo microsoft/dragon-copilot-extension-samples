@@ -1,0 +1,17 @@
+# CODEOWNERS file for dragon-copilot-extension-samples-test
+# This file defines who should be automatically requested for review on pull requests.
+# 
+# Each line is a file pattern followed by one or more owners.
+# These owners will be automatically requested for review when someone opens a pull request
+# that modifies files matching the pattern.
+#
+# Documentation: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# Default owner for all files in the repository
+* @brandonpollett
+
+# Connector CLI domain
+/tools/src/domains/connector/* @mfrongillo35
+
+# Extension CLI domain
+/tools/src/domains/extension/* @kredasim @mikhail-dyakov

@@ -29,9 +29,9 @@ This repository contains sample code and tools for developing **Dragon Copilot E
    - Shows request/response handling, authentication, processing logic
    - Port 5181 (HTTP), 7156 (HTTPS)
 
-2. **CLI Tools** (`tools/dragon-extension-cli/`)
+2. **CLI Tools** (`tools/dragon-copilot-cli/`)
    - TypeScript/Node.js CLI for extension development
-   - Commands: `init`, `generate`, `validate`, `package`
+   - Commands: `connector init`, `connector validate`, `connector package`
    - Creates extension manifests and publisher configurations
 
 3. **Documentation** (`doc/`)
@@ -61,24 +61,27 @@ public async Task<ProcessResponse> ProcessAsync([FromBody] ProcessRequest reques
 name: extension-name
 description: Extension description
 version: 0.0.1
+auth:
+  tenantId: 12345678-1234-1234-1234-123456789abc
 tools:
   - name: tool-name
     description: Tool description
     endpoint: https://api.example.com/v1/process
+    trigger: AutoRun  # Optional: AutoRun (default) or AdaptiveCardAction
     inputs:
       - name: note
         description: Clinical note input
-        data: DSP/Note
+        content-type: application/vnd.ms-dragon.dsp.note+json
     outputs:
       - name: processed-data
         description: Processed results
-        data: DSP
+        content-type: application/vnd.ms-dragon.dsp+json
 ```
 
 ## Common Development Workflows
 
 ### Creating New Extensions
-1. Use CLI: `dragon-extension init`
+1. Use CLI: `dragon-copilot connector init`
 2. Copy sample project as starting point
 3. Modify `ProcessingService.cs` for custom business logic
 4. Update `extension.yaml` manifest
@@ -138,7 +141,7 @@ tools:
 ## Key Files to Reference
 - `samples/DragonCopilot/Workflow/SampleExtension.Web/` - Main extension example
 - `src/Dragon.Copilot.Models/` - Data models and contracts
-- `tools/dragon-extension-cli/` - Development tooling
+- `tools/dragon-copilot-cli/` - Development tooling
 - `doc/Authentication.md` - Security implementation guide
 - `QUICKSTART.md` - Getting started guide
 

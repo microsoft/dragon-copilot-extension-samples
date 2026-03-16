@@ -1,0 +1,82 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Dragon Copilot EHR Connector Manifest",
+  "type": "object",
+  "required": [
+    "name",
+    "description",
+    "version",
+    "partner-id",
+    "clinical-application-name",
+    "server-authentication",
+    "note-sections",
+    "instance"
+  ],
+  "properties": {
+    "name": {
+      "type": "string",
+      "pattern": "^[a-z0-9-]+$",
+      "minLength": 1,
+      "description": "EHR connector name (lowercase letters, numbers, and hyphens only)"
+    },
+    "description": {
+      "type": "string",
+      "minLength": 1,
+      "description": "EHR connector description"
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$",
+      "description": "Version in x.y.z format"
+    },
+    "partner-id": {
+      "type": "string",
+      "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$",
+      "description": "Partner identifier as GUID"
+    },
+    "clinical-application-name": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Name of the clinical application"
+    },
+    "server-authentication": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["issuer", "identity-claim", "identity-value"],
+        "properties": {
+          "issuer": {
+            "type": "string",
+            "format": "uri",
+            "description": "Authentication issuer URI"
+          },
+          "identity-claim": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Identity claim name"
+          },
+          "identity-value": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$"
+            },
+            "description": "Array of identity values (GUIDs)"
+          }
+        },
+        "additionalProperties": false
+      },
+      "description": "Server authentication configuration"
+    },
+    "note-sections": {
+      "type": "object",
+      "description": "Note sections mapping"
+    },
+    "instance": {
+      "type": "object",
+      "description": "Instance configuration for the connector"
+    }
+  },
+  "additionalProperties": false
+}

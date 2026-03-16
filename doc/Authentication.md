@@ -49,6 +49,8 @@ The production configuration in file [appsettings.json](../samples/DragonCopilot
 - `HeaderName`: Custom header name for license keys (e.g., `"X-License-Key"`)
 - `ValidKeys`: Array of valid license key values
 
+> **CLI Note**: When you generate Clinical App Connector or Physician Workflow manifests with the `dragon-copilot` CLI, the `auth.tenantId` field captured in `extension.yaml` must match the `TenantId` configured here. The CLI wizard will prompt for the same tenant information to keep runtime and manifest settings aligned.
+
 ## Microsoft Entra ID (JWT) Authentication
 
 ### Implementation Features

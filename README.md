@@ -12,7 +12,7 @@ Welcome! This repository contains sample code illustrating the Dragon Copilot ex
     - [1. Clone \& Start (Windows)](#1-clone--start-windows)
   - [📦 Samples](#-samples)
   - [🛠️ Tools](#️-tools)
-    - [Dragon Extension CLI](#dragon-extension-cli)
+    - [Dragon Copilot CLI](#dragon-copilot-cli)
   - [🤝 Contributing](#-contributing)
   - [📄 License](#-license)
 
@@ -20,9 +20,16 @@ Welcome! This repository contains sample code illustrating the Dragon Copilot ex
 
 This repo includes:
 
-- Sample extension with best practices
-- CLI tools to initialize & package extension
+- Sample **Workflow Extension** with best practices
+- CLI tools to initialize & package both **Extensions** and **Clinical Application Connectors**
 - [Additional Documentation](doc/)
+
+### Extensions vs. Clinical Application Connectors
+
+| Type | Description | Use Case |
+|------|-------------|----------|
+| **Workflow Extension** | Custom AI-powered extensions with automation scripts, event triggers, and dependencies | Extend Dragon Copilot with custom clinical data processing |
+| **Clinical Application Connector** | EHR integrations and API connectors that interface with clinical applications | Connect Dragon Copilot to external clinical systems |
 
 ## 🚀 Quick Start
 Look here for a guide describing the process from downloading code to testing it in Dragon Copilot: [QUICKSTART.md](/QUICKSTART.md)
@@ -42,21 +49,42 @@ cd dragon-copilot-extension-samples
 
 ## 🛠️ Tools
 
-### Dragon Extension CLI
+### Dragon Copilot CLI
 
-CLI to easily generate manifest & package the extension, getting ready to publish or upload the extension.
+CLI to easily generate manifests and package integrations for publishing or upload. The CLI supports two types of integrations:
 
-Quick usage:
+#### Installation
 
 ```bash
-cd tools/dragon-extension-cli
+cd tools/dragon-copilot-cli
+npm install
 npm run build
 npm link
-dragon-extension init
-dragon-extension package
 ```
 
-See [CLI README](tools/dragon-extension-cli/README.md) for details.
+#### Extension Commands
+
+For creating **Workflow Extensions** with automation scripts, event triggers, and dependencies:
+
+```bash
+dragon-copilot extension init       # Initialize a new extension project
+dragon-copilot extension generate   # Generate or update extension manifest
+dragon-copilot extension validate   # Validate extension manifest
+dragon-copilot extension package    # Package for distribution
+```
+
+#### Connector Commands
+
+For creating **Clinical Application Connectors** (EHR integrations, API connectors):
+
+```bash
+dragon-copilot connector init       # Initialize a new connector project
+dragon-copilot connector generate   # Generate or update connector manifest
+dragon-copilot connector validate   # Validate connector manifest
+dragon-copilot connector package    # Package for distribution
+```
+
+See [CLI README](tools/dragon-copilot-cli/README.md) for detailed options and advanced usage.
 
 ## 🤝 Contributing
 
