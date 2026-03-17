@@ -203,7 +203,7 @@ class ProcessingService:
                 {
                     "identifier": str(uuid4()),
                     "description": "Sample Extension Clinical Entity Extractor (Python)",
-                    "url": "http://localhost/v1/process"
+                    "url": "http://localhost:5181/v1/process"
                 }
             ],
             dragonCopilotCopyData="Clinical entities extracted from note content",
@@ -263,7 +263,7 @@ class ProcessingService:
     #             ]
     #         },
     #         payloadSources=[
-    #             {"identifier": str(uuid4()), "description": "Python Demo Medication Analysis Service", "url": "http://localhost/v1/process"}
+    #             {"identifier": str(uuid4()), "description": "Python Demo Medication Analysis Service", "url": "http://localhost:5181/v1/process"}
     #         ],
     #         dragonCopilotCopyData="medication_analysis|demo:1|generated:" + datetime.now(timezone.utc).isoformat(),
     #         references=[],
@@ -303,7 +303,7 @@ class ProcessingService:
     #             ]
     #         },
     #         payloadSources=[
-    #             {"identifier": str(uuid4()), "description": "Python Demo Timeline Service", "url": "http://localhost/v1/process"}
+    #             {"identifier": str(uuid4()), "description": "Python Demo Timeline Service", "url": "http://localhost:5181/v1/process"}
     #         ],
     #         dragonCopilotCopyData="lab_timeline|demo:1|generated:" + datetime.now(timezone.utc).isoformat(),
     #         partnerLogo="https://contoso.com/logo.png",
