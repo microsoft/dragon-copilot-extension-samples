@@ -4,7 +4,7 @@ A Python FastAPI implementation that mirrors the C# `SampleExtension.Web` for Dr
 
 - Clinical entity heuristic extraction (vitals, diabetes code, medication concept)
 - DSP-style `ProcessResponse` with multiple payload keys
-- Adaptive Card visualization + composite plugin result (`samplePluginResult`)
+- Adaptive Card visualization via the `adaptive-card` payload
 - Comparison tooling against the C# service
 - Section-based test payload simulating real clinical note structure
 
@@ -136,47 +136,13 @@ You shall see the workflow sample server returns response similar to the followi
 			"schema_version": "0.1",
 			"resources": [ { "type": "ObservationNumber" }, { "type": "MedicalCode" } ]
 		},
-		"sample-entities-adaptive-card": {
+		"adaptive-card": {
 			"schema_version": "0.1",
 			"resources": [ 
 				{ 
 					"id": "card1",
 					"type": "AdaptiveCard",
 					"subtype": "note",
-					"adaptive_card_payload": { 
-						"type": "AdaptiveCard",
-                		"$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
-                		"version": "1.6",
-						"body": []
-					},
-					"payloadSources": [],
-					"dragonCopilotCopyData": "metadata_for_platform"
-				}
-			]
-		},
-		"samplePluginResult": {
-			"schema_version": "0.1",
-			"resources": [
-				{ 
-					"id": "top1",
-					"type": "AdaptiveCard",
-					"subtype": "note", 
-					"cardTitle": "Medication Summary & Recommendations (Demo)",
-					"adaptive_card_payload": { 
-						"type": "AdaptiveCard",
-                		"$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
-                		"version": "1.6",
-						"body": []
-					},
-					"payloadSources": [],
-					"dragonCopilotCopyData": "metadata_for_platform"
-
-				},
-				{ 
-					"id": "bottom1",
-					"type": "AdaptiveCard",
-					"subtype": "timeline",
-					"cardTitle": "Recent Clinical Entities Timeline (Demo)",
 					"adaptive_card_payload": { 
 						"type": "AdaptiveCard",
                 		"$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
