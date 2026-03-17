@@ -32,8 +32,7 @@ A Python FastAPI implementation that mirrors the C# `SampleExtension.Web` for Dr
 - `/health` & `/v1/health` endpoints
 - `/v1/process` returning:
 	- `sample-entities`
-	- `sample-entities-adaptive-card`
-	- `samplePluginResult` (Medication Summary + Timeline cards)
+	- `adaptive-card`
 
 ---
 ## 2. Quick Start
