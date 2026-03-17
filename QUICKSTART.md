@@ -33,10 +33,6 @@ The sample project in this repository demonstrates a **Workflow Extension**. The
 
 ## 🚀 Running Locally
 
-Prior to running through this document, you may want to read through the Microsoft Learn [documentation](https://learn.microsoft.com/en-us/industry/healthcare/dragon-copilot/extensions/workflow-app-overview) outlining how your extension will interface with the overall Dragon Copilot solution.
-
-## 🚀 Running Locally
-
 ### Development Prerequisites
 * DotNet 9
 * Node 22.20.0
