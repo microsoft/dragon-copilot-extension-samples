@@ -67,7 +67,7 @@ Run the following cmds in the Powershell to start server.
 cd .\samples\DragonCopilot\Workflow\pythonSampleExtension;
 
 # 2. create venv, activate venv and install packages
-python3.12 -m venv .venv && .\.venv\Scripts\activate && python3.12 -m pip install --upgrade pip && python3.12 -m pip install -r requirements.txt;
+python3.12 -m venv .venv; . .\.venv\Scripts\Activate.ps1; python3.12 -m pip install --upgrade pip; python3.12 -m pip install -r requirements.txt;
 
 # 3. start server with uvicorn invocation
 python3.12 -m uvicorn app.main:app --host 0.0.0.0 --port 5181 --reload
