@@ -64,7 +64,7 @@ const defaultInstance: ConnectorIntegrationManifest['instance'] = {
     'use-client-authentication': 'yes'
   },
   'context-retrieval': {
-    instance: buildContextItems('base_url', 'in-bound-client-id', 'out-bound-client-id', 'out-bound-issuer', 'out-bound-secret')
+    instance: buildContextItems('base-url', 'in-bound-client-id', 'out-bound-client-id', 'out-bound-issuer', 'out-bound-secret')
   }
 };
 
@@ -150,7 +150,7 @@ const ehrInstance: ConnectorIntegrationManifest['instance'] = {
     ]
   },
   'context-retrieval': {
-    instance: buildContextItems('base_url', 'ehr-user_id', 'in-bound-issuer', 'out-bound-issuer', 'out-bound-client-id')
+    instance: buildContextItems('base-url', 'ehr-user-id', 'in-bound-issuer', 'out-bound-issuer', 'out-bound-client-id')
   }
 };
 
@@ -177,7 +177,7 @@ const apiInstance: ConnectorIntegrationManifest['instance'] = {
   },
   'context-retrieval': {
     instance: adjustContextRequired(
-      buildContextItems('base_url', 'in-bound-client-id', 'out-bound-client-id', 'out-bound-secret'),
+      buildContextItems('base-url', 'in-bound-client-id', 'out-bound-client-id', 'out-bound-secret'),
       { 'out-bound-secret': 'no' }
     )
   }
@@ -228,7 +228,7 @@ const dataSyncInstance: ConnectorIntegrationManifest['instance'] = {
     ]
   },
   'context-retrieval': {
-    instance: buildContextItems('base_url', 'in-bound-client-id', 'out-bound-issuer', 'out-bound-client-id', 'out-bound-secret')
+    instance: buildContextItems('base-url', 'in-bound-client-id', 'out-bound-issuer', 'out-bound-client-id', 'out-bound-secret')
   }
 };
 
@@ -248,7 +248,7 @@ const customInstance: ConnectorIntegrationManifest['instance'] = {
     'use-client-authentication': 'yes'
   },
   'context-retrieval': {
-    instance: buildContextItems('base_url')
+    instance: buildContextItems('base-url')
   }
 };
 

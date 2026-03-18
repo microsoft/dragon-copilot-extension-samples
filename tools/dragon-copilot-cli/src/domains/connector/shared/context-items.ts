@@ -10,14 +10,14 @@ export interface ContextItemCatalogEntry {
 
 const RAW_CONTEXT_ITEM_CATALOG: ContextItemCatalogEntry[] = [
   {
-    name: 'base_url',
+    name: 'base-url',
     type: 'url',
     description: 'base url need for API calls.  These are typically FHIR calls.',
     defaultRequired: 'yes',
     defaultInclude: true
   },
   {
-    name: 'ehr-user_id',
+    name: 'ehr-user-id',
     type: 'string',
     description: 'optional EHR user id for FHIR API calls.',
     defaultRequired: 'no',
@@ -64,6 +64,11 @@ export const CONTEXT_ITEM_CATALOG: ReadonlyArray<ContextItemCatalogEntry> = RAW_
   entry => Object.freeze({ ...entry })
 );
 
+const LEGACY_CONTEXT_ITEM_ALIASES: Readonly<Record<string, string>> = Object.freeze({
+  'base_url': 'base-url',
+  'ehr-user_id': 'ehr-user-id'
+});
+
 const CONTEXT_ITEM_MAP = new Map(CONTEXT_ITEM_CATALOG.map(entry => [entry.name, entry]));
 
 export const REQUIRED_CONTEXT_ITEM_NAMES: ReadonlyArray<string> = CONTEXT_ITEM_CATALOG.filter(
@@ -71,11 +76,13 @@ export const REQUIRED_CONTEXT_ITEM_NAMES: ReadonlyArray<string> = CONTEXT_ITEM_C
 ).map(entry => entry.name);
 
 export function getContextItemDefinition(name: string): ContextItemCatalogEntry | undefined {
-  return CONTEXT_ITEM_MAP.get(name);
+  const normalizedName = LEGACY_CONTEXT_ITEM_ALIASES[name] ?? name;
+  return CONTEXT_ITEM_MAP.get(normalizedName);
 }
 
 export function cloneContextItem(name: string): ContextRetrievalItem | undefined {
-  const definition = CONTEXT_ITEM_MAP.get(name);
+  const normalizedName = LEGACY_CONTEXT_ITEM_ALIASES[name] ?? name;
+  const definition = CONTEXT_ITEM_MAP.get(normalizedName);
   if (!definition) {
     return undefined;
   }
