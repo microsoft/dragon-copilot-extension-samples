@@ -53,7 +53,7 @@ const PARTNER_MANIFEST = [
   '    use-client-authentication: yes',
   '  context-retrieval:',
   '    instance:',
-  '      - name: base_url',
+  '      - name: base-url',
   '        type: url',
   '        description: base url need for API calls.  These are typically FHIR calls.',
   '        required: yes',

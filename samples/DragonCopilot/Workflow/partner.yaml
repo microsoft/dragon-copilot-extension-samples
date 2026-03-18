@@ -70,11 +70,11 @@ instance:
         required: no
   context-retrieval:
     instance:
-      - name: base_url
+      - name: base-url
         type: url
         description: Base URL needed for API calls. These are typically FHIR calls.
         required: yes
-      - name: ehr-user_id
+      - name: ehr-user-id
         type: string
         description: Optional EHR user id for FHIR API calls.
         required: no
