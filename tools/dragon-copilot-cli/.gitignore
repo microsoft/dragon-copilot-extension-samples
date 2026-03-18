@@ -22,3 +22,8 @@ test-*/
 # Logs
 *.log
 npm-debug.log*
+
+# Local connector artifacts
+/assets/
+/extension.yaml
+/publisher.json
