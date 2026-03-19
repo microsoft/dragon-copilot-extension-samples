@@ -1,0 +1,20 @@
+name: sample-clinical-extraction-py
+description: Python FastAPI version of clinical entity extraction sample
+version: 0.0.1
+auth:
+  tenantId: 00000000-0000-0000-0000-000000000000
+tools:
+  - name: clinical-entity-extractor-py
+    description: Extracts certain clinical entities (Python FastAPI)
+    endpoint: http://localhost:5181/v1/process
+    inputs:
+      - name: note
+        description: Note
+        content-type: application/vnd.ms-dragon.dsp.note+json
+    outputs:
+      - name: sample-entities
+        description: Coded clinical entities
+        content-type: application/vnd.ms-dragon.dsp+json
+      - name: adaptive-card
+        description: Coded clinical entities in Adaptive Card format
+        content-type: application/vnd.microsoft.card.adaptive+json
