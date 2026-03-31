@@ -20,7 +20,7 @@ Welcome! This repository contains sample code illustrating the Dragon Copilot ex
 
 This repo includes:
 
-- Sample **Workflow Extension** with best practices
+- Sample **Physician Workflow** with best practices
 - CLI tools to initialize & package both **Extensions** and **Clinical Application Connectors**
 - [Additional Documentation](doc/)
 
@@ -28,7 +28,7 @@ This repo includes:
 
 | Type | Description | Use Case |
 |------|-------------|----------|
-| **Workflow Extension** | Custom AI-powered extensions with automation scripts, event triggers, and dependencies | Extend Dragon Copilot with custom clinical data processing |
+| **Physician Workflow** | Custom AI-powered extensions with automation scripts, event triggers, and dependencies | Extend Dragon Copilot with custom clinical data processing |
 | **Clinical Application Connector** | EHR integrations and API connectors that interface with clinical applications | Connect Dragon Copilot to external clinical systems |
 
 ## 🚀 Quick Start
@@ -44,7 +44,7 @@ cd dragon-copilot-extension-samples
 
 | Sample Name  | Description  | Location |
 |--------------|------------- |----------|
-| Workflow Extension | C# Asp.Net WebApplication showing Dragon workflow extension API Contract | [SampleExtension.Web](./samples/DragonCopilot/Workflow/SampleExtension.Web/) |
+| Physician Workflow | C# Asp.Net WebApplication showing Dragon workflow extension API Contract | [SampleExtension.Web](./samples/DragonCopilot/Workflow/SampleExtension.Web/) |
 | Audio Samples | Synthetic audio recordings of clinical encounters | [Audio-Recordings](./samples/audio-recordings/) |
 
 ## 🛠️ Tools
@@ -62,15 +62,15 @@ npm run build
 npm link
 ```
 
-#### Extension Commands
+#### Physician Extension Commands
 
-For creating **Workflow Extensions** with automation scripts, event triggers, and dependencies:
+For creating **Physician Workflows** with automation scripts, event triggers, and dependencies:
 
 ```bash
-dragon-copilot extension init       # Initialize a new extension project
-dragon-copilot extension generate   # Generate or update extension manifest
-dragon-copilot extension validate   # Validate extension manifest
-dragon-copilot extension package    # Package for distribution
+dragon-copilot physician init       # Initialize a new extension project
+dragon-copilot physician generate   # Generate or update extension manifest
+dragon-copilot physician validate   # Validate extension manifest
+dragon-copilot physician package    # Package for distribution
 ```
 
 #### Connector Commands

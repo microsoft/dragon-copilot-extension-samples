@@ -3,10 +3,10 @@
 import Ajv from 'ajv';
 import type { ErrorObject } from 'ajv';
 import addFormats from 'ajv-formats';
-import { readFileSync } from 'fs';
+import { readFileSync, existsSync } from 'fs';
 import { join, resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
-import type { DragonExtensionManifest, PublisherConfig } from '../domains/extension/types.js';
+import type { DragonExtensionManifest } from '../domains/physician/types.js';
 import type { ConnectorIntegrationManifest } from '../domains/connector/types.js';
 
 type ManifestLike = DragonExtensionManifest | ConnectorIntegrationManifest;
@@ -51,30 +51,43 @@ function getCurrentModuleDir(): string {
 
 function getSchemaPath(): string {
   const currentDir = getCurrentModuleDir();
-  const isTestEnvironment = process?.env?.NODE_ENV === 'test' ||
-                           process?.env?.JEST_WORKER_ID !== undefined ||
-                           currentDir.includes('__tests__') ||
-                           currentDir.includes('test');
 
-  if (isTestEnvironment) {
-    return resolve(currentDir, '..', 'schemas');
-  }
+  const candidates = [
+    // Bundle: schemas sit next to the bundle file in dist/schemas/
+    resolve(currentDir, 'schemas'),
+    // Development/test: schema-validator lives one level below schemas
+    resolve(currentDir, '..', 'schemas'),
+    resolve(currentDir, '..', '..', 'schemas'),
+    resolve(currentDir, '..', '..', '..', 'schemas'),
+    resolve(process.cwd(), 'src', 'schemas'),
+    resolve(process.cwd(), 'dist', 'schemas'),
+  ];
 
-  if (currentDir.includes('dist')) {
-    return resolve(currentDir, '..', 'schemas');
+  for (const candidate of candidates) {
+    if (existsSync(join(candidate, 'extension-manifest.json'))) {
+      return candidate;
+    }
   }
 
   return resolve(currentDir, '..', 'schemas');
 }
 
 const schemaDir = getSchemaPath();
-const extensionManifestSchema = JSON.parse(readFileSync(join(schemaDir, 'extension-manifest.json'), 'utf8'));
-const connectorManifestSchema = JSON.parse(readFileSync(join(schemaDir, 'connector-manifest.json'), 'utf8'));
-const publisherSchema = JSON.parse(readFileSync(join(schemaDir, 'publisher-config.json'), 'utf8'));
+
+function loadSchema(name: string): any {
+  // Use embedded schemas when available (bundled/SEA mode)
+  if (typeof globalThis !== 'undefined' && (globalThis as any).__EMBEDDED_SCHEMAS__?.[name]) {
+    return (globalThis as any).__EMBEDDED_SCHEMAS__[name];
+  }
+  // Fall back to filesystem loading (development/built mode)
+  return JSON.parse(readFileSync(join(schemaDir, name), 'utf8'));
+}
+
+const extensionManifestSchema = loadSchema('extension-manifest.json');
+const connectorManifestSchema = loadSchema('connector-manifest.json');
 
 const validateExtensionSchema = ajv.compile(extensionManifestSchema);
 const validateConnectorSchema = ajv.compile(connectorManifestSchema);
-const validatePublisherSchemaInternal = ajv.compile(publisherSchema);
 
 export interface SchemaError {
   instancePath: string;
@@ -110,10 +123,6 @@ export function validateConnectorManifest(manifest: ConnectorIntegrationManifest
   };
 }
 
-export function validatePublisherConfig(config: PublisherConfig): ValidationResult {
-  return validatePublisherSchema(config);
-}
-
 export function validateExtensionManifestSchema(manifest: DragonExtensionManifest): ValidationResult {
   const isValid = validateExtensionSchema(manifest);
   return {
@@ -127,14 +136,6 @@ export function validateConnectorManifestSchema(manifest: ConnectorIntegrationMa
   return {
     isValid,
     errors: isValid ? [] : (validateConnectorSchema.errors || []).map(convertAjvError)
-  };
-}
-
-export function validatePublisherSchema(config: PublisherConfig): ValidationResult {
-  const isValid = validatePublisherSchemaInternal(config);
-  return {
-    isValid,
-    errors: isValid ? [] : (validatePublisherSchemaInternal.errors || []).map(convertAjvError)
   };
 }
 
@@ -204,14 +205,12 @@ function convertAjvError(ajvError: ErrorObject): SchemaError {
 export function validateFieldValue(
   value: unknown,
   fieldPath: string,
-  schemaType: 'extension-manifest' | 'connector-manifest' | 'publisher'
+  schemaType: 'extension-manifest' | 'connector-manifest'
 ): string | true {
   const schema =
     schemaType === 'extension-manifest'
       ? extensionManifestSchema
-      : schemaType === 'connector-manifest'
-        ? connectorManifestSchema
-        : publisherSchema;
+      : connectorManifestSchema;
   const fieldSchema = extractFieldSchema(fieldPath, schema);
 
   if (!fieldSchema) {
@@ -280,4 +279,4 @@ export function getFieldDisplayName(path: string): string {
   return fieldNames[path] || path;
 }
 
-export { extensionManifestSchema, connectorManifestSchema, publisherSchema };
+export { extensionManifestSchema, connectorManifestSchema };

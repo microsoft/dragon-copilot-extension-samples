@@ -4,7 +4,7 @@ import addFormats from 'ajv-formats';
 import { readFileSync, existsSync } from 'fs';
 import { join, resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
-import type { ConnectorIntegrationManifest, PublisherConfig } from '../types.js';
+import type { ConnectorIntegrationManifest } from '../types.js';
 
 const ajv = new Ajv({ allErrors: true, strict: false });
 addFormats(ajv);
@@ -39,6 +39,8 @@ function getSchemaPath(): string {
   const currentDir = getCurrentModuleDir();
 
   const candidates = [
+    // Bundle: schemas sit next to the bundle file in dist/schemas/
+    resolve(currentDir, 'schemas'),
     resolve(currentDir, '..', 'schemas'),
     resolve(currentDir, '..', '..', 'schemas'),
     resolve(currentDir, '..', '..', '..', 'schemas'),
@@ -56,11 +58,19 @@ function getSchemaPath(): string {
 }
 
 const schemaDir = getSchemaPath();
-const connectorManifestSchema = JSON.parse(readFileSync(join(schemaDir, 'connector-manifest.json'), 'utf8'));
-const publisherSchema = JSON.parse(readFileSync(join(schemaDir, 'publisher-config.json'), 'utf8'));
+
+function loadSchema(name: string): any {
+  // Use embedded schemas when available (bundled/SEA mode)
+  if (typeof globalThis !== 'undefined' && (globalThis as any).__EMBEDDED_SCHEMAS__?.[name]) {
+    return (globalThis as any).__EMBEDDED_SCHEMAS__[name];
+  }
+  // Fall back to filesystem loading (development/built mode)
+  return JSON.parse(readFileSync(join(schemaDir, name), 'utf8'));
+}
+
+const connectorManifestSchema = loadSchema('connector-manifest.json');
 
 const validateConnectorSchema = ajv.compile(connectorManifestSchema);
-const validatePublisherSchemaInternal = ajv.compile(publisherSchema);
 
 export interface SchemaError {
   instancePath: string;
@@ -86,23 +96,11 @@ export function validateConnectorManifest(manifest: ConnectorIntegrationManifest
   };
 }
 
-export function validatePublisherConfig(config: PublisherConfig): ValidationResult {
-  return validatePublisherSchema(config);
-}
-
 export function validateConnectorManifestSchema(manifest: ConnectorIntegrationManifest): ValidationResult {
   const isValid = validateConnectorSchema(manifest);
   return {
     isValid,
     errors: isValid ? [] : (validateConnectorSchema.errors || []).map(convertAjvError)
-  };
-}
-
-export function validatePublisherSchema(config: PublisherConfig): ValidationResult {
-  const isValid = validatePublisherSchemaInternal(config);
-  return {
-    isValid,
-    errors: isValid ? [] : (validatePublisherSchemaInternal.errors || []).map(convertAjvError)
   };
 }
 
@@ -145,8 +143,8 @@ function convertAjvError(ajvError: ErrorObject): SchemaError {
   };
 }
 
-export function validateFieldValue(value: unknown, fieldPath: string, schemaType: 'manifest' | 'publisher'): string | true {
-  const schema = schemaType === 'manifest' ? connectorManifestSchema : publisherSchema;
+export function validateFieldValue(value: unknown, fieldPath: string, schemaType: 'manifest'): string | true {
+  const schema = connectorManifestSchema;
   const fieldSchema = extractFieldSchema(fieldPath, schema);
 
   if (!fieldSchema) {
@@ -220,5 +218,5 @@ export function getFieldDisplayName(path: string): string {
   return fieldNames[path] || path;
 }
 
-export { connectorManifestSchema, publisherSchema };
+export { connectorManifestSchema };
 

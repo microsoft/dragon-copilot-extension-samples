@@ -1,6 +1,6 @@
 import AjvModule from 'ajv';
 import addFormatsModule from 'ajv-formats';
-import type { DragonExtensionManifest, PublisherConfig } from '../types.js';
+import type { DragonExtensionManifest } from '../types.js';
 import { readFileSync, existsSync } from 'fs';
 import { join, resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
@@ -75,6 +75,8 @@ function getSchemaPath(): string {
   const currentDir = getCurrentModuleDir();
 
   const candidates = [
+    // Bundle: schemas sit next to the bundle file in dist/schemas/
+    resolve(currentDir, 'schemas'),
     resolve(currentDir, '..', 'schemas'),
     resolve(currentDir, '..', '..', 'schemas'),
     // Handle scenarios where CLI is invoked from another working directory (e.g., packaging script)
@@ -94,12 +96,20 @@ function getSchemaPath(): string {
 }
 
 const schemaDir = getSchemaPath();
-const manifestSchema = JSON.parse(readFileSync(join(schemaDir, 'extension-manifest.json'), 'utf8'));
-const publisherSchema = JSON.parse(readFileSync(join(schemaDir, 'publisher-config.json'), 'utf8'));
+
+function loadSchema(name: string): any {
+  // Use embedded schemas when available (bundled/SEA mode)
+  if (typeof globalThis !== 'undefined' && (globalThis as any).__EMBEDDED_SCHEMAS__?.[name]) {
+    return (globalThis as any).__EMBEDDED_SCHEMAS__[name];
+  }
+  // Fall back to filesystem loading (development/built mode)
+  return JSON.parse(readFileSync(join(schemaDir, name), 'utf8'));
+}
+
+const manifestSchema = loadSchema('extension-manifest.json');
 
 // Compile schemas for faster validation
 const validateManifest = ajv.compile(manifestSchema);
-const validatePublisher = ajv.compile(publisherSchema);
 
 /**
  * Schema validation error (directly from AJV)
@@ -139,14 +149,6 @@ export function validateExtensionManifest(manifest: DragonExtensionManifest): Va
 }
 
 /**
- * Complete validation for Publisher Configuration
- * Pure JSON Schema validation (no additional business rules needed)
- */
-export function validatePublisherConfig(config: PublisherConfig): ValidationResult {
-  return validatePublisherSchema(config);
-}
-
-/**
  * Pure JSON Schema validation for Extension Manifest
  */
 export function validateManifestSchema(manifest: DragonExtensionManifest): ValidationResult {
@@ -155,18 +157,6 @@ export function validateManifestSchema(manifest: DragonExtensionManifest): Valid
   return {
     isValid,
     errors: isValid ? [] : (validateManifest.errors || []).map(convertAjvError)
-  };
-}
-
-/**
- * Pure JSON Schema validation for Publisher Configuration
- */
-export function validatePublisherSchema(config: PublisherConfig): ValidationResult {
-  const isValid = validatePublisher(config);
-
-  return {
-    isValid,
-    errors: isValid ? [] : (validatePublisher.errors || []).map(convertAjvError)
   };
 }
 
@@ -215,8 +205,8 @@ function convertAjvError(ajvError: any): SchemaError {
 /**
  * Field validation for prompts
  */
-export function validateFieldValue(value: any, fieldPath: string, schemaType: 'manifest' | 'publisher'): string | true {
-  const schema = schemaType === 'manifest' ? manifestSchema : publisherSchema;
+export function validateFieldValue(value: any, fieldPath: string, schemaType: 'manifest'): string | true {
+  const schema = manifestSchema;
   const fieldSchema = extractFieldSchema(fieldPath, schema);
 
   if (!fieldSchema) {
@@ -288,4 +278,4 @@ export function getFieldDisplayName(path: string): string {
 }
 
 // Export schemas for external use (e.g., documentation generation)
-export { manifestSchema, publisherSchema };
+export { manifestSchema };

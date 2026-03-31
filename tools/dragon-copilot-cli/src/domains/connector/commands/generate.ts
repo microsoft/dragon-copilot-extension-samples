@@ -1,12 +1,11 @@
 import fs from 'fs-extra';
-const { readFileSync, writeFileSync, existsSync } = fs;
+const { readFileSync, writeFileSync } = fs;
 import yaml from 'js-yaml';
 const { load } = yaml;
 import chalk from 'chalk';
-import { confirm } from '@inquirer/prompts';
 import type { GenerateOptions, IntegrationDetails, ConnectorIntegrationManifest } from '../types.js';
 import { getTemplate } from '../templates/index.js';
-import { promptPublisherDetails, runConnectorManifestWizard } from '../shared/prompts.js';
+import { runConnectorManifestWizard } from '../shared/prompts.js';
 import { normalizeNoteSections } from '../shared/note-sections.js';
 import { dumpManifestYaml } from '../shared/yaml.js';
 
@@ -51,22 +50,6 @@ async function generateInteractive(options: GenerateOptions): Promise<void> {
 
   console.log(chalk.green('\n✅ Clinical Application Connector manifest generated!'));
   console.log(chalk.gray(`📁 Manifest saved to: ${manifestPath}`));
-
-  const publisherPath = 'publisher.json';
-  const publisherExists = existsSync(publisherPath);
-
-  const shouldManagePublisher = await confirm({
-    message: publisherExists
-      ? 'Update publisher.json while you\'re here?'
-      : 'Create publisher.json for marketplace metadata?',
-    default: !publisherExists
-  });
-
-  if (shouldManagePublisher) {
-    const publisherConfig = await promptPublisherDetails();
-    writeFileSync(publisherPath, JSON.stringify(publisherConfig, null, 2));
-    console.log(chalk.green(`✅ Publisher configuration ${publisherExists ? 'updated' : 'created'}!`));
-  }
 
   console.log(chalk.blue('\n🎯 What\'s Next?'));
   console.log(chalk.gray('   • Review server authentication issuers and identity claims'));

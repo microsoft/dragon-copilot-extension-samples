@@ -68,3 +68,7 @@ jobs:
     - name: Build
       working-directory: tools/dragon-copilot-cli
       run: npm run build --if-present
+
+    - name: Verify bundle
+      working-directory: tools/dragon-copilot-cli
+      run: npm run bundle

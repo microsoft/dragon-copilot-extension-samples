@@ -92,14 +92,14 @@ describe('CLI integration paths', () => {
     errorSpy.mockRestore();
   });
 
-  test('extension validate succeeds for a valid manifest', async () => {
+  test('physician validate succeeds for a valid manifest', async () => {
     const manifestPath = join(workingDir, 'extension.yaml');
     writeFileSync(manifestPath, EXTENSION_MANIFEST, 'utf8');
 
     const program = new Command();
     registerCommands(program);
 
-    await program.parseAsync(['node', 'cli', 'extension', 'validate', manifestPath]);
+    await program.parseAsync(['node', 'cli', 'physician', 'validate', manifestPath]);
 
     const combinedLogs = logSpy.mock.calls.flat().join(' ');
     expect(combinedLogs.toLowerCase()).toContain('validation passed');
