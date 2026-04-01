@@ -1,0 +1,5 @@
+{
+  "main": "dist/dragon-copilot-bundle.cjs",
+  "output": "dist/dragon-copilot.blob",
+  "disableExperimentalSEAWarning": true
+}

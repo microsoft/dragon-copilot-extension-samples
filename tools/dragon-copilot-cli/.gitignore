@@ -19,6 +19,9 @@ coverage/
 # Test output
 test-*/
 
+# Standalone binaries
+standalone/
+
 # Logs
 *.log
 npm-debug.log*

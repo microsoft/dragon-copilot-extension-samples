@@ -1,0 +1,96 @@
+name: Release CLI
+
+on:
+  push:
+    tags:
+      - 'cli/v*'
+
+permissions:
+  contents: write
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: tools/dragon-copilot-cli/package-lock.json
+      - run: npm ci
+        working-directory: tools/dragon-copilot-cli
+      - run: npm test
+        working-directory: tools/dragon-copilot-cli
+
+  build:
+    needs: test
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            artifact: dragon-copilot-linux
+          - os: windows-latest
+            artifact: dragon-copilot-win.exe
+          - os: macos-latest
+            artifact: dragon-copilot-macos
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: tools/dragon-copilot-cli/package-lock.json
+      - run: npm ci
+        working-directory: tools/dragon-copilot-cli
+      - run: npm run build
+        working-directory: tools/dragon-copilot-cli
+      - run: npm run bundle
+        working-directory: tools/dragon-copilot-cli
+      - name: Generate SEA blob
+        working-directory: tools/dragon-copilot-cli
+        run: node --experimental-sea-config sea-config.json
+      - name: Create standalone binary
+        working-directory: tools/dragon-copilot-cli
+        shell: bash
+        run: |
+          mkdir -p standalone
+          BINARY_NAME="${{ matrix.artifact }}"
+          cp "$(which node)" "standalone/$BINARY_NAME"
+          if [[ "$RUNNER_OS" == "macOS" ]]; then
+            codesign --remove-signature "standalone/$BINARY_NAME"
+          fi
+          npx postject "standalone/$BINARY_NAME" NODE_SEA_BLOB dist/dragon-copilot.blob \
+            --sentinel-fuse NODE_SEA_FUSE_fce680ab2cc467b6e072b8b5df1996b2 \
+            $(if [[ "$RUNNER_OS" == "macOS" ]]; then echo "--macho-segment-name NODE_SEA"; fi)
+          if [[ "$RUNNER_OS" == "macOS" ]]; then
+            codesign --sign - "standalone/$BINARY_NAME"
+          fi
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact }}
+          path: tools/dragon-copilot-cli/standalone/${{ matrix.artifact }}
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+      - name: Generate checksums
+        run: |
+          cd artifacts
+          find . -type f ! -name '*.sha256' | while read f; do
+            sha256sum "$f" >> checksums.sha256
+          done
+          cat checksums.sha256
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
+          files: |
+            artifacts/**/*
+            artifacts/checksums.sha256

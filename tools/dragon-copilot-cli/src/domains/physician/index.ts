@@ -26,12 +26,12 @@ export async function packageExtension(options: PackageOptions): Promise<void> {
 
 export function registerExtensionCommands(program: Command): void {
 	const extension = program
-		.command('extension')
-		.description('Commands for Dragon Copilot extension projects');
+		.command('physician')
+		.description('Commands for Dragon Copilot physician workflow projects');
 
 	extension
 		.command('init')
-		.description('Initialize a new extension project')
+		.description('Initialize a new physician workflow project')
 		.option('-n, --name <name>', 'Extension name')
 		.option('-d, --description <description>', 'Extension description')
 		.option('-v, --version <version>', 'Extension version', '0.0.1')
@@ -56,7 +56,7 @@ export function registerExtensionCommands(program: Command): void {
 
 	extension
 		.command('generate')
-		.description('Generate or update an extension manifest')
+		.description('Generate or update a physician workflow manifest')
 		.option('-t, --template <template>', 'Template to use (note-analysis, speech-analysis, custom)')
 		.option('-o, --output <path>', 'Output file path', 'extension.yaml')
 		.option('-i, --interactive', 'Interactive mode')
@@ -76,7 +76,7 @@ export function registerExtensionCommands(program: Command): void {
 
 	extension
 		.command('validate')
-		.description('Validate an extension manifest file')
+		.description('Validate a physician workflow manifest file')
 		.argument('<file>', 'Manifest file to validate')
 		.action(async (file: string) => {
 			await validateManifest(file);

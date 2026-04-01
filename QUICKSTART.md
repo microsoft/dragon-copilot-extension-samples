@@ -6,7 +6,7 @@
 - [Using DevTunnels](#using-devtunnels)
   - How to create a secure way to expose your local web service to the internet without actually deploying.
 - [Packaging your Integration](#packaging-your-integration)
-  - [Packaging a Workflow Extension](#packaging-a-workflow-extension)
+  - [Packaging a Physician Workflow](#packaging-a-physician-workflow)
   - [Packaging a Clinical Application Connector](#packaging-a-clinical-application-connector)
 - [Create an Application in Azure portal that represents your application](#create-an-application-in-azure-portal-that-represents-your-application)
   - How to register your extension in the Azure portal so it can be used with Dragon Copilot.
@@ -26,10 +26,10 @@ Dragon Copilot supports two types of integrations:
 
 | Type | Description | CLI Domain | When to Use |
 |------|-------------|------------|-------------|
-| **Workflow Extension** | Custom AI-powered extensions with automation scripts, event triggers, and dependencies | `dragon-copilot extension` | Extend Dragon Copilot with custom clinical data processing, note analysis, or AI workflows |
+| **Physician Workflow** | Custom AI-powered extensions with automation scripts, event triggers, and dependencies | `dragon-copilot physician` | Extend Dragon Copilot with custom clinical data processing, note analysis, or AI workflows |
 | **Clinical Application Connector** | EHR integrations and API connectors that interface with clinical applications | `dragon-copilot connector` | Connect Dragon Copilot to external clinical systems, EHRs, or enterprise APIs |
 
-The sample project in this repository demonstrates a **Workflow Extension**. The CLI supports both types of integrations with similar commands but different manifest schemas.
+The sample project in this repository demonstrates a **Physician Workflow**. The CLI supports both types of integrations with similar commands but different manifest schemas.
 
 ## 🚀 Running Locally
 
@@ -95,7 +95,7 @@ DevTunnels provide a secure way to expose your local web service to the internet
 
 ##  Packaging your Integration
 
-We are now going to package our integration using the dragon-copilot CLI tool. The CLI supports both **Workflow Extensions** and **Clinical Application Connectors** with separate command domains.
+We are now going to package our integration using the dragon-copilot CLI tool. The CLI supports both **Physician Workflows** and **Clinical Application Connectors** with separate command domains.
 
 ### CLI Installation (One-time Setup)
 
@@ -116,11 +116,11 @@ npm link
 
 ---
 
-### Packaging a Workflow Extension
+### Packaging a Physician Workflow
 
-Use the `extension` commands for Workflow Extensions with automation scripts, event triggers, and dependencies.
+Use the `physician` commands for Physician Workflows with automation scripts, event triggers, and dependencies.
 
-1. Issue a `dragon-copilot extension init` command
+1. Issue a `dragon-copilot physician init` command
    
    You will be asked for information on your extension.
    - Ensure the tenantId specified is for where you will upload your extension to.
@@ -128,12 +128,12 @@ Use the `extension` commands for Workflow Extensions with automation scripts, ev
 
 2. (Optional) Validate your manifest:
    ```bash
-   dragon-copilot extension validate ./extension.yaml
+   dragon-copilot physician validate ./extension.yaml
    ```
 
-3. Issue a `dragon-copilot extension package` command
+3. Issue a `dragon-copilot physician package` command
 
-You now have a valid zip file that represents your Workflow Extension!
+You now have a valid zip file that represents your Physician Workflow!
 
 ---
 

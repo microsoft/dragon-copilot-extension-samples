@@ -1,5 +1,3 @@
-import type { PublisherConfig as CommonPublisherConfig } from '../../common/index.js';
-
 export interface DragonExtensionManifest {
   name: string;
   description: string;
@@ -32,8 +30,6 @@ export interface DragonOutput {
   description: string;
   'content-type': string;
 }
-
-export type PublisherConfig = CommonPublisherConfig;
 
 export interface GenerateOptions {
   template?: string;

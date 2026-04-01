@@ -1,11 +1,6 @@
 import { input, select, checkbox, confirm } from '@inquirer/prompts';
-import {
-  promptPublisherDetails as promptCommonPublisherDetails,
-  type PublisherPromptOptions
-} from '../../../common/index.js';
 import type {
   DragonExtensionManifest,
-  PublisherConfig,
   AuthConfig
 } from '../types.js';
 import { validateFieldValue } from './schema-validator.js';
@@ -58,10 +53,16 @@ export function validateExtensionName(input: string): string | boolean {
 }
 
 /**
- * Validates URL input using schema validation
+ * Validates URL input
  */
 export function validateUrl(input: string): string | boolean {
-  return validateFieldValue(input, 'websiteUrl', 'publisher');
+  if (!input.trim()) return 'URL is required';
+  try {
+    new URL(input.trim());
+    return true;
+  } catch {
+    return 'Must be a valid URL (e.g., https://example.com)';
+  }
 }
 
 /**
@@ -72,17 +73,21 @@ export function validateVersion(input: string): string | boolean {
 }
 
 /**
- * Validates publisher ID input using schema validation
+ * Validates publisher ID input
  */
 export function validatePublisherId(input: string): string | boolean {
-  return validateFieldValue(input, 'publisherId', 'publisher');
+  if (!input.trim()) return 'Publisher ID is required';
+  return true;
 }
 
 /**
- * Validates email input using schema validation
+ * Validates email input
  */
 export function validateEmail(input: string): string | boolean {
-  return validateFieldValue(input, 'contactEmail', 'publisher');
+  if (!input.trim()) return 'Email is required';
+  const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailPattern.test(input.trim())) return 'Must be a valid email address';
+  return true;
 }
 
 /**
@@ -275,62 +280,4 @@ export async function promptOutputs(): Promise<OutputDetails[]> {
   }
 
   return outputs;
-}
-
-/**
- * Prompts for publisher configuration details
- * Sets fixed values for locale (en-US) and country (US) as per requirements
- */
-const EXTENSION_PUBLISHER_DEFAULTS: Partial<PublisherConfig> = {
-  publisherId: 'contoso.healthcare',
-  publisherName: 'Contoso Healthcare Inc.',
-  websiteUrl: 'https://www.contosohealth.com',
-  privacyPolicyUrl: 'https://www.contosohealth.com/privacy',
-  supportUrl: 'https://www.contosohealth.com/support',
-  version: '0.0.1',
-  contactEmail: 'support@contosohealth.com',
-  offerId: 'contoso-extension-suite',
-  scope: 'Workflow',
-  defaultLocale: 'en-US',
-  supportedLocales: ['en-US'],
-  regions: ['US']
-};
-
-export async function promptPublisherDetails(defaults?: Partial<PublisherConfig>): Promise<PublisherConfig> {
-  const mergedDefaults: Partial<PublisherConfig> = {
-    ...EXTENSION_PUBLISHER_DEFAULTS,
-    ...defaults
-  };
-
-  const promptOptions: PublisherPromptOptions = {
-    defaults: mergedDefaults,
-    validators: {
-      publisherId: validatePublisherId,
-      publisherName: (value: string) => (value.trim() ? true : 'Publisher Name is required'),
-      websiteUrl: validateUrl,
-      privacyPolicyUrl: validateUrl,
-      supportUrl: validateUrl,
-      version: validateVersion,
-      contactEmail: validateEmail,
-      offerId: (value: string) => (value.trim() ? true : 'Offer ID is required')
-    }
-  };
-
-  if (mergedDefaults.scope) {
-    promptOptions.scope = mergedDefaults.scope;
-  }
-
-  if (mergedDefaults.defaultLocale) {
-    promptOptions.defaultLocale = mergedDefaults.defaultLocale;
-  }
-
-  if (mergedDefaults.supportedLocales) {
-    promptOptions.supportedLocales = mergedDefaults.supportedLocales;
-  }
-
-  if (mergedDefaults.regions) {
-    promptOptions.regions = mergedDefaults.regions;
-  }
-
-  return promptCommonPublisherDetails(promptOptions);
 }

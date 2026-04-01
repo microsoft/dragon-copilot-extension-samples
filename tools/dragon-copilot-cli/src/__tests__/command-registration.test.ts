@@ -4,22 +4,22 @@ import { registerCommands } from '../commands/index.js';
 import { validateFieldValue } from '../shared/schema-validator.js';
 
 describe('registerCommands', () => {
-  test('registers extension and partner command groups', () => {
+  test('registers physician and partner command groups', () => {
     const program = new Command();
 
     registerCommands(program);
 
     const commandNames = program.commands.map(command => command.name());
-    expect(commandNames).toEqual(expect.arrayContaining(['extension', 'connector']));
+    expect(commandNames).toEqual(expect.arrayContaining(['physician', 'connector']));
   });
 
-  test('registers expected extension subcommands', () => {
+  test('registers expected physician subcommands', () => {
     const program = new Command();
     registerCommands(program);
 
-    const extension = program.commands.find(command => command.name() === 'extension');
-    expect(extension).toBeDefined();
-    const subCommands = extension?.commands.map(command => command.name()) ?? [];
+    const physician = program.commands.find(command => command.name() === 'physician');
+    expect(physician).toBeDefined();
+    const subCommands = physician?.commands.map(command => command.name()) ?? [];
     expect(subCommands).toEqual(
       expect.arrayContaining(['init', 'generate', 'validate', 'package']),
     );

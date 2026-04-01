@@ -1,5 +1,4 @@
 import { checkbox, confirm, input, select } from '@inquirer/prompts';
-import { promptPublisherDetails as promptCommonPublisherDetails } from '../../../common/index.js';
 import { randomUUID } from 'node:crypto';
 import type {
   AuthConfig,
@@ -10,7 +9,6 @@ import type {
   NamedFieldConfig,
   NoteSectionValue,
   ConnectorIntegrationManifest,
-  PublisherConfig,
   ServerAuthenticationEntry,
   YesNo
 } from '../types.js';
@@ -276,47 +274,6 @@ export async function promptAuthDetails(): Promise<AuthConfig> {
   });
 
   return { tenantId };
-}
-
-const gatherPublisherDetails = async (): Promise<PublisherConfig> =>
-  promptCommonPublisherDetails({
-    defaults: {
-      version: '0.0.1',
-      defaultLocale: 'en-US',
-      supportedLocales: ['en-US'],
-      regions: ['US'],
-      scope: 'EHR Connector'
-    },
-    validators: {
-      publisherId: validatePublisherId,
-      publisherName: (value: string) => (value.trim() ? true : 'Publisher name is required'),
-      websiteUrl: validateUrl,
-      privacyPolicyUrl: validateUrl,
-      supportUrl: validateUrl,
-      version: validateVersion,
-      contactEmail: validateEmail,
-      offerId: (value: string) => (value.trim() ? true : 'Offer ID is required')
-    },
-    scope: 'EHR Connector',
-    defaultLocale: 'en-US',
-    supportedLocales: ['en-US'],
-    regions: ['US'],
-    offerIdGenerator: (publisherId: string) => `${publisherId.split('.')[0]}-integration-suite`
-  });
-
-const summarizePublisherDetails = (config: PublisherConfig): string[] => [
-  `Publisher ID: ${config.publisherId}`,
-  `Name: ${config.publisherName}`,
-  `Website: ${config.websiteUrl}`,
-  `Privacy Policy: ${config.privacyPolicyUrl}`,
-  `Support: ${config.supportUrl}`,
-  `Version: ${config.version}`,
-  `Contact Email: ${config.contactEmail}`,
-  `Offer ID: ${config.offerId}`
-];
-
-export async function promptPublisherDetails(): Promise<PublisherConfig> {
-  return collectWithReview('Publisher configuration', gatherPublisherDetails, summarizePublisherDetails);
 }
 
 const gatherServerAuthenticationEntry = async (

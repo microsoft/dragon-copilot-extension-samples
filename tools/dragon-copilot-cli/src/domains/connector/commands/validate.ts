@@ -5,11 +5,10 @@ const { load } = yaml;
 import path from 'path';
 import chalk from 'chalk';
 import { input, select } from '@inquirer/prompts';
-import type { ContextRetrievalItem, ConnectorIntegrationManifest, PublisherConfig, YesNo } from '../types.js';
+import type { ContextRetrievalItem, ConnectorIntegrationManifest, YesNo } from '../types.js';
 import { getContextItemDefinition } from '../shared/context-items.js';
 import {
   validateConnectorManifest as validateConnectorManifestSchema,
-  validatePublisherConfig as validatePublisherConfigSchema,
   getFieldDisplayName
 } from '../shared/schema-validator.js';
 import type { SchemaError } from '../shared/schema-validator.js';
@@ -430,79 +429,6 @@ export async function validateManifest(filePath: string): Promise<void> {
   console.log(chalk.gray(`  Server authentication issuers: ${manifest['server-authentication']?.length || 0}`));
   console.log(chalk.gray(`  Note sections configured: ${Object.keys(manifest['note-sections'] ?? {}).length}`));
   console.log(chalk.gray(`  Context retrieval items: ${manifest.instance?.['context-retrieval']?.instance?.length || 0}`));
-    }
-
-    // Check for publisher.json in the same directory
-    const manifestDir = path.dirname(filePath);
-    const publisherPath = path.join(manifestDir, 'publisher.json');
-
-    if (existsSync(publisherPath)) {
-      console.log(chalk.blue('\n📋 Validating Publisher Configuration...'));
-      try {
-        const publisherContent = readFileSync(publisherPath, 'utf8');
-        const publisherConfig = JSON.parse(publisherContent) as PublisherConfig;
-
-        const publisherErrors: string[] = [];
-
-        // Schema validation for publisher config
-        const publisherSchemaResult = validatePublisherConfigSchema(publisherConfig);
-        if (publisherSchemaResult.errors.length > 0) {
-          publisherSchemaResult.errors.forEach((error: SchemaError) => {
-            const fieldPath = error.instancePath.replace(/^\//, '').replace(/\//g, '.');
-            const fieldName = getFieldDisplayName(fieldPath) || fieldPath || 'config';
-            publisherErrors.push(`${fieldName}: ${error.message}`);
-          });
-        }
-        
-        // Basic publisher validation
-        if (!publisherConfig.publisherId) publisherErrors.push('publisherId: Field is required');
-        if (!publisherConfig.publisherName) publisherErrors.push('publisherName: Field is required');
-        if (!publisherConfig.websiteUrl) publisherErrors.push('websiteUrl: Field is required');
-        if (!publisherConfig.privacyPolicyUrl) publisherErrors.push('privacyPolicyUrl: Field is required');
-        if (!publisherConfig.supportUrl) publisherErrors.push('supportUrl: Field is required');
-        if (!publisherConfig.contactEmail) publisherErrors.push('contactEmail: Field is required');
-
-        // URL validation
-        const urlFields = ['websiteUrl', 'privacyPolicyUrl', 'supportUrl'];
-        urlFields.forEach(field => {
-          const url = publisherConfig[field as keyof PublisherConfig] as string;
-          if (url) {
-            try {
-              new URL(url);
-            } catch {
-              publisherErrors.push(`${field}: Must be a valid URL`);
-            }
-          }
-        });
-
-        // Email validation
-        if (publisherConfig.contactEmail) {
-          const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-          if (!emailPattern.test(publisherConfig.contactEmail)) {
-            publisherErrors.push('contactEmail: Must be a valid email address');
-          }
-        }
-
-        if (publisherErrors.length > 0) {
-          hasErrors = true;
-          console.log(chalk.red('❌ Publisher config validation failed with errors:'));
-          publisherErrors.forEach(error => {
-            console.log(chalk.red(`  • ${error}`));
-          });
-        } else {
-          console.log(chalk.green('✅ Publisher configuration is valid'));
-          console.log(chalk.gray(`  Publisher: ${publisherConfig.publisherName} (${publisherConfig.publisherId})`));
-        }
-
-      } catch (parseError) {
-        hasErrors = true;
-        console.log(chalk.red('❌ Failed to parse publisher.json:'));
-        console.log(chalk.red(`  • Invalid JSON format`));
-      }
-    } else {
-      console.log(chalk.yellow('\n⚠️  No publisher.json found'));
-      console.log(chalk.gray('  A publisher configuration is required for packaging'));
-      console.log(chalk.gray('  Create one using: dragon-copilot connector init'));
     }
 
   } catch (parseError) {

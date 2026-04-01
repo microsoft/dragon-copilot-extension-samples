@@ -2,10 +2,9 @@ import { describe, expect, it } from '@jest/globals';
 import {
   validateExtensionManifest,
   validateConnectorManifest,
-  validatePublisherConfig,
   type SchemaError,
 } from '../shared/schema-validator.js';
-import type { DragonExtensionManifest, PublisherConfig } from '../domains/extension/types.js';
+import type { DragonExtensionManifest } from '../domains/physician/types.js';
 import type { ConnectorIntegrationManifest } from '../domains/connector/types.js';
 
 const TENANT_ID = '00000000-0000-0000-0000-000000000001';
@@ -215,55 +214,6 @@ describe('validateExtensionManifest', () => {
 
     expect(result.isValid).toBe(true);
     expect(result.errors).toHaveLength(0);
-  });
-});
-
-describe('validatePublisherConfig', () => {
-  function buildValidPublisherConfig(): PublisherConfig {
-    return {
-      publisherId: 'contoso.healthcare',
-      publisherName: 'Contoso Healthcare Inc.',
-      websiteUrl: 'https://www.contosohealth.com',
-      privacyPolicyUrl: 'https://www.contosohealth.com/privacy',
-      supportUrl: 'https://www.contosohealth.com/support',
-      version: '0.0.1',
-      contactEmail: 'support@contosohealth.com',
-      offerId: 'contoso-extension-suite',
-      defaultLocale: 'en-US',
-      scope: 'Workflow',
-      supportedLocales: ['en-US'],
-      regions: ['US'],
-    };
-  }
-
-  it('validates a correct publisher config', () => {
-    const config = buildValidPublisherConfig();
-
-    const result = validatePublisherConfig(config);
-
-    expect(result.isValid).toBe(true);
-    expect(result.errors).toHaveLength(0);
-  });
-
-  it('rejects non-US regions', () => {
-    const config = buildValidPublisherConfig();
-    config.regions = ['FR'];
-
-    const result = validatePublisherConfig(config);
-
-    expect(result.isValid).toBe(false);
-    expect(result.errors.some((e: SchemaError) => e.instancePath?.includes('regions'))).toBe(true);
-  });
-
-  it('rejects non-en-US locales', () => {
-    const config = buildValidPublisherConfig();
-    config.defaultLocale = 'fr-FR';
-    config.supportedLocales = ['fr-FR'];
-
-    const result = validatePublisherConfig(config);
-
-    expect(result.isValid).toBe(false);
-    expect(result.errors.length).toBeGreaterThan(0);
   });
 });
 

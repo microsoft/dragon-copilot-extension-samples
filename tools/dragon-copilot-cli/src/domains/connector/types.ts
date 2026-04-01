@@ -1,4 +1,3 @@
-import type { PublisherConfig as CommonPublisherConfig } from '../../common/index.js';
 export type YesNo = 'yes' | 'no';
 
 export interface AuthConfig {
@@ -70,8 +69,6 @@ export interface ContextRetrievalItem {
   required: YesNo;
   ['default-value']?: string;
 }
-
-export type PublisherConfig = CommonPublisherConfig;
 
 export interface GenerateOptions {
   template?: string;

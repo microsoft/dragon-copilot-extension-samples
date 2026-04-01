@@ -3,10 +3,9 @@ const { readFileSync, createWriteStream, pathExists } = fs;
 import yaml from 'js-yaml';
 const { load } = yaml;
 import archiver from 'archiver';
-import path from 'path';
 import chalk from 'chalk';
-import { logMessage, validatePngLogo } from '../../../common/index.js';
-import type { PackageOptions, ConnectorIntegrationManifest, PublisherConfig } from '../types.js';
+import { logMessage } from '../../../common/index.js';
+import type { PackageOptions, ConnectorIntegrationManifest } from '../types.js';
 
 export async function packageIntegration(options: PackageOptions): Promise<void> {
   const isQuiet = options.silent || process.env.NODE_ENV === 'test';
@@ -14,8 +13,6 @@ export async function packageIntegration(options: PackageOptions): Promise<void>
   logMessage(chalk.blue('🤝 Packaging Clinical Application Connector'), isQuiet);
 
   const manifestPath = options.manifest || 'extension.yaml';
-  const publisherPath = 'publisher.json';
-  const logoPath = 'assets/logo_large.png';
 
   // Step 1: Validate required files exist
   logMessage(chalk.blue('📋 Validating required files...'), isQuiet);
@@ -26,33 +23,7 @@ export async function packageIntegration(options: PackageOptions): Promise<void>
     throw new Error(`Integration manifest not found: ${manifestPath}`);
   }
 
-  if (!(await pathExists(publisherPath))) {
-    logMessage(chalk.red(`❌ Publisher configuration not found: ${publisherPath}`), isQuiet);
-    logMessage(chalk.gray('   A publisher.json file is required for packaging'), isQuiet);
-    logMessage(chalk.gray('   Create one using: dragon-copilot connector init'), isQuiet);
-    throw new Error(`Publisher configuration not found: ${publisherPath}`);
-  }
-
-  // Step 1.5: Validate required logo
-  logMessage(chalk.blue('🎨 Validating logo requirements...'), isQuiet);
-  
-  if (!(await pathExists(logoPath))) {
-    logMessage(chalk.red(`❌ Required logo not found: ${logoPath}`), isQuiet);
-    logMessage(chalk.gray('   A large logo (PNG, 216x216 to 350x350 px) is required for packaging'), isQuiet);
-    logMessage(chalk.gray('   Create assets directory with logo using: dragon-copilot connector init'), isQuiet);
-    throw new Error(`Required logo not found: ${logoPath}`);
-  }
-
-  const isValidLogo = await validatePngLogo(logoPath, { silent: isQuiet });
-  if (!isValidLogo) {
-    logMessage(chalk.red(`❌ Logo validation failed: ${logoPath}`), isQuiet);
-    logMessage(chalk.gray('   Requirements: PNG file, 216x216 to 350x350 pixels'), isQuiet);
-    throw new Error(`Logo validation failed: ${logoPath}`);
-  }
-
   logMessage(chalk.gray(`✓ Found integration manifest: ${manifestPath}`), isQuiet);
-  logMessage(chalk.gray(`✓ Found publisher configuration: ${publisherPath}`), isQuiet);
-  logMessage(chalk.gray(`✓ Found required logo: ${logoPath}`), isQuiet);
 
   try {
     // Step 2: Load and validate integration manifest
@@ -79,33 +50,10 @@ export async function packageIntegration(options: PackageOptions): Promise<void>
 
     logMessage(chalk.green('✅ Integration manifest is valid'), isQuiet);
 
-    // Step 3: Load and validate publisher configuration
-    logMessage(chalk.blue('📋 Validating publisher configuration...'), isQuiet);
-    let publisherConfig: PublisherConfig;
-    try {
-      const publisherContent = readFileSync(publisherPath, 'utf8');
-      publisherConfig = JSON.parse(publisherContent) as PublisherConfig;
-    } catch (parseError) {
-      logMessage(chalk.red('❌ Failed to parse publisher.json:'), isQuiet);
-      if (parseError instanceof Error) {
-        logMessage(chalk.red(`   ${parseError.message}`), isQuiet);
-      }
-      throw new Error('Failed to parse publisher.json');
-    }
-
-    // Basic publisher validation
-    if (!publisherConfig.publisherId || !publisherConfig.publisherName) {
-      logMessage(chalk.red('❌ Publisher configuration validation failed: Missing required fields'), isQuiet);
-      throw new Error('Publisher configuration validation failed');
-    }
-
-    logMessage(chalk.green('✅ Publisher configuration is valid'), isQuiet);
-
-    // Step 4: Create package
+    // Step 3: Create package
     const outputPath = options.output || `${manifest.name}-${manifest.version}.zip`;
 
     logMessage(chalk.blue(`\n📦 Creating package: ${outputPath}`), isQuiet);
-    logMessage(chalk.gray(`🏢 Publisher: ${publisherConfig.publisherName} (${publisherConfig.publisherId})`), isQuiet);
     logMessage(chalk.gray(`📄 Integration: ${manifest.name} v${manifest.version}`), isQuiet);
     logMessage(chalk.gray(`🩺 Clinical application: ${manifest['clinical-application-name']}`), isQuiet);
     logMessage(chalk.gray(`🔑 Partner ID: ${manifest['partner-id']}`), isQuiet);
@@ -137,14 +85,8 @@ export async function packageIntegration(options: PackageOptions): Promise<void>
 
       archive.pipe(output);
 
-      // Add core files
+      // Add manifest
       archive.append(manifestContent, { name: 'extension.yaml' });
-      archive.append(readFileSync(publisherPath), { name: 'publisher.json' });
-
-      // Add assets
-      if (await pathExists(logoPath)) {
-        archive.file(logoPath, { name: 'assets/logo_large.png' });
-      }
 
       // Add additional files if specified
       if (options.include && options.include.length > 0) {
@@ -164,6 +106,12 @@ export async function packageIntegration(options: PackageOptions): Promise<void>
             logMessage(chalk.yellow(`⚠️  File not found, skipping: ${pattern}`), isQuiet);
           }
         }
+      }
+
+      // Add locales directory if it exists
+      if (await pathExists('locales')) {
+        archive.directory('locales', 'locales');
+        logMessage(chalk.gray(`✓ Added locales/ directory`), isQuiet);
       }
 
       // Finalize archive
