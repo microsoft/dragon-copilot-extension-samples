@@ -3,6 +3,7 @@
   
   // Visit https://aka.ms/tsconfig to read more about this file
   "compilerOptions": {
+    "ignoreDeprecations": "6.0",
     // File Layout
     "rootDir": "./src",
     "outDir": "./dist",
@@ -38,7 +39,7 @@
     "noUncheckedSideEffectImports": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "esModuleInterop": true,
     "resolveJsonModule": true,
     "noEmitOnError": false,
