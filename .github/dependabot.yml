@@ -1,8 +1,8 @@
 version: 2
 updates:
-  # Enable version updates for .NET dependencies - Dragon.Copilot.Models
+  # Enable version updates for .NET dependencies - Dragon.Copilot.Physician.Models
   - package-ecosystem: "nuget"
-    directory: "/src/Dragon.Copilot.Models"
+    directory: "/physician/src/models/Dragon.Copilot.Physician.Models"
     schedule:
       interval: "weekly"
       day: "monday"
@@ -18,7 +18,7 @@ updates:
 
   # Enable version updates for .NET dependencies - SampleExtension
   - package-ecosystem: "nuget"
-    directory: "/samples/DragonCopilot/Workflow"
+    directory: "/physician/src/samples/DragonCopilot/Workflow"
     schedule:
       interval: "weekly"
       day: "monday"

@@ -11,7 +11,7 @@
 * @brandonpollett
 
 # Connector CLI domain
-/tools/src/domains/connector/* @mfrongillo35
+/tools/dragon-copilot-cli/src/domains/connector/* @mfrongillo35
 
 # Extension CLI domain
-/tools/src/domains/extension/* @kredasim @mikhail-dyakov
+/tools/dragon-copilot-cli/src/domains/physician/* @kredasim @mikhail-dyakov

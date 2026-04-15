@@ -1,51 +1,49 @@
-
 # Dragon Copilot Extension Samples
 
-Welcome! This repository contains sample code illustrating the Dragon Copilot extension. Each sample is a self-contained extension that explains one topic in Dragon Copilot extensibility. You can read, play with or adapt from these samples to create your own extensions.
+Welcome! This repository contains sample code, models, OpenAPI specs, and developer tools for building extensions across the **Dragon Copilot** product family.
 
 ## 📚 Contents
 
 - [Dragon Copilot Extension Samples](#dragon-copilot-extension-samples)
-  - [📚 Contents](#-contents)
-  - [📝 Overview](#-overview)
-  - [🚀 Quick Start](#-quick-start)
-    - [1. Clone \& Start (Windows)](#1-clone--start-windows)
-  - [📦 Samples](#-samples)
-  - [🛠️ Tools](#️-tools)
-    - [Dragon Copilot CLI](#dragon-copilot-cli)
-  - [🤝 Contributing](#-contributing)
-  - [📄 License](#-license)
+    - [📝 Overview](#-overview)
+    - [🚀 Getting Started](#-getting-started)
+    - [🛠️ Tools](#️-tools)
+    - [🤝 Contributing](#-contributing)
+    - [📄 License](#-license)
 
 ## 📝 Overview
 
 This repo includes:
 
-- Sample **Physician Workflow** with best practices
-- CLI tools to initialize & package both **Extensions** and **Clinical Application Connectors**
-- [Additional Documentation](doc/)
+- [Shared Platform Documentation](doc/) for authentication guides and resources common across all products
+- Sample [`Physician Workflow`](physician/) with best practices
+- CLI [`tools`](tools/) to initialize & package both **Extensions** and **Clinical Application Connectors**
 
 ### Extensions vs. Clinical Application Connectors
 
-| Type | Description | Use Case |
-|------|-------------|----------|
-| **Physician Workflow** | Custom AI-powered extensions with automation scripts, event triggers, and dependencies | Extend Dragon Copilot with custom clinical data processing |
-| **Clinical Application Connector** | EHR integrations and API connectors that interface with clinical applications | Connect Dragon Copilot to external clinical systems |
+| Type                               | Description                                                                            | Use Case                                                   |
+| ---------------------------------- | -------------------------------------------------------------------------------------- | ---------------------------------------------------------- |
+| **Physician Workflow**             | Custom AI-powered extensions with automation scripts, event triggers, and dependencies | Extend Dragon Copilot with custom clinical data processing |
+| **Clinical Application Connector** | EHR integrations and API connectors that interface with clinical applications          | Connect Dragon Copilot to external clinical systems        |
 
-## 🚀 Quick Start
-Look here for a guide describing the process from downloading code to testing it in Dragon Copilot: [QUICKSTART.md](/QUICKSTART.md)
-### 1. Clone & Start (Windows)
+## 🚀 Getting Started
+
+### 1. Clone the Repository
 
 ```powershell
 git clone <your-repo-url>
 cd dragon-copilot-extension-samples
 ```
 
-## 📦 Samples
+### 2. Choose Your Product
 
-| Sample Name  | Description  | Location |
-|--------------|------------- |----------|
-| Physician Workflow | C# Asp.Net WebApplication showing Dragon workflow extension API Contract | [SampleExtension.Web](./samples/DragonCopilot/Workflow/SampleExtension.Web/) |
-| Audio Samples | Synthetic audio recordings of clinical encounters | [Audio-Recordings](./samples/audio-recordings/) |
+Pick the product you are building an extension for and follow its dedicated quick-start guide:
+
+| Product       | README                                     | Quick Start Guide                                  |
+| ------------- | ------------------------------------------ | -------------------------------------------------- |
+| **Physician** | [physician/README.md](physician/README.md) | [physician/QUICKSTART.md](physician/QUICKSTART.md) |
+
+> **Tip:** Each product's `QUICKSTART.md` is a self-contained, end-to-end walkthrough from setting up your dev environment to testing your extension inside Dragon Copilot.
 
 ## 🛠️ Tools
 

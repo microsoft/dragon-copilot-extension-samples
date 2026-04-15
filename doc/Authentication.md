@@ -9,7 +9,7 @@ The Dragon Copilot Sample Extension implements a multi-layered security approach
 The security system uses a **dual-gate approach**:
 
 1. **First Gate**: JWT Authentication & Authorization (Microsoft Entra ID)  
-  The protection of the service-to-service requests from the Dragon Copilot Extension Runtime is covered in detail in [AuthenticationDesign.md](AuthenticationDesign.md).
+   The protection of the service-to-service requests from the Dragon Copilot Extension Runtime is covered in detail in [AuthenticationDesign.md](AuthenticationDesign.md).
 
 2. **Second Gate**: License Key Validation (Custom Business Logic)
 
@@ -24,9 +24,11 @@ The security system uses a **dual-gate approach**:
 
 ## Configuration
 
+> **Note**: The configuration examples below reference the [Physician sample extension](../physician/). Each product's sample follows the same authentication pattern.
+
 ### Development Environment
 
-The development configuration in file [appsettings.Development.json](../samples/DragonCopilot/Workflow/SampleExtension.Web/appsettings.Development.json) disables both authentication layers for ease of testing:
+The development configuration in file [appsettings.Development.json](../physician/src/samples/DragonCopilot/Workflow/SampleExtension.Web/appsettings.Development.json) disables both authentication layers for ease of testing:
 
 - **Authentication**: Disabled
 - **License Key Validation**: Disabled
@@ -35,7 +37,7 @@ The development configuration in file [appsettings.Development.json](../samples/
 
 ### Production Environment
 
-The production configuration in file [appsettings.json](../samples/DragonCopilot/Workflow/SampleExtension.Web/appsettings.json) enables full security:
+The production configuration in file [appsettings.json](../physician/src/samples/DragonCopilot/Workflow/SampleExtension.Web/appsettings.json) enables full security:
 
 - **Authentication**: Enabled with Microsoft Entra ID integration
 - **License Key Validation**: Enabled with configurable header name and valid keys

@@ -12,6 +12,13 @@ on:
 jobs:
   security-scan:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        product:
+          - name: physician
+            models: physician/src/models/Dragon.Copilot.Physician.Models
+            samples: physician/src/samples/DragonCopilot/Workflow
 
     steps:
     - uses: actions/checkout@v6
@@ -21,23 +28,33 @@ jobs:
       with:
         dotnet-version: '9.0.x'
 
-    - name: Restore dependencies
+    - name: Restore ${{ matrix.product.name }} dependencies
       run: |
-        cd src/Dragon.Copilot.Models && dotnet restore
-        cd ../../samples/DragonCopilot/Workflow && dotnet restore
+        cd ${{ matrix.product.models }} && dotnet restore
+        cd $GITHUB_WORKSPACE
+        cd ${{ matrix.product.samples }} && dotnet restore
 
-    - name: Run security audit
+    - name: Run ${{ matrix.product.name }} security audit
       run: |
-        cd src/Dragon.Copilot.Models && dotnet list package --vulnerable --include-transitive
-        cd ../../samples/DragonCopilot/Workflow && dotnet list package --vulnerable --include-transitive
+        cd ${{ matrix.product.models }} && dotnet list package --vulnerable --include-transitive
+        cd $GITHUB_WORKSPACE
+        cd ${{ matrix.product.samples }} && dotnet list package --vulnerable --include-transitive
 
-    - name: Check for outdated packages
+    - name: Check ${{ matrix.product.name }} outdated packages
       run: |
-        cd src/Dragon.Copilot.Models && dotnet list package --outdated
-        cd ../../samples/DragonCopilot/Workflow && dotnet list package --outdated
+        cd ${{ matrix.product.models }} && dotnet list package --outdated
+        cd $GITHUB_WORKSPACE
+        cd ${{ matrix.product.samples }} && dotnet list package --outdated
 
   codeql-analysis:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        product:
+          - name: physician
+            models: physician/src/models/Dragon.Copilot.Physician.Models
+            samples: physician/src/samples/DragonCopilot/Workflow
     permissions:
       actions: read
       contents: read
@@ -56,14 +73,18 @@ jobs:
       with:
         dotnet-version: '9.0.x'
 
-    - name: Restore and build
+    - name: Restore and build ${{ matrix.product.name }}
       run: |
-        cd src/Dragon.Copilot.Models
+        cd ${{ matrix.product.models }}
         dotnet restore
         dotnet build --no-restore --configuration Release
-        cd ../../samples/DragonCopilot/Workflow
+        cd $GITHUB_WORKSPACE
+        cd ${{ matrix.product.samples }}
         dotnet restore
         dotnet build --no-restore --configuration Release
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v4
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v4
