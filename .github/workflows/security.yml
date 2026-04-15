@@ -2,12 +2,12 @@ name: Security
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
+    branches: [main]
   schedule:
     # Run weekly on Sundays at 2 AM UTC
-    - cron: '0 2 * * 0'
+    - cron: "0 2 * * 0"
 
 jobs:
   security-scan:
@@ -21,30 +21,30 @@ jobs:
             samples: physician/src/samples/DragonCopilot/Workflow
 
     steps:
-    - uses: actions/checkout@v6
+      - uses: actions/checkout@v6
 
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v5
-      with:
-        dotnet-version: '9.0.x'
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: "9.0.x"
 
-    - name: Restore ${{ matrix.product.name }} dependencies
-      run: |
-        cd ${{ matrix.product.models }} && dotnet restore
-        cd $GITHUB_WORKSPACE
-        cd ${{ matrix.product.samples }} && dotnet restore
+      - name: Restore ${{ matrix.product.name }} dependencies
+        run: |
+          cd ${{ matrix.product.models }} && dotnet restore
+          cd $GITHUB_WORKSPACE
+          cd ${{ matrix.product.samples }} && dotnet restore
 
-    - name: Run ${{ matrix.product.name }} security audit
-      run: |
-        cd ${{ matrix.product.models }} && dotnet list package --vulnerable --include-transitive
-        cd $GITHUB_WORKSPACE
-        cd ${{ matrix.product.samples }} && dotnet list package --vulnerable --include-transitive
+      - name: Run ${{ matrix.product.name }} security audit
+        run: |
+          cd ${{ matrix.product.models }} && dotnet list package --vulnerable --include-transitive
+          cd $GITHUB_WORKSPACE
+          cd ${{ matrix.product.samples }} && dotnet list package --vulnerable --include-transitive
 
-    - name: Check ${{ matrix.product.name }} outdated packages
-      run: |
-        cd ${{ matrix.product.models }} && dotnet list package --outdated
-        cd $GITHUB_WORKSPACE
-        cd ${{ matrix.product.samples }} && dotnet list package --outdated
+      - name: Check ${{ matrix.product.name }} outdated packages
+        run: |
+          cd ${{ matrix.product.models }} && dotnet list package --outdated
+          cd $GITHUB_WORKSPACE
+          cd ${{ matrix.product.samples }} && dotnet list package --outdated
 
   codeql-analysis:
     runs-on: ubuntu-latest
@@ -61,27 +61,27 @@ jobs:
       security-events: write
 
     steps:
-    - uses: actions/checkout@v6
+      - uses: actions/checkout@v6
 
-    - name: Initialize CodeQL
-      uses: github/codeql-action/init@v4
-      with:
-        languages: csharp, javascript
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v4
+        with:
+          languages: csharp, javascript
 
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v5
-      with:
-        dotnet-version: '9.0.x'
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: "9.0.x"
 
-    - name: Restore and build ${{ matrix.product.name }}
-      run: |
-        cd ${{ matrix.product.models }}
-        dotnet restore
-        dotnet build --no-restore --configuration Release
-        cd $GITHUB_WORKSPACE
-        cd ${{ matrix.product.samples }}
-        dotnet restore
-        dotnet build --no-restore --configuration Release
+      - name: Restore and build ${{ matrix.product.name }}
+        run: |
+          cd ${{ matrix.product.models }}
+          dotnet restore
+          dotnet build --no-restore --configuration Release
+          cd $GITHUB_WORKSPACE
+          cd ${{ matrix.product.samples }}
+          dotnet restore
+          dotnet build --no-restore --configuration Release
 
-    - name: Perform CodeQL Analysis
-      uses: github/codeql-action/analyze@v4
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v4
