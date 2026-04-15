@@ -11,26 +11,32 @@ namespace Dragon.Copilot.Physician.Models;
 public class VisualizationAction
 {
     /// <summary>
+    /// Display type for the action (required)
+    /// </summary>
+    [JsonPropertyName("type")]
+    public string Type { get; set; } = "Action.Execute";
+
+    /// <summary>
+    /// Id for an action (required)
+    /// </summary>
+    [JsonPropertyName("id")]
+    public required string Id { get; set; }
+
+    /// <summary>
     /// Display title for the action (required)
     /// </summary>
     [JsonPropertyName("title")]
     public required string Title { get; set; }
 
     /// <summary>
-    /// Action identifier (required)
+    /// Action Verb (required)
     /// </summary>
-    [JsonPropertyName("action")]
-    public required VisualizationActionType Action { get; set; }
+    [JsonPropertyName("verb")]
+    public required VisualizationActionVerb Verb { get; set; }
 
     /// <summary>
-    /// Action button style (required)
+    /// Optional data to send back to the partner when the action is invoked
     /// </summary>
-    [JsonPropertyName("actionType")]
-    public required ActionButtonType ActionType { get; set; }
-
-    /// <summary>
-    /// Optional code content for copy actions
-    /// </summary>
-    [JsonPropertyName("code")]
-    public string? Code { get; set; }
+    [JsonPropertyName("data")]
+    public ActionData? Data { get; set; }
 }

@@ -34,4 +34,10 @@ public class AdaptiveCardPayload
     /// </summary>
     [JsonPropertyName("body")]
     public IList<object> Body { get; init; } = new List<object>();
+
+    /// <summary>
+    /// Available actions for the card
+    /// </summary>
+    [JsonPropertyName("actions")]
+    public IList<VisualizationAction>? Actions { get; init; }
 }
