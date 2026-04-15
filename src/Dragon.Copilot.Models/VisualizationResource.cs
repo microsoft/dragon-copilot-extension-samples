@@ -48,12 +48,6 @@ public class VisualizationResource : IResource
     public required AdaptiveCardPayload AdaptiveCardPayload { get; set; }
 
     /// <summary>
-    /// Available actions for the card
-    /// </summary>
-    [JsonPropertyName("actions")]
-    public IList<VisualizationAction>? Actions { get; init; }
-
-    /// <summary>
     /// References to related data sources
     /// </summary>
     [JsonPropertyName("references")]
