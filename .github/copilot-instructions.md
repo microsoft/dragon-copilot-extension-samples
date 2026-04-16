@@ -12,7 +12,7 @@ This repository contains sample code and tools for developing **Dragon Copilot E
 - **Data Types**: Clinical notes, transcripts, audio, encounters, patient data
 - **Integration**: Extensions are called by Dragon Copilot platform via HTTP POST to `/v1/process`
 
-### Core Data Models (src/Dragon.Copilot.Models/)
+### Core Data Models (physician/src/models/Dragon.Copilot.Physician.Models/)
 - **DragonStandardPayload**: Main payload structure containing session data, clinical context
 - **Note**: Clinical notes and documentation
 - **Transcript**: Speech-to-text transcriptions
@@ -24,7 +24,7 @@ This repository contains sample code and tools for developing **Dragon Copilot E
 ## Project Structure
 
 ### Main Components
-1. **Sample Extension** (`samples/DragonCopilot/Workflow/SampleExtension.Web/`)
+1. **Sample Extension** (`physician/src/samples/DragonCopilot/Workflow/SampleExtension.Web/`)
    - C# ASP.NET Core Web API demonstrating extension pattern
    - Shows request/response handling, authentication, processing logic
    - Port 5181 (HTTP), 7156 (HTTPS)
@@ -139,11 +139,11 @@ tools:
 - **Testing**: HTTP files, integration tests
 
 ## Key Files to Reference
-- `samples/DragonCopilot/Workflow/SampleExtension.Web/` - Main extension example
-- `src/Dragon.Copilot.Models/` - Data models and contracts
+- `physician/src/samples/DragonCopilot/Workflow/SampleExtension.Web/` - Main extension example
+- `physician/src/models/Dragon.Copilot.Physician.Models/` - Data models and contracts
 - `tools/dragon-copilot-cli/` - Development tooling
 - `doc/Authentication.md` - Security implementation guide
-- `QUICKSTART.md` - Getting started guide
+- `physician/QUICKSTART.md` - Getting started guide
 
 ## Business Context
 This is healthcare/medical AI software. Extensions process clinical data like patient notes, transcripts, and medical encounters to provide AI-powered insights, entity extraction, clinical decision support, and documentation assistance for healthcare providers.

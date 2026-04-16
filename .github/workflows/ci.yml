@@ -9,6 +9,14 @@ on:
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        product:
+          - name: physician
+            models: physician/src/models/Dragon.Copilot.Physician.Models
+            samples: physician/src/samples/DragonCopilot/Workflow
+            dockerfile: physician/src/samples/DragonCopilot/Workflow/SampleExtension.Web/Dockerfile
 
     steps:
     - uses: actions/checkout@v6
@@ -18,31 +26,31 @@ jobs:
       with:
         dotnet-version: '9.0.x'
 
-    - name: Build Dragon.Copilot.Models
+    - name: Build ${{ matrix.product.name }} Models
       run: |
-        cd src/Dragon.Copilot.Models
+        cd ${{ matrix.product.models }}
         dotnet restore
         dotnet build --no-restore --configuration Release
 
-    - name: Test Dragon.Copilot.Models
+    - name: Test ${{ matrix.product.name }} Models
       run: |
-        cd src/Dragon.Copilot.Models
+        cd ${{ matrix.product.models }}
         dotnet test --no-build --configuration Release --verbosity normal
 
-    - name: Build SampleExtension
+    - name: Build ${{ matrix.product.name }} Sample
       run: |
-        cd samples/DragonCopilot/Workflow
+        cd ${{ matrix.product.samples }}
         dotnet restore
         dotnet build --no-restore --configuration Release
 
-    - name: Test SampleExtension
+    - name: Test ${{ matrix.product.name }} Sample
       run: |
-        cd samples/DragonCopilot/Workflow
+        cd ${{ matrix.product.samples }}
         dotnet test --no-build --configuration Release --verbosity normal
 
-    - name: Build Docker images
+    - name: Build ${{ matrix.product.name }} Docker Image
       run: |
-        docker build -f samples/DragonCopilot/Workflow/SampleExtension.Web/Dockerfile -t sample-extension .
+        docker build -f ${{ matrix.product.dockerfile }} -t ${{ matrix.product.name }}-sample-extension .
 
   nodejs-tools:
     runs-on: ubuntu-latest

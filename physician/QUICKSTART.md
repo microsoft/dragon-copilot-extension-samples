@@ -1,0 +1,334 @@
+# Table of Contents
+
+- [Quick Start Guide for Dragon Extension for Physician Developer](#quick-start-guide-for-dragon-extension-developer)
+- [Extensions vs. Clinical Application Connectors](#extensions-vs-clinical-application-connectors)
+- [Running Locally](#-running-locally)
+    - Provides prerequisites and information on how to run the application locally.
+- [Using DevTunnels](#using-devtunnels)
+    - How to create a secure way to expose your local web service to the internet without actually deploying.
+- [Packaging your Integration](#packaging-your-integration)
+    - [Packaging a Physician Workflow](#packaging-a-physician-workflow)
+    - [Packaging a Clinical Application Connector](#packaging-a-clinical-application-connector)
+- [Create an Application in Azure portal that represents your application](#create-an-application-in-azure-portal-that-represents-your-application)
+    - How to register your extension in the Azure portal so it can be used with Dragon Copilot.
+- [Installing your Extension](#installing-your-extension)
+    - How to install your extension you created onto the DAC site.
+- [Testing your Extension](#testing-your-extension)
+    - How to test your extension in Dragon Copilot.
+
+# Quick Start Guide for a Dragon Extension Developer
+
+This document is a quick‑start guide for building, testing, packaging, and deploying a custom Dragon Copilot integration. Its purpose is to walk a developer through the full development lifecycle—from setting up the environment to validating the integration inside the Dragon Copilot application.
+
+Prior to running through this document, you may want to read through the Microsoft Learn [documentation](https://learn.microsoft.com/en-us/industry/healthcare/dragon-copilot/extensions/workflow-app-overview) outlining how your extension will interface with the overall Dragon Copilot solution.
+
+## Extensions vs. Clinical Application Connectors
+
+Dragon Copilot supports two types of integrations:
+
+| Type                               | Description                                                                            | CLI Domain                 | When to Use                                                                                |
+| ---------------------------------- | -------------------------------------------------------------------------------------- | -------------------------- | ------------------------------------------------------------------------------------------ |
+| **Physician Workflow**             | Custom AI-powered extensions with automation scripts, event triggers, and dependencies | `dragon-copilot physician` | Extend Dragon Copilot with custom clinical data processing, note analysis, or AI workflows |
+| **Clinical Application Connector** | EHR integrations and API connectors that interface with clinical applications          | `dragon-copilot connector` | Connect Dragon Copilot to external clinical systems, EHRs, or enterprise APIs              |
+
+The sample project in this repository demonstrates a **Physician Workflow**. The CLI supports both types of integrations with similar commands but different manifest schemas.
+
+## 🚀 Running Locally
+
+### Development Prerequisites
+
+- DotNet 9
+- Node 22.20.0
+- npm 10.9.3
+
+### Local Development Environment
+
+1. Clone the repository
+1. Open a terminal and navigate to `src/samples/DragonCopilot/Workflow/SampleExtension.Web`
+1. Issue a `dotnet run`
+
+The application will start and be available at http://localhost:5181
+
+Some additional development concepts are located in the following Microsoft Learn [documentation](https://learn.microsoft.com/en-us/industry/healthcare/dragon-copilot/extensions/workflow-app-concepts).
+
+### Call the endpoint
+
+You can make use of the [SampleExtension.Web.http](./src/samples/DragonCopilot/Workflow/SampleExtension.Web/SampleExtension.Web.http) file in the sample project to make a call. It contains a sample invocation for an extension listening for `Note` content.
+
+You should see an output similar to the following:
+
+```
+HTTP/1.1 200 OK
+Connection: close
+Content-Type: application/json; charset=utf-8
+Date: Mon, 06 Oct 2025 13:20:44 GMT
+Server: Kestrel
+Transfer-Encoding: chunked
+
+{
+    "success": true,
+    "message": "Payload processed successfully",
+    "payload": {
+    "sample-entities": {
+        "schema_version": "0.1",
+        "document": {
+        "title": "Outpatient Note",
+        "type": {
+            "text": "string"
+        }
+        },
+        "resources": []
+    },
+    "adaptive-card": {
+        // abbreviated
+    }
+}
+```
+
+Details about an adaptive card structure and what fields are valid is located in the [Adaptive Card Specification](https://learn.microsoft.com/en-us/industry/healthcare/dragon-copilot/extensions/adaptive-card-spec).
+
+### Making Code Changes
+
+The majority of the code changes for your extension should fall underneath the [Process API](./src/samples/DragonCopilot/Workflow/SampleExtension.Web/Controllers/ProcessController.cs#L58-L95) method. The Process API will be called by Dragon Copilot to execute your extension.
+
+## Using DevTunnels
+
+DevTunnels provide a secure way to expose your local web service to the internet without actually deploying.
+
+1. [Install dev tunnel](https://learn.microsoft.com/en-us/azure/developer/dev-tunnels/get-started?tabs=windows#install).
+2. In a terminal, issue a `devtunnel login` command and select your appropriate account.
+3. Issue a `devtunnel create name-of-tunnel -a` command
+4. Issue a `devtunnel port create name-of-tunnel -p 5181` command
+5. Issue a `devtunnel host name-of-tunnel` command
+6. Copy the URL that is output in the terminal. Make sure to copy the dev tunnel "connect via browser url" as shown in example below.
+
+    ![devtunnel-url.png](doc/images/devtunnel-url.png)
+
+## Packaging your Integration
+
+We are now going to package our integration using the dragon-copilot CLI tool. The CLI supports both **Physician Workflows** and **Clinical Application Connectors** with separate command domains.
+
+### CLI Installation (One-time Setup)
+
+1. Open a new terminal window
+2. Navigate to `../tools/dragon-copilot-cli`
+3. Run the following commands:
+
+```bash
+npm install
+npm run build
+npm link
+```
+
+This exposes the `dragon-copilot` command globally. To refresh an existing install after changes:
+
+```bash
+npm unlink -g dragon-copilot
+npm link
+```
+
+---
+
+### Packaging a Physician Workflow
+
+Use the `physician` commands for Physician Workflows with automation scripts, event triggers, and dependencies.
+
+1. Issue a `dragon-copilot physician init` command
+
+    You will be asked for information on your extension.
+    - Ensure the tenantId specified is for where you will upload your extension to.
+    - Ensure the API endpoint points to the process method using the devtunnel address you generated earlier.
+
+2. (Optional) Validate your manifest:
+
+    ```bash
+    dragon-copilot physician validate ./extension.yaml
+    ```
+
+3. Issue a `dragon-copilot physician package` command
+
+You now have a valid zip file that represents your Physician Workflow!
+
+---
+
+### Packaging a Clinical Application Connector
+
+Use the `connector` commands for Clinical Application Connectors (EHR integrations, API connectors).
+
+1. Issue a `dragon-copilot connector init` command
+
+    You will be asked for information on your Clinical Application Connector:
+    - Clinical application name—typically the embedded EHR or workflow integration that issues user identities to Dragon Copilot
+    - Ensure the tenantId specified is for where you will upload your connector to
+    - Configure note sections, context retrieval, and authentication settings
+
+2. (Optional) Validate your manifest:
+
+    ```bash
+    dragon-copilot connector validate ./extension.yaml
+    ```
+
+3. Issue a `dragon-copilot connector package` command
+
+You now have a valid zip file that represents your Clinical Application Connector!
+
+## Add the Service Principal to your tenant
+
+> NOTE: We need to register the "Microsoft.HealthPlatform" resource provider in an Azure subscription that belongs to your tenant. This will inject a Service Principal (a.k.a. "Enterprise Application") for the Dragon Copilot Extension Runtime application registration into the Extension vendor's tenant. This step will only need to be done once for your tenant.
+
+1. Log into http://entra.microsoft.com
+2. Go to Subscriptions and select your subscription.
+   ![](doc/images/subscriptions.png)
+3. Select Resource Providers on the left hand menu.
+
+    ![](doc/images/resource-providers.png)
+
+4. Search for "Microsoft.HealthPlatform".
+
+    ![](doc/images/health-platform-search.png)
+
+5. Select the entry and click the Register button.
+
+    ![](doc/images/health-platform-register.png)
+
+## Create an Application in Azure portal that represents your application.
+
+1. Log into http://entra.microsoft.com
+2. Go to App registrations on the left menu
+
+    ![](doc/images/entra-app-reg-menu.png)
+
+3. Create a new registration
+
+    ![](doc/images/entra-new-registration.png)
+
+4. Name your application what you want and ensure it is a "Single tenant Application"
+
+    ![](doc/images/entra-new-registration-name.png)
+
+5. Once complete go to the "Expose an API" on the left side.
+
+    ![](doc/images/entra-expose-an-api.png)
+
+6. Add an Application ID URI. The format should be: `api://{entra-tenantid}/{devtunnelpath}`
+    - (i.e. api://1abcdefg3-n2g4-56dd-jj10-i34lmn5p7rst/k2dkm8r-7156.use.devtunnels.ms)
+
+7. Click the "Save" button
+8. In the application details navigation, select "Token Configuration"
+
+    ![](doc/images/entra-token-configuration.png)
+
+9. Select "Add Optional Claim" in the details section
+
+    ![](doc/images/entra-optional-claim.png)
+
+10. For token type select "Access" and in the list of claims select "idtyp"
+
+    ![](doc/images/entra-optional-claim-details.png)
+
+11. Click the "Add" button
+12. In the application details navigation, select "Manifest"
+
+    ![](doc/images/entra-manifest.png)
+
+13. Find the property "requestedAccessTokenVersion" and change the value from `null` to `2`
+
+    ![](doc/images/entra-manifest-details.png)
+
+14. Click the "Save" button
+
+## Installing your Extension
+
+1. Open the browser and go to `https://admin.healthplatform.microsoft.com/extensions`
+2. Click the dropdown at the top to select the environment on the card you were given.
+
+    ![](doc/images/switch-environment-menu.png)
+
+3. In the page navigation click "Upload custom"
+
+    ![](doc/images/dac-upload-custom.png)
+
+4. Select the previously created zip file in the folder `tools/dragon`
+
+5. Agree to the terms
+
+    ![](doc/images/dac-upload-custom-details.png)
+
+6. Click the "Upload custom" button
+
+## Testing your Extension
+
+1. Open the browser and go to `https://www.copilot.us.dragon.com`
+2. Click "Sign In"
+3. Allow the use of the microphone in the popup in the top left.
+4. Go through the initial setup
+    1. Select any Primary specialty
+    2. Click "Next"
+    3. Select any role
+    4. Click "Next"
+    5. Click "Complete setup"
+5. Switch environment using following steps:
+    1. Click "Settings"
+       ![settings-switch-environment-1.png](doc/images/settings-switch-environment-1.png)
+    2. Click "General"
+    3. Select your assigned environment from the dropdown
+       ![settings-switch-environment-2.png](doc/images/settings-switch-environment-2.png)
+    4. Click "Reload app" in Change Environment popup
+       ![settings-switch-environment-3.png](doc/images/settings-switch-environment-3.png)
+    5. Go through step 4 i.e. initial setup of selecting specialties.
+
+6. Ensure "Auto-style" is enabled
+    1. Click the gear icon in the top right
+
+        ![settings-gear.png](doc/images/settings-gear.png)
+
+    2. Click "Note style & format" in the menu
+
+        ![settings-note-style.png](doc/images/settings-note-style.png)
+
+    3. Click "Style" in the menu
+
+        ![settings-style.png](doc/images/settings-style.png)
+
+    4. Toggle "Auto-style" to enabled
+
+        ![settings-auto-style.png](doc/images/settings-auto-style.png)
+
+    5. This setting is auto-saved and only needs to happen once
+
+7. Ensure other extensions disabled
+    1. Click the gear icon in the top right
+
+        ![settings-gear.png](doc/images/settings-gear.png)
+
+    2. Click "Extensions" in the menu
+    3. Select extensions besides your own
+    4. Toggle the extension off
+    5. This setting is auto-saved and only needs to happen once
+
+8. Click "Create patient session" in the bottom left
+   ![create-patient-session.png](doc/images/create-patient-session.png)
+9. Create an ambient recording by clicking the button to the right of the prompt box in the bottom.
+   ![ambient-button.png](doc/images/ambient-button.png)
+
+    You can refer to [audio recordings](./src/samples/audio-recordings) contained in the repository for examples of typical recordings.
+
+10. Sample script:
+
+> Mr. John Doe is a 55-year-old male here for follow-up on hypertension. He's taking lisinopril 20 milligrams daily with good adherence. Blood pressure today is 128 over 78, heart rate 72. He reports no chest pain, shortness of breath, or headaches. He does note occasional mild dizziness when standing quickly, otherwise feels well. Exam is unremarkable, lungs are clear, heart regular, no edema.
+>
+> Assessment: Hypertension, well controlled. Mild orthostatic dizziness likely related to medication but not impacting daily function.
+>
+> Plan: Continue current lisinopril dose. Encourage hydration and slower positional changes. Reinforced diet and exercise recommendations. Ordered labs for next visit. Follow up in six months or sooner if symptoms worsen.
+
+7. Click the same button to stop recording.
+
+8. After recording is complete you should see a number of things happen:
+    - Recording uploaded
+    - Note generated
+    - Auto-style executed
+    - Extension executed and displayed in the Note section.
+      ![timeline-output.png](doc/images/timeline-output.png)
+
+9. Click the "Note" tab and scroll to the bottom to see your results
+   ![tab-note.png](doc/images/tab-note.png)
