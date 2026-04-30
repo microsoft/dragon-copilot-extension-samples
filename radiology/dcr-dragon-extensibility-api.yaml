@@ -1,0 +1,179 @@
+
+# DCR Extensibility API
+#
+# OpenAPI spec defining the API contract for Dragon Copilot for Radiology extensions.
+# Equivalent of dragon-extensibility-api.yaml for DCP.
+#
+# This file defines:
+# - The API endpoint (POST /v1/process) that a DCR extension must implement
+# - Request envelope (DragonStandardPayload) with SessionData and content-type-specific payloads
+# - Payload schemas for each DCR content-type:
+#   - RadiologyReport (dsp.rad.report+json) — radiology reports with study info (order-level: accession number, modality, body parts), structured sections (dictionary of named sections), structured findings, quality metrics
+#   - RadiologyDictation (dsp.rad.dictation+json) — placeholder, to be defined
+# - Response envelope (ProcessResponse) with named outputs
+# - Response payload schemas:
+#   - RadiologyQualityResult (dsp.rad.quality-result+json) — quality check recommendations with severity, provenance, and references
+# - Shared components: SessionData, Encounter, Patient, Practitioner, etc. (reused from DCP where applicable)
+# - Security schemes (JWT Bearer auth)
+#
+# Design decisions:
+# - Report body uses a dictionary of named sections — aligned with the Extensions team's
+#   DraftReportDto/StructuredReportDto pattern, validated with real vendors (GladRad, Annalise, Gleamer).
+# - Section keys are not constrained by enum — recommended keys are "indication", "technique",
+#   "comparison", "findings", "impression", "recommendation" (matching Radiance team's TemplateSectionType),
+#   but partners may add custom keys (e.g., "nodules", "pleura", "aorta").
+# - RadiologyReport.reports is an array to support the priors use case (platform sends multiple
+#   prior reports as input to an extension).
+# - StructuredFindings are optional — enables AI vendors but doesn't burden simpler integrations.
+# - Encounter and shared schemas reuse DCP's structure to minimize partner friction.
+#
+# See README.md for context on how this fits into the DCR-Extension validation and API contract.
+# See dragon-copilot-extension-samples/dragon-extensibility-api.yaml for the DCP equivalent.
+#
+# Note: DCP and DCR currently have separate OpenAPI specs (dragon-extensibility-api.yaml for DCP,
+# dcr-dragon-extensibility-api.yaml for DCR). These could be combined into a single spec if needed.
+# Shared schemas (DragonStandardPayload, ProcessResponse, DSP, SessionData, Encounter, Patient,
+# Practitioner, Visit, Code, Document) are kept compatible across both specs to facilitate this.
+
+openapi: 3.0.0
+info:
+  title: DCR Extensibility API
+  version: 0.0.1
+  description: API definition for enabling Dragon Copilot for Radiology extension integrations
+
+paths:
+  /v1/process:
+    post:
+      summary: Process DCR Standard payload
+      description: >-
+        Endpoint to trigger processing within a DCR extension. Receives inputs in the
+        DCR Standard payload containing radiology report and/or radiology dictation data.
+      operationId: processDragonStandard
+      parameters:
+        - name: x-ms-request-id
+          in: header
+          required: false
+          schema:
+            type: string
+          description: >-
+            Unique request identifier. In case of retries for the same call,
+            this value is the same.
+        - name: x-ms-correlation-id
+          in: header
+          required: false
+          schema:
+            type: string
+          description: >-
+            Correlation identifier for tracking. Stays the same for the entire execution
+            of multiple extensions in the scope of a single execution flow.
+        - name: x-dre-custom-header
+          in: header
+          description: >-
+            Arbitrary custom Dragon Extension header. Any number of custom headers with the
+            x-dre- prefix are allowed. They originate from the installation of the extension
+            and are passed through to the extension.
+          required: false
+          schema:
+            type: string
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DragonStandardPayload"
+      responses:
+        "200":
+          description: Successfully processed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProcessResponse"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  error:
+                    type: string
+                    example: "Invalid payload format"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  error:
+                    type: string
+                    example: "Unauthorized."
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  error:
+                    type: string
+                    example: "Internal server error occurred"
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    # ---------------------------------------------------------------------------
+    # Request envelope
+    # ---------------------------------------------------------------------------
+    DragonStandardPayload:
+      type: object
+      description: >-
+        Dragon Standard payload containing session data and one or more content-type-specific
+        payloads. Each additional property key is the input name declared in the extension
+        manifest, and its value is the corresponding payload type (RadiologyReport,
+        RadiologyDictation, etc.).
+      required:
+        - sessionData
+      properties:
+        sessionData:
+          $ref: "SessionData.yaml#/SessionData"
+      additionalProperties:
+        oneOf:
+          - $ref: "PatientInformation.yaml#/PatientInformation"
+          - $ref: "Report.yaml#/Report"
+
+    # ---------------------------------------------------------------------------
+    # Response envelope
+    # ---------------------------------------------------------------------------
+    ProcessResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: "Payload processed successfully"
+        payload:
+          type: object
+          description: >-
+            Map of named outputs. Each key is the output name declared in the extension
+            manifest, and its value is a QualityCheckResult.
+          additionalProperties:
+             $ref: "QualityCheckResult.yaml#/QualityCheckResult"

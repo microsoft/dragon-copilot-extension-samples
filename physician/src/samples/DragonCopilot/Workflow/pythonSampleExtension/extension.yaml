@@ -7,7 +7,6 @@ tools:
   - name: clinical-entity-extractor-py
     description: Extracts certain clinical entities (Python FastAPI)
     endpoint: http://localhost:5181/v1/process
-    trigger: AutoRun
     inputs:
       - name: note
         description: Note
@@ -18,4 +17,4 @@ tools:
         content-type: application/vnd.ms-dragon.dsp+json
       - name: adaptive-card
         description: Coded clinical entities in Adaptive Card format
-        content-type: application/vnd.ms-dragon.dsp+json
+        content-type: application/vnd.microsoft.card.adaptive+json
