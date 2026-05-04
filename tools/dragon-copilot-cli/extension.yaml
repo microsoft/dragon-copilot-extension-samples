@@ -20,3 +20,14 @@ tools:
       - name: quality-result
         description: Quality check result
         content-type: application/vnd.ms-dragon.dsp.rad.quality-result+json
+    relevanceFilteringCriteria:
+      relevantBodyParts:
+        - HEAD
+        - BRAIN
+        - SKULL
+        - SINUS
+        - NECK
+      relevantModalities:
+        - CR
+        - CT
+        - DX

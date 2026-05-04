@@ -44,7 +44,7 @@ const templates: Record<string, TemplateConfig> = {
         toolType: 'contractBased',
         capability: 'qualityCheck',
         description: 'Generates a radiology report based on patient info and prior reports',
-        endpoint: 'https://publisher.example.com/report-generation',
+        endpoint: 'https://publisher.example.com/quality-result',
         inputs: [
           {
             name: 'report',

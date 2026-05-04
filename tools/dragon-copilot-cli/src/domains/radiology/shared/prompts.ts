@@ -44,7 +44,9 @@ export const CAPABILITY_CHOICES = [
  */
 export function validateToolName(input: string, existingManifest?: DcrExtensionManifest | null): string | boolean {
   if (!input.trim()) return 'Tool name is required';
-  if (!/^[a-z0-9-]+$/.test(input)) return 'Tool name must contain only lowercase letters, numbers, and hyphens';
+    if (!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(input)) {
+        return 'Tool name must use lowercase kebab-case segments (letters/numbers separated by single hyphens)';
+    }
   if (existingManifest?.tools.find(t => t.name === input)) {
     return 'Tool with this name already exists';
   }

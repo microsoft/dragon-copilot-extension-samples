@@ -76,8 +76,8 @@ function getSchemaPath(): string {
   ];
 
   for (const candidate of candidates) {
-    if (existsSync(join(candidate, 'dcr-extension-manifest-schema.json'))) {
-      return candidate;
+    if (existsSync(join(candidate, 'radiology', 'radiology-extension-manifest-schema.json'))) {
+      return join(candidate, 'radiology');
     }
   }
 
@@ -93,7 +93,7 @@ function loadSchema(name: string): any {
   return JSON.parse(readFileSync(join(schemaDir, name), 'utf8'));
 }
 
-const manifestSchema = loadSchema('dcr-extension-manifest-schema.json');
+const manifestSchema = loadSchema('radiology-extension-manifest-schema.json');
 
 const validateManifest = ajv.compile(manifestSchema);
 

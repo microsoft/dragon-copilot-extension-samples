@@ -87,8 +87,8 @@ function getSchemaPath(): string {
   ];
 
   for (const candidate of candidates) {
-    if (existsSync(join(candidate, 'extension-manifest.json'))) {
-      return candidate;
+    if (existsSync(join(candidate, 'physician', 'physician-extension-manifest-schema.json'))) {
+      return join(candidate, 'physician');
     }
   }
 
@@ -106,7 +106,7 @@ function loadSchema(name: string): any {
   return JSON.parse(readFileSync(join(schemaDir, name), 'utf8'));
 }
 
-const manifestSchema = loadSchema('extension-manifest.json');
+const manifestSchema = loadSchema('physician-extension-manifest-schema.json');
 
 // Compile schemas for faster validation
 const validateManifest = ajv.compile(manifestSchema);

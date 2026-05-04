@@ -65,7 +65,7 @@ function getSchemaPath(): string {
   ];
 
   for (const candidate of candidates) {
-    if (existsSync(join(candidate, 'extension-manifest.json'))) {
+    if (existsSync(join(candidate, 'physician', 'physician-extension-manifest-schema.json'))) {
       return candidate;
     }
   }
@@ -84,9 +84,9 @@ function loadSchema(name: string): any {
   return JSON.parse(readFileSync(join(schemaDir, name), 'utf8'));
 }
 
-const extensionManifestSchema = loadSchema('extension-manifest.json');
+const extensionManifestSchema = loadSchema('physician/physician-extension-manifest-schema.json');
 const connectorManifestSchema = loadSchema('connector-manifest.json');
-const dcrExtensionManifestSchema = loadSchema('dcr-extension-manifest-schema.json');
+const dcrExtensionManifestSchema = loadSchema('radiology/radiology-extension-manifest-schema.json');
 
 const validateExtensionSchema = ajv.compile(extensionManifestSchema);
 const validateConnectorSchema = ajv.compile(connectorManifestSchema);

@@ -87,7 +87,8 @@
         "capability": {
           "type": "string",
           "enum": [
-            "qualityCheck"
+            "qualityCheck",
+            "reportGeneration"
           ],
           "description": "The capability / function this tool provides"
         },
@@ -197,10 +198,11 @@
     "OutputContentType": {
       "type": "string",
       "enum": [
-        "application/vnd.ms-dragon.dsp.rad.quality-result+json"
+        "application/vnd.ms-dragon.dsp.rad.quality-result+json",
+        "application/vnd.ms-dragon.dsp.rad.generated-report+json"
       ],
       "description": "Content type identifier for tool outputs (IANA MIME type)",
-      "$comment": "dsp.rad.report+json represents a radiology report payload. dsp.rad.quality-result+json represents quality check findings and score."
+      "$comment": "dsp.rad.report+json represents a radiology report payload. dsp.rad.quality-result+json represents quality check findings and score. dsp.rad.generated-report+json represents a generated radiology report."
     },
     "DragonInputConfig": {
       "$comment": "Currently specific to dsp.rad.report inputs (e.g., patientPriors, physicianPriors). May be extended or split via if/then as new input types require their own config.",

@@ -17,4 +17,4 @@ tools:
         content-type: application/vnd.ms-dragon.dsp+json
       - name: adaptive-card
         description: Coded clinical entities in Adaptive Card format
-        content-type: application/vnd.microsoft.card.adaptive+json
+        content-type: application/vnd.ms-dragon.dsp+json
