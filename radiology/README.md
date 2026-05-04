@@ -99,7 +99,7 @@ In short, the OpenAPI spec and reference models are the shared contract — both
 
 Dragon Copilot for Radiology - Extensions (DCR-Extensions) will also be defined and supported by the files in the `dragon-copilot-extension-samples` and `hls-dax-core-docs` repos. Similarly, DCR-Extensions will build-upon the patterns of DCP-Extensions:
 
-- **`dcr-extension-manifest.json`**:
+- **`radiology-extension-manifest-schema.json`**:
   Schema that enables validation of all DCR-Extensions manifests from all Partners. Extends the DCP schema with DCR-specific features (appId, toolType, capability, input config with min/max priors, required flag, Push trigger, relevanceFilteringCriteria, configurationTemplate, DICOM modality and body part enums).
 - **`dcr-extension.yaml`**:
   Sample DCR-Extension manifest from a single Partner.
