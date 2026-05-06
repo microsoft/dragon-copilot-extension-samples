@@ -3,7 +3,7 @@ const { readFileSync, writeFileSync } = fs;
 import yaml from 'js-yaml';
 const { load, dump } = yaml;
 import chalk from 'chalk';
-import type { GenerateOptions, DcrExtensionManifest, DragonRadiologyTool } from '../types.js';
+import type { GenerateOptions, DcrExtensionManifest, DcrTool } from '../types.js';
 import { getTemplate } from '../templates/index.js';
 import { promptToolDetails, promptAuthDetails, getInputDescription, getInputName } from '../shared/prompts.js';
 import { validateExtensionManifest } from '../shared/schema-validator.js';

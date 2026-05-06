@@ -3,14 +3,14 @@ export interface DcrExtensionManifest {
   description: string;
   version: string;
   auth: AuthConfig;
-  tools: DragonRadiologyTool[];
+  tools: DcrTool[];
 }
 
 export interface AuthConfig {
   tenantId: string;
 }
 
-export interface DragonRadiologyTool {
+export interface DcrTool {
   name: string;
   toolType: 'contractBased' | 'uiBased' | 'mcpBased' | 'agentBased';
   capability: 'qualityCheck';
