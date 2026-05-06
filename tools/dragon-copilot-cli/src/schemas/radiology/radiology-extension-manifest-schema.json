@@ -151,10 +151,6 @@
           "default": true,
           "description": "Whether this input is required. Defaults to true if omitted."
         },
-        "config": {
-          "$ref": "#/definitions/DragonInputConfig",
-          "description": "Input-level configuration"
-        },
         "content-type": {
           "$ref": "#/definitions/InputContentType"
         }
@@ -199,37 +195,6 @@
         "application/vnd.ms-dragon.dsp.rad.quality-result+json"
       ],
       "description": "Content type identifier for tool outputs (IANA MIME type)"
-    },
-    "DragonInputConfig": {
-      "$comment": "Currently specific to dsp.rad.report inputs (e.g., patientPriors, physicianPriors). May be extended or split via if/then as new input types require their own config.",
-      "type": "object",
-      "properties": {
-        "minNumberOfPriors": {
-          "type": "integer",
-          "minimum": 0,
-          "description": "Minimum number of prior reports to include for meaningful results"
-        },
-        "maxNumberOfPriors": {
-          "type": "integer",
-          "minimum": 1,
-          "description": "Maximum number of prior reports to include"
-        },
-        "relevantBodyParts": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/BodyPart"
-          },
-          "description": "Body parts relevant to this input"
-        },
-        "relevantModalities": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/DicomModality"
-          },
-          "description": "Imaging modalities relevant to this input"
-        }
-      },
-      "additionalProperties": false
     },
     "RelevanceFilteringCriteria": {
       "$comment": "Tool-level gate: only consider invoking this tool if the current context (e.g., the study being reported on) matches these criteria. If omitted, the tool is always considered.",

@@ -27,20 +27,12 @@ export interface DcrInput {
   description: string;
   'content-type': string;
   required?: boolean;
-  config?: DcrInputConfig;
 }
 
 export interface DcrOutput {
   name: string;
   description: string;
   'content-type': string;
-}
-
-export interface DcrInputConfig {
-  minNumberOfPriors?: number;
-  maxNumberOfPriors?: number;
-  relevantBodyParts?: string[];
-  relevantModalities?: string[];
 }
 
 export interface RelevanceFilteringCriteria {
@@ -86,7 +78,6 @@ export interface ToolTemplate {
     description: string;
     'content-type': string;
     required?: boolean;
-    config?: DcrInputConfig;
   }>;
   outputs: Array<{
     name: string;
