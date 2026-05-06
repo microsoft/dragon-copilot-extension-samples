@@ -32,44 +32,6 @@ const templates: Record<string, TemplateConfig> = {
         }
       }
     ]
-  },
-
-  'report-generation': {
-    name: 'my-report-generation-extension',
-    description: 'Provides radiology report generation',
-    version: '0.0.1',
-    tools: [
-      {
-        name: 'report-generator',
-        toolType: 'contractBased',
-        capability: 'qualityCheck',
-        description: 'Generates a radiology report based on patient info and prior reports',
-        endpoint: 'https://publisher.example.com/quality-result',
-        inputs: [
-          {
-            name: 'report',
-            description: 'Radiology report from Dragon Copilot',
-            'content-type': 'application/vnd.ms-dragon.dsp.rad.report+json'
-          },
-          {
-            name: 'patient-info',
-            description: 'Patient demographic information from Dragon Copilot',
-            'content-type': 'application/vnd.ms-dragon.dsp.rad.patient-info+json'
-          }
-        ],
-        outputs: [
-          {
-            name: 'quality-result',
-            description: 'Report generation results',
-            'content-type': 'application/vnd.ms-dragon.dsp.rad.quality-result+json'
-          }
-        ],
-        relevanceFilteringCriteria: {
-          relevantBodyParts: ['CHEST'],
-          relevantModalities: ['CT']
-        }
-      }
-    ]
   }
 };
 

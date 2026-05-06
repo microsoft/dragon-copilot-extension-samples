@@ -326,41 +326,6 @@ describe('validateDcrExtensionManifest (radiology)', () => {
     expect(result.errors).toHaveLength(0);
   });
 
-  it('returns valid for a manifest with reportGeneration capability', () => {
-    const manifest = buildValidRadiologyManifest();
-    manifest.tools[0] = {
-      name: 'report-generator',
-      toolType: 'contractBased',
-      capability: 'reportGeneration',
-      description: 'Generates a radiology report',
-      endpoint: 'https://example.org/report-generation',
-      inputs: [
-        {
-          name: 'report',
-          description: 'Radiology report',
-          'content-type': 'application/vnd.ms-dragon.dsp.rad.report+json',
-        },
-        {
-          name: 'patient-info',
-          description: 'Patient demographic information',
-          'content-type': 'application/vnd.ms-dragon.dsp.rad.patient-info+json',
-        },
-      ],
-      outputs: [
-        {
-          name: 'generated-report',
-          description: 'Generated radiology report',
-          'content-type': 'application/vnd.ms-dragon.dsp.rad.generated-report+json',
-        },
-      ],
-    };
-
-    const result = validateDcrExtensionManifest(manifest);
-
-    expect(result.isValid).toBe(true);
-    expect(result.errors).toHaveLength(0);
-  });
-
   it('rejects an invalid capability value', () => {
     const manifest = buildValidRadiologyManifest();
     (manifest.tools[0] as any).capability = 'invalidCapability';
