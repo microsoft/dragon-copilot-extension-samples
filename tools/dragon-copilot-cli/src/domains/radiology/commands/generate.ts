@@ -9,14 +9,14 @@ import { promptToolDetails, promptAuthDetails, getInputDescription, getInputName
 import { validateExtensionManifest } from '../shared/schema-validator.js';
 
 export async function generateManifest(options: GenerateOptions): Promise<void> {
-  console.log(chalk.blue('?? Generating Dragon Copilot Radiology Extension Manifest'));
+  console.log(chalk.blue('🐉 Generating Dragon Copilot Radiology Extension Manifest'));
 
   if (options.interactive) {
     await generateInteractive(options);
   } else if (options.template) {
     await generateFromTemplate(options);
   } else {
-    console.log(chalk.red('? Please specify either --template or --interactive'));
+    console.log(chalk.red('❌ Please specify either --template or --interactive'));
     process.exit(1);
   }
 }
@@ -31,9 +31,9 @@ async function generateInteractive(options: GenerateOptions): Promise<void> {
     const validation = validateExtensionManifest(parsed);
     if (validation.isValid) {
       existingManifest = parsed;
-      console.log(chalk.yellow('?? Found existing DCR manifest, will add to it'));
+      console.log(chalk.yellow('📄 Found existing DCR manifest, will add to it'));
     } else {
-      console.log(chalk.yellow('??  Existing manifest is not a valid DCR radiology manifest, creating new one'));
+      console.log(chalk.yellow('⚠️  Existing manifest is not a valid DCR radiology manifest, creating new one'));
     }
   } catch {
     // File doesn't exist, create new
@@ -64,7 +64,7 @@ async function generateInteractive(options: GenerateOptions): Promise<void> {
     manifest = existingManifest;
     manifest.tools.push(newTool);
   } else {
-    console.log(chalk.blue('\n?? Authentication Configuration'));
+    console.log(chalk.blue('\n🔐 Authentication Configuration'));
     console.log(chalk.gray('New manifest requires authentication configuration.\n'));
     const authDetails = await promptAuthDetails();
 
@@ -82,13 +82,13 @@ async function generateInteractive(options: GenerateOptions): Promise<void> {
   const yamlContent = dump(manifest, { lineWidth: -1 });
   writeFileSync(options.output || 'extension.yaml', yamlContent);
 
-  console.log(chalk.green('\n? Tool added to manifest successfully!'));
-  console.log(chalk.gray(`?? Manifest saved to: ${options.output || 'extension.yaml'}`));
+  console.log(chalk.green('\n✅ Tool added to manifest successfully!'));
+  console.log(chalk.gray(`📁 Manifest saved to: ${options.output || 'extension.yaml'}`));
 }
 
 async function generateFromTemplate(options: GenerateOptions): Promise<void> {
   if (!options.template) {
-    console.log(chalk.red('? Template name is required'));
+    console.log(chalk.red('❌ Template name is required'));
     return;
   }
 
@@ -97,14 +97,14 @@ async function generateFromTemplate(options: GenerateOptions): Promise<void> {
     const yamlContent = dump(template, { lineWidth: -1 });
     writeFileSync(options.output || 'extension.yaml', yamlContent);
 
-    console.log(chalk.green(`? Manifest generated from template: ${options.template}`));
-    console.log(chalk.gray(`?? Manifest saved to: ${options.output || 'extension.yaml'}`));
+    console.log(chalk.green(`✅ Manifest generated from template: ${options.template}`));
+    console.log(chalk.gray(`📁 Manifest saved to: ${options.output || 'extension.yaml'}`));
 
   } catch (error) {
     if (error instanceof Error) {
-      console.log(chalk.red(`? Error generating from template: ${error.message}`));
+      console.log(chalk.red(`❌ Error generating from template: ${error.message}`));
     } else {
-      console.log(chalk.red('? Unknown error occurred while generating from template'));
+      console.log(chalk.red('❌ Unknown error occurred while generating from template'));
     }
   }
 }
