@@ -22,7 +22,6 @@ Key resources:
 | Type                               | Description                                                                            | Use Case                                                    |
 | ---------------------------------- | -------------------------------------------------------------------------------------- | ----------------------------------------------------------- |
 | **Radiology Workflow**             | Custom AI-powered extensions with automation scripts, event triggers, and dependencies | Extend Dragon Copilot with custom radiology data processing |
-| **Clinical Application Connector** | RIS/PACS integrations and API connectors that interface with radiology applications    | Connect Dragon Copilot to external radiology systems        |
 
 ## 🚀 Getting Started
 
