@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "Schema for all Extension manifests for Dragon Copilot for Radiology" ,
+  "title": "Schema for all Extension manifests for Dragon Copilot for Radiology",
   "type": "object",
   "required": [
     "name",
@@ -191,16 +191,14 @@
         "application/vnd.ms-dragon.dsp.rad.report+json",
         "application/vnd.ms-dragon.dsp.rad.patient-info+json"
       ],
-      "description": "Content type identifier for tool inputs (IANA MIME type)",
-      "$comment": "Content-type values reference payload schemas defined in dcr-dragon-extensibility-api.yaml. dsp.rad.report+json represents a radiology report payload. dsp.rad.dictation+json represents raw dictated text from speech-to-text. dsp.rad.patient-info+json represents patient demographic information."
+      "description": "Content type identifier for tool inputs (IANA MIME type)"
     },
     "OutputContentType": {
       "type": "string",
       "enum": [
         "application/vnd.ms-dragon.dsp.rad.quality-result+json"
       ],
-      "description": "Content type identifier for tool outputs (IANA MIME type)",
-      "$comment": "dsp.rad.report+json represents a radiology report payload. dsp.rad.quality-result+json represents quality check findings and score."
+      "description": "Content type identifier for tool outputs (IANA MIME type)"
     },
     "DragonInputConfig": {
       "$comment": "Currently specific to dsp.rad.report inputs (e.g., patientPriors, physicianPriors). May be extended or split via if/then as new input types require their own config.",
