@@ -109,13 +109,20 @@ components:
     DragonStandardPayload:
       type: object
       description: >-
-        Dragon Standard payload containing session data and one or more content-type-specific
-        payloads. Each additional property key is the input name declared in the extension
-        manifest, and its value is the corresponding payload type (RadiologyReport,
-        RadiologyDictation, etc.).
+        Request envelope for /v1/process. Contains session metadata and named input
+        payloads, where each key is an input declared in the extension manifest, and
+        its value is the corresponding payload type (RadiologyReport, RadiologyDictation,
+        etc.).
       required:
+        - schema_version
         - sessionData
       properties:
+        schema_version:
+          type: string
+          description: >-
+            Wire-level contract version of the DCR Extensibility API envelope.
+            Mirrors the MAJOR.MINOR of `info.version`.
+          example: "0.0"
         sessionData:
           $ref: "SessionData.yaml#/SessionData"
       additionalProperties:
