@@ -1,39 +1,4 @@
-
-# DCR Extensibility API
-#
-# OpenAPI spec defining the API contract for Dragon Copilot for Radiology extensions.
-# Equivalent of dragon-extensibility-api.yaml for DCP.
-#
-# This file defines:
-# - The API endpoint (POST /v1/process) that a DCR extension must implement
-# - Request envelope (DragonStandardPayload) with SessionData and content-type-specific payloads
-# - Payload schemas for each DCR content-type:
-#   - RadiologyReport (dsp.rad.report+json) — radiology reports with study info (order-level: accession number, modality, body parts), structured sections (dictionary of named sections), structured findings, quality metrics
-#   - RadiologyDictation (dsp.rad.dictation+json) — placeholder, to be defined
-# - Response envelope (ProcessResponse) with named outputs
-# - Response payload schemas:
-#   - RadiologyQualityResult (dsp.rad.quality-result+json) — quality check recommendations with severity, provenance, and references
-# - Shared components: SessionData, Encounter, Patient, Practitioner, etc. (reused from DCP where applicable)
-# - Security schemes (JWT Bearer auth)
-#
-# Design decisions:
-# - Report body uses a dictionary of named sections — aligned with the Extensions team's
-#   DraftReportDto/StructuredReportDto pattern, validated with real vendors (GladRad, Annalise, Gleamer).
-# - Section keys are not constrained by enum — recommended keys are "indication", "technique",
-#   "comparison", "findings", "impression", "recommendation" (matching Radiance team's TemplateSectionType),
-#   but partners may add custom keys (e.g., "nodules", "pleura", "aorta").
-# - RadiologyReport.reports is an array to support the priors use case (platform sends multiple
-#   prior reports as input to an extension).
-# - StructuredFindings are optional — enables AI vendors but doesn't burden simpler integrations.
-# - Encounter and shared schemas reuse DCP's structure to minimize partner friction.
-#
-# See README.md for context on how this fits into the DCR-Extension validation and API contract.
-# See dragon-copilot-extension-samples/dragon-extensibility-api.yaml for the DCP equivalent.
-#
-# Note: DCP and DCR currently have separate OpenAPI specs (dragon-extensibility-api.yaml for DCP,
-# dcr-dragon-extensibility-api.yaml for DCR). These could be combined into a single spec if needed.
-# Shared schemas (DragonStandardPayload, ProcessResponse, DSP, SessionData, Encounter, Patient,
-# Practitioner, Visit, Code, Document) are kept compatible across both specs to facilitate this.
+# OpenAPI spec defining the API contract for extensions for Dragon Copilot for Radiology (DCR).
 
 openapi: 3.0.0
 info:
