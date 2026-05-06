@@ -32,11 +32,11 @@ const RADIOLOGY_EXTENSION_MANIFEST = [
   'auth:',
   '  tenantId: 00000000-0000-0000-0000-000000000001',
   'tools:',
-  '  - name: report-generator',
+  '  - name: quality-checker',
   '    toolType: contractBased',
-  '    capability: reportGeneration',
-  '    description: Generates a radiology report',
-  '    endpoint: https://example.org/report-generation',
+  '    capability: qualityCheck',
+  '    description: Checks the quality of a radiology report',
+  '    endpoint: https://example.org/quality-check',
   '    inputs:',
   '      - name: report',
   '        description: Radiology report from Dragon Copilot',
@@ -45,9 +45,9 @@ const RADIOLOGY_EXTENSION_MANIFEST = [
   '        description: Patient demographic information',
   '        content-type: application/vnd.ms-dragon.dsp.rad.patient-info+json',
   '    outputs:',
-  '      - name: generated-report',
-  '        description: Generated radiology report',
-  '        content-type: application/vnd.ms-dragon.dsp.rad.generated-report+json',
+  '      - name: quality-result',
+  '        description: Quality check findings and score',
+  '        content-type: application/vnd.ms-dragon.dsp.rad.quality-result+json',
 ].join('\n');
 
 const PARTNER_MANIFEST = [
@@ -147,7 +147,7 @@ describe('CLI integration paths', () => {
     expect(process.exitCode).toBe(0);
   });
 
-  test('radiology validate succeeds for a valid manifest with reportGeneration capability', async () => {
+  test('radiology validate succeeds for a valid manifest with qualityCheck capability', async () => {
     const manifestPath = join(workingDir, 'extension.yaml');
     writeFileSync(manifestPath, RADIOLOGY_EXTENSION_MANIFEST, 'utf8');
 
