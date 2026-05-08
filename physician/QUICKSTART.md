@@ -18,7 +18,7 @@
 
 # Quick Start Guide for a Dragon Extension Developer
 
-This document is a quick‑start guide for building, testing, packaging, and deploying a custom Dragon Copilot integration. Its purpose is to walk a developer through the full development lifecycle—from setting up the environment to validating the integration inside the Dragon Copilot application.
+This document is a quick‑start guide for building, testing, packaging, and deploying a custom Dragon Copilot physician app. Its purpose is to walk a developer through the full development lifecycle—from setting up the environment to validating the integration inside the Dragon Copilot application.
 
 Prior to running through this document, you may want to read through the Microsoft Learn [documentation](https://learn.microsoft.com/en-us/industry/healthcare/dragon-copilot/extensions/workflow-app-overview) outlining how your extension will interface with the overall Dragon Copilot solution.
 
@@ -38,13 +38,12 @@ The sample project in this repository demonstrates a **Physician Workflow**. The
 ### Development Prerequisites
 
 - DotNet 9
-- Node 22.20.0
-- npm 10.9.3
+- Dragon Copilot CLI tool (for packaging and deployment steps)
 
 ### Local Development Environment
 
 1. Clone the repository
-1. Open a terminal and navigate to `src/samples/DragonCopilot/Workflow/SampleExtension.Web`
+1. Open a terminal and navigate to `physician/src/samples/DragonCopilot/Workflow/SampleExtension.Web`
 1. Issue a `dotnet run`
 
 The application will start and be available at http://localhost:5181
@@ -53,7 +52,7 @@ Some additional development concepts are located in the following Microsoft Lear
 
 ### Call the endpoint
 
-You can make use of the [SampleExtension.Web.http](./src/samples/DragonCopilot/Workflow/SampleExtension.Web/SampleExtension.Web.http) file in the sample project to make a call. It contains a sample invocation for an extension listening for `Note` content.
+You can make use of the [SampleExtension.Web.http](./physician/src/samples/DragonCopilot/Workflow/SampleExtension.Web/SampleExtension.Web.http) file in the sample project to make a call. It contains a sample invocation for an extension listening for `Note` content.
 
 You should see an output similar to the following:
 
@@ -89,7 +88,7 @@ Details about an adaptive card structure and what fields are valid is located in
 
 ### Making Code Changes
 
-The majority of the code changes for your extension should fall underneath the [Process API](./src/samples/DragonCopilot/Workflow/SampleExtension.Web/Controllers/ProcessController.cs#L58-L95) method. The Process API will be called by Dragon Copilot to execute your extension.
+The majority of the code changes for your extension should fall underneath the [Process API](./physician/src/samples/DragonCopilot/Workflow/SampleExtension.Web/Controllers/ProcessController.cs#L58-L95) method. The Process API will be called by Dragon Copilot to execute your extension.
 
 ## Using DevTunnels
 
@@ -108,25 +107,12 @@ DevTunnels provide a secure way to expose your local web service to the internet
 
 We are now going to package our integration using the dragon-copilot CLI tool. The CLI supports both **Physician Workflows** and **Clinical Application Connectors** with separate command domains.
 
-### CLI Installation (One-time Setup)
+### CLI Installation
 
-1. Open a new terminal window
-2. Navigate to `../tools/dragon-copilot-cli`
-3. Run the following commands:
+1. Navigate to release page of the Dragon Copilot CLI repository: https://github.com/microsoft/dragon-copilot-extension-samples/releases
+2. Download the latest version of the CLI for your operating system
 
-```bash
-npm install
-npm run build
-npm link
-```
-
-This exposes the `dragon-copilot` command globally. To refresh an existing install after changes:
-
-```bash
-npm unlink -g dragon-copilot
-npm link
-```
-
+> The CLI is distributed as a single executable file. There is no installation process, but you may want to move it to a directory that is included in your system's PATH environment variable for easier access from the command line. The examples in this document assume you have done this. Please substitute `dragon-copilot` with the correct executable name for your operating system.
 ---
 
 ### Packaging a Physician Workflow
@@ -148,29 +134,6 @@ Use the `physician` commands for Physician Workflows with automation scripts, ev
 3. Issue a `dragon-copilot physician package` command
 
 You now have a valid zip file that represents your Physician Workflow!
-
----
-
-### Packaging a Clinical Application Connector
-
-Use the `connector` commands for Clinical Application Connectors (EHR integrations, API connectors).
-
-1. Issue a `dragon-copilot connector init` command
-
-    You will be asked for information on your Clinical Application Connector:
-    - Clinical application name—typically the embedded EHR or workflow integration that issues user identities to Dragon Copilot
-    - Ensure the tenantId specified is for where you will upload your connector to
-    - Configure note sections, context retrieval, and authentication settings
-
-2. (Optional) Validate your manifest:
-
-    ```bash
-    dragon-copilot connector validate ./extension.yaml
-    ```
-
-3. Issue a `dragon-copilot connector package` command
-
-You now have a valid zip file that represents your Clinical Application Connector!
 
 ## Add the Service Principal to your tenant
 
@@ -211,7 +174,7 @@ You now have a valid zip file that represents your Clinical Application Connecto
     ![](doc/images/entra-expose-an-api.png)
 
 6. Add an Application ID URI. The format should be: `api://{entra-tenantid}/{devtunnelpath}`
-    - (i.e. api://1abcdefg3-n2g4-56dd-jj10-i34lmn5p7rst/k2dkm8r-7156.use.devtunnels.ms)
+    - (i.e. api://00000000-0000-0000-0000-000000000000/k2dkm8r-7156.use.devtunnels.ms)
 
 7. Click the "Save" button
 8. In the application details navigation, select "Token Configuration"
@@ -239,14 +202,15 @@ You now have a valid zip file that represents your Clinical Application Connecto
 
 ## Installing your Extension
 
-1. Open the browser and go to `https://admin.healthplatform.microsoft.com/extensions`
-2. Click the dropdown at the top to select the environment on the card you were given.
+1. Open the browser and go to `https://admin.healthplatform.microsoft.com/marketplace`
 
-    ![](doc/images/switch-environment-menu.png)
-
-3. In the page navigation click "Upload custom"
+3. In the page navigation click "Custom apps" and then click the "Upload custom app" button
 
     ![](doc/images/dac-upload-custom.png)
+
+3. In the popup, select "Workflow for physicians" as the category of custom app you want to upload and select the environment you would like to deploy it to and click the "upload" button.
+
+    ![](doc/images/dac-upload-category.png)
 
 4. Select the previously created zip file in the folder `tools/dragon`
 
@@ -254,7 +218,7 @@ You now have a valid zip file that represents your Clinical Application Connecto
 
     ![](doc/images/dac-upload-custom-details.png)
 
-6. Click the "Upload custom" button
+6. Click the "Upload custom app" button
 
 ## Testing your Extension
 
