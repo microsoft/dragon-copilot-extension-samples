@@ -3,6 +3,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
 
 namespace Dragon.Copilot.Radiology.Models
+{
     /// <summary>
     /// A quality check recommendation produced by a DCR extension.
     /// </summary>
