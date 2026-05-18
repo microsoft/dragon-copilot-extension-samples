@@ -1,0 +1,19 @@
+{
+  "name": "extensions-sandbox",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Dragon Copilot Extensions Integration Sandbox - test and validate extensions locally",
+  "workspaces": [
+    "client",
+    "server"
+  ],
+  "scripts": {
+    "build": "npm run build --workspaces",
+    "start": "npm run start --workspace=server",
+    "dev": "concurrently \"npm run dev --workspace=server\" \"npm run dev --workspace=client\"",
+    "clean": "npm run clean --workspaces --if-present"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  }
+}
