@@ -77,7 +77,7 @@ dragon-copilot connector validate   # Validate connector manifest
 dragon-copilot connector package    # Package for distribution
 ```
 
-See [CLI README](tools/dragon-copilot-cli/README.md) for detailed options and advanced usage.
+See the [CLI README](tools/dragon-copilot-cli/README.md) for detailed options, advanced usage, and release instructions.
 
 ## 🤝 Contributing
 

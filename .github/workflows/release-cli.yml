@@ -44,6 +44,13 @@ jobs:
           cache-dependency-path: tools/dragon-copilot-cli/package-lock.json
       - run: npm ci
         working-directory: tools/dragon-copilot-cli
+      - name: Set version from git tag
+        working-directory: tools/dragon-copilot-cli
+        shell: bash
+        run: |
+          VERSION="${GITHUB_REF_NAME#cli/v}"
+          echo "Releasing version: $VERSION"
+          npm version "$VERSION" --no-git-tag-version
       - run: npm run build
         working-directory: tools/dragon-copilot-cli
       - run: npm run bundle

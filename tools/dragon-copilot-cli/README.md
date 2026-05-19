@@ -8,7 +8,30 @@ The `dragon-copilot` CLI allows you to generate, validate, and package manifests
 
 Download the latest release for your platform from the [Releases page](../../releases). The binary is a self-contained executable—no Node.js installation required.
 
-After downloading, place the binary on your system PATH and run:
+| Platform | Binary                  |
+|----------|-------------------------|
+| Windows  | `dragon-copilot-win.exe` |
+| macOS    | `dragon-copilot-macos`   |
+| Linux    | `dragon-copilot-linux`   |
+
+After downloading, rename the binary to `dragon-copilot` (or `dragon-copilot.exe` on Windows) and add it to your system PATH:
+
+**Windows (PowerShell)**
+```powershell
+# Move the binary to a directory already on your PATH, or create one and add it:
+New-Item -ItemType Directory -Force "$env:USERPROFILE\.dragon-copilot"
+Move-Item dragon-copilot-win.exe "$env:USERPROFILE\.dragon-copilot\dragon-copilot.exe"
+[Environment]::SetEnvironmentVariable('Path', "$env:USERPROFILE\.dragon-copilot;$([Environment]::GetEnvironmentVariable('Path', 'User'))", 'User')
+```
+
+**macOS / Linux**
+```bash
+# Move the binary to a directory on your PATH:
+chmod +x dragon-copilot-*
+sudo mv dragon-copilot-* /usr/local/bin/dragon-copilot
+```
+
+Verify the installation:
 
 ```bash
 dragon-copilot --help
@@ -61,19 +84,25 @@ During the connector wizard you will be asked to confirm a **clinical applicatio
 
 ## Versioning & Releases
 
-CLI releases are driven by git tags:
+The git tag is the single source of truth for the CLI version. The `version` field in `package.json` is a placeholder (`0.0.0-dev`) — CI injects the real version from the tag at build time.
 
-1. **Bump the version** (creates a tag automatically):
+### Cutting a release
+
+1. **Merge** your changes to `main`.
+2. **Tag the commit** you want to release with a `cli/v` prefix following [semver](https://semver.org/):
    ```bash
-   npm version patch   # 1.0.0 → 1.0.1
-   npm version minor   # 1.0.1 → 1.1.0
-   npm version major   # 1.1.0 → 2.0.0
+   git tag cli/v0.1.0 main
+   git push origin cli/v0.1.0
    ```
-2. **Push the tag** to trigger a CI release:
-   ```bash
-   git push --tags
-   ```
-3. CI builds standalone binaries for each platform and publishes them to [GitHub Releases](../../releases).
+3. CI automatically:
+   - Sets the version in `package.json` from the tag
+   - Builds and bundles the CLI
+   - Produces standalone binaries for Windows, macOS, and Linux
+   - Publishes them to [GitHub Releases](../../releases)
+
+### Local dev builds
+
+When running from source (`npm link`), the CLI reports `0.0.0-dev` to distinguish dev builds from official releases.
 
 ## Troubleshooting
 
