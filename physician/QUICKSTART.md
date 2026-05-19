@@ -37,7 +37,7 @@ The sample project in this repository demonstrates a **Physician Workflow**. The
 
 ### Development Prerequisites
 
-- DotNet 9
+- .NET 9 SDK
 - Dragon Copilot CLI tool (for packaging and deployment steps)
 
 ### Local Development Environment
@@ -204,7 +204,7 @@ You now have a valid zip file that represents your Physician Workflow!
 
 1. Open the browser and go to `https://admin.healthplatform.microsoft.com/marketplace`
 
-3. In the page navigation click "Custom apps" and then click the "Upload custom app" button
+2. In the page navigation click "Custom apps" and then click the "Upload custom app" button
 
     ![](doc/images/dac-upload-custom.png)
 
@@ -212,7 +212,7 @@ You now have a valid zip file that represents your Physician Workflow!
 
     ![](doc/images/dac-upload-category.png)
 
-4. Select the previously created zip file in the folder `tools/dragon`
+4. Select the zip file created in the packaging step. Use the exact output path printed by the CLI when the package command completes; do not assume the file is in `tools/dragon`.
 
 5. Agree to the terms
 
