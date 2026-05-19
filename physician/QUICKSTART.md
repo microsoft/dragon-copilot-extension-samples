@@ -109,7 +109,7 @@ We are now going to package our integration using the dragon-copilot CLI tool. T
 
 ### CLI Installation
 
-1. Navigate to release page of the Dragon Copilot CLI repository: https://github.com/microsoft/dragon-copilot-extension-samples/releases
+1. Navigate to this repository’s releases page: https://github.com/microsoft/dragon-copilot-extension-samples/releases
 2. Download the latest version of the CLI for your operating system
 
 > The CLI is distributed as a single executable file. There is no installation process, but you may want to move it to a directory that is included in your system's PATH environment variable for easier access from the command line. The examples in this document assume you have done this. Please substitute `dragon-copilot` with the correct executable name for your operating system.
