@@ -1,0 +1,21 @@
+# PatientInformation schema
+# Defines patient demographic information for use in DCR extension payloads.
+
+PatientInformation:
+  type: object
+  description: Patient demographic information.
+  properties:
+    dateOfBirth:
+      type: string
+      description: The date of birth of the patient in YYYY-MM-DD format.
+      format: date
+      example: "1990-01-15"
+    biologicalSex:
+      type: string
+      description: The sex of the patient.
+      enum:
+        - "Male"
+        - "Female"
+        - "Unknown"
+        - "Other"
+      example: "Male"
