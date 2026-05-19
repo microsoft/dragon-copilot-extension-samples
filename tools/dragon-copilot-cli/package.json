@@ -1,6 +1,6 @@
 {
   "name": "dragon-copilot-cli",
-  "version": "1.0.0",
+  "version": "0.0.0-dev",
   "main": "dist/cli.js",
   "scripts": {
     "build": "tsc -p tsconfig.json && npm run copy-resources",
