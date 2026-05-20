@@ -37,6 +37,6 @@ namespace Dragon.Copilot.Radiology.Models
         [Required]
         [JsonPropertyName("recommendations")]
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Usage", "CA2227:Collection properties should be read only", Justification = "Needed for deserialization of partner payloads")]
-        public Collection<Recommendation> Recommendations { get; set; } = null!;
+        public Collection<Recommendation> Recommendations { get; set; } = = new Collection<Recommendation>();
     }
 }

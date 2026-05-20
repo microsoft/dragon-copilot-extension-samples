@@ -4,7 +4,7 @@ using System.Text.Json.Serialization;
 namespace Dragon.Copilot.Radiology.Models;
 
 /// <summary>
-/// Envelope returned by <c>POST /api/radiology/v1/process</c>.
+/// Envelope returned by <c>POST /v1/process</c>.
 /// </summary>
 public class ProcessResponse
 {

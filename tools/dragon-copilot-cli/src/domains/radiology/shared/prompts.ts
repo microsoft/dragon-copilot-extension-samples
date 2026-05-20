@@ -295,7 +295,7 @@ export const MODALITY_CHOICES = [
  * Prompts for relevance filtering criteria
  */
 export async function promptRelevanceFilteringCriteria(): Promise<RelevanceFilteringCriteria> {
-  console.log('\n?? Configuring relevance filtering criteria for your tool...');
+  console.log('\n Configuring relevance filtering criteria for your tool...');
 
   const relevantBodyParts = await checkbox({
     message: 'Select relevant body parts:',
@@ -324,7 +324,7 @@ export async function promptRelevanceFilteringCriteria(): Promise<RelevanceFilte
 export async function promptOutputs(): Promise<DcrOutput[]> {
   const outputs: DcrOutput[] = [];
 
-  console.log('\n?? Configuring outputs for your tool...');
+  console.log('\n Configuring outputs for your tool...');
 
   const firstOutput = await promptOutputDetails();
   outputs.push(firstOutput);
