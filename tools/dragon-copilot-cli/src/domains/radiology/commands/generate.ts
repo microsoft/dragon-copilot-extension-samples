@@ -94,7 +94,31 @@ async function generateFromTemplate(options: GenerateOptions): Promise<void> {
 
   try {
     const template = getTemplate(options.template);
-    const yamlContent = dump(template, { lineWidth: -1 });
+
+    console.log(chalk.blue('\n Authentication Configuration'));
+    console.log(chalk.gray('Manifest requires authentication configuration.\n'));
+    const authDetails = await promptAuthDetails();
+
+    const manifest: DcrExtensionManifest = {
+      name: template.name,
+      description: template.description,
+      version: template.version,
+      auth: {
+        tenantId: authDetails.tenantId
+      },
+      tools: template.tools as DcrTool[]
+    };
+
+    const validation = validateExtensionManifest(manifest);
+    if (!validation.isValid) {
+      console.log(chalk.red('Generated manifest failed validation:'));
+      for (const err of validation.errors) {
+        console.log(chalk.red(`   - ${err.instancePath || '(root)'} ${err.message}`));
+      }
+      process.exit(1);
+    }
+
+    const yamlContent = dump(manifest, { lineWidth: -1 });
     writeFileSync(options.output || 'extension.yaml', yamlContent);
 
     console.log(chalk.green(`✅ Manifest generated from template: ${options.template}`));
