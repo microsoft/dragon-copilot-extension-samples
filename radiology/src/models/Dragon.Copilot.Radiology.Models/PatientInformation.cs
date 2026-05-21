@@ -6,7 +6,7 @@ namespace Dragon.Copilot.Radiology.Models
     /// Patient demographic information.
     /// </summary>
     /// <remarks>
-    /// Corresponds to the PatientInformation schema defined in PatientInformation.yaml.
+    /// Corresponds to the PatientInformation schema defined in radiology-extensibility-api.yaml.
     /// </remarks>
     /// <example>
     /// <code>

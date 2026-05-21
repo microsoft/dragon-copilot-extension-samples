@@ -7,7 +7,7 @@ namespace Dragon.Copilot.Radiology.Models;
 /// Radiology report text payload.
 /// </summary>
 /// <remarks>
-/// Corresponds to the Report schema defined in Report.yaml.
+/// Corresponds to the Report schema defined in radiology-extensibility-api.yaml.
 /// </remarks>
 /// <example>
 /// <code>

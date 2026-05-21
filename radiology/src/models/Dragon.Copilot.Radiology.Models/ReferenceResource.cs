@@ -6,7 +6,7 @@ namespace Dragon.Copilot.Radiology.Models
     /// A reference resource that helps understand the recommendation.
     /// </summary>
     /// <remarks>
-    /// Corresponds to the ReferenceResource schema defined in QualityCheckResult.yaml.
+    /// Corresponds to the ReferenceResource schema defined in radiology-extensibility-api.yaml.
     /// Examples include a website URL, PDF document name, or chat prompt.
     /// </remarks>
     public class ReferenceResource

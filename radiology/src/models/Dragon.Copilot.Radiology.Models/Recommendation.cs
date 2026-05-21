@@ -8,7 +8,7 @@ namespace Dragon.Copilot.Radiology.Models
     /// A quality check recommendation produced by a DCR extension.
     /// </summary>
     /// <remarks>
-    /// Corresponds to the Recommendation schema defined in QualityCheckResult.yaml.
+    /// Corresponds to the Recommendation schema defined in radiology-extensibility-api.yaml.
     /// </remarks>
     /// <example>
     /// <code>

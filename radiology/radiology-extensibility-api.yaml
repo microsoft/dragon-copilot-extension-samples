@@ -47,7 +47,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/DragonStandardPayload"
+              $ref: "#/components/schemas/ProcessRequest"
       responses:
         "200":
           description: Successfully processed
@@ -103,7 +103,7 @@ components:
       bearerFormat: JWT
 
   schemas:
-    DragonStandardPayload:
+    ProcessRequest:
       type: object
       description: >-
         Request envelope for /v1/process. Contains session metadata and named input

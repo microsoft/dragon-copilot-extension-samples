@@ -6,7 +6,7 @@ namespace Dragon.Copilot.Radiology.Models
     /// Identifies a section in the report that was used to generate a recommendation.
     /// </summary>
     /// <remarks>
-    /// Corresponds to the Provenance schema defined in QualityCheckResult.yaml.
+    /// Corresponds to the Provenance schema defined in radiology-extensibility-api.yaml.
     /// </remarks>
     public class Provenance
     {

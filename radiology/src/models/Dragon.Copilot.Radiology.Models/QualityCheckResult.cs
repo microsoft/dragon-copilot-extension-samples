@@ -8,7 +8,7 @@ namespace Dragon.Copilot.Radiology.Models
     /// Represents the quality check result payload containing billing and clinical recommendations.
     /// </summary>
     /// <remarks>
-    /// Corresponds to the QualityCheckResult schema defined in QualityCheckResult.yaml.
+    /// Corresponds to the QualityCheckResult schema defined in radiology-extensibility-api.yaml.
     /// The recommendations list will be empty if there are no recommendations.
     /// </remarks>
     /// <example>
@@ -37,6 +37,6 @@ namespace Dragon.Copilot.Radiology.Models
         [Required]
         [JsonPropertyName("recommendations")]
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Usage", "CA2227:Collection properties should be read only", Justification = "Needed for deserialization of partner payloads")]
-        public Collection<Recommendation> Recommendations { get; set; } = = new Collection<Recommendation>();
+        public Collection<Recommendation> Recommendations { get; set; } = new Collection<Recommendation>();
     }
 }

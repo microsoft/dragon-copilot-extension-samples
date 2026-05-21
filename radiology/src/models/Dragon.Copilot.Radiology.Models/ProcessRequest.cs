@@ -7,7 +7,7 @@ namespace Dragon.Copilot.Radiology.Models;
 /// DCR Extensibility API request envelope that carries session metadata and a map of named
 /// input payloads.
 /// </summary>
-public class DragonStandardPayload
+public class ProcessRequest
 {
     /// <summary>
     /// Contract version.
