@@ -1,6 +1,6 @@
 # Dragon Copilot CLI
 
-The `dragon-copilot` CLI allows you to generate, validate, and package manifests for Dragon Copilot Physician Workflows and Clinical Application Connectors.
+The `dragon-copilot` CLI allows you to generate, validate, and package manifests for Dragon Copilot Physician Workflows, Radiology Extensions, and Clinical Application Connectors.
 
 ## Installation
 
@@ -45,7 +45,11 @@ Run `npm unlink -g dragon-copilot` only once per workstation; subsequent rebuild
 | Physician  | `dragon-copilot physician init`                        | Interactive wizard that generates an extension manifest |
 | Physician  | `dragon-copilot physician validate ./extension.yaml`   | Validates the manifest against JSON schema + business rules |
 | Physician  | `dragon-copilot physician package`                     | Produces a zip containing the manifest and any included files |
-| Connector  | `dragon-copilot connector init`                          | Clinical Application Connector manifest wizard (note sections, context retrieval, authentication) |
+| Radiology  | `dragon-copilot radiology init`                        | Interactive wizard that scaffolds a radiology extension manifest |
+| Radiology  | `dragon-copilot radiology generate --template quality-check -o extension.yaml` | Generate a manifest from a built-in template (currently: `quality-check`) or interactively (`--interactive`) |
+| Radiology  | `dragon-copilot radiology validate ./extension.yaml`   | Validates the radiology manifest against JSON schema + business rules |
+| Radiology  | `dragon-copilot radiology package`                     | Produces a zip containing the radiology manifest and any included files |
+| Connector  | `dragon-copilot connector init`                          | Clinical Application Connector manifest wizard (authentication, identity claims, context retrieval, launch flows) |
 | Connector  | `dragon-copilot connector validate ./extension.yaml`   | Validates Clinical Application Connector manifests |
 | Connector  | `dragon-copilot connector package`                     | Produces a zip containing the manifest and any included files |
 
@@ -57,7 +61,7 @@ During the connector wizard you will be asked to confirm a **clinical applicatio
 
 - Shared helpers now live under `src/common`, keeping the CLI self-contained without external workspaces.
 - `npm run build` emits compiled JS plus copies schemas/resources into `dist/`.
-- `npm test` covers extension + connector flows (command registration, schema validation, CLI integration).
+- `npm test` covers physician, radiology, and connector flows (command registration, schema validation, CLI integration).
 
 ## Versioning & Releases
 
@@ -79,4 +83,4 @@ CLI releases are driven by git tags:
 
 - **CLI Not Found**: Ensure `npm link` completes without error and your Node install adds the npm global bin directory to PATH.
 - **Process Exit during Tests**: Tests set `process.exitCode` and mock logging. If you add new commands, ensure they don’t call `process.exit()` directly in unit scenarios.
-- **Schema Errors**: Check the `src/schemas/*.json` files for the latest manifest requirements.
+- **Schema Errors**: Check the `src/schemas/` directory for the latest manifest requirements.
