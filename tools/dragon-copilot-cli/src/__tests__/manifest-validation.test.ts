@@ -2,10 +2,12 @@ import { describe, expect, it } from '@jest/globals';
 import {
   validateExtensionManifest,
   validateConnectorManifest,
+  validateDcrExtensionManifest,
   type SchemaError,
 } from '../shared/schema-validator.js';
 import type { DragonExtensionManifest } from '../domains/physician/types.js';
 import type { ConnectorIntegrationManifest } from '../domains/connector/types.js';
+import type { DcrExtensionManifest } from '../domains/radiology/types.js';
 
 const TENANT_ID = '00000000-0000-0000-0000-000000000001';
 
@@ -277,6 +279,104 @@ describe('validateConnectorManifest', () => {
 
     expect(result.isValid).toBe(false);
     expect(result.errors.some(e => e.keyword === 'uniqueIssuers')).toBe(true);
+  });
+});
+
+describe('validateDcrExtensionManifest (radiology)', () => {
+  function buildValidRadiologyManifest(): DcrExtensionManifest {
+    return {
+      name: 'test-radiology-extension',
+      description: 'Radiology extension for schema validation tests',
+      version: '1.0.0',
+      auth: {
+        tenantId: TENANT_ID,
+      },
+      tools: [
+        {
+          name: 'quality-checker',
+          toolType: 'contractBased',
+          capability: 'qualityCheck',
+          description: 'Checks radiology report quality',
+          endpoint: 'https://example.org/quality-check',
+          inputs: [
+            {
+              name: 'report',
+              description: 'Radiology report',
+              'content-type': 'application/vnd.ms-dragon.dsp.rad.report+json',
+            },
+          ],
+          outputs: [
+            {
+              name: 'quality-result',
+              description: 'Quality check findings',
+              'content-type': 'application/vnd.ms-dragon.dsp.rad.quality-result+json',
+            },
+          ],
+        },
+      ],
+    };
+  }
+
+  it('returns valid for a well-formed radiology manifest with qualityCheck capability', () => {
+    const manifest = buildValidRadiologyManifest();
+
+    const result = validateDcrExtensionManifest(manifest);
+
+    expect(result.isValid).toBe(true);
+    expect(result.errors).toHaveLength(0);
+  });
+
+  it('rejects an invalid capability value', () => {
+    const manifest = buildValidRadiologyManifest();
+    (manifest.tools[0] as any).capability = 'invalidCapability';
+
+    const result = validateDcrExtensionManifest(manifest);
+
+    expect(result.isValid).toBe(false);
+    expect(result.errors.some((e: SchemaError) => e.instancePath?.includes('capability'))).toBe(true);
+  });
+
+  it('rejects an invalid output content-type', () => {
+    const manifest = buildValidRadiologyManifest();
+    (manifest.tools[0].outputs[0] as any)['content-type'] = 'application/vnd.ms-dragon.dsp.rad.invalid+json';
+
+    const result = validateDcrExtensionManifest(manifest);
+
+    expect(result.isValid).toBe(false);
+    expect(result.errors.length).toBeGreaterThan(0);
+  });
+
+  it('flags duplicate tool names as a business-rule error', () => {
+    const manifest = buildValidRadiologyManifest();
+    manifest.tools.push({ ...manifest.tools[0] });
+
+    const result = validateDcrExtensionManifest(manifest);
+
+    expect(result.isValid).toBe(false);
+    expect(result.errors.some((e: SchemaError) => e.keyword === 'uniqueToolNames')).toBe(true);
+  });
+
+  it('validates manifest with relevanceFilteringCriteria', () => {
+    const manifest = buildValidRadiologyManifest();
+    manifest.tools[0].relevanceFilteringCriteria = {
+      relevantBodyParts: ['CHEST'],
+      relevantModalities: ['CT'],
+    };
+
+    const result = validateDcrExtensionManifest(manifest);
+
+    expect(result.isValid).toBe(true);
+    expect(result.errors).toHaveLength(0);
+  });
+
+  it('rejects additional properties on tools', () => {
+    const manifest = buildValidRadiologyManifest();
+    (manifest.tools[0] as any)['unknown-field'] = 'should not be here';
+
+    const result = validateDcrExtensionManifest(manifest);
+
+    expect(result.isValid).toBe(false);
+    expect(result.errors.some((e: SchemaError) => e.keyword === 'additionalProperties')).toBe(true);
   });
 });
 
