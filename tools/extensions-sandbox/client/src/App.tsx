@@ -4,10 +4,16 @@ function App() {
   const [status, setStatus] = useState<string>('checking...');
 
   useEffect(() => {
-    fetch('/api/health')
-      .then((res) => res.json())
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 5000);
+    fetch('/api/health', { signal: controller.signal })
+      .then((res) => {
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        return res.json();
+      })
       .then((data) => setStatus(data.status))
-      .catch(() => setStatus('unavailable'));
+      .catch(() => setStatus('unavailable'))
+      .finally(() => clearTimeout(timeout));
   }, []);
 
   return (
