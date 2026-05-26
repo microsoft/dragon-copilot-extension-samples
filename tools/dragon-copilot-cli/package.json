@@ -1,6 +1,6 @@
 {
   "name": "dragon-copilot-cli",
-  "version": "1.0.0",
+  "version": "0.0.0-dev",
   "main": "dist/cli.js",
   "scripts": {
     "build": "tsc -p tsconfig.json && npm run copy-resources",
@@ -23,13 +23,13 @@
     "dragon-copilot": "dist/cli.js"
   },
   "dependencies": {
-    "@inquirer/prompts": "^8.4.2",
+    "@inquirer/prompts": "^8.4.3",
     "ajv": "^8.20.0",
     "ajv-formats": "^3.0.1",
     "archiver": "^7.0.1",
     "chalk": "^5.6.2",
     "commander": "^14.0.3",
-    "fs-extra": "^11.3.4",
+    "fs-extra": "^11.3.5",
     "js-yaml": "^4.1.1"
   },
   "devDependencies": {
@@ -37,9 +37,9 @@
     "@types/fs-extra": "^11.0.4",
     "@types/jest": "^30.0.0",
     "@types/js-yaml": "^4.0.9",
-    "@types/node": "^25.6.0",
+    "@types/node": "^25.9.1",
     "esbuild": "^0.28.0",
-    "jest": "^30.3.0",
+    "jest": "^30.4.2",
     "postject": "^1.0.0-alpha.6",
     "rimraf": "^6.1.3",
     "ts-jest": "^29.4.9",

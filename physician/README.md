@@ -26,6 +26,8 @@ Key resources:
 
 ## 🚀 Getting Started
 
+Follow the [Quickstart Guide](QUICKSTART.md) for a self-contained, end-to-end walkthrough from setting up your dev environment to testing your extension inside Dragon Copilot.
+
 For repo setup, cloning instructions, and contributing guidelines, see the [root README](../README.md).
 
 ## 🛠️ Tools
