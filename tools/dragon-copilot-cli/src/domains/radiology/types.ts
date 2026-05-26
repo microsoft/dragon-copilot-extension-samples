@@ -12,7 +12,7 @@ export interface AuthConfig {
 
 export interface DcrTool {
   name: string;
-  toolType: 'contractBased' | 'uiBased' | 'mcpBased' | 'agentBased';
+  toolType: 'contractBased';
   capability: 'qualityCheck';
   description: string;
   endpoint: string;
@@ -69,7 +69,7 @@ export interface TemplateConfig {
 
 export interface ToolTemplate {
   name: string;
-  toolType: 'contractBased' | 'uiBased' | 'mcpBased' | 'agentBased';
+  toolType: 'contractBased';
   capability: 'qualityCheck';
   description: string;
   endpoint: string;

@@ -16,14 +16,19 @@ const templates: Record<string, TemplateConfig> = {
           {
             name: 'report',
             description: 'Radiology report from Dragon Copilot',
-            'content-type': 'application/vnd.ms-dragon.dsp.rad.report+json'
+            'content-type': 'application/vnd.ms-dragon.rad.report+json'
+          },
+          {
+            name: 'patient-info',
+            description: 'Patient demographic information from Dragon Copilot',
+            'content-type': 'application/vnd.ms-dragon.rad.patient-info+json'
           }
         ],
         outputs: [
           {
-            name: 'quality-result',
+            name: 'quality-check-result',
             description: 'Quality check findings and score',
-            'content-type': 'application/vnd.ms-dragon.dsp.rad.quality-result+json'
+            'content-type': 'application/vnd.ms-dragon.rad.quality-check-result+json'
           }
         ],
         relevanceFilteringCriteria: {

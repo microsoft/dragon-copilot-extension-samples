@@ -1,19 +1,18 @@
-# OpenAPI spec defining the API contract for extensions for Dragon Copilot for Radiology (DCR).
+# OpenAPI spec defining the API contract for extensions for Dragon Copilot for Radiology.
 
 openapi: 3.0.0
 info:
-  title: DCR Extensibility API
+  title: Radiology Extensibility API
   version: 0.0.1
   description: API definition for enabling Dragon Copilot for Radiology extension integrations
 
 paths:
   /v1/process:
     post:
-      summary: Process DCR Standard payload
+      summary: Process Radiology Standard payload
       description: >-
-        Endpoint to trigger processing within a DCR extension. Receives inputs in the
-        DCR Standard payload containing radiology report and/or radiology dictation data.
-      operationId: processDragonStandard
+        Endpoint to trigger processing within a Radiology extension.
+      operationId: processDragonRadiology
       parameters:
         - name: x-ms-request-id
           in: header
@@ -106,10 +105,7 @@ components:
     ProcessRequest:
       type: object
       description: >-
-        Request envelope for /v1/process. Contains session metadata and named input
-        payloads, where each key is an input declared in the extension manifest, and
-        its value is the corresponding payload type (RadiologyReport, RadiologyDictation,
-        etc.).
+        Request envelope for /v1/process.
       required:
         - schema_version
         - sessionData
@@ -117,7 +113,7 @@ components:
         schema_version:
           type: string
           description: >-
-            Wire-level contract version of the DCR Extensibility API envelope.
+            Wire-level contract version of the Radiology Extensibility API envelope.
             Mirrors the MAJOR.MINOR of `info.version`.
           example: "0.0"
         sessionData:
@@ -135,7 +131,7 @@ components:
         schema_version:
           type: string
           description: >-
-            Wire-level contract version of the DCR Extensibility API envelope.
+            Wire-level contract version of the Radiology Extensibility API envelope.
             Mirrors the MAJOR.MINOR of `info.version`.
           example: "0.0"
         success:

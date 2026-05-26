@@ -2,6 +2,8 @@
 
 Welcome! This section contains sample code and documentation for building **Dragon Copilot for Radiology** extensions. You can read, play with, or adapt from these samples to create your own extensions.
 
+> ⚠️ **Work in progress**: Radiology Workflows are still in-development and will change.
+
 ## 📚 Contents
 
 - [Dragon Copilot Extension Samples](#dragon-copilot-extension-samples)
@@ -15,9 +17,9 @@ Key resources:
 
 - [Shared Platform Documentation](../doc/) — Authentication guides and resources common across all products
 - Sample [`Radiology Workflow`](src/) with best practices
-- CLI tools to initialize & package both **Extensions** and **Clinical Application Connectors**
+- CLI tools to initialize, generate manifests, validate, and package Radiology Workflows
 
-### Extensions vs. Clinical Application Connectors
+### Radiology Extensions Overview
 
 | Type                               | Description                                                                            | Use Case                                                    |
 | ---------------------------------- | -------------------------------------------------------------------------------------- | ----------------------------------------------------------- |
@@ -29,4 +31,4 @@ For repo setup, cloning instructions, and contributing guidelines, see the [root
 
 ## 🛠️ Tools
 
-See the [Dragon Copilot CLI](../tools/dragon-copilot-cli/README.md) for tools to initialize, generate manifests, validate, and package radiology extensions and clinical application connectors.
+See the [Dragon Copilot CLI](../tools/dragon-copilot-cli/README.md) for tools to initialize, generate manifests, validate, and package radiology extensions.

@@ -302,14 +302,19 @@ describe('validateDcrExtensionManifest (radiology)', () => {
             {
               name: 'report',
               description: 'Radiology report',
-              'content-type': 'application/vnd.ms-dragon.dsp.rad.report+json',
+              'content-type': 'application/vnd.ms-dragon.rad.report+json',
+            },
+            {
+              name: 'patient-info',
+              description: 'Patient demographic information',
+              'content-type': 'application/vnd.ms-dragon.rad.patient-info+json',
             },
           ],
           outputs: [
             {
-              name: 'quality-result',
+              name: 'quality-check-result',
               description: 'Quality check findings',
-              'content-type': 'application/vnd.ms-dragon.dsp.rad.quality-result+json',
+              'content-type': 'application/vnd.ms-dragon.rad.quality-check-result+json',
             },
           ],
         },
@@ -338,7 +343,7 @@ describe('validateDcrExtensionManifest (radiology)', () => {
 
   it('rejects an invalid output content-type', () => {
     const manifest = buildValidRadiologyManifest();
-    (manifest.tools[0].outputs[0] as any)['content-type'] = 'application/vnd.ms-dragon.dsp.rad.invalid+json';
+    (manifest.tools[0].outputs[0] as any)['content-type'] = 'application/vnd.ms-dragon.rad.invalid+json';
 
     const result = validateDcrExtensionManifest(manifest);
 

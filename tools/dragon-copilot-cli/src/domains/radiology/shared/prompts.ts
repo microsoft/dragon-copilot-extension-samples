@@ -15,7 +15,7 @@ export interface ExtensionDetails {
 export interface ToolDetails {
   toolName: string;
   toolDescription: string;
-  toolType: 'contractBased' | 'uiBased' | 'mcpBased' | 'agentBased';
+  toolType: 'contractBased';
   capability: 'qualityCheck';
   endpoint: string;
   inputTypes: string[];
@@ -24,15 +24,12 @@ export interface ToolDetails {
 }
 
 export const INPUT_TYPE_CHOICES = [
-  { name: 'Radiology Report (DSP/Rad/Report)', value: 'application/vnd.ms-dragon.dsp.rad.report+json' },
-  { name: 'Patient Info (DSP/Rad/PatientInfo)', value: 'application/vnd.ms-dragon.dsp.rad.patient-info+json' },
+  { name: 'Radiology Report', value: 'application/vnd.ms-dragon.rad.report+json' },
+  { name: 'Patient Info', value: 'application/vnd.ms-dragon.rad.patient-info+json' },
 ];
 
 export const TOOL_TYPE_CHOICES = [
   { name: 'Contract Based', value: 'contractBased' as const },
-  { name: 'UI Based', value: 'uiBased' as const },
-  { name: 'MCP Based', value: 'mcpBased' as const },
-  { name: 'Agent Based', value: 'agentBased' as const },
 ];
 
 export const CAPABILITY_CHOICES = [
@@ -210,9 +207,9 @@ export async function promptToolDetails(
  */
 export function getInputDescription(contentType: string): string {
   switch (contentType) {
-    case 'application/vnd.ms-dragon.dsp.rad.report+json':
+    case 'application/vnd.ms-dragon.rad.report+json':
       return 'Radiology report from Dragon Copilot';
-    case 'application/vnd.ms-dragon.dsp.rad.patient-info+json':
+    case 'application/vnd.ms-dragon.rad.patient-info+json':
       return 'Patient demographic information from Dragon Copilot';
     default:
       return 'Data from Dragon Copilot';
@@ -224,9 +221,9 @@ export function getInputDescription(contentType: string): string {
  */
 export function getInputName(contentType: string, index: number): string {
   switch (contentType) {
-    case 'application/vnd.ms-dragon.dsp.rad.report+json':
+    case 'application/vnd.ms-dragon.rad.report+json':
       return 'report';
-    case 'application/vnd.ms-dragon.dsp.rad.patient-info+json':
+    case 'application/vnd.ms-dragon.rad.patient-info+json':
       return 'patient-info';
     default:
       return `input-${index + 1}`;
@@ -239,7 +236,7 @@ export function getInputName(contentType: string, index: number): string {
 export async function promptOutputDetails(defaults?: { name?: string; description?: string }): Promise<DcrOutput> {
   const name = await input({
     message: 'Output name:',
-    default: defaults?.name || 'quality-result'
+    default: defaults?.name || 'quality-check-result'
   });
 
   const description = await input({
@@ -250,7 +247,7 @@ export async function promptOutputDetails(defaults?: { name?: string; descriptio
   return {
     name,
     description,
-    'content-type': 'application/vnd.ms-dragon.dsp.rad.quality-result+json'
+    'content-type': 'application/vnd.ms-dragon.rad.quality-check-result+json'
   };
 }
 

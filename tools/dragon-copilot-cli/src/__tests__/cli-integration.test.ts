@@ -40,14 +40,14 @@ const RADIOLOGY_EXTENSION_MANIFEST = [
   '    inputs:',
   '      - name: report',
   '        description: Radiology report from Dragon Copilot',
-  '        content-type: application/vnd.ms-dragon.dsp.rad.report+json',
+  '        content-type: application/vnd.ms-dragon.rad.report+json',
   '      - name: patient-info',
   '        description: Patient demographic information',
-  '        content-type: application/vnd.ms-dragon.dsp.rad.patient-info+json',
+  '        content-type: application/vnd.ms-dragon.rad.patient-info+json',
   '    outputs:',
-  '      - name: quality-result',
+  '      - name: quality-check-result',
   '        description: Quality check findings and score',
-  '        content-type: application/vnd.ms-dragon.dsp.rad.quality-result+json',
+  '        content-type: application/vnd.ms-dragon.rad.quality-check-result+json',
 ].join('\n');
 
 const PARTNER_MANIFEST = [

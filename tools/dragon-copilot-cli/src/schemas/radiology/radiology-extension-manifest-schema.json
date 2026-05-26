@@ -76,13 +76,10 @@
         "toolType": {
           "type": "string",
           "enum": [
-            "contractBased",
-            "uiBased",
-            "mcpBased",
-            "agentBased"
+            "contractBased"
           ],
           "default": "contractBased",
-          "description": "The integration pattern for this tool. contractBased: platform calls a partner API with typed payloads (current model). Other types are reserved for future use."
+          "description": "The integration pattern for this tool. contractBased: platform calls a partner API with typed payloads."
         },
         "capability": {
           "type": "string",
@@ -184,15 +181,15 @@
     "InputContentType": {
       "type": "string",
       "enum": [
-        "application/vnd.ms-dragon.dsp.rad.report+json",
-        "application/vnd.ms-dragon.dsp.rad.patient-info+json"
+        "application/vnd.ms-dragon.rad.report+json",
+        "application/vnd.ms-dragon.rad.patient-info+json"
       ],
       "description": "Content type identifier for tool inputs (IANA MIME type)"
     },
     "OutputContentType": {
       "type": "string",
       "enum": [
-        "application/vnd.ms-dragon.dsp.rad.quality-result+json"
+        "application/vnd.ms-dragon.rad.quality-check-result+json"
       ],
       "description": "Content type identifier for tool outputs (IANA MIME type)"
     },

@@ -2,6 +2,8 @@
 
 The `dragon-copilot` CLI allows you to generate, validate, and package manifests for Dragon Copilot Physician Workflows, Radiology Workflows, and Clinical Application Connectors.
 
+> ⚠️ **Work in progress**: Radiology Workflows are still in-development and will change.
+
 ## Installation
 
 ### Option 1: Download standalone binary (Recommended)
