@@ -10,18 +10,18 @@ public class SessionData
     /// <summary>
     /// Correlation identifier used to trace the request across services.
     /// </summary>
-    [JsonPropertyName("correlationId")]
+    [JsonPropertyName("correlation_id")]
     public string? CorrelationId { get; set; }
 
     /// <summary>
     /// ISO-8601 timestamp of when the session started (optional).
     /// </summary>
-    [JsonPropertyName("sessionStart")]
+    [JsonPropertyName("session_start")]
     public string? SessionStart { get; set; }
 
     /// <summary>
     /// Identifier of the environment the request originated from.
     /// </summary>
-    [JsonPropertyName("environmentId")]
+    [JsonPropertyName("environment_id")]
     public string? EnvironmentId { get; set; }
 }
