@@ -17,17 +17,13 @@ This repo includes:
 
 - [Shared Platform Documentation](doc/) for authentication guides and resources common across all products
 - Sample [`Physician Workflow`](physician/) with best practices
-- [`Radiology`](radiology/) extensibility API and models
-- CLI [`tools`](tools/dragon-copilot-cli/README.md) to initialize & package **Physician Workflows**, **Radiology Workflows**, and **Clinical Application Connectors**
-
-> ⚠️ **Work in progress**: Radiology Workflows are still in-development and will change.
+- CLI [`tools`](tools/dragon-copilot-cli/README.md) to initialize & package both **Extensions** and **Clinical Application Connectors**
 
 ### Extensions vs. Clinical Application Connectors
 
 | Type                               | Description                                                                            | Use Case                                                   |
 | ---------------------------------- | -------------------------------------------------------------------------------------- | ---------------------------------------------------------- |
 | **Physician Workflow**             | Custom AI-powered extensions with automation scripts, event triggers, and dependencies | Extend Dragon Copilot with custom clinical data processing |
-| **Radiology Workflow**             | Custom AI-powered extensions for radiology scenarios (e.g., report quality checking)   | Extend Dragon Copilot for Radiology with custom processing |
 | **Clinical Application Connector** | EHR integrations and API connectors that interface with clinical applications          | Connect Dragon Copilot to external clinical systems        |
 
 ## 🚀 Getting Started
@@ -46,7 +42,6 @@ Pick the product you are building an extension for and follow its dedicated quic
 | Product       | README                                     | Quick Start Guide                                  |
 | ------------- | ------------------------------------------ | -------------------------------------------------- |
 | **Physician** | [physician/README.md](physician/README.md) | [physician/QUICKSTART.md](physician/QUICKSTART.md) |
-| **Radiology** | [radiology/README.md](radiology/README.md) | _Coming soon_                                      |
 
 > **Tip:** Each product's `QUICKSTART.md` is a self-contained, end-to-end walkthrough from setting up your dev environment to testing your extension inside Dragon Copilot.
 
@@ -69,17 +64,6 @@ dragon-copilot physician init       # Initialize a new extension project
 dragon-copilot physician generate   # Generate or update extension manifest
 dragon-copilot physician validate   # Validate extension manifest
 dragon-copilot physician package    # Package for distribution
-```
-
-#### Radiology Extension Commands
-
-For creating **Radiology Workflows** (e.g., radiology report quality checking):
-
-```bash
-dragon-copilot radiology init       # Initialize a new radiology extension project
-dragon-copilot radiology generate   # Generate from a template or interactively
-dragon-copilot radiology validate   # Validate radiology extension manifest
-dragon-copilot radiology package    # Package for distribution
 ```
 
 #### Connector Commands
