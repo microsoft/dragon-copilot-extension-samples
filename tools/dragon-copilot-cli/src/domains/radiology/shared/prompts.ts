@@ -294,25 +294,34 @@ export const MODALITY_CHOICES = [
 export async function promptRelevanceFilteringCriteria(): Promise<RelevanceFilteringCriteria> {
   console.log('\n Configuring relevance filtering criteria for your tool...');
 
-  const relevantBodyParts = await checkbox({
-    message: 'Select relevant body parts:',
-    choices: BODY_PART_CHOICES,
-    validate: (choices) => {
-      if (choices.length === 0) return 'Please select at least one body part';
-      return true;
-    }
-  });
+  let relevantBodyParts: string[] = [];
+  let relevantModalities: string[] = [];
 
-  const relevantModalities = await checkbox({
-    message: 'Select relevant imaging modalities:',
-    choices: MODALITY_CHOICES,
-    validate: (choices) => {
-      if (choices.length === 0) return 'Please select at least one modality';
-      return true;
-    }
-  });
+  // At least one of body parts or modalities must be selected; both are individually optional.
+  while (relevantBodyParts.length === 0 && relevantModalities.length === 0) {
+    relevantBodyParts = await checkbox({
+      message: 'Select relevant body parts:',
+      choices: BODY_PART_CHOICES,
+    });
 
-  return { relevantBodyParts, relevantModalities };
+    relevantModalities = await checkbox({
+      message: 'Select relevant imaging modalities:',
+      choices: MODALITY_CHOICES,
+    });
+
+    if (relevantBodyParts.length === 0 && relevantModalities.length === 0) {
+      console.log('Select at least one body part or one modality.');
+    }
+  }
+
+  const criteria: RelevanceFilteringCriteria = {};
+  if (relevantBodyParts.length > 0) {
+    criteria.relevantBodyParts = relevantBodyParts;
+  }
+  if (relevantModalities.length > 0) {
+    criteria.relevantModalities = relevantModalities;
+  }
+  return criteria;
 }
 
 /**

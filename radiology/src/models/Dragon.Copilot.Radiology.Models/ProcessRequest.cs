@@ -13,7 +13,7 @@ public class ProcessRequest
     /// Contract version.
     /// </summary>
     [Required(AllowEmptyStrings = false)]
-    [JsonPropertyName("schema_version")]
+    [JsonPropertyName("schemaVersion")]
     public string SchemaVersion { get; set; } = null!;
 
     /// <summary>

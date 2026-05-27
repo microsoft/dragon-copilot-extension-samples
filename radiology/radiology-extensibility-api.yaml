@@ -107,10 +107,10 @@ components:
       description: >-
         Request envelope for /v1/process.
       required:
-        - schema_version
+        - schemaVersion
         - sessionData
       properties:
-        schema_version:
+        schemaVersion:
           type: string
           description: >-
             Wire-level contract version of the Radiology Extensibility API envelope.
@@ -126,9 +126,9 @@ components:
     ProcessResponse:
       type: object
       required:
-        - schema_version
+        - schemaVersion
       properties:
-        schema_version:
+        schemaVersion:
           type: string
           description: >-
             Wire-level contract version of the Radiology Extensibility API envelope.
@@ -152,16 +152,16 @@ components:
       type: object
       description: Session context for request correlation and tracking.
       properties:
-        correlation_id:
+        correlationId:
           type: string
           description: Unique session correlation identifier.
           example: "f40dd0d0-4201-d29d-79b4-df40189fd2f0"
-        session_start:
+        sessionStart:
           type: string
           format: date-time
           description: Session start timestamp.
           example: "2025-06-20T08:57:35.978Z"
-        environment_id:
+        environmentId:
           type: string
           description: Environment identifier.
           example: "01bd0d47-1621-4a29-941d-00e9a9420f20"
