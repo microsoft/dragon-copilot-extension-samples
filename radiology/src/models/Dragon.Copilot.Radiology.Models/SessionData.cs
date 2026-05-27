@@ -1,3 +1,4 @@
+using System;
 using System.Text.Json.Serialization;
 
 namespace Dragon.Copilot.Radiology.Models;
@@ -17,7 +18,7 @@ public class SessionData
     /// ISO-8601 timestamp of when the session started (optional).
     /// </summary>
     [JsonPropertyName("session_start")]
-    public string? SessionStart { get; set; }
+    public DateTime? SessionStart { get; set; }
 
     /// <summary>
     /// Identifier of the environment the request originated from.
