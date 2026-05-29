@@ -1,0 +1,120 @@
+.tool-list {
+  max-width: 640px;
+  margin: 0 auto;
+}
+
+.tool-list h2 {
+  font-size: 1.4rem;
+  margin-bottom: 0.5rem;
+}
+
+.tool-list-description {
+  color: var(--color-text-secondary);
+  margin-bottom: 1.5rem;
+}
+
+.tool-loading {
+  padding: 2rem;
+  text-align: center;
+  color: var(--color-primary);
+  font-weight: 500;
+}
+
+.tool-error {
+  padding: 1.5rem;
+  background: #fde7e9;
+  border-radius: 6px;
+  color: #d13438;
+  text-align: center;
+}
+
+.tool-error .btn {
+  margin-top: 1rem;
+}
+
+.tool-empty {
+  padding: 2rem;
+  text-align: center;
+  background: var(--color-surface);
+  border: 1px solid #edebe9;
+  border-radius: 6px;
+  color: var(--color-text-secondary);
+}
+
+/* Tool cards */
+.tool-items {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.tool-card {
+  padding: 1rem 1.25rem;
+  background: var(--color-surface);
+  border: 1px solid #edebe9;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
+}
+
+.tool-card:hover {
+  border-color: var(--color-primary);
+  background: rgba(0, 120, 212, 0.03);
+}
+
+.tool-card:focus {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.tool-card-selected {
+  border-color: var(--color-primary);
+  background: rgba(0, 120, 212, 0.06);
+  box-shadow: 0 0 0 2px rgba(0, 120, 212, 0.2);
+}
+
+.tool-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.35rem;
+}
+
+.tool-name {
+  font-weight: 600;
+  font-size: 1.05rem;
+  color: var(--color-text);
+}
+
+.tool-input-count {
+  font-size: 0.8rem;
+  background: #f3f2f1;
+  padding: 0.2rem 0.5rem;
+  border-radius: 12px;
+  color: var(--color-text-secondary);
+  font-weight: 500;
+}
+
+.tool-card-description {
+  margin: 0 0 0.5rem;
+  font-size: 0.9rem;
+  color: var(--color-text-secondary);
+}
+
+.tool-card-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.tool-input-badge {
+  font-size: 0.75rem;
+  background: #e8f4fd;
+  color: #0078d4;
+  padding: 0.15rem 0.5rem;
+  border-radius: 10px;
+  font-weight: 500;
+}
