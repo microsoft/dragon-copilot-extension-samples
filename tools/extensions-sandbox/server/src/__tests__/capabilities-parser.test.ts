@@ -8,6 +8,7 @@ import type { ExtensionManifest } from '../schemas/manifest.schema.js';
  * Tests the grouping algorithm that powers GET /api/manifest/capabilities.
  */
 
+
 const baseTool = {
   toolType: 'contractBased' as const,
   endpoint: 'https://api.example.com/v1/process',
