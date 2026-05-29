@@ -15,6 +15,9 @@ async function bundle() {
 	const extensionSchema = fs.readFileSync(path.join(rootDir, 'src', 'schemas', 'extension-manifest.json'), 'utf8');
 	const connectorSchema = fs.readFileSync(path.join(rootDir, 'src', 'schemas', 'connector-manifest.json'), 'utf8');
 
+	// Read version from package.json so it's baked into the bundle
+	const pkg = JSON.parse(fs.readFileSync(path.join(rootDir, 'package.json'), 'utf8'));
+
 	await esbuild.build({
 		entryPoints: [path.join(distDir, 'cli.js')],
 		bundle: true,
@@ -22,6 +25,9 @@ async function bundle() {
 		target: 'node20',
 		format: 'cjs',
 		outfile: bundlePath,
+		define: {
+			__CLI_VERSION__: JSON.stringify(pkg.version),
+		},
 		banner: {
 			js: [
 				'#!/usr/bin/env node',

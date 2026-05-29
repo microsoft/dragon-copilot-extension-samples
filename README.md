@@ -17,7 +17,7 @@ This repo includes:
 
 - [Shared Platform Documentation](doc/) for authentication guides and resources common across all products
 - Sample [`Physician Workflow`](physician/) with best practices
-- CLI [`tools`](tools/) to initialize & package both **Extensions** and **Clinical Application Connectors**
+- CLI [`tools`](tools/dragon-copilot-cli/README.md) to initialize & package both **Extensions** and **Clinical Application Connectors**
 
 ### Extensions vs. Clinical Application Connectors
 
@@ -53,12 +53,7 @@ CLI to easily generate manifests and package integrations for publishing or uplo
 
 #### Installation
 
-```bash
-cd tools/dragon-copilot-cli
-npm install
-npm run build
-npm link
-```
+See the [CLI README](tools/dragon-copilot-cli/README.md) for installation instructions.
 
 #### Physician Extension Commands
 
@@ -82,7 +77,7 @@ dragon-copilot connector validate   # Validate connector manifest
 dragon-copilot connector package    # Package for distribution
 ```
 
-See [CLI README](tools/dragon-copilot-cli/README.md) for detailed options and advanced usage.
+See the [CLI README](tools/dragon-copilot-cli/README.md) for detailed options, advanced usage, and release instructions.
 
 ## 🤝 Contributing
 
