@@ -57,6 +57,10 @@ body {
   align-content: start;
 }
 
+.app-main-single {
+  grid-template-columns: 1fr;
+}
+
 .status-card,
 .info-card {
   background: var(--color-surface);

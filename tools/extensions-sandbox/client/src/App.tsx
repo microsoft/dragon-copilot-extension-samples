@@ -1,6 +1,9 @@
 import { useEffect, useState } from 'react';
+import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
+import { ManifestUpload } from './components/ManifestUpload';
+import './components/ManifestUpload.css';
 
-function App() {
+function HomePage() {
   const [status, setStatus] = useState<string>('checking...');
 
   useEffect(() => {
@@ -17,26 +20,66 @@ function App() {
   }, []);
 
   return (
-    <div className="app">
-      <header className="app-header">
-        <h1>Dragon Copilot Extensions Sandbox</h1>
-        <p className="subtitle">
-          Test and validate your extensions locally before deployment
+    <main className="app-main">
+      <section className="status-card">
+        <h2>Server Status</h2>
+        <p className={`status ${status === 'ok' ? 'status-ok' : 'status-error'}`}>
+          {status === 'ok' ? '● Connected' : `● ${status}`}
         </p>
-      </header>
-      <main className="app-main">
-        <section className="status-card">
-          <h2>Server Status</h2>
-          <p className={`status ${status === 'ok' ? 'status-ok' : 'status-error'}`}>
-            {status === 'ok' ? '● Connected' : `● ${status}`}
+      </section>
+      <section className="info-card">
+        <h2>Getting Started</h2>
+        <p>
+          <Link to="/upload" className="btn btn-primary">
+            Upload Manifest →
+          </Link>
+        </p>
+      </section>
+    </main>
+  );
+}
+
+function UploadPage() {
+  return (
+    <main className="app-main app-main-single">
+      <ManifestUpload />
+    </main>
+  );
+}
+
+function CapabilitiesPlaceholder() {
+  return (
+    <main className="app-main app-main-single">
+      <div className="info-card">
+        <h2>Capability Explorer</h2>
+        <p>This view will display your extension's capabilities. (Coming soon)</p>
+        <Link to="/upload" className="btn btn-secondary btn-back">
+          ← Back to Upload
+        </Link>
+      </div>
+    </main>
+  );
+}
+
+function App() {
+  return (
+    <BrowserRouter>
+      <div className="app">
+        <header className="app-header">
+          <Link to="/" style={{ color: 'inherit', textDecoration: 'none' }}>
+            <h1>Dragon Copilot Extensions Sandbox</h1>
+          </Link>
+          <p className="subtitle">
+            Test and validate your extensions locally before deployment
           </p>
-        </section>
-        <section className="info-card">
-          <h2>Getting Started</h2>
-          <p>Upload an extension manifest to begin testing your tools and capabilities.</p>
-        </section>
-      </main>
-    </div>
+        </header>
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/upload" element={<UploadPage />} />
+          <Route path="/capabilities" element={<CapabilitiesPlaceholder />} />
+        </Routes>
+      </div>
+    </BrowserRouter>
   );
 }
 

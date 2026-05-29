@@ -1,0 +1,217 @@
+.manifest-upload {
+  max-width: 640px;
+  margin: 0 auto;
+}
+
+.manifest-upload h2 {
+  font-size: 1.4rem;
+  margin-bottom: 0.5rem;
+}
+
+.upload-description {
+  color: var(--color-text-secondary);
+  margin-bottom: 1.5rem;
+}
+
+/* Drop zone */
+.drop-zone {
+  border: 2px dashed #c8c6c4;
+  border-radius: 8px;
+  padding: 3rem 2rem;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+}
+
+.drop-zone:hover {
+  border-color: var(--color-primary);
+  background: rgba(0, 120, 212, 0.03);
+}
+
+.drop-zone-active {
+  border-color: var(--color-primary);
+  background: rgba(0, 120, 212, 0.06);
+}
+
+.drop-zone-icon {
+  font-size: 2.5rem;
+  display: block;
+  margin-bottom: 0.75rem;
+}
+
+.drop-zone-text {
+  font-size: 1.1rem;
+  font-weight: 500;
+  margin-bottom: 0.25rem;
+}
+
+.drop-zone-hint {
+  color: var(--color-text-secondary);
+  font-size: 0.9rem;
+  margin-bottom: 0.5rem;
+}
+
+.drop-zone-formats {
+  color: var(--color-text-secondary);
+  font-size: 0.8rem;
+}
+
+.file-input-hidden {
+  display: none;
+}
+
+/* Upload status */
+.upload-status {
+  margin-top: 1.5rem;
+  padding: 1rem;
+  border-radius: 6px;
+  font-weight: 500;
+}
+
+.uploading {
+  background: #f0f6ff;
+  color: var(--color-primary);
+}
+
+.spinner {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 2px solid var(--color-primary);
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin-right: 0.5rem;
+  vertical-align: middle;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Results */
+.upload-result {
+  margin-top: 1.5rem;
+}
+
+.result-banner {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem 1.25rem;
+  border-radius: 6px;
+  font-weight: 500;
+  margin-bottom: 1rem;
+}
+
+.success-banner {
+  background: #dff6dd;
+  color: #107c10;
+}
+
+.error-banner {
+  background: #fde7e9;
+  color: #d13438;
+}
+
+.result-icon {
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+/* Manifest summary */
+.manifest-summary {
+  background: var(--color-surface);
+  border: 1px solid #edebe9;
+  border-radius: 6px;
+  padding: 1rem 1.25rem;
+  margin-bottom: 1rem;
+}
+
+.manifest-summary p {
+  margin-bottom: 0.25rem;
+}
+
+/* Error list */
+.error-list {
+  list-style: none;
+  padding: 0;
+  margin-bottom: 1rem;
+}
+
+.error-item {
+  padding: 0.5rem 0.75rem;
+  border-left: 3px solid var(--color-error);
+  background: #fff5f5;
+  margin-bottom: 0.5rem;
+  border-radius: 0 4px 4px 0;
+  font-size: 0.9rem;
+}
+
+.error-path {
+  display: inline-block;
+  background: #f3f2f1;
+  padding: 0.1rem 0.4rem;
+  border-radius: 3px;
+  font-size: 0.8rem;
+  margin-right: 0.5rem;
+}
+
+.error-location {
+  display: block;
+  margin-bottom: 0.25rem;
+}
+
+.error-line {
+  display: inline-block;
+  background: #fde7e9;
+  color: #a80000;
+  padding: 0.1rem 0.4rem;
+  border-radius: 3px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  margin-right: 0.5rem;
+}
+
+.error-hint {
+  display: block;
+  margin-top: 0.35rem;
+  font-size: 0.85rem;
+  color: #605e5c;
+}
+
+/* Buttons */
+.btn {
+  display: inline-block;
+  padding: 0.6rem 1.25rem;
+  border-radius: 4px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  border: none;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.btn-primary {
+  background: var(--color-primary);
+  color: white;
+}
+
+.btn-primary:hover {
+  background: #106ebe;
+}
+
+.btn-secondary {
+  background: #f3f2f1;
+  color: var(--color-text);
+  border: 1px solid #c8c6c4;
+}
+
+.btn-secondary:hover {
+  background: #edebe9;
+}
+
+.btn-back {
+  margin-top: 1rem;
+  display: inline-block;
+}
