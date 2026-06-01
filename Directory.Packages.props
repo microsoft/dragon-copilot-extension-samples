@@ -1,7 +1,7 @@
 <Project>
   <ItemGroup>
     <PackageVersion Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.16" />
-    <PackageVersion Include="Microsoft.Identity.Web" Version="4.8.0" />
+    <PackageVersion Include="Microsoft.Identity.Web" Version="4.10.0" />
     <PackageVersion Include="Swashbuckle.AspNetCore" Version="10.1.7" />
     <PackageVersion Include="System.Text.Json" Version="10.0.8" />
   </ItemGroup>
