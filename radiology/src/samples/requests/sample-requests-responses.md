@@ -4,21 +4,21 @@ This directory contains sample request and response payloads for a Dragon Copilo
 
 ## Sample Request: Patient Information
 
-File: [PatientInformation-AllFields.json](./PatientInformation-AllFields.json)
+File: [PatientInfoRequest-Example.json](./PatientInfoRequest-Example.json)
 
-This file contains a sample request payload for an extension that is configured to handle an input of content-type `application/vnd.ms-dragon.rad.patient-info+json`. The name of the parameter is `patient-info`, which is defined in the extension's manifest.
+This file contains a sample request payload for an extension that is configured to handle an input of content-type `application/vnd.ms-dragon.rad.patient-info+json`. The name of the parameter is `patientInfo`, which is defined in the extension's manifest.
 
 Sample Manifest Configuration:
 ```yaml
     inputs:
-      - name: patient-info
+      - name: patientInfo
         description: Patient demographic information from Dragon Copilot
         content-type: application/vnd.ms-dragon.rad.patient-info+json
 ```
 
 ## Sample Request: Report Payload
 
-File: [Report-Minimal.json](./Report-Minimal.json)
+File: [ReportRequest-Example.json](./ReportRequest-Example.json)
 
 This file contains a sample request payload for an extension that is configured to handle an input of content-type `application/vnd.ms-dragon.rad.report+json`. The name of the parameter is `report`, which is defined in the extension's manifest.
 
@@ -30,16 +30,22 @@ Sample Manifest Configuration:
         content-type: application/vnd.ms-dragon.rad.report+json
 ```
 
+## Sample Request: Combined (Patient Information + Report)
+
+File: [FullRequest-Example.json](./FullRequest-Example.json)
+
+This file contains a sample request payload demonstrating both `patientInfo` and `report` inputs sent together in a single `/v1/process` request.
+
 ## Sample Response: Quality Check Result
 
-File: [QualityCheckResult-MixedBillingClinical.json](./QualityCheckResult-MixedBillingClinical.json)
+File: [QualityCheckResultResponse-Example.json](./QualityCheckResultResponse-Example.json)
 
-This file contains a sample response payload containing both `Billing` and `Clinical` recommendations, with provenance, reference resources, and partner-defined `additionalInfo`. The name of the response is `quality-check-result`, which is defined in the extension's manifest.
+This file contains a sample response payload containing both `Billing` and `Clinical` recommendations, with provenance, reference resources, and partner-defined `additionalInfo`. The name of the response is `qualityCheckResult`, which is defined in the extension's manifest.
 
 Sample Manifest Configuration:
 ```yaml
     outputs:
-      - name: quality-check-result
+      - name: qualityCheckResult
         description: Quality check findings and score
         content-type: application/vnd.ms-dragon.rad.quality-check-result+json
 ```

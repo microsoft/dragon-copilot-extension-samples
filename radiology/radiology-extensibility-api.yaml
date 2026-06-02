@@ -120,7 +120,7 @@ components:
           $ref: "#/components/schemas/SessionData"
       additionalProperties:
         oneOf:
-          - $ref: "#/components/schemas/PatientInformation"
+          - $ref: "#/components/schemas/PatientInfo"
           - $ref: "#/components/schemas/Report"
 
     ProcessResponse:
@@ -166,7 +166,7 @@ components:
           description: Environment identifier.
           example: "01bd0d47-1621-4a29-941d-00e9a9420f20"
 
-    PatientInformation:
+    PatientInfo:
       type: object
       description: Patient demographic information.
       properties:

@@ -24,10 +24,11 @@ public class ProcessRequest
     public SessionData SessionData { get; set; } = null!;
 
     /// <summary>
-    /// Patient demographics.
+    /// Patient demographics. The JSON property name (<c>patientInfo</c>) must match the
+    /// input name declared in the extension manifest.
     /// </summary>
-    [JsonPropertyName("patientInformation")]
-    public PatientInformation? PatientInformation { get; set; }
+    [JsonPropertyName("patientInfo")]
+    public PatientInfo? PatientInfo { get; set; }
 
     /// <summary>
     /// The radiology report to analyze.
