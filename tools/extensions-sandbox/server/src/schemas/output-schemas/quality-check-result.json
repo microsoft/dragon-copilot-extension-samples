@@ -1,0 +1,35 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "QualityCheckResult",
+  "description": "Schema for quality check extension output. Contains recommendations with clinical or billing quality findings.",
+  "type": "object",
+  "required": ["recommendations"],
+  "additionalProperties": false,
+  "properties": {
+    "recommendations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["qualityCheckType", "description", "reason"],
+        "additionalProperties": false,
+        "properties": {
+          "qualityCheckType": {
+            "type": "string",
+            "enum": ["Billing", "Clinical"]
+          },
+          "description": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "severityScorePercent": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 100
+          }
+        }
+      }
+    }
+  }
+}

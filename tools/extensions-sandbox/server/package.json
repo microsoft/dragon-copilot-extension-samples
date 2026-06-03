@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "tsx watch src/index.ts",
-    "build": "tsc -p tsconfig.json && cpy src/schemas/*.json dist/schemas/",
+    "build": "tsc -p tsconfig.json && cpy src/schemas/*.json dist/schemas/ && cpy src/schemas/output-schemas/*.json dist/schemas/output-schemas/",
     "start": "node dist/index.js",
     "test": "vitest run",
     "clean": "rimraf dist"
