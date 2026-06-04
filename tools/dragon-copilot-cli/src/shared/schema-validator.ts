@@ -8,8 +8,9 @@ import { join, resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import type { DragonExtensionManifest } from '../domains/physician/types.js';
 import type { ConnectorIntegrationManifest } from '../domains/connector/types.js';
+import type { DcrExtensionManifest } from '../domains/radiology/types.js';
 
-type ManifestLike = DragonExtensionManifest | ConnectorIntegrationManifest;
+type ManifestLike = DragonExtensionManifest | ConnectorIntegrationManifest | DcrExtensionManifest;
 
 const ajv = new Ajv({ allErrors: true, strict: false });
 addFormats(ajv);
@@ -64,7 +65,7 @@ function getSchemaPath(): string {
   ];
 
   for (const candidate of candidates) {
-    if (existsSync(join(candidate, 'extension-manifest.json'))) {
+    if (existsSync(join(candidate, 'physician', 'physician-extension-manifest-schema.json'))) {
       return candidate;
     }
   }
@@ -83,11 +84,13 @@ function loadSchema(name: string): any {
   return JSON.parse(readFileSync(join(schemaDir, name), 'utf8'));
 }
 
-const extensionManifestSchema = loadSchema('extension-manifest.json');
+const extensionManifestSchema = loadSchema('physician/physician-extension-manifest-schema.json');
 const connectorManifestSchema = loadSchema('connector-manifest.json');
+const dcrExtensionManifestSchema = loadSchema('radiology/radiology-extension-manifest-schema.json');
 
 const validateExtensionSchema = ajv.compile(extensionManifestSchema);
 const validateConnectorSchema = ajv.compile(connectorManifestSchema);
+const validateDcrExtensionSchema = ajv.compile(dcrExtensionManifestSchema);
 
 export interface SchemaError {
   instancePath: string;
@@ -131,6 +134,24 @@ export function validateExtensionManifestSchema(manifest: DragonExtensionManifes
   };
 }
 
+export function validateDcrExtensionManifest(manifest: DcrExtensionManifest): ValidationResult {
+  const schemaResult = validateDcrExtensionManifestSchema(manifest);
+  const businessRuleErrors = validateDcrExtensionBusinessRules(manifest);
+
+  return {
+    isValid: schemaResult.isValid && businessRuleErrors.length === 0,
+    errors: [...schemaResult.errors, ...businessRuleErrors]
+  };
+}
+
+export function validateDcrExtensionManifestSchema(manifest: DcrExtensionManifest): ValidationResult {
+  const isValid = validateDcrExtensionSchema(manifest);
+  return {
+    isValid,
+    errors: isValid ? [] : (validateDcrExtensionSchema.errors || []).map(convertAjvError)
+  };
+}
+
 export function validateConnectorManifestSchema(manifest: ConnectorIntegrationManifest): ValidationResult {
   const isValid = validateConnectorSchema(manifest);
   return {
@@ -140,6 +161,30 @@ export function validateConnectorManifestSchema(manifest: ConnectorIntegrationMa
 }
 
 function validateExtensionBusinessRules(manifest: ManifestLike): SchemaError[] {
+  const errors: SchemaError[] = [];
+  const tools = Array.isArray((manifest as any).tools) ? (manifest as any).tools : [];
+
+  if (tools.length > 1) {
+    const toolNames = tools.map((tool: any) => tool?.name).filter(Boolean);
+    const duplicates = toolNames.filter((name: string, index: number) => toolNames.indexOf(name) !== index);
+
+    if (duplicates.length > 0) {
+      const uniqueDuplicates = [...new Set(duplicates)];
+      errors.push({
+        instancePath: '/tools',
+        keyword: 'uniqueToolNames',
+        message: `Duplicate tool names found: ${uniqueDuplicates.join(', ')}`,
+        data: tools,
+        schemaPath: '#/tools',
+        params: { duplicates: uniqueDuplicates }
+      });
+    }
+  }
+
+  return errors;
+}
+
+function validateDcrExtensionBusinessRules(manifest: DcrExtensionManifest): SchemaError[] {
   const errors: SchemaError[] = [];
   const tools = Array.isArray((manifest as any).tools) ? (manifest as any).tools : [];
 
@@ -205,12 +250,14 @@ function convertAjvError(ajvError: ErrorObject): SchemaError {
 export function validateFieldValue(
   value: unknown,
   fieldPath: string,
-  schemaType: 'extension-manifest' | 'connector-manifest'
+  schemaType: 'extension-manifest' | 'connector-manifest' | 'dcr-extension-manifest'
 ): string | true {
   const schema =
     schemaType === 'extension-manifest'
       ? extensionManifestSchema
-      : connectorManifestSchema;
+      : schemaType === 'dcr-extension-manifest'
+        ? dcrExtensionManifestSchema
+        : connectorManifestSchema;
   const fieldSchema = extractFieldSchema(fieldPath, schema);
 
   if (!fieldSchema) {

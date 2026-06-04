@@ -1,6 +1,6 @@
 import AjvModule from 'ajv';
 import addFormatsModule from 'ajv-formats';
-import type { DragonExtensionManifest } from '../types.js';
+import type { DcrExtensionManifest } from '../types.js';
 import { readFileSync, existsSync } from 'fs';
 import { join, resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
@@ -25,17 +25,14 @@ function getCurrentModuleDir(): string {
   try {
     const stack = new Error().stack;
     if (stack) {
-      // Look for this file in the stack trace
       const match = stack.match(/at .*? \((.+?):\d+:\d+\)/);
       if (match && match[1]) {
         let filePath = match[1];
 
-        // Convert file URL to path if necessary
         if (filePath.startsWith('file:///')) {
           filePath = fileURLToPath(filePath);
         }
 
-        // Make sure it's a valid file path and contains our module
         if (filePath.includes('schema-validator') || filePath.includes('dist') || filePath.includes('src')) {
           return dirname(filePath);
         }
@@ -46,11 +43,8 @@ function getCurrentModuleDir(): string {
   }
 
   try {
-    // Try import.meta.url approach (works in most environments)
-    // Use type assertion to avoid TypeScript module target issues
     const importMeta = (globalThis as any).import?.meta || (global as any).import?.meta;
     if (importMeta?.url) {
-      // Make sure we have a proper file URL before converting
       let fileUrl = importMeta.url;
       if (typeof fileUrl === 'string' && fileUrl.startsWith('file:')) {
         const __filename = fileURLToPath(fileUrl);
@@ -61,34 +55,29 @@ function getCurrentModuleDir(): string {
     // Fallback for test environments or other edge cases
   }
 
-  // Fallback: use __dirname if available (CommonJS)
   if (typeof __dirname !== 'undefined') {
     return __dirname;
   }
 
-  // If all else fails, fall back to process.cwd() with src assumption
   return resolve(process.cwd(), 'src', 'shared');
 }
 
-// Load schemas from the correct location - works in development, built, and test environments
+// Load schemas from the correct location
 function getSchemaPath(): string {
   const currentDir = getCurrentModuleDir();
 
   const candidates = [
-    // Bundle: schemas sit next to the bundle file in dist/schemas/
     resolve(currentDir, 'schemas'),
     resolve(currentDir, '..', 'schemas'),
     resolve(currentDir, '..', '..', 'schemas'),
-    // Handle scenarios where CLI is invoked from another working directory (e.g., packaging script)
-    // and the compiled files live under dist/schemas instead of the domain subfolder.
     resolve(currentDir, '..', '..', '..', 'schemas'),
     resolve(process.cwd(), 'src', 'schemas'),
     resolve(process.cwd(), 'dist', 'schemas'),
   ];
 
   for (const candidate of candidates) {
-    if (existsSync(join(candidate, 'physician', 'physician-extension-manifest-schema.json'))) {
-      return join(candidate, 'physician');
+    if (existsSync(join(candidate, 'radiology', 'radiology-extension-manifest-schema.json'))) {
+      return join(candidate, 'radiology');
     }
   }
 
@@ -98,17 +87,14 @@ function getSchemaPath(): string {
 const schemaDir = getSchemaPath();
 
 function loadSchema(name: string): any {
-  // Use embedded schemas when available (bundled/SEA mode)
   if (typeof globalThis !== 'undefined' && (globalThis as any).__EMBEDDED_SCHEMAS__?.[name]) {
     return (globalThis as any).__EMBEDDED_SCHEMAS__[name];
   }
-  // Fall back to filesystem loading (development/built mode)
   return JSON.parse(readFileSync(join(schemaDir, name), 'utf8'));
 }
 
-const manifestSchema = loadSchema('physician-extension-manifest-schema.json');
+const manifestSchema = loadSchema('radiology-extension-manifest-schema.json');
 
-// Compile schemas for faster validation
 const validateManifest = ajv.compile(manifestSchema);
 
 /**
@@ -132,14 +118,10 @@ export interface ValidationResult {
 }
 
 /**
- * Complete validation for Extension Manifest
- * Combines JSON Schema validation with simple business rules
+ * Complete validation for DCR Extension Manifest
  */
-export function validateExtensionManifest(manifest: DragonExtensionManifest): ValidationResult {
-  // Step 1: Pure JSON Schema validation
+export function validateExtensionManifest(manifest: DcrExtensionManifest): ValidationResult {
   const schemaResult = validateManifestSchema(manifest);
-
-  // Step 2: Simple business rules (easily portable to C#)
   const businessRuleErrors = validateManifestBusinessRules(manifest);
 
   return {
@@ -149,9 +131,9 @@ export function validateExtensionManifest(manifest: DragonExtensionManifest): Va
 }
 
 /**
- * Pure JSON Schema validation for Extension Manifest
+ * Pure JSON Schema validation for DCR Extension Manifest
  */
-export function validateManifestSchema(manifest: DragonExtensionManifest): ValidationResult {
+export function validateManifestSchema(manifest: DcrExtensionManifest): ValidationResult {
   const isValid = validateManifest(manifest);
 
   return {
@@ -161,14 +143,11 @@ export function validateManifestSchema(manifest: DragonExtensionManifest): Valid
 }
 
 /**
- * Simple business rules for Extension Manifest
- * These are rules that can't be expressed in JSON Schema but are simple enough
- * to be easily replicated in C#
+ * Simple business rules for DCR Extension Manifest
  */
-function validateManifestBusinessRules(manifest: DragonExtensionManifest): SchemaError[] {
+function validateManifestBusinessRules(manifest: DcrExtensionManifest): SchemaError[] {
   const errors: SchemaError[] = [];
 
-  // Check for duplicate tool names
   if (manifest.tools && manifest.tools.length > 1) {
     const toolNames = manifest.tools.map(t => t.name).filter(Boolean);
     const duplicates = toolNames.filter((name, index) => toolNames.indexOf(name) !== index);
@@ -188,9 +167,6 @@ function validateManifestBusinessRules(manifest: DragonExtensionManifest): Schem
   return errors;
 }
 
-/**
- * Converts AJV error to our standard schema error format
- */
 function convertAjvError(ajvError: any): SchemaError {
   return {
     instancePath: ajvError.instancePath || '',
@@ -224,9 +200,6 @@ export function validateFieldValue(value: any, fieldPath: string, schemaType: 'm
   return true;
 }
 
-/**
- * Extracts a field schema from the main schema using JSON path
- */
 function extractFieldSchema(fieldPath: string, schema: any): any | null {
   const pathParts = fieldPath.split('.');
   let currentSchema = schema;
@@ -247,35 +220,24 @@ function extractFieldSchema(fieldPath: string, schema: any): any | null {
       continue;
     }
 
-    if (currentSchema && typeof currentSchema === 'object' && part in currentSchema) {
+    // Prefer navigating into properties first (for top-level field lookups)
+    if (currentSchema.properties && currentSchema.properties[part]) {
+      currentSchema = currentSchema.properties[part];
+    } else if (currentSchema.definitions && currentSchema.definitions[part]) {
+      currentSchema = currentSchema.definitions[part];
+    } else if (currentSchema && typeof currentSchema === 'object' && part in currentSchema) {
       currentSchema = currentSchema[part];
     } else {
       return null;
     }
   }
 
+  // Ensure the result is a valid schema object
+  if (typeof currentSchema !== 'object' || currentSchema === null) {
+    return null;
+  }
+
   return currentSchema;
 }
 
-/**
- * Helper function to get user-friendly field names
- */
-export function getFieldDisplayName(path: string): string {
-  const fieldNames: { [key: string]: string } = {
-    'publisherId': 'Publisher ID',
-    'publisherName': 'Publisher Name',
-    'websiteUrl': 'Website URL',
-    'privacyPolicyUrl': 'Privacy Policy URL',
-    'supportUrl': 'Support URL',
-    'contactEmail': 'Contact Email',
-    'offerId': 'Offer ID',
-    'defaultLocale': 'Default Locale',
-    'supportedLocales': 'Supported Locales',
-    'regions': 'Regions'
-  };
-
-  return fieldNames[path] || path;
-}
-
-// Export schemas for external use (e.g., documentation generation)
 export { manifestSchema };
