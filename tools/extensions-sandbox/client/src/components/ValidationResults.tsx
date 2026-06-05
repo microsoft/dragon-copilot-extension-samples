@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useValidation, type ValidationResult, type ValidationCheck } from '../ValidationContext';
 
@@ -27,19 +27,29 @@ export function ValidationResults() {
   const [error, setError] = useState<string | null>(null);
   const [expandedChecks, setExpandedChecks] = useState<Set<number>>(new Set());
   const [copyToast, setCopyToast] = useState(false);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   // ── Fetch validation results from backend ────────────────────────────
   const runValidation = useCallback(() => {
     if (!toolName) return;
+
+    // Abort any in-flight request before starting a new one
+    abortControllerRef.current?.abort();
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+
     setLoading(true);
     setError(null);
 
     const startTime = performance.now();
 
+    // TODO: Replace empty payload with actual tool execution response
+    // once the execution engine is integrated.
     fetch(`/api/validate/${encodeURIComponent(toolName)}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ response: {} }),
+      signal: controller.signal,
     })
       .then((res) => {
         if (!res.ok && res.status !== 422) {
@@ -65,6 +75,7 @@ export function ValidationResults() {
         setExpandedChecks(failedIndices);
       })
       .catch((err) => {
+        if (err.name === 'AbortError') return;
         setError(err.message || 'Failed to validate tool response.');
       })
       .finally(() => setLoading(false));
@@ -72,6 +83,7 @@ export function ValidationResults() {
 
   useEffect(() => {
     runValidation();
+    return () => abortControllerRef.current?.abort();
   }, [runValidation]);
 
   // ── Toggle error detail expansion ────────────────────────────────────
@@ -91,11 +103,27 @@ export function ValidationResults() {
   const handleCopyResults = () => {
     if (!result) return;
     const text = formatResultsAsText(result);
-    navigator.clipboard.writeText(text).then(() => {
-      setCopyToast(true);
-      setTimeout(() => setCopyToast(false), 2500);
-    });
+    navigator.clipboard.writeText(text)
+      .then(() => {
+        setCopyToast(true);
+        setTimeout(() => setCopyToast(false), 2500);
+      })
+      .catch(() => {
+        setError('Failed to copy results to clipboard.');
+      });
   };
+
+  // ── Guard: missing route params ──────────────────────────────────────
+  if (!capabilityName || !toolName) {
+    return (
+      <div className="validation-results">
+        <div className="validation-error">
+          <p>Missing tool or capability name in URL.</p>
+          <Link to="/capabilities" className="btn btn-secondary">← Back to Capabilities</Link>
+        </div>
+      </div>
+    );
+  }
 
   // ── Loading state ────────────────────────────────────────────────────
   if (loading) {
@@ -220,7 +248,7 @@ export function ValidationResults() {
       </div>
 
       {/* Copy-to-clipboard toast */}
-      {copyToast && <div className="copy-toast">✓ Results copied to clipboard</div>}
+      {copyToast && <div className="copy-toast" role="status" aria-live="polite">✓ Results copied to clipboard</div>}
     </div>
   );
 }

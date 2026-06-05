@@ -42,7 +42,10 @@ export function ValidationProvider({ children }: { children: ReactNode }) {
   const [results, setResults] = useState<ValidationResult[]>([]);
 
   const addResult = useCallback((result: ValidationResult) => {
-    setResults((prev) => [...prev, result]);
+    setResults((prev) => {
+      const filtered = prev.filter((r) => r.toolName !== result.toolName);
+      return [...filtered, result];
+    });
   }, []);
 
   const clearResults = useCallback(() => {
