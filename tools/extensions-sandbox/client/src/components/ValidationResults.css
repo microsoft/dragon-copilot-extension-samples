@@ -1,0 +1,303 @@
+/* ---------------------------------------------------------------------------
+ * ValidationResults.css
+ * Styles for the validation-results UI – based on the approved mockup.
+ * Uses the same CSS custom properties as the rest of the sandbox.
+ * --------------------------------------------------------------------------- */
+
+/* Layout */
+.validation-results {
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+/* Breadcrumb navigation */
+.breadcrumb {
+  font-size: 0.85rem;
+  color: var(--color-text-secondary);
+  margin-bottom: 1.25rem;
+}
+
+.breadcrumb a {
+  color: var(--color-primary);
+  text-decoration: none;
+}
+
+.breadcrumb a:hover {
+  text-decoration: underline;
+}
+
+.breadcrumb .sep {
+  margin: 0 0.35rem;
+  color: #c8c6c4;
+}
+
+/* Tool context card */
+.tool-context {
+  margin-bottom: 1.25rem;
+  background: var(--color-surface);
+  border: 1px solid #edebe9;
+  border-radius: 8px;
+  padding: 1rem 1.15rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+.tool-context-row {
+  display: flex;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.tool-context-label {
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-text-secondary);
+  font-weight: 600;
+  margin-bottom: 0.15rem;
+}
+
+.tool-context-value {
+  font-size: 0.92rem;
+  font-weight: 500;
+  color: var(--color-text);
+}
+
+/* Validation header with badge */
+.validation-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.validation-header h2 {
+  font-size: 1.3rem;
+  font-weight: 600;
+}
+
+/* Pass/fail badge */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.3rem 0.85rem;
+  border-radius: 14px;
+  font-weight: 600;
+  font-size: 0.85rem;
+  letter-spacing: 0.02em;
+}
+
+.badge-pass {
+  background: #dff6dd;
+  color: var(--color-success);
+}
+
+.badge-fail {
+  background: #fde7e9;
+  color: var(--color-error);
+}
+
+.badge-icon {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  color: white;
+}
+
+.badge-pass .badge-icon {
+  background: var(--color-success);
+}
+
+.badge-fail .badge-icon {
+  background: var(--color-error);
+}
+
+/* Summary text */
+.validation-summary {
+  font-size: 0.9rem;
+  color: var(--color-text-secondary);
+  margin-bottom: 1.25rem;
+}
+
+/* Check list */
+.check-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  background: var(--color-surface);
+  border: 1px solid #edebe9;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.07);
+}
+
+.check-item {
+  padding: 0.85rem 1.1rem;
+  border-bottom: 1px solid #f3f2f1;
+  display: flex;
+  flex-direction: column;
+}
+
+.check-item:last-child {
+  border-bottom: none;
+}
+
+.check-item-row {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.check-item.expandable .check-item-row {
+  cursor: pointer;
+}
+
+/* Check icon (circle) */
+.check-icon {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 13px;
+  font-weight: 700;
+  color: white;
+}
+
+.check-icon-pass {
+  background: var(--color-success);
+}
+
+.check-icon-fail {
+  background: var(--color-error);
+}
+
+/* Check label */
+.check-label {
+  flex: 1;
+  font-size: 0.92rem;
+  font-weight: 500;
+  color: var(--color-text);
+}
+
+/* Check status text */
+.check-status {
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.check-status-pass {
+  color: var(--color-success);
+}
+
+.check-status-fail {
+  color: var(--color-error);
+}
+
+/* Chevron for expandable items */
+.chevron {
+  font-size: 0.7rem;
+  color: var(--color-text-secondary);
+  transition: transform 0.2s;
+  margin-left: 0.25rem;
+  user-select: none;
+}
+
+.chevron.open {
+  transform: rotate(90deg);
+}
+
+/* Expandable error detail */
+.check-error-detail {
+  margin-top: 0.55rem;
+  margin-left: 2.35rem;
+  padding: 0.6rem 0.85rem;
+  background: #fef6f6;
+  border-left: 3px solid var(--color-error);
+  border-radius: 0 4px 4px 0;
+  font-size: 0.83rem;
+  color: #a4262c;
+  font-family: 'Cascadia Code', 'Consolas', monospace;
+}
+
+/* Action buttons row */
+.validation-actions {
+  margin-top: 1.5rem;
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+/* Session persistence banner */
+.session-banner {
+  margin-top: 1.25rem;
+  padding: 0.7rem 1rem;
+  background: #e8f4fd;
+  border-radius: 6px;
+  font-size: 0.83rem;
+  color: #0078d4;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.session-banner-icon {
+  font-size: 1.1rem;
+}
+
+/* Loading state */
+.validation-loading {
+  padding: 2rem;
+  text-align: center;
+  color: var(--color-primary);
+  font-weight: 500;
+}
+
+/* Error state */
+.validation-error {
+  padding: 1.5rem;
+  background: #fde7e9;
+  border-radius: 6px;
+  color: var(--color-error);
+  text-align: center;
+}
+
+.validation-error .btn {
+  margin-top: 1rem;
+}
+
+/* Copied-to-clipboard toast */
+.copy-toast {
+  position: fixed;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  background: #323130;
+  color: white;
+  padding: 0.6rem 1.1rem;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  animation: fadeInUp 0.25s ease;
+  z-index: 1000;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

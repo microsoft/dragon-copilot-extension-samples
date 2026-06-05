@@ -3,9 +3,12 @@ import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
 import { ManifestUpload } from './components/ManifestUpload';
 import { CapabilityList } from './components/CapabilityList';
 import { ToolList } from './components/ToolList';
+import { ValidationResults } from './components/ValidationResults';
+import { ValidationProvider } from './ValidationContext';
 import './components/ManifestUpload.css';
 import './components/CapabilityList.css';
 import './components/ToolList.css';
+import './components/ValidationResults.css';
 
 function HomePage() {
   const [status, setStatus] = useState<string>('checking...');
@@ -67,25 +70,36 @@ function ToolsPage() {
   );
 }
 
+function ValidationResultsPage() {
+  return (
+    <main className="app-main app-main-single">
+      <ValidationResults />
+    </main>
+  );
+}
+
 function App() {
   return (
     <BrowserRouter>
-      <div className="app">
-        <header className="app-header">
-          <Link to="/" style={{ color: 'inherit', textDecoration: 'none' }}>
-            <h1>Dragon Copilot Extensions Sandbox</h1>
-          </Link>
-          <p className="subtitle">
-            Test and validate your extensions locally before deployment
-          </p>
-        </header>
-        <Routes>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/upload" element={<UploadPage />} />
-          <Route path="/capabilities" element={<CapabilitiesPage />} />
-          <Route path="/capabilities/:capabilityName/tools" element={<ToolsPage />} />
-        </Routes>
-      </div>
+      <ValidationProvider>
+        <div className="app">
+          <header className="app-header">
+            <Link to="/" style={{ color: 'inherit', textDecoration: 'none' }}>
+              <h1>Dragon Copilot Extensions Sandbox</h1>
+            </Link>
+            <p className="subtitle">
+              Test and validate your extensions locally before deployment
+            </p>
+          </header>
+          <Routes>
+            <Route path="/" element={<HomePage />} />
+            <Route path="/upload" element={<UploadPage />} />
+            <Route path="/capabilities" element={<CapabilitiesPage />} />
+            <Route path="/capabilities/:capabilityName/tools" element={<ToolsPage />} />
+            <Route path="/capabilities/:capabilityName/tools/:toolName/execute" element={<ValidationResultsPage />} />
+          </Routes>
+        </div>
+      </ValidationProvider>
     </BrowserRouter>
   );
 }

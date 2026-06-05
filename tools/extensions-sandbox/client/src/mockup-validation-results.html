@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Validation Results UI Mockup</title>
+<style>
+  :root {
+    --color-primary: #0078d4;
+    --color-bg: #f5f5f5;
+    --color-surface: #ffffff;
+    --color-text: #323130;
+    --color-text-secondary: #605e5c;
+    --color-success: #107c10;
+    --color-error: #d13438;
+    --color-warning: #ffb900;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--color-bg);
+    color: var(--color-text);
+    line-height: 1.5;
+    min-height: 100vh;
+  }
+
+  .app { min-height: 100vh; display: flex; flex-direction: column; }
+
+  .app-header {
+    background: var(--color-primary);
+    color: white;
+    padding: 1.5rem 2rem;
+    text-align: center;
+  }
+  .app-header h1 { font-size: 1.75rem; font-weight: 600; }
+  .app-header .subtitle { margin-top: 0.25rem; opacity: 0.9; font-size: 1rem; }
+
+  .breadcrumb {
+    max-width: 720px;
+    margin: 1.25rem auto 0;
+    padding: 0 1rem;
+    font-size: 0.85rem;
+    color: var(--color-text-secondary);
+  }
+  .breadcrumb a { color: var(--color-primary); text-decoration: none; }
+  .breadcrumb a:hover { text-decoration: underline; }
+  .breadcrumb .sep { margin: 0 0.35rem; color: #c8c6c4; }
+
+  .app-main {
+    flex: 1;
+    padding: 1rem 2rem 2rem;
+    max-width: 720px;
+    margin: 0 auto;
+    width: 100%;
+  }
+
+  /* Overall result badge */
+  .validation-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+  }
+  .validation-header h2 { font-size: 1.3rem; font-weight: 600; }
+
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.3rem 0.85rem;
+    border-radius: 14px;
+    font-weight: 600;
+    font-size: 0.85rem;
+    letter-spacing: 0.02em;
+  }
+  .badge-fail { background: #fde7e9; color: var(--color-error); }
+  .badge-pass { background: #dff6dd; color: var(--color-success); }
+
+  .badge-icon {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 700;
+    color: white;
+  }
+  .badge-fail .badge-icon { background: var(--color-error); }
+  .badge-pass .badge-icon { background: var(--color-success); }
+
+  .validation-summary {
+    font-size: 0.9rem;
+    color: var(--color-text-secondary);
+    margin-bottom: 1.25rem;
+  }
+
+  /* Check list */
+  .check-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    background: var(--color-surface);
+    border: 1px solid #edebe9;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.07);
+  }
+
+  .check-item {
+    padding: 0.85rem 1.1rem;
+    border-bottom: 1px solid #f3f2f1;
+    display: flex;
+    flex-direction: column;
+  }
+  .check-item:last-child { border-bottom: none; }
+
+  .check-item-row {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+  }
+
+  .check-icon {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 13px;
+    font-weight: 700;
+    color: white;
+  }
+  .check-icon-pass { background: var(--color-success); }
+  .check-icon-fail { background: var(--color-error); }
+
+  .check-label {
+    flex: 1;
+    font-size: 0.92rem;
+    font-weight: 500;
+    color: var(--color-text);
+  }
+
+  .check-status {
+    font-size: 0.78rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .check-status-pass { color: var(--color-success); }
+  .check-status-fail { color: var(--color-error); }
+
+  /* Expandable error detail */
+  .check-error-detail {
+    margin-top: 0.55rem;
+    margin-left: 2.35rem;
+    padding: 0.6rem 0.85rem;
+    background: #fef6f6;
+    border-left: 3px solid var(--color-error);
+    border-radius: 0 4px 4px 0;
+    font-size: 0.83rem;
+    color: #a4262c;
+    font-family: 'Cascadia Code', 'Consolas', monospace;
+  }
+
+  /* Collapsed error (chevron) */
+  .check-item.expandable .check-item-row { cursor: pointer; }
+  .chevron {
+    font-size: 0.7rem;
+    color: var(--color-text-secondary);
+    transition: transform 0.2s;
+    margin-left: 0.25rem;
+  }
+  .chevron.open { transform: rotate(90deg); }
+
+  /* Bottom actions */
+  .validation-actions {
+    margin-top: 1.5rem;
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.55rem 1.1rem;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    border: none;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background 0.15s;
+  }
+  .btn-primary { background: var(--color-primary); color: white; }
+  .btn-primary:hover { background: #106ebe; }
+  .btn-secondary { background: #f3f2f1; color: var(--color-text); border: 1px solid #d2d0ce; }
+  .btn-secondary:hover { background: #e8e6e5; }
+
+  /* Tool context card */
+  .tool-context {
+    margin-bottom: 1.25rem;
+    background: var(--color-surface);
+    border: 1px solid #edebe9;
+    border-radius: 8px;
+    padding: 1rem 1.15rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  }
+  .tool-context-row {
+    display: flex;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+  }
+  .tool-context-label {
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--color-text-secondary);
+    font-weight: 600;
+    margin-bottom: 0.15rem;
+  }
+  .tool-context-value {
+    font-size: 0.92rem;
+    font-weight: 500;
+    color: var(--color-text);
+  }
+
+  /* Session banner */
+  .session-banner {
+    margin-top: 1.25rem;
+    padding: 0.7rem 1rem;
+    background: #e8f4fd;
+    border-radius: 6px;
+    font-size: 0.83rem;
+    color: #0078d4;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .session-banner-icon { font-size: 1.1rem; }
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="app-header">
+    <h1>Dragon Copilot Extensions Sandbox</h1>
+    <p class="subtitle">Test and validate your extensions locally before deployment</p>
+  </header>
+
+  <nav class="breadcrumb">
+    <a href="#">Capabilities</a>
+    <span class="sep">›</span>
+    <a href="#">quality-check</a>
+    <span class="sep">›</span>
+    <a href="#">Tools</a>
+    <span class="sep">›</span>
+    <a href="#">check-note-quality</a>
+    <span class="sep">›</span>
+    <span>Validation Results</span>
+  </nav>
+
+  <main class="app-main">
+    <!-- Tool context -->
+    <div class="tool-context">
+      <div class="tool-context-row">
+        <div>
+          <div class="tool-context-label">Tool</div>
+          <div class="tool-context-value">check-note-quality</div>
+        </div>
+        <div>
+          <div class="tool-context-label">Capability</div>
+          <div class="tool-context-value">quality-check</div>
+        </div>
+        <div>
+          <div class="tool-context-label">Execution Time</div>
+          <div class="tool-context-value">342 ms</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Validation header with overall badge -->
+    <div class="validation-header">
+      <h2>Validation Results</h2>
+      <span class="badge badge-fail">
+        <span class="badge-icon">✕</span>
+        FAIL
+      </span>
+    </div>
+
+    <p class="validation-summary">
+      2 of 4 checks failed — response does not match the expected schema.
+    </p>
+
+    <!-- Check list -->
+    <ul class="check-list">
+      <!-- Check 1: PASS -->
+      <li class="check-item">
+        <div class="check-item-row">
+          <span class="check-icon check-icon-pass">✓</span>
+          <span class="check-label">required field 'recommendations'</span>
+          <span class="check-status check-status-pass">PASS</span>
+        </div>
+      </li>
+
+      <!-- Check 2: FAIL (expanded) -->
+      <li class="check-item expandable">
+        <div class="check-item-row">
+          <span class="check-icon check-icon-fail">✕</span>
+          <span class="check-label">recommendations[0].qualityCheckType is valid enum</span>
+          <span class="check-status check-status-fail">FAIL</span>
+          <span class="chevron open">▶</span>
+        </div>
+        <div class="check-error-detail">
+          Value 'Spelling' is not one of: Billing, Clinical
+        </div>
+      </li>
+
+      <!-- Check 3: PASS -->
+      <li class="check-item">
+        <div class="check-item-row">
+          <span class="check-icon check-icon-pass">✓</span>
+          <span class="check-label">recommendations[0].description is string</span>
+          <span class="check-status check-status-pass">PASS</span>
+        </div>
+      </li>
+
+      <!-- Check 4: FAIL (expanded) -->
+      <li class="check-item expandable">
+        <div class="check-item-row">
+          <span class="check-icon check-icon-fail">✕</span>
+          <span class="check-label">recommendations[0].reason is required</span>
+          <span class="check-status check-status-fail">FAIL</span>
+          <span class="chevron open">▶</span>
+        </div>
+        <div class="check-error-detail">
+          Missing required field 'reason'
+        </div>
+      </li>
+    </ul>
+
+    <!-- Actions -->
+    <div class="validation-actions">
+      <button class="btn btn-primary">↻ Re-run Execution</button>
+      <button class="btn btn-secondary">← Back to Tool</button>
+      <button class="btn btn-secondary">📋 Copy Results</button>
+    </div>
+
+    <!-- Session persistence note -->
+    <div class="session-banner">
+      <span class="session-banner-icon">ℹ</span>
+      Results saved to session — will be included in the consolidated validation report.
+    </div>
+  </main>
+</div>
+</body>
+</html>
