@@ -8,6 +8,7 @@ import type { ExtensionManifest } from '../schemas/manifest.schema.js';
 import { sessionStore } from '../store/session.js';
 import { buildDetailedErrors } from '../utils/validation-hints.js';
 import { mapPathsToLines } from '../utils/source-mapper.js';
+import { getToolsForCapability } from '../utils/tool-metadata.js';
 import { parseCapabilities } from '../utils/capabilities-parser.js';
 import { MANIFEST_SCHEMA_PATH } from '../utils/schema-path.js';
 
@@ -164,6 +165,28 @@ manifestRouter.get('/capabilities', (_req, res) => {
   }
 
   res.json(parseCapabilities(manifest));
+});
+
+/**
+ * GET /api/manifest/capabilities/:capabilityName/tools
+ * Returns tools defined under a given capability.
+ */
+manifestRouter.get('/capabilities/:capabilityName/tools', (req, res) => {
+  const manifest = sessionStore.getManifest();
+  if (!manifest) {
+    res.status(404).json({ error: 'No manifest loaded. Upload a manifest first.' });
+    return;
+  }
+
+  const { capabilityName } = req.params;
+  const tools = getToolsForCapability(manifest, capabilityName);
+
+  if (tools === null) {
+    res.status(404).json({ error: 'Capability not found in manifest.' });
+    return;
+  }
+
+  res.json(tools);
 });
 
 /**

@@ -2,8 +2,10 @@ import { useEffect, useState } from 'react';
 import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
 import { ManifestUpload } from './components/ManifestUpload';
 import { CapabilityList } from './components/CapabilityList';
+import { ToolList } from './components/ToolList';
 import './components/ManifestUpload.css';
 import './components/CapabilityList.css';
+import './components/ToolList.css';
 
 function HomePage() {
   const [status, setStatus] = useState<string>('checking...');
@@ -57,16 +59,10 @@ function CapabilitiesPage() {
   );
 }
 
-function CapabilityToolsPage() {
+function ToolsPage() {
   return (
     <main className="app-main app-main-single">
-      <div className="info-card">
-        <h2>Capability Tools</h2>
-        <p>Tool listing for this capability is coming soon.</p>
-        <Link to="/capabilities" className="btn btn-secondary btn-back">
-          ← Back to Capabilities
-        </Link>
-      </div>
+      <ToolList />
     </main>
   );
 }
@@ -87,7 +83,7 @@ function App() {
           <Route path="/" element={<HomePage />} />
           <Route path="/upload" element={<UploadPage />} />
           <Route path="/capabilities" element={<CapabilitiesPage />} />
-          <Route path="/capabilities/:name/tools" element={<CapabilityToolsPage />} />
+          <Route path="/capabilities/:capabilityName/tools" element={<ToolsPage />} />
         </Routes>
       </div>
     </BrowserRouter>
