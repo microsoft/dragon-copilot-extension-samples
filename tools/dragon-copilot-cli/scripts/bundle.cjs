@@ -12,8 +12,28 @@ async function bundle() {
 
 	// Read schema JSON files so they can be embedded directly in the bundle.
 	// This ensures the SEA standalone binary works without needing schema files on disk.
-	const extensionSchema = fs.readFileSync(path.join(rootDir, 'src', 'schemas', 'extension-manifest.json'), 'utf8');
-	const connectorSchema = fs.readFileSync(path.join(rootDir, 'src', 'schemas', 'connector-manifest.json'), 'utf8');
+	const schemasDir = path.join(rootDir, 'src', 'schemas');
+	const schemaSources = [
+		{ aliases: ['physician/physician-extension-manifest-schema.json', 'physician-extension-manifest-schema.json'], file: path.join('physician', 'physician-extension-manifest-schema.json') },
+		{ aliases: ['radiology/radiology-extension-manifest-schema.json', 'radiology-extension-manifest-schema.json'], file: path.join('radiology', 'radiology-extension-manifest-schema.json') },
+		{ aliases: ['connector-manifest.json'], file: 'connector-manifest.json' },
+	];
+
+	const embeddedSchemas = {};
+	for (const { aliases, file } of schemaSources) {
+		const content = fs.readFileSync(path.join(schemasDir, file), 'utf8');
+		for (const alias of aliases) {
+			embeddedSchemas[alias] = content;
+		}
+	}
+
+	const embeddedSchemasBanner = [
+		`globalThis.__EMBEDDED_SCHEMAS__ = {`,
+		...Object.entries(embeddedSchemas).map(([key, value], index, arr) =>
+			`  ${JSON.stringify(key)}: ${value}${index === arr.length - 1 ? '' : ','}`
+		),
+		`};`
+	];
 
 	// Read version from package.json so it's baked into the bundle
 	const pkg = JSON.parse(fs.readFileSync(path.join(rootDir, 'package.json'), 'utf8'));
@@ -31,10 +51,7 @@ async function bundle() {
 		banner: {
 			js: [
 				'#!/usr/bin/env node',
-				`globalThis.__EMBEDDED_SCHEMAS__ = {`,
-				`  'extension-manifest.json': ${extensionSchema},`,
-				`  'connector-manifest.json': ${connectorSchema}`,
-				`};`
+				...embeddedSchemasBanner
 			].join('\n')
 		},
 		// Keep native Node.js modules external

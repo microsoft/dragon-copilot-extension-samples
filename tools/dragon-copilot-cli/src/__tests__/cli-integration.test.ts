@@ -25,6 +25,31 @@ const EXTENSION_MANIFEST = [
   '        data: DSP',
 ].join('\n');
 
+const RADIOLOGY_EXTENSION_MANIFEST = [
+  'name: integration-radiology-extension',
+  'description: Radiology extension manifest used in integration tests',
+  'version: 0.0.1',
+  'auth:',
+  '  tenantId: 00000000-0000-0000-0000-000000000001',
+  'tools:',
+  '  - name: quality-checker',
+  '    toolType: contractBased',
+  '    capability: qualityCheck',
+  '    description: Checks the quality of a radiology report',
+  '    endpoint: https://example.org/quality-check',
+  '    inputs:',
+  '      - name: report',
+  '        description: Radiology report from Dragon Copilot',
+  '        content-type: application/vnd.ms-dragon.rad.report+json',
+  '      - name: patient-info',
+  '        description: Patient demographic information',
+  '        content-type: application/vnd.ms-dragon.rad.patient-info+json',
+  '    outputs:',
+  '      - name: quality-check-result',
+  '        description: Quality check findings and score',
+  '        content-type: application/vnd.ms-dragon.rad.quality-check-result+json',
+].join('\n');
+
 const PARTNER_MANIFEST = [
   'name: integration-partner',
   'description: Connector Manifest used in integration tests',
@@ -119,6 +144,20 @@ describe('CLI integration paths', () => {
     const combinedLogs = logSpy.mock.calls.flat().join(' ');
     expect(combinedLogs.toLowerCase()).toContain('integration manifest is valid');
     expect(errorSpy).not.toHaveBeenCalled();
+    expect(process.exitCode).toBe(0);
+  });
+
+  test('radiology validate succeeds for a valid manifest with qualityCheck capability', async () => {
+    const manifestPath = join(workingDir, 'extension.yaml');
+    writeFileSync(manifestPath, RADIOLOGY_EXTENSION_MANIFEST, 'utf8');
+
+    const program = new Command();
+    registerCommands(program);
+
+    await program.parseAsync(['node', 'cli', 'radiology', 'validate', manifestPath]);
+
+    const combinedLogs = logSpy.mock.calls.flat().join(' ');
+    expect(combinedLogs.toLowerCase()).toMatch(/valid|passed/);
     expect(process.exitCode).toBe(0);
   });
 });
