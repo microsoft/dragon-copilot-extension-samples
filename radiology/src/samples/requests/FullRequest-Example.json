@@ -1,11 +1,11 @@
 {
-  "schemaVersion": "0.0",
+  "extensibilityApiVersion": "1.1.1",
   "sessionData": {
     "correlation_id": "f40dd0d0-4201-d29d-79b4-df40189fd2f0",
     "session_start": "2025-06-20T08:57:35.978Z",
     "environment_id": "01bd0d47-1621-4a29-941d-00e9a9420f20"
   },
-  "patientInfo": {
+  "patientInformation": {
     "dateOfBirth": "1990-01-15",
     "biologicalSex": "Male"
   },

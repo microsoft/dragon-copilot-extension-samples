@@ -4,16 +4,17 @@ This directory contains sample request and response payloads for a Dragon Copilo
 
 ## Sample Request: Patient Information
 
-File: [PatientInfoRequest-Example.json](./PatientInfoRequest-Example.json)
+File: [PatientInformationRequest-Example.json](./PatientInformationRequest-Example.json)
 
-This file contains a sample request payload for an extension that is configured to handle an input of content-type `application/vnd.ms-dragon.rad.patient-info+json`. The name of the parameter is `patientInfo`, which is defined in the extension's manifest.
+This file contains a sample request payload for an extension that is configured to handle an input of content-type `application/vnd.ms-dragon.rad.patient-information+json`. The name of the parameter is `patientInformation`, which is defined in the extension's manifest.
 
 Sample Manifest Configuration:
 ```yaml
     inputs:
-      - name: patientInfo
+      - name: patientInformation
         description: Patient demographic information from Dragon Copilot
-        content-type: application/vnd.ms-dragon.rad.patient-info+json
+        content-type: application/vnd.ms-dragon.rad.patient-information+json
+        schemaVersion: "1.0"
 ```
 
 ## Sample Request: Report Payload
@@ -28,13 +29,14 @@ Sample Manifest Configuration:
       - name: report
         description: Radiology report from Dragon Copilot
         content-type: application/vnd.ms-dragon.rad.report+json
+        schemaVersion: "1.0"
 ```
 
 ## Sample Request: Combined (Patient Information + Report)
 
 File: [FullRequest-Example.json](./FullRequest-Example.json)
 
-This file contains a sample request payload demonstrating both `patientInfo` and `report` inputs sent together in a single `/v1/process` request.
+This file contains a sample request payload demonstrating both `patientInformation` and `report` inputs sent together in a single `/v1/process` request.
 
 ## Sample Response: Quality Check Result
 
@@ -48,4 +50,5 @@ Sample Manifest Configuration:
       - name: qualityCheckResult
         description: Quality check findings and score
         content-type: application/vnd.ms-dragon.rad.quality-check-result+json
+        schemaVersion: "1.0"
 ```

@@ -51,6 +51,7 @@ export async function initProject(options: InitOptions): Promise<void> {
     name: extensionDetails.name,
     description: extensionDetails.description,
     version: extensionDetails.version,
+    radiologyExtensibilityApiVersion: extensionDetails.radiologyExtensibilityApiVersion,
     auth: {
       tenantId: authDetails.tenantId
     },
@@ -61,7 +62,7 @@ export async function initProject(options: InitOptions): Promise<void> {
     const toolDetails = await promptToolDetails(undefined, {
       allowMultipleInputs: true,
       defaults: {
-        toolName: 'my-radiology-tool',
+        toolName: 'myRadiologyTool',
         toolDescription: 'Processes radiology reports and imaging data',
         endpoint: 'https://api.example.com/radiology/v1/process'
       }
@@ -76,7 +77,8 @@ export async function initProject(options: InitOptions): Promise<void> {
       inputs: toolDetails.inputTypes.map((contentType, index) => ({
         name: getInputName(contentType, index),
         description: getInputDescription(contentType),
-        'content-type': contentType
+        'content-type': contentType,
+        schemaVersion: '1.0'
       })),
       outputs: toolDetails.outputs
     };

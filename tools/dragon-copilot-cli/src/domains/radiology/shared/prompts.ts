@@ -10,6 +10,7 @@ export interface ExtensionDetails {
   name: string;
   description: string;
   version: string;
+  radiologyExtensibilityApiVersion: string;
 }
 
 export interface ToolDetails {
@@ -25,7 +26,7 @@ export interface ToolDetails {
 
 export const INPUT_TYPE_CHOICES = [
   { name: 'Radiology Report', value: 'application/vnd.ms-dragon.rad.report+json' },
-  { name: 'Patient Info', value: 'application/vnd.ms-dragon.rad.patient-info+json' },
+  { name: 'Patient Information', value: 'application/vnd.ms-dragon.rad.patient-information+json' },
 ];
 
 export const TOOL_TYPE_CHOICES = [
@@ -41,8 +42,8 @@ export const CAPABILITY_CHOICES = [
  */
 export function validateToolName(input: string, existingManifest?: DcrExtensionManifest | null): string | boolean {
   if (!input.trim()) return 'Tool name is required';
-    if (!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(input)) {
-        return 'Tool name must use lowercase kebab-case segments (letters/numbers separated by single hyphens)';
+    if (!/^[a-z][a-zA-Z0-9]*$/.test(input)) {
+        return 'Tool name must use camelCase (start with a lowercase letter, followed by letters and numbers)';
     }
   if (existingManifest?.tools.find(t => t.name === input)) {
     return 'Tool with this name already exists';
@@ -78,6 +79,13 @@ export function validateVersion(input: string): string | boolean {
 }
 
 /**
+ * Validates the Radiology Extensibility API version (x.y.z) the manifest was authored against.
+ */
+export function validateRadiologyExtensibilityApiVersion(input: string): string | boolean {
+  return validateFieldValue(input, 'radiologyExtensibilityApiVersion', 'manifest');
+}
+
+/**
  * Validates tenant ID input (GUID format)
  */
 export function validateTenantId(input: string): string | boolean {
@@ -93,7 +101,7 @@ export function validateTenantId(input: string): string | boolean {
 export async function promptExtensionDetails(defaults?: Partial<ExtensionDetails>): Promise<ExtensionDetails> {
   const name = await input({
     message: 'Extension name:',
-    default: defaults?.name || 'my-radiology-extension',
+    default: defaults?.name || 'myRadiologyExtension',
     validate: validateExtensionName
   });
 
@@ -108,7 +116,13 @@ export async function promptExtensionDetails(defaults?: Partial<ExtensionDetails
     validate: validateVersion
   });
 
-  return { name, description, version };
+  const radiologyExtensibilityApiVersion = await input({
+    message: 'Radiology Extensibility API version this manifest was authored against:',
+    default: defaults?.radiologyExtensibilityApiVersion || '1.0.0',
+    validate: validateRadiologyExtensibilityApiVersion
+  });
+
+  return { name, description, version, radiologyExtensibilityApiVersion };
 }
 
 /**
@@ -209,7 +223,7 @@ export function getInputDescription(contentType: string): string {
   switch (contentType) {
     case 'application/vnd.ms-dragon.rad.report+json':
       return 'Radiology report from Dragon Copilot';
-    case 'application/vnd.ms-dragon.rad.patient-info+json':
+    case 'application/vnd.ms-dragon.rad.patient-information+json':
       return 'Patient demographic information from Dragon Copilot';
     default:
       return 'Data from Dragon Copilot';
@@ -223,8 +237,8 @@ export function getInputName(contentType: string, index: number): string {
   switch (contentType) {
     case 'application/vnd.ms-dragon.rad.report+json':
       return 'report';
-    case 'application/vnd.ms-dragon.rad.patient-info+json':
-      return 'patient-info';
+    case 'application/vnd.ms-dragon.rad.patient-information+json':
+      return 'patientInformation';
     default:
       return `input-${index + 1}`;
   }
@@ -233,10 +247,10 @@ export function getInputName(contentType: string, index: number): string {
 /**
  * Prompts for output details
  */
-export async function promptOutputDetails(defaults?: { name?: string; description?: string }): Promise<DcrOutput> {
+export async function promptOutputDetails(defaults?: { name?: string; description?: string; schemaVersion?: string }): Promise<DcrOutput> {
   const name = await input({
     message: 'Output name:',
-    default: defaults?.name || 'quality-check-result'
+    default: defaults?.name || 'qualityCheckResult'
   });
 
   const description = await input({
@@ -244,10 +258,16 @@ export async function promptOutputDetails(defaults?: { name?: string; descriptio
     default: defaults?.description || 'Quality check result'
   });
 
+  const schemaVersion = await input({
+    message: 'Output payload schemaVersion (major.minor):',
+    default: defaults?.schemaVersion || '1.0'
+  });
+
   return {
     name,
     description,
-    'content-type': 'application/vnd.ms-dragon.rad.quality-check-result+json'
+    'content-type': 'application/vnd.ms-dragon.rad.quality-check-result+json',
+    schemaVersion
   };
 }
 

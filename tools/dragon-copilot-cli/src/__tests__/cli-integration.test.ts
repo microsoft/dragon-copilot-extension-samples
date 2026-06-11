@@ -26,13 +26,14 @@ const EXTENSION_MANIFEST = [
 ].join('\n');
 
 const RADIOLOGY_EXTENSION_MANIFEST = [
-  'name: integration-radiology-extension',
+  'name: integrationRadiologyExtension',
   'description: Radiology extension manifest used in integration tests',
   'version: 0.0.1',
+  'radiologyExtensibilityApiVersion: 1.0.0',
   'auth:',
   '  tenantId: 00000000-0000-0000-0000-000000000001',
   'tools:',
-  '  - name: quality-checker',
+  '  - name: qualityChecker',
   '    toolType: contractBased',
   '    capability: qualityCheck',
   '    description: Checks the quality of a radiology report',
@@ -41,13 +42,16 @@ const RADIOLOGY_EXTENSION_MANIFEST = [
   '      - name: report',
   '        description: Radiology report from Dragon Copilot',
   '        content-type: application/vnd.ms-dragon.rad.report+json',
-  '      - name: patient-info',
+  '        schemaVersion: "1.0"',
+  '      - name: patientInformation',
   '        description: Patient demographic information',
-  '        content-type: application/vnd.ms-dragon.rad.patient-info+json',
+  '        content-type: application/vnd.ms-dragon.rad.patient-information+json',
+  '        schemaVersion: "1.0"',
   '    outputs:',
-  '      - name: quality-check-result',
+  '      - name: qualityCheckResult',
   '        description: Quality check findings and score',
   '        content-type: application/vnd.ms-dragon.rad.quality-check-result+json',
+  '        schemaVersion: "1.0"',
 ].join('\n');
 
 const PARTNER_MANIFEST = [

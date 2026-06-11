@@ -2,6 +2,7 @@ export interface DcrExtensionManifest {
   name: string;
   description: string;
   version: string;
+  radiologyExtensibilityApiVersion: string;
   auth: AuthConfig;
   tools: DcrTool[];
 }
@@ -26,6 +27,7 @@ export interface DcrInput {
   name: string;
   description: string;
   'content-type': string;
+  schemaVersion: string;
   required?: boolean;
 }
 
@@ -33,6 +35,7 @@ export interface DcrOutput {
   name: string;
   description: string;
   'content-type': string;
+  schemaVersion: string;
 }
 
 export interface RelevanceFilteringCriteria {
@@ -64,6 +67,7 @@ export interface TemplateConfig {
   name: string;
   description: string;
   version: string;
+  radiologyExtensibilityApiVersion: string;
   tools: ToolTemplate[];
 }
 
@@ -77,12 +81,14 @@ export interface ToolTemplate {
     name: string;
     description: string;
     'content-type': string;
+    schemaVersion: string;
     required?: boolean;
   }>;
   outputs: Array<{
     name: string;
     description: string;
     'content-type': string;
+    schemaVersion: string;
   }>;
   relevanceFilteringCriteria?: RelevanceFilteringCriteria;
   configurationTemplate?: Record<string, any>;
