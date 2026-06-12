@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useImperativeHandle, forwardRef } from 'react';
 import {
   Input,
   Textarea,
@@ -9,7 +9,7 @@ import {
   Badge,
 } from '@fluentui/react-components';
 
-interface SchemaProperty {
+export interface SchemaProperty {
   type?: string;
   description?: string;
   format?: string;
@@ -47,6 +47,10 @@ interface FieldDefinition {
   };
 }
 
+export interface DynamicFormHandle {
+  validate: () => boolean;
+}
+
 interface DynamicFormProps {
   inputs: ToolInputSchema[];
   values: Record<string, string>;
@@ -54,7 +58,10 @@ interface DynamicFormProps {
   onValidationChange?: (isValid: boolean) => void;
 }
 
-export function DynamicForm({ inputs, values, onChange, onValidationChange }: DynamicFormProps) {
+export const DynamicForm = forwardRef<DynamicFormHandle, DynamicFormProps>(function DynamicForm(
+  { inputs, values, onChange, onValidationChange },
+  ref,
+) {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [touched, setTouched] = useState<Record<string, boolean>>({});
 
@@ -91,7 +98,8 @@ export function DynamicForm({ inputs, values, onChange, onValidationChange }: Dy
     if (constraints.pattern) {
       try {
         const regex = new RegExp(constraints.pattern);
-        if (!regex.test(value)) {
+        // Guard against catastrophic backtracking with a length limit
+        if (value.length <= 10_000 && !regex.test(value)) {
           return `Must match pattern: ${constraints.pattern}`;
         }
       } catch {
@@ -163,10 +171,10 @@ export function DynamicForm({ inputs, values, onChange, onValidationChange }: Dy
     return isValid;
   }, [fields, values, validateField, onValidationChange]);
 
-  // Expose validate via a custom attribute on the container
-  // Parent can call validate via ref pattern
+  useImperativeHandle(ref, () => ({ validate: validateAll }), [validateAll]);
+
   return (
-    <div className="dynamic-form" data-validate-ref={validateAll.toString()}>
+    <div className="dynamic-form">
       {fields.map((field) => (
         <div key={field.path} className="dynamic-form-field">
           <Label className="field-label" required={field.required}>
@@ -195,7 +203,7 @@ export function DynamicForm({ inputs, values, onChange, onValidationChange }: Dy
       )}
     </div>
   );
-}
+});
 
 function renderFieldInput(
   field: FieldDefinition,
@@ -389,5 +397,7 @@ function formatLabel(name: string): string {
     .trim();
 }
 
-// Export validate helper for parent components
-export type DynamicFormValidateFn = () => boolean;
+/** Returns all field paths that this set of inputs will generate. */
+export function getFieldPaths(inputs: ToolInputSchema[]): string[] {
+  return flattenInputsToFields(inputs).map((f) => f.path);
+}

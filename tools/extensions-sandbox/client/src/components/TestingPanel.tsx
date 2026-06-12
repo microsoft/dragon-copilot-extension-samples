@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import {
   Button,
   Dropdown,
@@ -9,21 +9,8 @@ import {
   Link,
 } from '@fluentui/react-components';
 import { PlayRegular, ArrowCounterclockwiseRegular } from '@fluentui/react-icons';
-import { DynamicForm } from './DynamicForm';
-
-interface SchemaProperty {
-  type?: string;
-  description?: string;
-  format?: string;
-  enum?: string[];
-  minimum?: number;
-  maximum?: number;
-  minLength?: number;
-  maxLength?: number;
-  pattern?: string;
-  required?: string[];
-  properties?: Record<string, SchemaProperty>;
-}
+import { DynamicForm, getFieldPaths, SchemaProperty } from './DynamicForm';
+import type { DynamicFormHandle } from './DynamicForm';
 
 interface ToolInput {
   name: string;
@@ -82,6 +69,7 @@ export function TestingPanel({ manifestInfo }: TestingPanelProps) {
   const [isExecuting, setIsExecuting] = useState(false);
   const [result, setResult] = useState<ExecuteResult | null>(null);
   const [executeError, setExecuteError] = useState<string | null>(null);
+  const formRef = useRef<DynamicFormHandle>(null);
 
   // Load capabilities when manifest is loaded
   useEffect(() => {
@@ -130,8 +118,8 @@ export function TestingPanel({ manifestInfo }: TestingPanelProps) {
     const tool = tools.find((t) => t.name === selectedTool);
     if (tool) {
       const defaults: Record<string, string> = {};
-      for (const input of tool.inputs) {
-        defaults[input.name] = '';
+      for (const path of getFieldPaths(tool.inputs)) {
+        defaults[path] = '';
       }
       setInputValues(defaults);
     }
@@ -146,8 +134,8 @@ export function TestingPanel({ manifestInfo }: TestingPanelProps) {
   const handleResetInputs = useCallback(() => {
     if (currentTool) {
       const defaults: Record<string, string> = {};
-      for (const input of currentTool.inputs) {
-        defaults[input.name] = '';
+      for (const path of getFieldPaths(currentTool.inputs)) {
+        defaults[path] = '';
       }
       setInputValues(defaults);
     }
@@ -157,6 +145,11 @@ export function TestingPanel({ manifestInfo }: TestingPanelProps) {
 
   const handleRunTest = useCallback(async () => {
     if (!selectedCapability || !selectedTool) return;
+
+    // Validate form before executing
+    if (formRef.current && !formRef.current.validate()) {
+      return;
+    }
 
     setIsExecuting(true);
     setResult(null);
@@ -277,6 +270,7 @@ export function TestingPanel({ manifestInfo }: TestingPanelProps) {
 
             {currentTool && (
               <DynamicForm
+                ref={formRef}
                 inputs={currentTool.inputs}
                 values={inputValues}
                 onChange={handleInputChange}
