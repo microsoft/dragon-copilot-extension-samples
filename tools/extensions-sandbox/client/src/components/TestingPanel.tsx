@@ -3,13 +3,27 @@ import {
   Button,
   Dropdown,
   Option,
-  Textarea,
   Tab,
   TabList,
   Spinner,
   Link,
 } from '@fluentui/react-components';
 import { PlayRegular, ArrowCounterclockwiseRegular } from '@fluentui/react-icons';
+import { DynamicForm } from './DynamicForm';
+
+interface SchemaProperty {
+  type?: string;
+  description?: string;
+  format?: string;
+  enum?: string[];
+  minimum?: number;
+  maximum?: number;
+  minLength?: number;
+  maxLength?: number;
+  pattern?: string;
+  required?: string[];
+  properties?: Record<string, SchemaProperty>;
+}
 
 interface ToolInput {
   name: string;
@@ -18,6 +32,7 @@ interface ToolInput {
   required: boolean;
   type?: string;
   placeholder?: string;
+  schema?: SchemaProperty;
 }
 
 interface ToolOutput {
@@ -260,22 +275,13 @@ export function TestingPanel({ manifestInfo }: TestingPanelProps) {
               </p>
             </div>
 
-            {currentTool && currentTool.inputs.map((input) => (
-              <div key={input.name} className="form-field">
-                <label className="field-label">
-                  {formatInputLabel(input.name)} ({input.type || 'Text'})
-                  {input.required && <span className="required-marker"> *</span>}
-                </label>
-                <Textarea
-                  value={inputValues[input.name] || ''}
-                  onChange={(_, data) => handleInputChange(input.name, data.value)}
-                  placeholder={input.placeholder || input.description}
-                  resize="vertical"
-                  rows={3}
-                />
-                <p className="field-description">{input.description}</p>
-              </div>
-            ))}
+            {currentTool && (
+              <DynamicForm
+                inputs={currentTool.inputs}
+                values={inputValues}
+                onChange={handleInputChange}
+              />
+            )}
 
             <div className="action-bar">
               <Button
@@ -357,11 +363,4 @@ export function TestingPanel({ manifestInfo }: TestingPanelProps) {
       </div>
     </div>
   );
-}
-
-function formatInputLabel(name: string): string {
-  return name
-    .replace(/([A-Z])/g, ' $1')
-    .replace(/^./, (s) => s.toUpperCase())
-    .trim();
 }

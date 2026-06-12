@@ -402,3 +402,46 @@ body {
   }
 }
 
+/* Dynamic Form */
+.dynamic-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.dynamic-form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.dynamic-form-field .field-label {
+  font-weight: 600;
+  font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.field-type-badge {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+}
+
+.field-error {
+  color: var(--color-error);
+  font-size: 0.8rem;
+  margin-top: 0.125rem;
+}
+
+.dynamic-form-empty {
+  color: var(--color-text-secondary);
+  font-style: italic;
+}
+
+.json-editor-field textarea {
+  font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+  font-size: 0.85rem;
+}
+
+
