@@ -9,6 +9,7 @@ function loadTestManifest(): void {
     name: 'test-extension',
     description: 'Extension for validation tests',
     version: '1.0.0',
+    radiologyExtensibilityApiVersion: '0.1.0',
     auth: { tenantId: '00000000-0000-0000-0000-000000000000' },
     tools: [
       {
@@ -21,14 +22,16 @@ function loadTestManifest(): void {
           {
             name: 'report',
             description: 'Radiology report',
-            'content-type': 'application/vnd.ms-dragon.dsp.rad.report+json',
+            'content-type': 'application/vnd.ms-dragon.rad.report+json',
+            schemaVersion: '0.1',
           },
         ],
         outputs: [
           {
             name: 'quality-result',
             description: 'Quality check findings',
-            'content-type': 'application/vnd.ms-dragon.dsp.rad.quality-result+json',
+            'content-type': 'application/vnd.ms-dragon.rad.quality-check-result+json',
+            schemaVersion: '0.1',
           },
         ],
       },
@@ -77,7 +80,7 @@ describe('Schema Validation Engine', () => {
 
     expect(result.valid).toBe(true);
     expect(result.toolName).toBe('chest-ct-quality');
-    expect(result.outputContentType).toBe('application/vnd.ms-dragon.dsp.rad.quality-result+json');
+    expect(result.outputContentType).toBe('application/vnd.ms-dragon.rad.quality-check-result+json');
     expect(result.checks.every((c) => c.passed)).toBe(true);
     expect(result.summary.failed).toBe(0);
     expect(result.summary.passed).toBeGreaterThan(0);
@@ -226,7 +229,7 @@ describe('Schema Validation Engine', () => {
 
   // ─── Additional properties ─────────────────────────────────────────────
 
-  it('should fail when unexpected properties are present', () => {
+  it('should allow additional top-level properties (schema is open)', () => {
     loadTestManifest();
     const payload = {
       recommendations: [
@@ -236,10 +239,7 @@ describe('Schema Validation Engine', () => {
     };
 
     const result = validateToolResponse('chest-ct-quality', payload);
-    expect(result.valid).toBe(false);
-    const extraCheck = result.checks.find((c) => c.error?.includes('totallyUnexpected'));
-    expect(extraCheck).toBeDefined();
-    expect(extraCheck!.error).toContain('Unexpected property');
+    expect(result.valid).toBe(true);
   });
 
   // ─── Null / edge cases ─────────────────────────────────────────────────

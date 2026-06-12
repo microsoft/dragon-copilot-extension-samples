@@ -1,106 +1,57 @@
-import { useEffect, useState } from 'react';
-import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
-import { ManifestUpload } from './components/ManifestUpload';
-import { CapabilityList } from './components/CapabilityList';
-import { ToolList } from './components/ToolList';
-import { ValidationResults } from './components/ValidationResults';
-import { ValidationProvider } from './ValidationContext';
-import './components/ManifestUpload.css';
-import './components/CapabilityList.css';
-import './components/ToolList.css';
-import './components/ValidationResults.css';
+import { useState, useCallback } from 'react';
+import { FluentProvider, webLightTheme } from '@fluentui/react-components';
+import { ManifestEditor } from './components/ManifestEditor';
+import { TestingPanel } from './components/TestingPanel';
 
-function HomePage() {
-  const [status, setStatus] = useState<string>('checking...');
-
-  useEffect(() => {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 5000);
-    fetch('/api/health', { signal: controller.signal })
-      .then((res) => {
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        return res.json();
-      })
-      .then((data) => setStatus(data.status))
-      .catch(() => setStatus('unavailable'))
-      .finally(() => clearTimeout(timeout));
-  }, []);
-
-  return (
-    <main className="app-main">
-      <section className="status-card">
-        <h2>Server Status</h2>
-        <p className={`status ${status === 'ok' ? 'status-ok' : 'status-error'}`}>
-          {status === 'ok' ? '● Connected' : `● ${status}`}
-        </p>
-      </section>
-      <section className="info-card">
-        <h2>Getting Started</h2>
-        <p>
-          <Link to="/upload" className="btn btn-primary">
-            Upload Manifest →
-          </Link>
-        </p>
-      </section>
-    </main>
-  );
-}
-
-function UploadPage() {
-  return (
-    <main className="app-main app-main-single">
-      <ManifestUpload />
-    </main>
-  );
-}
-
-function CapabilitiesPage() {
-  return (
-    <main className="app-main app-main-single">
-      <CapabilityList />
-    </main>
-  );
-}
-
-function ToolsPage() {
-  return (
-    <main className="app-main app-main-single">
-      <ToolList />
-    </main>
-  );
-}
-
-function ValidationResultsPage() {
-  return (
-    <main className="app-main app-main-single">
-      <ValidationResults />
-    </main>
-  );
+interface ManifestInfo {
+  name: string;
+  version: string;
+  toolCount: number;
+  capabilities: string[];
 }
 
 function App() {
+  const [manifestInfo, setManifestInfo] = useState<ManifestInfo | null>(null);
+
+  const handleManifestLoaded = useCallback((info: ManifestInfo) => {
+    setManifestInfo(info);
+  }, []);
+
+  const handleReset = useCallback(() => {
+    setManifestInfo(null);
+  }, []);
+
   return (
-    <BrowserRouter>
-      <ValidationProvider>
-        <div className="app">
-          <header className="app-header">
-            <Link to="/" style={{ color: 'inherit', textDecoration: 'none' }}>
-              <h1>Dragon Copilot Extensions Sandbox</h1>
-            </Link>
-            <p className="subtitle">
-              Test and validate your extensions locally before deployment
-            </p>
-          </header>
-          <Routes>
-            <Route path="/" element={<HomePage />} />
-            <Route path="/upload" element={<UploadPage />} />
-            <Route path="/capabilities" element={<CapabilitiesPage />} />
-            <Route path="/capabilities/:capabilityName/tools" element={<ToolsPage />} />
-            <Route path="/capabilities/:capabilityName/tools/:toolName/execute" element={<ValidationResultsPage />} />
-          </Routes>
-        </div>
-      </ValidationProvider>
-    </BrowserRouter>
+    <FluentProvider theme={webLightTheme}>
+      <div className="app">
+        <header className="app-header">
+          <div className="header-content">
+            <div className="header-logo">
+              <svg width="28" height="28" viewBox="0 0 28 28" fill="none" aria-hidden="true">
+                <circle cx="14" cy="14" r="14" fill="white" fillOpacity="0.15"/>
+                <path d="M14 4C8.48 4 4 8.48 4 14s4.48 10 10 10 10-4.48 10-10S19.52 4 14 4zm-1 15l-5-5 1.41-1.41L13 16.17l6.59-6.59L21 11l-8 8z" fill="white"/>
+              </svg>
+            </div>
+            <div className="header-text">
+              <h1>Dragon Copilot Radiology Extensions Sandbox</h1>
+              <p className="subtitle">Test and validate your extensions before deployment</p>
+            </div>
+          </div>
+        </header>
+
+        <main className="app-main">
+          <div className="panel-left">
+            <ManifestEditor
+              onManifestLoaded={handleManifestLoaded}
+              onReset={handleReset}
+            />
+          </div>
+          <div className="panel-right">
+            <TestingPanel manifestInfo={manifestInfo} />
+          </div>
+        </main>
+      </div>
+    </FluentProvider>
   );
 }
 

@@ -16,14 +16,16 @@ const baseTool = {
     {
       name: 'report',
       description: 'Report',
-      'content-type': 'application/vnd.ms-dragon.dsp.rad.report+json' as const,
+      'content-type': 'application/vnd.ms-dragon.rad.report+json' as const,
+      schemaVersion: '0.1',
     },
   ],
   outputs: [
     {
       name: 'result',
       description: 'Result',
-      'content-type': 'application/vnd.ms-dragon.dsp.rad.quality-result+json' as const,
+      'content-type': 'application/vnd.ms-dragon.rad.quality-check-result+json' as const,
+      schemaVersion: '0.1',
     },
   ],
 };
@@ -34,7 +36,7 @@ describe('Capabilities Parser', () => {
   });
 
   it('should group tools by capability and return correct tool counts', () => {
-    const manifest: ExtensionManifest = {
+    const manifest = {
       name: 'test-extension',
       description: 'Test',
       version: '0.0.1',
@@ -44,7 +46,7 @@ describe('Capabilities Parser', () => {
         { ...baseTool, name: 'tool-2', capability: 'qualityCheck', description: 'Clinical quality' },
         { ...baseTool, name: 'tool-3', capability: 'qualityCheck', description: 'Billing quality' },
       ],
-    };
+    } as unknown as ExtensionManifest;
 
     const capabilities = parseCapabilities(manifest);
 
@@ -60,6 +62,7 @@ describe('Capabilities Parser', () => {
       name: 'empty-extension',
       description: 'No tools',
       version: '0.0.1',
+      radiologyExtensibilityApiVersion: '0.1.0',
       auth: { tenantId: '00000000-0000-0000-0000-000000000000' },
       tools: [],
     };
@@ -69,7 +72,7 @@ describe('Capabilities Parser', () => {
   });
 
   it('should handle a single tool with one capability', () => {
-    const manifest: ExtensionManifest = {
+    const manifest = {
       name: 'single-tool',
       description: 'One tool only',
       version: '1.0.0',
@@ -77,7 +80,7 @@ describe('Capabilities Parser', () => {
       tools: [
         { ...baseTool, name: 'only-tool', capability: 'reportGeneration', description: 'The only tool' },
       ],
-    };
+    } as unknown as ExtensionManifest;
 
     const capabilities = parseCapabilities(manifest);
 
@@ -94,6 +97,7 @@ describe('Capabilities Parser', () => {
       name: 'session-test',
       description: 'Session test',
       version: '0.0.1',
+      radiologyExtensibilityApiVersion: '0.1.0',
       auth: { tenantId: '00000000-0000-0000-0000-000000000000' },
       tools: [
         { ...baseTool, name: 'tool-a', capability: 'qualityCheck', description: 'Quality A' },

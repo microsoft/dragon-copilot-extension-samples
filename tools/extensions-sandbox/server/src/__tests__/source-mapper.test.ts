@@ -16,11 +16,11 @@ tools:
     inputs:
       - name: report
         description: Report input
-        content-type: application/vnd.ms-dragon.dsp.rad.report+json
+        content-type: application/vnd.ms-dragon.rad.report+json
     outputs:
       - name: result
         description: Result output
-        content-type: application/vnd.ms-dragon.dsp.rad.quality-result+json
+        content-type: application/vnd.ms-dragon.rad.quality-check-result+json
 `;
 
   const jsonSource = `{
@@ -41,14 +41,14 @@ tools:
         {
           "name": "report",
           "description": "Report input",
-          "content-type": "application/vnd.ms-dragon.dsp.rad.report+json"
+          "content-type": "application/vnd.ms-dragon.rad.report+json"
         }
       ],
       "outputs": [
         {
           "name": "result",
           "description": "Result output",
-          "content-type": "application/vnd.ms-dragon.dsp.rad.quality-result+json"
+          "content-type": "application/vnd.ms-dragon.rad.quality-check-result+json"
         }
       ]
     }

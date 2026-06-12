@@ -14,20 +14,22 @@ const baseTool = {
     {
       name: 'report',
       description: 'The report to check',
-      'content-type': 'application/vnd.ms-dragon.dsp.rad.report+json' as const,
+      'content-type': 'application/vnd.ms-dragon.rad.report+json' as const,
       required: true,
+      schemaVersion: '0.1',
     },
   ],
   outputs: [
     {
       name: 'result',
       description: 'Result',
-      'content-type': 'application/vnd.ms-dragon.dsp.rad.quality-result+json' as const,
+      'content-type': 'application/vnd.ms-dragon.rad.quality-check-result+json' as const,
+      schemaVersion: '0.1',
     },
   ],
 };
 
-const sampleManifest: ExtensionManifest = {
+const sampleManifest = {
   name: 'test-extension',
   description: 'Test',
   version: '0.0.1',
@@ -43,7 +45,7 @@ const sampleManifest: ExtensionManifest = {
       endpoint: 'https://api.example.com/v1/billing',
     },
   ],
-};
+} as unknown as ExtensionManifest;
 
 describe('Tool Metadata - getToolsForCapability', () => {
   it('should return tools for a valid capability', () => {
@@ -69,7 +71,7 @@ describe('Tool Metadata - getToolsForCapability', () => {
     expect(tool.inputs[0]).toEqual({
       name: 'report',
       description: 'The report to check',
-      contentType: 'application/vnd.ms-dragon.dsp.rad.report+json',
+      contentType: 'application/vnd.ms-dragon.rad.report+json',
       required: true,
     });
   });
@@ -78,12 +80,12 @@ describe('Tool Metadata - getToolsForCapability', () => {
     const tools = getToolsForCapability(sampleManifest, 'reportGeneration');
 
     expect(tools![0].outputs).toEqual([
-      { name: 'result', contentType: 'application/vnd.ms-dragon.dsp.rad.quality-result+json' },
+      { name: 'result', contentType: 'application/vnd.ms-dragon.rad.quality-check-result+json' },
     ]);
   });
 
   it('should default required to false when not specified', () => {
-    const manifest: ExtensionManifest = {
+    const manifest = {
       name: 'test',
       description: 'Test',
       version: '0.0.1',
@@ -99,16 +101,17 @@ describe('Tool Metadata - getToolsForCapability', () => {
             {
               name: 'data',
               description: 'Optional data',
-              'content-type': 'application/vnd.ms-dragon.dsp.rad.report+json',
+              'content-type': 'application/vnd.ms-dragon.rad.report+json',
+              schemaVersion: '0.1',
               // required not specified
             },
           ],
           outputs: [
-            { name: 'out', description: 'Output', 'content-type': 'application/vnd.ms-dragon.dsp.rad.quality-result+json' },
+            { name: 'out', description: 'Output', 'content-type': 'application/vnd.ms-dragon.rad.quality-check-result+json', schemaVersion: '0.1' },
           ],
         },
       ],
-    };
+    } as unknown as ExtensionManifest;
 
     const tools = getToolsForCapability(manifest, 'reportGeneration');
     expect(tools![0].inputs[0].required).toBe(false);
@@ -121,6 +124,7 @@ describe('Tool Metadata - getToolsForCapability', () => {
       name: 'empty',
       description: 'Empty',
       version: '0.0.1',
+      radiologyExtensibilityApiVersion: '0.1.0',
       auth: { tenantId: '00000000-0000-0000-0000-000000000000' },
       tools: [
         { ...baseTool, name: 'only-tool', capability: 'qualityCheck', description: 'Only tool' },
@@ -132,7 +136,7 @@ describe('Tool Metadata - getToolsForCapability', () => {
 
     // Requesting a different valid capability that has tools but filtering yields none is not possible
     // since capabilities are derived from tools — test the null path instead
-    const missing = getToolsForCapability(manifest, 'reportGeneration');
+    const missing = getToolsForCapability(manifest, 'nonExistent');
     expect(missing).toBeNull();
   });
 

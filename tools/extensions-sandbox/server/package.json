@@ -4,10 +4,11 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
+    "generate-schemas": "tsx scripts/generate-output-schemas.ts",
     "dev": "tsx watch src/index.ts",
-    "build": "tsc -p tsconfig.json && cpy src/schemas/*.json dist/schemas/ && cpy src/schemas/output-schemas/*.json dist/schemas/output-schemas/",
+    "build": "npm run generate-schemas && tsc -p tsconfig.json && cpy src/schemas/generated-schemas/*.json dist/schemas/generated-schemas/",
     "start": "node dist/index.js",
-    "test": "vitest run",
+    "test": "npm run generate-schemas && vitest run",
     "clean": "rimraf dist"
   },
   "dependencies": {

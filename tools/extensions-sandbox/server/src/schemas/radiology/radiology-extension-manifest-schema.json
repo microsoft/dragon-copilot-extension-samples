@@ -1,21 +1,21 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "Schema for all Extension manifests for Dragon Copilot for Radiology",
-  "version": "0.0.1",
   "type": "object",
   "required": [
     "name",
     "description",
     "version",
+    "radiologyExtensibilityApiVersion",
     "auth",
     "tools"
   ],
   "properties": {
     "name": {
       "type": "string",
-      "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$",
+      "pattern": "^[a-z][a-zA-Z0-9]*$",
       "minLength": 1,
-      "description": "Extension name (lowercase kebab-case: letters, numbers, and hyphens only)"
+      "description": "Extension name (camelCase: must start with a lowercase letter, followed by letters and numbers)"
     },
     "description": {
       "type": "string",
@@ -25,7 +25,12 @@
     "version": {
       "type": "string",
       "pattern": "^\\d+\\.\\d+\\.\\d+$",
-      "description": "Version in x.y.z format"
+      "description": "Partner's own version for this extension, in x.y.z format"
+    },
+    "radiologyExtensibilityApiVersion": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$",
+      "description": "Version of the Radiology Extensibility API (radiology-extensibility-api.yaml info.version) this manifest was authored against, in x.y.z format"
     },
     "auth": {
       "$ref": "#/definitions/AuthConfig",
@@ -70,25 +75,21 @@
       "properties": {
         "name": {
           "type": "string",
-          "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$",
+          "pattern": "^[a-z][a-zA-Z0-9]*$",
           "minLength": 1,
-          "description": "Tool name (lowercase kebab-case: letters, numbers, and hyphens only)"
+          "description": "Tool name (camelCase: must start with a lowercase letter, followed by letters and numbers)"
         },
         "toolType": {
           "type": "string",
           "enum": [
-            "contractBased",
-            "uiBased",
-            "mcpBased",
-            "agentBased"
+            "contractBased"
           ],
           "default": "contractBased",
-          "description": "The integration pattern for this tool. contractBased: platform calls a partner API with typed payloads (current model). Other types are reserved for future use."
+          "description": "The integration pattern for this tool. contractBased: platform calls a partner API with typed payloads."
         },
         "capability": {
           "type": "string",
           "enum": [
-            "reportGeneration",
             "qualityCheck"
           ],
           "description": "The capability / function this tool provides"
@@ -135,7 +136,8 @@
       "required": [
         "name",
         "description",
-        "content-type"
+        "content-type",
+        "schemaVersion"
       ],
       "properties": {
         "name": {
@@ -153,12 +155,11 @@
           "default": true,
           "description": "Whether this input is required. Defaults to true if omitted."
         },
-        "config": {
-          "$ref": "#/definitions/DragonInputConfig",
-          "description": "Input-level configuration"
-        },
         "content-type": {
           "$ref": "#/definitions/InputContentType"
+        },
+        "schemaVersion": {
+          "$ref": "#/definitions/PayloadSchemaVersion"
         }
       },
       "additionalProperties": false
@@ -168,7 +169,8 @@
       "required": [
         "name",
         "description",
-        "content-type"
+        "content-type",
+        "schemaVersion"
       ],
       "properties": {
         "name": {
@@ -183,6 +185,9 @@
         },
         "content-type": {
           "$ref": "#/definitions/OutputContentType"
+        },
+        "schemaVersion": {
+          "$ref": "#/definitions/PayloadSchemaVersion"
         }
       },
       "additionalProperties": false
@@ -190,50 +195,22 @@
     "InputContentType": {
       "type": "string",
       "enum": [
-        "application/vnd.ms-dragon.dsp.rad.report+json",
-        "application/vnd.ms-dragon.dsp.rad.patient-info+json"
+        "application/vnd.ms-dragon.rad.report+json",
+        "application/vnd.ms-dragon.rad.patient-information+json"
       ],
-      "description": "Content type identifier for tool inputs (IANA MIME type)",
-      "$comment": "Content-type values reference payload schemas defined in dcr-dragon-extensibility-api.yaml. dsp.rad.report+json represents a radiology report payload. dsp.rad.dictation+json represents raw dictated text from speech-to-text. dsp.rad.patient-info+json represents patient demographic information."
+      "description": "Media type for a tool input. The '+json' subtype is the kebab-case form of the payload's schema object name in radiology-extensibility-api.yaml (e.g. 'application/vnd.ms-dragon.rad.report+json' maps to the Report schema)."
     },
     "OutputContentType": {
       "type": "string",
       "enum": [
-        "application/vnd.ms-dragon.dsp.rad.quality-result+json"
+        "application/vnd.ms-dragon.rad.quality-check-result+json"
       ],
-      "description": "Content type identifier for tool outputs (IANA MIME type)",
-      "$comment": "dsp.rad.report+json represents a radiology report payload. dsp.rad.quality-result+json represents quality check findings and score."
+      "description": "Media type for a tool output. The '+json' subtype is the kebab-case form of the payload's schema object name in radiology-extensibility-api.yaml (e.g. 'application/vnd.ms-dragon.rad.quality-check-result+json' maps to the QualityCheckResult schema)."
     },
-    "DragonInputConfig": {
-      "$comment": "Currently specific to dsp.rad.report inputs (e.g., patientPriors, physicianPriors). May be extended or split via if/then as new input types require their own config.",
-      "type": "object",
-      "properties": {
-        "minNumberOfPriors": {
-          "type": "integer",
-          "minimum": 0,
-          "description": "Minimum number of prior reports to include for meaningful results"
-        },
-        "maxNumberOfPriors": {
-          "type": "integer",
-          "minimum": 1,
-          "description": "Maximum number of prior reports to include"
-        },
-        "relevantBodyParts": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/BodyPart"
-          },
-          "description": "Body parts relevant to this input"
-        },
-        "relevantModalities": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/DicomModality"
-          },
-          "description": "Imaging modalities relevant to this input"
-        }
-      },
-      "additionalProperties": false
+    "PayloadSchemaVersion": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+$",
+      "description": "Version of the payload schema, in major.minor format (e.g. \"0.1\"), that the extension accepts for this input or produces for this output. Declared at manifest upload time so the platform knows which version of each payload to exchange with the extension."
     },
     "RelevanceFilteringCriteria": {
       "$comment": "Tool-level gate: only consider invoking this tool if the current context (e.g., the study being reported on) matches these criteria. If omitted, the tool is always considered.",

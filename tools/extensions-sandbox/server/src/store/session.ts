@@ -12,16 +12,26 @@ import type { ValidationResult } from '../services/validation.js';
  */
 class SessionStore {
   private manifest: ExtensionManifest | null = null;
+  private rawManifestText: string | null = null;
   private validationResults: ValidationResult[] = [];
 
-  setManifest(manifest: ExtensionManifest): void {
+  setManifest(manifest: ExtensionManifest, rawText?: string): void {
     this.manifest = manifest;
+    this.rawManifestText = rawText ?? null;
     // Clear stale validation results when a new manifest is loaded
     this.validationResults = [];
   }
 
   getManifest(): ExtensionManifest | null {
     return this.manifest;
+  }
+
+  getRawManifestText(): string | null {
+    return this.rawManifestText;
+  }
+
+  setRawManifestText(text: string): void {
+    this.rawManifestText = text;
   }
 
   addValidationResult(result: ValidationResult): void {
@@ -38,6 +48,7 @@ class SessionStore {
 
   clear(): void {
     this.manifest = null;
+    this.rawManifestText = null;
     this.validationResults = [];
   }
 }

@@ -11,18 +11,11 @@ export type BodyPart =
   | 'WHOLEBODY';
 
 export type InputContentType =
-  | 'application/vnd.ms-dragon.dsp.rad.report+json'
-  | 'application/vnd.ms-dragon.dsp.rad.patient-info+json';
+  | 'application/vnd.ms-dragon.rad.report+json'
+  | 'application/vnd.ms-dragon.rad.patient-information+json';
 
 export type OutputContentType =
-  | 'application/vnd.ms-dragon.dsp.rad.quality-result+json';
-
-export interface DragonInputConfig {
-  minNumberOfPriors?: number;
-  maxNumberOfPriors?: number;
-  relevantBodyParts?: BodyPart[];
-  relevantModalities?: DicomModality[];
-}
+  | 'application/vnd.ms-dragon.rad.quality-check-result+json';
 
 export interface RelevanceFilteringCriteria {
   relevantBodyParts?: BodyPart[];
@@ -34,19 +27,20 @@ export interface ManifestInput {
   description: string;
   'content-type': InputContentType;
   required?: boolean;
-  config?: DragonInputConfig;
+  schemaVersion: string;
 }
 
 export interface ManifestOutput {
   name: string;
   description: string;
   'content-type': OutputContentType;
+  schemaVersion: string;
 }
 
 export interface ManifestTool {
   name: string;
-  toolType: 'contractBased' | 'uiBased' | 'mcpBased' | 'agentBased';
-  capability: 'reportGeneration' | 'qualityCheck';
+  toolType: 'contractBased';
+  capability: 'qualityCheck';
   description: string;
   endpoint: string;
   inputs: ManifestInput[];
@@ -63,6 +57,7 @@ export interface ExtensionManifest {
   name: string;
   description: string;
   version: string;
+  radiologyExtensibilityApiVersion: string;
   auth: ManifestAuth;
   tools: ManifestTool[];
 }

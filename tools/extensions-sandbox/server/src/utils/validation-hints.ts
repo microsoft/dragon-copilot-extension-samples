@@ -102,8 +102,8 @@ function getRequiredPropertyHint(path: string, missing: string, schemaPath: stri
   if (schemaPath.includes('DragonTool') || path.match(/\/tools\/\d+$/)) {
     const toolHints: Record<string, string> = {
       name: `Add a 'name' field using lowercase kebab-case (e.g., "chest-ct-quality").`,
-      toolType: `Add a 'toolType' field. Allowed values: "contractBased", "uiBased", "mcpBased", "agentBased". Use "contractBased" for standard REST API integrations.`,
-      capability: `Add a 'capability' field. Allowed values: "reportGeneration", "qualityCheck".`,
+      toolType: `Add a 'toolType' field. Allowed value: "contractBased". Use "contractBased" for standard REST API integrations.`,
+      capability: `Add a 'capability' field. Allowed value: "qualityCheck".`,
       description: `Add a 'description' field explaining what this tool does.`,
       endpoint: `Add an 'endpoint' field with the full HTTPS URL of your extension's /v1/process endpoint (e.g., "https://api.example.com/v1/process").`,
       inputs: `Add an 'inputs' array with at least one input definition. Each input needs 'name', 'description', and 'content-type'.`,
@@ -120,7 +120,7 @@ function getRequiredPropertyHint(path: string, missing: string, schemaPath: stri
     const inputHints: Record<string, string> = {
       name: `Add a 'name' field to identify this input (e.g., "report").`,
       description: `Add a 'description' field explaining what data this input expects.`,
-      'content-type': `Add a 'content-type' field. Allowed values: "application/vnd.ms-dragon.dsp.rad.report+json", "application/vnd.ms-dragon.dsp.rad.patient-info+json".`,
+      'content-type': `Add a 'content-type' field. Allowed values: "application/vnd.ms-dragon.rad.report+json", "application/vnd.ms-dragon.rad.patient-information+json".`,
     };
     return {
       detail: `Missing required property '${missing}' in input definition at '${location}'.`,
@@ -133,7 +133,7 @@ function getRequiredPropertyHint(path: string, missing: string, schemaPath: stri
     const outputHints: Record<string, string> = {
       name: `Add a 'name' field to identify this output (e.g., "quality-result").`,
       description: `Add a 'description' field explaining what this output produces.`,
-      'content-type': `Add a 'content-type' field. Allowed value: "application/vnd.ms-dragon.dsp.rad.quality-result+json".`,
+      'content-type': `Add a 'content-type' field. Allowed value: "application/vnd.ms-dragon.rad.quality-check-result+json".`,
     };
     return {
       detail: `Missing required property '${missing}' in output definition at '${location}'.`,
@@ -156,6 +156,7 @@ function getRequiredPropertyHint(path: string, missing: string, schemaPath: stri
     name: `Add a 'name' field at the root level using lowercase kebab-case (e.g., "my-extension").`,
     description: `Add a 'description' field at the root level explaining what your extension does.`,
     version: `Add a 'version' field in semver format (e.g., "1.0.0").`,
+    radiologyExtensibilityApiVersion: `Add a 'radiologyExtensibilityApiVersion' field with the API version in x.y.z format (e.g., "0.1.0").`,
     auth: `Add an 'auth' object with a 'tenantId' property containing your Azure Entra ID tenant GUID.`,
     tools: `Add a 'tools' array with at least one tool definition.`,
   };
@@ -171,13 +172,13 @@ function getEnumHint(path: string, allowed: string[], schemaPath: string): { det
     if (schemaPath.includes('Input') || path.includes('/inputs/')) {
       return {
         detail: `Invalid input content-type at '${path}'.`,
-        hint: `Use one of the supported input content types:\n  • "application/vnd.ms-dragon.dsp.rad.report+json" (radiology report)\n  • "application/vnd.ms-dragon.dsp.rad.patient-info+json" (patient demographics)`,
+        hint: `Use one of the supported input content types:\n  • "application/vnd.ms-dragon.rad.report+json" (radiology report)\n  • "application/vnd.ms-dragon.rad.patient-information+json" (patient demographics)`,
       };
     }
     if (schemaPath.includes('Output') || path.includes('/outputs/')) {
       return {
         detail: `Invalid output content-type at '${path}'.`,
-        hint: `Use one of the supported output content types:\n  • "application/vnd.ms-dragon.dsp.rad.quality-result+json" (quality check findings)`,
+        hint: `Use one of the supported output content types:\n  • "application/vnd.ms-dragon.rad.quality-check-result+json" (quality check findings)`,
       };
     }
   }
@@ -185,14 +186,14 @@ function getEnumHint(path: string, allowed: string[], schemaPath: string): { det
   if (path.endsWith('/toolType')) {
     return {
       detail: `Invalid tool type at '${path}'.`,
-      hint: `Use one of: "contractBased" (REST API), "uiBased", "mcpBased", or "agentBased". Most extensions use "contractBased".`,
+      hint: `Use "contractBased" (REST API). This is the only supported tool type.`,
     };
   }
 
   if (path.endsWith('/capability')) {
     return {
       detail: `Invalid capability at '${path}'.`,
-      hint: `Use one of: "reportGeneration" (for generating/modifying reports) or "qualityCheck" (for validating report quality).`,
+      hint: `Use "qualityCheck" (for validating report quality). This is the only supported capability.`,
     };
   }
 
@@ -211,6 +212,13 @@ function getPatternHint(path: string, pattern: string, _schemaPath: string): { d
     return {
       detail: `The value at '${path}' does not match the required kebab-case format.`,
       hint: `Use lowercase letters, numbers, and hyphens only (e.g., "my-extension-name"). Must start and end with a letter or number. No spaces, uppercase, or special characters.`,
+    };
+  }
+
+  if (pattern.includes('[a-zA-Z0-9]') && pattern.startsWith('^[a-z]')) {
+    return {
+      detail: `The value at '${path}' does not match the required camelCase format.`,
+      hint: `Use camelCase: start with a lowercase letter, followed by letters and numbers (e.g., "myExtensionName"). No spaces, hyphens, or special characters.`,
     };
   }
 

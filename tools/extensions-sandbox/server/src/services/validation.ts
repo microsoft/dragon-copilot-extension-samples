@@ -31,10 +31,10 @@ export interface ValidationResult {
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
-const OUTPUT_SCHEMAS_DIR = join(__dirname, '..', 'schemas', 'output-schemas');
+const OUTPUT_SCHEMAS_DIR = join(__dirname, '..', 'schemas', 'generated-schemas');
 
 const CONTENT_TYPE_SCHEMA_MAP: Record<string, string> = {
-  'application/vnd.ms-dragon.dsp.rad.quality-result+json': 'quality-check-result.json',
+  'application/vnd.ms-dragon.rad.quality-check-result+json': 'quality-check-result.json',
 };
 
 // ---------------------------------------------------------------------------
@@ -58,7 +58,7 @@ function getValidator(schemaFile: string): ValidateFunction {
   } catch {
     throw new Error(
       `Schema file '${schemaFile}' not found at ${schemaPath}. ` +
-      `Ensure the build step copied output-schemas to dist/.`,
+      `Ensure the build step copied generated-schemas to dist/.`,
     );
   }
 
@@ -69,7 +69,7 @@ function getValidator(schemaFile: string): ValidateFunction {
     throw new Error(`Schema file '${schemaFile}' contains invalid JSON.`);
   }
 
-  const compiled = ajv.compile(schema);
+  const compiled = ajv.compile(schema as object);
   validatorCache.set(schemaFile, compiled);
   return compiled;
 }

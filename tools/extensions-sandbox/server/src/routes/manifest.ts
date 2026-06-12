@@ -65,6 +65,7 @@ manifestRouter.post('/upload', upload.single('manifest'), (req, res) => {
       valid: false,
       errors: [{ path: null, message: `Failed to parse file: ${message}`, severity: 'error' }],
       message: 'File could not be parsed as JSON or YAML.',
+      rawContent: fileContent,
     });
     return;
   }
@@ -75,6 +76,7 @@ manifestRouter.post('/upload', upload.single('manifest'), (req, res) => {
       valid: false,
       errors: [{ path: null, message: 'Manifest must be a YAML/JSON object.', severity: 'error' }],
       message: 'File content is not a valid manifest object.',
+      rawContent: fileContent,
     });
     return;
   }
@@ -110,16 +112,104 @@ manifestRouter.post('/upload', upload.single('manifest'), (req, res) => {
       valid: false,
       errors,
       message: `Manifest validation failed with ${errors.length} error(s).`,
+      rawContent: fileContent,
     });
     return;
   }
 
   const manifest = parsed as ExtensionManifest;
-  sessionStore.setManifest(manifest);
+  sessionStore.setManifest(manifest, fileContent);
 
   // Extract capabilities
   const capabilities = [...new Set(manifest.tools.map((t) => t.capability))];
 
+  res.json({
+    valid: true,
+    manifest: {
+      name: manifest.name,
+      version: manifest.version,
+      toolCount: manifest.tools.length,
+      capabilities,
+    },
+    message: `Manifest is valid. ${manifest.tools.length} tool(s) found across ${capabilities.length} capability(ies).`,
+  });
+});
+
+/**
+ * POST /api/manifest/validate
+ * Accepts raw manifest text (JSON or YAML) in the request body and validates it.
+ */
+manifestRouter.post('/validate', (req, res) => {
+  const { content } = req.body as { content: string };
+
+  if (!content || typeof content !== 'string') {
+    res.status(400).json({
+      valid: false,
+      errors: [{ path: null, message: 'No content provided.', severity: 'error' }],
+      message: 'Request body must include a "content" string.',
+    });
+    return;
+  }
+
+  // Try parsing as JSON first, then YAML
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(content);
+  } catch {
+    try {
+      parsed = yaml.load(content);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Unknown parse error';
+      res.status(400).json({
+        valid: false,
+        errors: [{ path: null, message: `Failed to parse: ${message}`, severity: 'error' }],
+        message: 'Content could not be parsed as JSON or YAML.',
+      });
+      return;
+    }
+  }
+
+  if (parsed === null || parsed === undefined || typeof parsed !== 'object' || Array.isArray(parsed)) {
+    res.status(400).json({
+      valid: false,
+      errors: [{ path: null, message: 'Manifest must be a YAML/JSON object.', severity: 'error' }],
+      message: 'Content is not a valid manifest object.',
+    });
+    return;
+  }
+
+  const isValid = validate(parsed);
+
+  if (!isValid) {
+    const rawErrors = validate.errors ?? [];
+    const targetPaths = rawErrors.map((err) => {
+      const base = err.instancePath || '/';
+      const params = err.params as Record<string, unknown>;
+      if (err.keyword === 'required' && params.missingProperty) {
+        const sep = base === '/' ? '' : '/';
+        return `${base}${sep}${params.missingProperty}`;
+      }
+      if (err.keyword === 'additionalProperties' && params.additionalProperty) {
+        const sep = base === '/' ? '' : '/';
+        return `${base}${sep}${params.additionalProperty}`;
+      }
+      return base;
+    });
+    const lineMap = mapPathsToLines(content, targetPaths);
+    const errors = buildDetailedErrors(rawErrors, lineMap, targetPaths);
+
+    res.status(422).json({
+      valid: false,
+      errors,
+      message: `Manifest validation failed with ${errors.length} error(s).`,
+    });
+    return;
+  }
+
+  const manifest = parsed as ExtensionManifest;
+  sessionStore.setManifest(manifest, content);
+
+  const capabilities = [...new Set(manifest.tools.map((t) => t.capability))];
   res.json({
     valid: true,
     manifest: {
@@ -196,6 +286,94 @@ manifestRouter.get('/capabilities/:capabilityName/tools', (req, res) => {
 manifestRouter.delete('/', (_req, res) => {
   sessionStore.clear();
   res.json({ message: 'Manifest cleared.' });
+});
+
+/**
+ * GET /api/manifest/raw
+ * Returns the raw manifest text (YAML/JSON) as uploaded.
+ */
+manifestRouter.get('/raw', (_req, res) => {
+  const raw = sessionStore.getRawManifestText();
+  if (!raw) {
+    res.status(404).json({ error: 'No manifest loaded.' });
+    return;
+  }
+  res.json({ content: raw });
+});
+
+/**
+ * POST /api/manifest/execute
+ * Executes a tool by proxying the request to the tool's endpoint.
+ */
+manifestRouter.post('/execute', async (req, res) => {
+  const manifest = sessionStore.getManifest();
+  if (!manifest) {
+    res.status(404).json({ error: 'No manifest loaded.' });
+    return;
+  }
+
+  const { capability, tool: toolName, inputs } = req.body as {
+    capability: string;
+    tool: string;
+    inputs: Record<string, string>;
+  };
+
+  if (!capability || !toolName) {
+    res.status(400).json({ error: 'capability and tool are required.' });
+    return;
+  }
+
+  const tool = manifest.tools.find(
+    (t) => t.capability === capability && t.name === toolName
+  );
+
+  if (!tool) {
+    res.status(404).json({ error: `Tool '${toolName}' not found in capability '${capability}'.` });
+    return;
+  }
+
+  // Build the payload based on tool inputs
+  const payload: Record<string, unknown> = {};
+  for (const input of tool.inputs) {
+    if (inputs[input.name] !== undefined) {
+      payload[input.name] = inputs[input.name];
+    }
+  }
+
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 30000);
+
+    const response = await fetch(tool.endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+      signal: controller.signal,
+    });
+
+    clearTimeout(timeout);
+
+    const contentType = response.headers.get('content-type') || '';
+    let responseBody: unknown;
+    if (contentType.includes('application/json')) {
+      responseBody = await response.json();
+    } else {
+      responseBody = await response.text();
+    }
+
+    res.json({
+      status: response.status,
+      statusText: response.statusText,
+      headers: Object.fromEntries(response.headers.entries()),
+      body: responseBody,
+    });
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : 'Unknown error';
+    res.status(502).json({
+      error: `Failed to reach tool endpoint: ${message}`,
+      endpoint: tool.endpoint,
+    });
+  }
 });
 
 /**

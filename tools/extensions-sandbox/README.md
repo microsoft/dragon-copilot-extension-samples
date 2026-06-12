@@ -51,12 +51,41 @@ extensions-sandbox/
 │   ├── vite.config.ts    # Vite configuration with API proxy
 │   └── tsconfig.json     # TypeScript configuration
 └── server/               # Express backend
+    ├── scripts/
+    │   └── generate-output-schemas.ts  # Generates JSON Schemas from OpenAPI spec
     ├── src/
     │   ├── index.ts      # Server entry point
-    │   └── routes/
-    │       └── health.ts # Health check endpoint
+    │   ├── schemas/
+    │   │   ├── radiology/              # Source-of-truth schemas (see note below)
+    │   │   │   ├── radiology-extension-manifest-schema.json
+    │   │   │   └── radiology-extensibility-api.yaml
+    │   │   ├── generated-schemas/      # Auto-generated (do not edit by hand)
+    │   │   │   └── quality-check-result.json
+    │   │   └── manifest.schema.ts      # TypeScript types for manifests
+    │   ├── routes/
+    │   │   └── manifest.ts
+    │   ├── services/
+    │   │   └── validation.ts
+    │   ├── utils/
+    │   │   └── schema-path.ts          # Central path resolution for schemas
+    │   └── __tests__/
+    │       └── fixtures/               # Test resource files
     └── tsconfig.json     # TypeScript configuration
 ```
+
+### Generated Schemas
+
+The `server/src/schemas/generated-schemas/` folder contains JSON Schema files that are **auto-generated** from the OpenAPI specification (`radiology-extensibility-api.yaml`). These files should not be edited by hand — they are regenerated on every build and test run via:
+
+```bash
+npm run generate-schemas
+```
+
+The generation script (`scripts/generate-output-schemas.ts`) extracts schema definitions (e.g., `QualityCheckResult`, `Recommendation`, `Provenance`) from the OpenAPI YAML and produces standalone JSON Schema files used for response validation.
+
+> **Note:** The radiology schemas in `src/schemas/radiology/` are temporarily copied from
+> `diag-radex-extension-service` and will be replaced with internal package references once
+> those are in sync with the service's authoritative versions.
 
 ## API Endpoints
 

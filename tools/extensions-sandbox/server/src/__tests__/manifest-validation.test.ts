@@ -3,53 +3,21 @@ import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import Ajv from 'ajv';
 import addFormats from 'ajv-formats';
+import { MANIFEST_SCHEMA_PATH } from '../utils/schema-path.js';
 
-const schemaPath = resolve(__dirname, '..', 'schemas', 'extension-manifest.json');
-const manifestJsonSchema = JSON.parse(readFileSync(schemaPath, 'utf-8'));
+const manifestJsonSchema = JSON.parse(readFileSync(MANIFEST_SCHEMA_PATH, 'utf-8'));
 
 const ajv = new Ajv({ allErrors: true, verbose: true, strict: false });
 addFormats(ajv);
 const validate = ajv.compile(manifestJsonSchema);
 
+const fixturesDir = resolve(__dirname, 'fixtures');
+const validManifestSimple = JSON.parse(readFileSync(resolve(fixturesDir, 'valid-manifest-simple.json'), 'utf-8'));
+const validManifestFullFeatured = JSON.parse(readFileSync(resolve(fixturesDir, 'valid-manifest-full-featured.json'), 'utf-8'));
+
 describe('Manifest Schema Validation', () => {
   it('should validate a conforming radiology extension manifest as valid', () => {
-    const manifest = {
-      name: 'sample-quality-check',
-      description: 'Sample radiology quality check extension',
-      version: '0.0.1',
-      auth: {
-        tenantId: '00000000-0000-0000-0000-000000000000',
-      },
-      tools: [
-        {
-          name: 'chest-ct-quality',
-          toolType: 'contractBased',
-          capability: 'qualityCheck',
-          description: 'Quality check for chest CT reports',
-          endpoint: 'https://api.example.com/v1/process',
-          inputs: [
-            {
-              name: 'report',
-              description: 'Radiology report',
-              'content-type': 'application/vnd.ms-dragon.dsp.rad.report+json',
-            },
-          ],
-          outputs: [
-            {
-              name: 'quality-result',
-              description: 'Quality check findings',
-              'content-type': 'application/vnd.ms-dragon.dsp.rad.quality-result+json',
-            },
-          ],
-          relevanceFilteringCriteria: {
-            relevantBodyParts: ['CHEST'],
-            relevantModalities: ['CT'],
-          },
-        },
-      ],
-    };
-
-    const isValid = validate(manifest);
+    const isValid = validate(validManifestSimple);
 
     if (!isValid) {
       console.error('Validation errors:', JSON.stringify(validate.errors, null, 2));
@@ -76,14 +44,14 @@ describe('Manifest Schema Validation', () => {
             {
               name: 'report',
               description: 'Report input',
-              'content-type': 'application/vnd.ms-dragon.dsp.rad.report+json',
+              'content-type': 'application/vnd.ms-dragon.rad.report+json',
             },
           ],
           outputs: [
             {
               name: 'result',
               description: 'Result output',
-              'content-type': 'application/vnd.ms-dragon.dsp.rad.quality-result+json',
+              'content-type': 'application/vnd.ms-dragon.rad.quality-check-result+json',
             },
           ],
         },
@@ -129,7 +97,7 @@ describe('Manifest Schema Validation', () => {
             {
               name: 'result',
               description: 'Result',
-              'content-type': 'application/vnd.ms-dragon.dsp.rad.quality-result+json',
+              'content-type': 'application/vnd.ms-dragon.rad.quality-check-result+json',
             },
           ],
         },
@@ -141,62 +109,7 @@ describe('Manifest Schema Validation', () => {
   });
 
   it('should validate optional fields like configurationTemplate and input config', () => {
-    const manifest = {
-      name: 'full-featured-extension',
-      description: 'Extension using all optional fields',
-      version: '2.1.0',
-      auth: {
-        tenantId: 'aabbccdd-1122-3344-5566-778899aabbcc',
-      },
-      tools: [
-        {
-          name: 'brain-mri-report',
-          toolType: 'contractBased',
-          capability: 'reportGeneration',
-          description: 'Generates brain MRI reports',
-          endpoint: 'https://api.example.com/v1/process',
-          inputs: [
-            {
-              name: 'report',
-              description: 'Current radiology report',
-              'content-type': 'application/vnd.ms-dragon.dsp.rad.report+json',
-              required: true,
-              config: {
-                minNumberOfPriors: 1,
-                maxNumberOfPriors: 5,
-                relevantBodyParts: ['BRAIN'],
-                relevantModalities: ['MR'],
-              },
-            },
-            {
-              name: 'patient-info',
-              description: 'Patient demographics',
-              'content-type': 'application/vnd.ms-dragon.dsp.rad.patient-info+json',
-              required: false,
-            },
-          ],
-          outputs: [
-            {
-              name: 'quality-result',
-              description: 'Report quality findings',
-              'content-type': 'application/vnd.ms-dragon.dsp.rad.quality-result+json',
-            },
-          ],
-          relevanceFilteringCriteria: {
-            relevantBodyParts: ['BRAIN'],
-            relevantModalities: ['MR'],
-          },
-          configurationTemplate: {
-            type: 'object',
-            properties: {
-              language: { type: 'string', default: 'en' },
-            },
-          },
-        },
-      ],
-    };
-
-    const isValid = validate(manifest);
+    const isValid = validate(validManifestFullFeatured);
 
     if (!isValid) {
       console.error('Validation errors:', JSON.stringify(validate.errors, null, 2));
