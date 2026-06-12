@@ -34,14 +34,14 @@ public sealed class QualityCheckController : ControllerBase
     /// </summary>
     /// <remarks>
     /// This sample uses Azure OpenAI when configured, falling back to an on-device
-    /// Foundry Local model. Replace <see cref="IQualityCheckService.Process"/> with
+    /// Foundry Local model. Replace <see cref="IQualityCheckService.ProcessAsync"/> with
     /// your real implementation.
     /// </remarks>
     [HttpPost("process")]
     [ProducesResponseType(typeof(ProcessResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public ActionResult<ProcessResponse> Post([FromBody] ProcessRequest payload)
+    public async Task<ActionResult<ProcessResponse>> PostAsync([FromBody] ProcessRequest payload, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(payload);
 
@@ -56,7 +56,7 @@ public sealed class QualityCheckController : ControllerBase
             Request.Path,
             payload.SessionData.CorrelationId);
 
-        var result = _qualityCheckService.Process(payload);
+        var result = await _qualityCheckService.ProcessAsync(payload, cancellationToken).ConfigureAwait(false);
 
         _logger.LogInformation(
             "Response {Method} {Path} - Success: {Success} - Message: {Message} - Response Body: {ResponseBody}",

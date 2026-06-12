@@ -105,7 +105,7 @@ public sealed class QualityCheckService : IQualityCheckService
     }
 
     /// <inheritdoc />
-    public ProcessResponse Process(ProcessRequest payload)
+    public async Task<ProcessResponse> ProcessAsync(ProcessRequest payload, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(payload);
 
@@ -117,7 +117,7 @@ public sealed class QualityCheckService : IQualityCheckService
         if (_azureOpenAi.IsConfigured)
         {
             _logger.LogInformation("Using Azure OpenAI provider.");
-            return ProcessWithChatClient(payload, _azureOpenAi.GetChatClient());
+            return await ProcessWithChatClientAsync(payload, _azureOpenAi.GetChatClient(), cancellationToken).ConfigureAwait(false);
         }
 
         if (_foundryLocalSettings.Enabled)
@@ -125,16 +125,17 @@ public sealed class QualityCheckService : IQualityCheckService
             _logger.LogInformation(
                 "Using Foundry Local provider (model={Model}). If this is the first request after startup, the model may need to download and load — this can take several minutes.",
                 _foundryLocalSettings.ModelAlias);
-            // GetChatClientAsync is lazily memoized; first call may be slow due to model download/load.
-            var chatClient = _foundryLocal.GetChatClientAsync().GetAwaiter().GetResult();
-            return ProcessWithChatClient(payload, chatClient);
+            // GetChatClientAsync is lazily memoized; first call may be slow due to model download/load,
+            // but awaiting it (rather than blocking) keeps the ASP.NET Core thread-pool free.
+            var chatClient = await _foundryLocal.GetChatClientAsync(cancellationToken).ConfigureAwait(false);
+            return await ProcessWithChatClientAsync(payload, chatClient, cancellationToken).ConfigureAwait(false);
         }
 
         throw new InvalidOperationException(
             "No model provider configured. Set Azure OpenAI Endpoint/ApiKey/DeploymentName, or set FoundryLocal.Enabled=true in appsettings.json.");
     }
 
-    private ProcessResponse ProcessWithChatClient(ProcessRequest payload, ChatClient chatClient)
+    private async Task<ProcessResponse> ProcessWithChatClientAsync(ProcessRequest payload, ChatClient chatClient, CancellationToken cancellationToken)
     {
         var prompt = JsonSerializer.Serialize(new
         {
@@ -146,11 +147,11 @@ public sealed class QualityCheckService : IQualityCheckService
             }
         });
 
-        var json = RunChatCompletion(chatClient, prompt);
+        var json = await RunChatCompletionAsync(chatClient, prompt, cancellationToken).ConfigureAwait(false);
         return MapToResult(json);
     }
 
-    internal static string RunChatCompletion(ChatClient chatClient, string userMessage)
+    internal static async Task<string> RunChatCompletionAsync(ChatClient chatClient, string userMessage, CancellationToken cancellationToken)
     {
         List<ChatMessage> messages = new List<ChatMessage>()
         {
@@ -158,7 +159,7 @@ public sealed class QualityCheckService : IQualityCheckService
             new UserChatMessage(userMessage),
         };
 
-        var response = chatClient.CompleteChat(messages, new ChatCompletionOptions());
+        var response = await chatClient.CompleteChatAsync(messages, new ChatCompletionOptions(), cancellationToken).ConfigureAwait(false);
         return response.Value.Content[0].Text;
     }
 
@@ -183,17 +184,46 @@ public sealed class QualityCheckService : IQualityCheckService
             json = json.Trim();
         }
 
-        var root = JsonDocument.Parse(json);
-        var qualityCheckResultElement = root.RootElement.GetProperty(qualityCheckResultPropertyName);
-        var qualityCheckResult = qualityCheckResultElement.Deserialize<QualityCheckResult>(DeserializeOptions);
-
-        var response = new ProcessResponse
+        // Models can return malformed JSON, the wrong shape, or omit expected properties.
+        // Catch parse/deserialize failures so the extension always returns a well-formed
+        // ProcessResponse instead of bubbling a 500 to the caller. Partners adapting this
+        // sample can replace the fallback with their own error-handling strategy.
+        QualityCheckResult? qualityCheckResult = null;
+        try
         {
-            Success = true,
-            Message = "Payload processed successfully.",
-            Payload = new Dictionary<string, QualityCheckResult>(),
+            using var root = JsonDocument.Parse(json);
+            if (root.RootElement.ValueKind == JsonValueKind.Object
+                && root.RootElement.TryGetProperty(qualityCheckResultPropertyName, out var qualityCheckResultElement))
+            {
+                qualityCheckResult = qualityCheckResultElement.Deserialize<QualityCheckResult>(DeserializeOptions);
+            }
+            else
+            {
+                _logger.LogWarning(
+                    "Model response did not contain expected '{Property}' property. Raw response: {Json}",
+                    qualityCheckResultPropertyName,
+                    json);
+            }
+        }
+        catch (JsonException ex)
+        {
+            _logger.LogWarning(
+                ex,
+                "Failed to parse model response as JSON. Raw response: {Json}",
+                json);
+        }
+
+        var parsed = qualityCheckResult is not null;
+        return new ProcessResponse
+        {
+            Success = parsed,
+            Message = parsed
+                ? "Payload processed successfully."
+                : "Model returned malformed output; returning empty recommendations.",
+            Payload = new Dictionary<string, QualityCheckResult>
+            {
+                [qualityCheckResultPropertyName] = qualityCheckResult ?? new QualityCheckResult(),
+            },
         };
-        response.Payload[qualityCheckResultPropertyName] = qualityCheckResult ?? new QualityCheckResult();
-        return response;
     }
 }

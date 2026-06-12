@@ -9,5 +9,5 @@ namespace SampleExtension.Radiology.Web.Ai.Services;
 /// </summary>
 public interface IQualityCheckService
 {
-    ProcessResponse Process(ProcessRequest payload);
+    Task<ProcessResponse> ProcessAsync(ProcessRequest payload, CancellationToken cancellationToken = default);
 }

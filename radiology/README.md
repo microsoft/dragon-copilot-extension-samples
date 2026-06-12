@@ -27,9 +27,9 @@ Key resources:
 
 ### Versioning
 
-Three independent version axes appear in these artifacts. They are **declarations recorded at manifest upload time** — none is transmitted on each `POST /v1/process` request:
+Three independent version axes appear in these artifacts. They are **declarations recorded at manifest upload time** and are not part of each `POST /v1/process` payload (apart from the optional `extensibilityApiVersion` field on the request envelope, which is informational):
 
-- **API version** — `info.version` in [`radiology-extensibility-api.yaml`](radiology-extensibility-api.yaml) (semantic `x.y.z`). The version of the extensibility API contract as a whole. A Partner records the version they built against in their manifest's `radiologyExtensibilityApiVersion` field.
+- **API version** — `info.version` in [`radiology-extensibility-api.yaml`](radiology-extensibility-api.yaml) (semantic `x.y.z`). The version of the extensibility API contract as a whole. A Partner records the version they built against in their manifest's `radiologyExtensibilityApiVersion` field. The same API version may also appear on each request as the optional `extensibilityApiVersion` field on the `ProcessRequest` envelope (informational).
 - **Extension version** — the manifest's top-level `version` field (`x.y.z`). The Partner's own product version for their extension, independent of the API version.
 - **Payload schema version** — each payload schema (`Report`, `PatientInformation`, `QualityCheckResult`) declares its own version via the `x-ms-schema-version` annotation in [`radiology-extensibility-api.yaml`](radiology-extensibility-api.yaml) (`major.minor`). The Partner declares which version of each payload they accept (inputs) or produce (outputs) via the required `schemaVersion` field on every input and output in their manifest. This gives per-payload traceability — e.g. "this extension accepts `Report` v1.0" — without putting a version on the wire payloads themselves.
 
