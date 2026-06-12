@@ -20,12 +20,13 @@
 | Symptom | Most likely cause | Jump to |
 |---|---|---|
 | `401 Unauthorized` with `invalid_token` / `InvalidAudience` | `aud` claim does not match your extension's Client ID | [2.1](#21-401--invalidaudience) |
-| `401 Unauthorized` with `InvalidIssuer` | `iss` claim does not match `https://login.microsoftonline.com/{your-tenant-id}/` | [2.2](#22-401--invalidissuer) |
+| `401 Unauthorized` with `InvalidIssuer` | `iss` claim does not match `https://login.microsoftonline.com/{your-tenant-id}/v2.0` | [2.2](#22-401--invalidissuer) |
 | `401 Unauthorized` with `InvalidApplicationId` | `azp` claim is not the Dragon Copilot Runtime's client ID, or `idtyp` ≠ `app` | [2.3](#23-401--invalidapplicationid--idtyp--azp-checks) |
 | Extension is deployed but receives no traffic | Manifest endpoint/auth misconfigured, or a WAF / firewall / network ACL is dropping the Runtime's calls | [2.4](#24-no-traffic--silent-failure) |
 | `AADSTS500011: resource principal not found in tenant` | Dragon Copilot Runtime service principal is not provisioned in your tenant | [2.5](#25-aadsts500011-resource-principal-not-found) |
 | "Which JWT claim identifies the customer?" | Customer/tenant identity model question (multi-tenant routing) | [2.6](#26-which-claim-identifies-the-customer) |
-| `InvalidAudience` even though Client ID looks correct | Application ID URI (`identifierUris`) host does not match the extension endpoint host | [2.7](#27-application-id-uri--identifieruris-mistakes) |
+| `InvalidAudience` even though Client ID looks correct | App registration is on **v1 tokens** (set `requestedAccessTokenVersion: 2`) so `aud` carries the App ID URI instead of the Client ID GUID | [2.1](#21-401--invalidaudience) |
+| No traffic / token-acquisition failure traced to scope | Application ID URI (`identifierUris`) is malformed or doesn't include the endpoint host | [2.7](#27-application-id-uri--identifieruris-mistakes) |
 
 ---
 
@@ -50,7 +51,7 @@ Your extension validated the JWT signature, but the `aud` claim does not match w
 The `iss` claim does not match the tenant your extension trusts.
 
 **Checks:**
-1. `iss` must be exactly `https://login.microsoftonline.com/{your-tenant-id}/` — note the trailing slash and v2.0 endpoint format.
+1. `iss` must be exactly `https://login.microsoftonline.com/{your-tenant-id}/v2.0` (note the `/v2.0` suffix — this is the v2.0 issuer that pairs with `requestedAccessTokenVersion: 2`).
 2. Confirm the tenant ID configured in your JWT validator matches the `auth.tenantId` in your `extension.yaml` manifest. The two values **must** match — the `dragon-copilot` CLI prompts for the same value to keep them aligned.
 3. Do not use the `common` or `organizations` authority for a single-tenant extension. Pin the validator to your tenant GUID.
 
@@ -119,9 +120,14 @@ If your scenario truly requires a customer-scoped JWT claim, raise it with your 
 
 ### 2.7 Application ID URI / `identifierUris` mistakes
 
-This is one of the most common sources of `InvalidAudience` failures after partners believe everything else is configured correctly.
+A misconfigured Application ID URI on your Entra ID app registration is a common reason the Runtime cannot deliver requests to your extension. Symptoms range from "no traffic at all" to confusing token-acquisition errors in platform logs.
 
-**Mental model:** the platform does not "send" an audience. It acquires a token using `identifierUri` **as the scope**, and the resulting `aud` claim is derived from it. If `identifierUri` does not line up with the actual endpoint host, the token your extension receives will have an `aud` that cannot match a sensible validation rule.
+**Mental model:** the Dragon Copilot Extension Runtime acquires a token using `identifierUri` **as the scope it requests from Microsoft Entra ID**. Entra ID validates the requested scope against the `identifierUris` array on your app registration:
+
+- If the scope matches one of your app registration's `identifierUris`, Entra ID issues a token. With `requestedAccessTokenVersion: 2`, the resulting `aud` claim is your extension's **Client ID (GUID)** — *not* the `identifierUri` itself (see [§2.1](#21-401--invalidaudience)).
+- If no `identifierUri` matches the requested scope, **token acquisition fails** and the Runtime never calls your endpoint. The symptom is "no traffic" (see [§2.4](#24-no-traffic--silent-failure)), not `InvalidAudience` on your side.
+
+`identifierUri` is therefore essential to *getting a token in the first place* — even though it does not appear in the `aud` claim of v2 tokens.
 
 **Canonical format:**
 
@@ -146,8 +152,7 @@ api://{your-tenant-id}/{exact-endpoint-hostname}
    - Right: `api://{tenant}/api.mypartner.com` — **host only**, no path, port, or query.
 
 4. **Re-using one hostname across environments.**
-   - The hostname **is** the environment discriminator (path is not part of `aud`).
-   - Use distinct hosts per environment: `dev.api.mypartner.com`, `staging.api.mypartner.com`, `api.mypartner.com`.
+   - Use distinct hostnames per environment (e.g. `dev.api.mypartner.com`, `staging.api.mypartner.com`, `api.mypartner.com`) so each environment can be granted/revoked independently and tokens can be traced back to the environment they were issued for.
 
 5. **Forgetting that an app registration can hold multiple `identifierUris`.**
    - For non-prod consolidation, add multiple entries to the `identifierUris` array in the app registration manifest:
@@ -157,11 +162,11 @@ api://{your-tenant-id}/{exact-endpoint-hostname}
        "api://{tenant}/staging.api.mypartner.com"
      ]
      ```
-   - **For production, prefer a separate app registration** to prevent cross-environment token reuse.
+   - **For production, prefer a separate app registration** as defense-in-depth.
 
 6. **Dev tunnel / temporary hostnames updated in the manifest but not in `identifierUris`.**
    - Common during local development with dev tunnels, ngrok, or VS Code Tunnels.
-   - When the tunnel host changes, update **both** the `endpoint` in `extension.yaml` *and* the `identifierUris` array. Otherwise the next inbound call fails with `InvalidAudience`.
+   - When the tunnel host changes, update **both** the `endpoint` in `extension.yaml` *and* the `identifierUris` array. Otherwise the Runtime can no longer acquire a token for your endpoint and traffic stops.
 
 7. **Wildcard URIs (e.g. `api://{tenant}/*.mypartner.com`).**
    - Not supported. Enumerate each concrete host you need.
@@ -172,11 +177,13 @@ api://{your-tenant-id}/{exact-endpoint-hostname}
 1. Read the endpoint host from extension.yaml (tools[].endpoint).
 2. Read the identifierUris array from your Entra app registration manifest.
 3. Confirm the array contains exactly: api://{your-tenant-id}/{that-host}.
-4. Decode a real token at https://jwt.ms and confirm aud equals that string.
+4. Decode a real token at https://jwt.ms and confirm:
+     - aud  == your extension's Client ID (GUID)   (v2 tokens; see §2.1)
+     - azp  == d9350f5d-71c2-46b9-b41d-3c5d51ffe6e8 (Runtime; see §2.3)
+     - iss  == https://login.microsoftonline.com/{your-tenant-id}/v2.0 (see §2.2)
 ```
 
-**Validation rule for your extension code:**
-Reject the request if `aud` does not equal `api://{your-tenant-id}/{Host header of the request}`. This prevents accidental cross-environment token replay.
+If step 3 fails, the Runtime cannot get a token and you will see no traffic. If steps 1–3 pass but step 4 shows unexpected claims, jump to the relevant section above.
 
 ---
 
@@ -224,7 +231,7 @@ Both the `endpoint` in `extension.yaml` **and** the `identifierUris` array on yo
 Work through this list before opening a support ticket.
 
 - [ ] Decoded a real failing token at <https://jwt.ms> and captured `iss`, `aud`, `azp`, `idtyp`, `exp`.
-- [ ] Confirmed `iss` == `https://login.microsoftonline.com/{my-tenant-id}/`.
+- [ ] Confirmed `iss` == `https://login.microsoftonline.com/{my-tenant-id}/v2.0`.
 - [ ] Confirmed `aud` == my extension's Client ID (GUID), and my app registration uses v2 tokens.
 - [ ] Confirmed `identifierUris` on the app registration includes `api://{my-tenant-id}/{endpoint-hostname}` matching the host in `extension.yaml`.
 - [ ] Confirmed `azp` == `d9350f5d-71c2-46b9-b41d-3c5d51ffe6e8` and `idtyp` == `app`.
