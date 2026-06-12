@@ -83,6 +83,12 @@ export function TestingPanel({ manifestInfo }: TestingPanelProps) {
       return;
     }
 
+    // Reset state so the form is regenerated even if capability/tool names match
+    setTools([]);
+    setSelectedTool('');
+    setInputValues({});
+    setResult(null);
+
     fetch('/api/manifest/capabilities')
       .then((res) => res.ok ? res.json() : [])
       .then((data: Capability[]) => {
@@ -94,7 +100,7 @@ export function TestingPanel({ manifestInfo }: TestingPanelProps) {
       .catch(() => setCapabilities([]));
   }, [manifestInfo]);
 
-  // Load tools when capability changes
+  // Load tools when capability or manifest changes
   useEffect(() => {
     if (!selectedCapability) {
       setTools([]);
@@ -111,7 +117,7 @@ export function TestingPanel({ manifestInfo }: TestingPanelProps) {
         }
       })
       .catch(() => setTools([]));
-  }, [selectedCapability]);
+  }, [selectedCapability, manifestInfo]);
 
   // Reset input values when tool changes
   useEffect(() => {
