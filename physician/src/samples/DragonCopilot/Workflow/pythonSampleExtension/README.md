@@ -156,6 +156,9 @@ You shall see the workflow sample server returns response similar to the followi
 	}
 }
 ```
+
+> **Tip:** Validate the `adaptive_card_payload` your extension produces against what Dragon Copilot accepts using the [Adaptive Card Validator](https://cardvalidator.copilot.dragon.com/). Paste in your card JSON to catch unsupported elements, schema-version mismatches, and other issues before testing end-to-end.
+
 ---
 ## 6. Deploying Your Extension
 

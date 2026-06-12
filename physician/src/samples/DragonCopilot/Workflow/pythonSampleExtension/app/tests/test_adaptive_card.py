@@ -38,7 +38,11 @@ def test_adaptive_card_structure(client):
     ac = card["adaptive_card_payload"]
     assert isinstance(ac, dict)
     assert ac.get("type") == "AdaptiveCard"
-    assert ac.get("version") == "1.6"
+    # Per the Dragon Copilot adaptive card spec, `version` is optional and is
+    # intentionally omitted by this sample. Setting it is allowed but not
+    # required; pin it here only if your extension requires a specific
+    # Adaptive Cards schema version.
+    assert "version" not in ac, "version should be omitted by default"
 
     # Validate actions exist
     actions = ac.get("actions") or []
