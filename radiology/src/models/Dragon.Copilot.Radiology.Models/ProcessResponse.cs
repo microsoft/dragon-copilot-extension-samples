@@ -1,35 +1,46 @@
-using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
 
 namespace Dragon.Copilot.Radiology.Models;
 
 /// <summary>
-/// Envelope returned by <c>POST /v1/process</c>.
+/// Response envelope for the /v1/process endpoint.
 /// </summary>
+/// <remarks>
+/// Corresponds to the ProcessResponse schema defined in radiology-extensibility-api.yaml.
+/// The <see cref="Payload"/> is a map of named outputs (e.g., "qualityCheckResult"), each value
+/// being a <see cref="QualityCheckResult"/>. Output names are declared in the extension's manifest.
+/// </remarks>
+/// <example>
+/// <code>
+/// var response = new ProcessResponse
+/// {
+///     Success = true,
+///     Message = "Quality check completed successfully.",
+///     Payload = new Dictionary&lt;string, QualityCheckResult&gt;
+///     {
+///         ["qualityCheckResult"] = new QualityCheckResult { Recommendations = ... },
+///     },
+/// };
+/// </code>
+/// </example>
 public class ProcessResponse
 {
     /// <summary>
-    /// Contract version.
-    /// </summary>
-    [Required(AllowEmptyStrings = false)]
-    [JsonPropertyName("schemaVersion")]
-    public string SchemaVersion { get; set; } = null!;
-
-    /// <summary>
-    /// Indicates if the processing was successful
+    /// Gets or sets a value indicating whether the extension completed processing successfully.
     /// </summary>
     [JsonPropertyName("success")]
-    public bool Success { get; set; }
+    public bool? Success { get; set; }
 
     /// <summary>
-    /// Processing result message
+    /// Gets or sets the human-readable status message.
     /// </summary>
     [JsonPropertyName("message")]
-    public string Message { get; set; } = string.Empty;
+    public string? Message { get; set; }
 
     /// <summary>
-    /// The processed payload data containing DSP responses
+    /// Gets or sets the map of named outputs, keyed by output name from the extension manifest.
     /// </summary>
     [JsonPropertyName("payload")]
-    public IDictionary<string, QualityCheckResult> Payload { get; } = new Dictionary<string, QualityCheckResult>();
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Usage", "CA2227:Collection properties should be read only", Justification = "Needed for deserialization of partner payloads")]
+    public Dictionary<string, QualityCheckResult>? Payload { get; set; }
 }

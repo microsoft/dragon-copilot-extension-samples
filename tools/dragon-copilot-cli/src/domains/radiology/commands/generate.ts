@@ -50,7 +50,8 @@ async function generateInteractive(options: GenerateOptions): Promise<void> {
     inputs: answers.inputTypes.map((contentType: string, index: number) => ({
       name: getInputName(contentType, index),
       description: getInputDescription(contentType),
-      'content-type': contentType
+      'content-type': contentType,
+      schemaVersion: '1.0'
     })),
     outputs: answers.outputs
   };
@@ -69,9 +70,10 @@ async function generateInteractive(options: GenerateOptions): Promise<void> {
     const authDetails = await promptAuthDetails();
 
     manifest = {
-      name: 'my-radiology-extension',
+      name: 'myRadiologyExtension',
       description: 'A Dragon Copilot radiology extension',
       version: '0.0.1',
+      radiologyExtensibilityApiVersion: '1.0.0',
       auth: {
         tenantId: authDetails.tenantId
       },
@@ -103,6 +105,7 @@ async function generateFromTemplate(options: GenerateOptions): Promise<void> {
       name: template.name,
       description: template.description,
       version: template.version,
+      radiologyExtensibilityApiVersion: template.radiologyExtensibilityApiVersion,
       auth: {
         tenantId: authDetails.tenantId
       },

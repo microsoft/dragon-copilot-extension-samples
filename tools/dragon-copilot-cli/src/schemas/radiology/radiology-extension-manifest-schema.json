@@ -6,15 +6,16 @@
     "name",
     "description",
     "version",
+    "radiologyExtensibilityApiVersion",
     "auth",
     "tools"
   ],
   "properties": {
     "name": {
       "type": "string",
-      "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$",
+      "pattern": "^[a-z][a-zA-Z0-9]*$",
       "minLength": 1,
-      "description": "Extension name (lowercase kebab-case: letters, numbers, and hyphens only)"
+      "description": "Extension name (camelCase: must start with a lowercase letter, followed by letters and numbers)"
     },
     "description": {
       "type": "string",
@@ -24,7 +25,12 @@
     "version": {
       "type": "string",
       "pattern": "^\\d+\\.\\d+\\.\\d+$",
-      "description": "Version in x.y.z format"
+      "description": "Partner's own version for this extension, in x.y.z format"
+    },
+    "radiologyExtensibilityApiVersion": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$",
+      "description": "Version of the Radiology Extensibility API (radiology-extensibility-api.yaml info.version) this manifest was authored against, in x.y.z format"
     },
     "auth": {
       "$ref": "#/definitions/AuthConfig",
@@ -69,9 +75,9 @@
       "properties": {
         "name": {
           "type": "string",
-          "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$",
+          "pattern": "^[a-z][a-zA-Z0-9]*$",
           "minLength": 1,
-          "description": "Tool name (lowercase kebab-case: letters, numbers, and hyphens only)"
+          "description": "Tool name (camelCase: must start with a lowercase letter, followed by letters and numbers)"
         },
         "toolType": {
           "type": "string",
@@ -130,7 +136,8 @@
       "required": [
         "name",
         "description",
-        "content-type"
+        "content-type",
+        "schemaVersion"
       ],
       "properties": {
         "name": {
@@ -150,6 +157,9 @@
         },
         "content-type": {
           "$ref": "#/definitions/InputContentType"
+        },
+        "schemaVersion": {
+          "$ref": "#/definitions/PayloadSchemaVersion"
         }
       },
       "additionalProperties": false
@@ -159,7 +169,8 @@
       "required": [
         "name",
         "description",
-        "content-type"
+        "content-type",
+        "schemaVersion"
       ],
       "properties": {
         "name": {
@@ -174,6 +185,9 @@
         },
         "content-type": {
           "$ref": "#/definitions/OutputContentType"
+        },
+        "schemaVersion": {
+          "$ref": "#/definitions/PayloadSchemaVersion"
         }
       },
       "additionalProperties": false
@@ -182,16 +196,21 @@
       "type": "string",
       "enum": [
         "application/vnd.ms-dragon.rad.report+json",
-        "application/vnd.ms-dragon.rad.patient-info+json"
+        "application/vnd.ms-dragon.rad.patient-information+json"
       ],
-      "description": "Content type identifier for tool inputs (IANA MIME type)"
+      "description": "Media type for a tool input. The '+json' subtype is the kebab-case form of the payload's schema object name in radiology-extensibility-api.yaml (e.g. 'application/vnd.ms-dragon.rad.report+json' maps to the Report schema)."
     },
     "OutputContentType": {
       "type": "string",
       "enum": [
         "application/vnd.ms-dragon.rad.quality-check-result+json"
       ],
-      "description": "Content type identifier for tool outputs (IANA MIME type)"
+      "description": "Media type for a tool output. The '+json' subtype is the kebab-case form of the payload's schema object name in radiology-extensibility-api.yaml (e.g. 'application/vnd.ms-dragon.rad.quality-check-result+json' maps to the QualityCheckResult schema)."
+    },
+    "PayloadSchemaVersion": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+$",
+      "description": "Version of the payload schema, in major.minor format (e.g. \"0.1\"), that the extension accepts for this input or produces for this output. Declared at manifest upload time so the platform knows which version of each payload to exchange with the extension."
     },
     "RelevanceFilteringCriteria": {
       "$comment": "Tool-level gate: only consider invoking this tool if the current context (e.g., the study being reported on) matches these criteria. If omitted, the tool is always considered.",

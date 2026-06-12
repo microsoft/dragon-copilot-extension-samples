@@ -5,7 +5,7 @@ using System.Text.Json.Serialization;
 namespace Dragon.Copilot.Radiology.Models
 {
     /// <summary>
-    /// A quality check recommendation produced by a DCR extension.
+    /// A quality check recommendation produced by an extension.
     /// </summary>
     /// <remarks>
     /// Corresponds to the Recommendation schema defined in radiology-extensibility-api.yaml.
@@ -66,7 +66,7 @@ namespace Dragon.Copilot.Radiology.Models
         public string Reason { get; set; } = null!;
 
         /// <summary>
-        /// Gets or sets the severity of the recommendation as a percentage (0–100).
+        /// Gets or sets the severity of the recommendation as a percentage (0-100).
         /// </summary>
         [JsonPropertyName("severityScorePercent")]
         public double? SeverityScorePercent { get; set; }

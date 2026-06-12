@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="../../models/Dragon.Copilot.Radiology.Models/Dragon.Copilot.Radiology.Models.csproj" />
+  <Project Path="SampleExtension.Radiology.Web.Quickstart/SampleExtension.Radiology.Web.Quickstart.csproj" />
+  <Project Path="SampleExtension.Radiology.Web.Ai/SampleExtension.Radiology.Web.Ai.csproj" />
+</Solution>

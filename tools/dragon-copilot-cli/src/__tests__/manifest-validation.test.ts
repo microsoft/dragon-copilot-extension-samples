@@ -285,15 +285,16 @@ describe('validateConnectorManifest', () => {
 describe('validateDcrExtensionManifest (radiology)', () => {
   function buildValidRadiologyManifest(): DcrExtensionManifest {
     return {
-      name: 'test-radiology-extension',
+      name: 'testRadiologyExtension',
       description: 'Radiology extension for schema validation tests',
       version: '1.0.0',
+      radiologyExtensibilityApiVersion: '1.0.0',
       auth: {
         tenantId: TENANT_ID,
       },
       tools: [
         {
-          name: 'quality-checker',
+          name: 'qualityChecker',
           toolType: 'contractBased',
           capability: 'qualityCheck',
           description: 'Checks radiology report quality',
@@ -303,18 +304,21 @@ describe('validateDcrExtensionManifest (radiology)', () => {
               name: 'report',
               description: 'Radiology report',
               'content-type': 'application/vnd.ms-dragon.rad.report+json',
+              schemaVersion: '1.0',
             },
             {
-              name: 'patient-info',
+              name: 'patientInformation',
               description: 'Patient demographic information',
-              'content-type': 'application/vnd.ms-dragon.rad.patient-info+json',
+              'content-type': 'application/vnd.ms-dragon.rad.patient-information+json',
+              schemaVersion: '1.0',
             },
           ],
           outputs: [
             {
-              name: 'quality-check-result',
+              name: 'qualityCheckResult',
               description: 'Quality check findings',
               'content-type': 'application/vnd.ms-dragon.rad.quality-check-result+json',
+              schemaVersion: '1.0',
             },
           ],
         },
@@ -382,6 +386,124 @@ describe('validateDcrExtensionManifest (radiology)', () => {
 
     expect(result.isValid).toBe(false);
     expect(result.errors.some((e: SchemaError) => e.keyword === 'additionalProperties')).toBe(true);
+  });
+
+  it('rejects manifest missing top-level radiologyExtensibilityApiVersion', () => {
+    const manifest = buildValidRadiologyManifest();
+    delete (manifest as any).radiologyExtensibilityApiVersion;
+
+    const result = validateDcrExtensionManifest(manifest);
+
+    expect(result.isValid).toBe(false);
+    expect(
+      result.errors.some(
+        (e: SchemaError) =>
+          e.keyword === 'required' && e.params?.missingProperty === 'radiologyExtensibilityApiVersion',
+      ),
+    ).toBe(true);
+  });
+
+  it('rejects radiologyExtensibilityApiVersion in wrong format', () => {
+    const manifest = buildValidRadiologyManifest();
+    manifest.radiologyExtensibilityApiVersion = '1.0';
+
+    const result = validateDcrExtensionManifest(manifest);
+
+    expect(result.isValid).toBe(false);
+    expect(
+      result.errors.some((e: SchemaError) =>
+        e.instancePath?.includes('radiologyExtensibilityApiVersion'),
+      ),
+    ).toBe(true);
+  });
+
+  it('rejects input missing schemaVersion', () => {
+    const manifest = buildValidRadiologyManifest();
+    delete (manifest.tools[0].inputs[0] as any).schemaVersion;
+
+    const result = validateDcrExtensionManifest(manifest);
+
+    expect(result.isValid).toBe(false);
+    expect(
+      result.errors.some(
+        (e: SchemaError) =>
+          e.keyword === 'required' && e.params?.missingProperty === 'schemaVersion',
+      ),
+    ).toBe(true);
+  });
+
+  it('rejects output missing schemaVersion', () => {
+    const manifest = buildValidRadiologyManifest();
+    delete (manifest.tools[0].outputs[0] as any).schemaVersion;
+
+    const result = validateDcrExtensionManifest(manifest);
+
+    expect(result.isValid).toBe(false);
+    expect(
+      result.errors.some(
+        (e: SchemaError) =>
+          e.keyword === 'required' && e.params?.missingProperty === 'schemaVersion',
+      ),
+    ).toBe(true);
+  });
+
+  it('rejects schemaVersion in wrong format (three segments)', () => {
+    const manifest = buildValidRadiologyManifest();
+    manifest.tools[0].inputs[0].schemaVersion = '1.0.0';
+
+    const result = validateDcrExtensionManifest(manifest);
+
+    expect(result.isValid).toBe(false);
+    expect(
+      result.errors.some((e: SchemaError) =>
+        e.instancePath?.includes('schemaVersion'),
+      ),
+    ).toBe(true);
+  });
+
+  it('rejects extension name in kebab-case (camelCase required)', () => {
+    const manifest = buildValidRadiologyManifest();
+    manifest.name = 'not-camel-case';
+
+    const result = validateDcrExtensionManifest(manifest);
+
+    expect(result.isValid).toBe(false);
+    expect(
+      result.errors.some(
+        (e: SchemaError) =>
+          e.keyword === 'pattern' && e.instancePath === '/name',
+      ),
+    ).toBe(true);
+  });
+
+  it('rejects tool name in kebab-case (camelCase required)', () => {
+    const manifest = buildValidRadiologyManifest();
+    manifest.tools[0].name = 'quality-checker';
+
+    const result = validateDcrExtensionManifest(manifest);
+
+    expect(result.isValid).toBe(false);
+    expect(
+      result.errors.some(
+        (e: SchemaError) =>
+          e.keyword === 'pattern' && e.instancePath?.includes('/tools/0/name'),
+      ),
+    ).toBe(true);
+  });
+
+  it('rejects an invalid input content-type', () => {
+    const manifest = buildValidRadiologyManifest();
+    (manifest.tools[0].inputs[0] as any)['content-type'] =
+      'application/vnd.ms-dragon.rad.unknown+json';
+
+    const result = validateDcrExtensionManifest(manifest);
+
+    expect(result.isValid).toBe(false);
+    expect(
+      result.errors.some((e: SchemaError) =>
+        e.instancePath?.includes('content-type'),
+      ),
+    ).toBe(true);
   });
 });
 

@@ -6,18 +6,18 @@ namespace Dragon.Copilot.Radiology.Models
     /// Patient demographic information.
     /// </summary>
     /// <remarks>
-    /// Corresponds to the PatientInfo schema defined in radiology-extensibility-api.yaml.
+    /// Corresponds to the PatientInformation schema defined in radiology-extensibility-api.yaml.
     /// </remarks>
     /// <example>
     /// <code>
-    /// var patientInfo = new PatientInfo
+    /// var patientInformation = new PatientInformation
     /// {
     ///     DateOfBirth = new DateOnly(1990, 1, 15),
     ///     BiologicalSex = BiologicalSex.Male,
     /// };
     /// </code>
     /// </example>
-    public class PatientInfo
+    public class PatientInformation
     {
         /// <summary>
         /// Gets or sets the date of birth of the patient in YYYY-MM-DD format.
