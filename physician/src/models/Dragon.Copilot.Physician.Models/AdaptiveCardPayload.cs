@@ -9,6 +9,10 @@ namespace Dragon.Copilot.Physician.Models;
 /// <summary>
 /// Adaptive card payload structure
 /// </summary>
+/// <remarks>
+/// Validate generated cards against what Dragon Copilot accepts using the
+/// Adaptive Card Validator: https://cardvalidator.copilot.dragon.com/.
+/// </remarks>
 public class AdaptiveCardPayload
 {
     /// <summary>

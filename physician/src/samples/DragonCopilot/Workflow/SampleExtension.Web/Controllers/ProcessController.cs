@@ -46,7 +46,7 @@ public class ProcessController : ControllerBase
     /// <response code="200">Successfully processed</response>
     /// <response code="400">Bad request</response>
     /// <response code="401">Unauthorized - JWT authentication failed</response>
-    /// <response code="403">Forbidden - License key validation failed</response>
+    /// <response code="403">Forbidden - required claims missing</response>
     /// <response code="500">Internal server error</response>
     [HttpPost("process")]
     [Authorize(Policy = "RequiredClaims")] // JWT + Claims validation (framework handles this)

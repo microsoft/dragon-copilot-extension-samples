@@ -12,7 +12,7 @@ namespace SampleExtension.Web.Configuration;
 public static class KnownRoutes
 {
     /// <summary>
-    /// Public routes (no authentication or license key required)
+    /// Public routes (no authentication required)
     /// </summary>
     private const string Health = "/health";           // Mapped in Program.cs
     private const string HealthV1 = "/v1/health";      // Controller endpoint

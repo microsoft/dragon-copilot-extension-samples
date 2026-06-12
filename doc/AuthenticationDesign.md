@@ -2,13 +2,15 @@
 
 ## Overview
 
-The Dragon Copilot Extension Runtime supports a multi-layered security approach combining **Microsoft Entra ID authentication** for service-to-service request security with **custom license key validation** for customer authorization. This design provides both enterprise-grade identity verification and flexible business logic enforcement.
+The Dragon Copilot Extension Runtime authenticates service-to-service requests to extensions using **Microsoft Entra ID JWT bearer tokens**.
 
 This document describes the detailed Entra Id configuration and token validation required to protect against the identified threats.
 
 Additionally, you will find the threat model applied to the service-to-service requests send from the Dragon Copilot Extension Runtime to the Extension and describes the .
 
 See [Authentication.md](Authentication.md) for implementation details in the Sample Extension.
+
+> **Hitting auth errors?** See [Troubleshooting-Authentication.md](Troubleshooting-Authentication.md) for a symptom → cause matrix, FAQ, and pre-flight checklist covering the most common partner issues (`InvalidAudience`/`InvalidIssuer`, `identifierUris` mistakes, `AADSTS500011`, and more).
 
 > **Related tooling**: The `dragon-copilot` CLI generates manifest version 3 files that capture the same tenant identifiers discussed here. Ensure the values provided to the CLI match the configuration steps below so request validation succeeds.
 

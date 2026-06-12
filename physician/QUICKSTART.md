@@ -22,6 +22,8 @@ This document is a quick‑start guide for building, testing, packaging, and dep
 
 Prior to running through this document, you may want to read through the Microsoft Learn [documentation](https://learn.microsoft.com/en-us/industry/healthcare/dragon-copilot/extensions/workflow-app-overview) outlining how your extension will interface with the overall Dragon Copilot solution.
 
+> **Hitting auth errors?** See [Troubleshooting-Authentication.md](../doc/Troubleshooting-Authentication.md) for a symptom → cause matrix, FAQ, and pre-flight checklist covering the most common partner issues (`InvalidAudience`/`InvalidIssuer`, `identifierUris` mistakes, `AADSTS500011`, and more).
+
 ## Extensions vs. Clinical Application Connectors
 
 Dragon Copilot supports two types of integrations:
@@ -85,6 +87,8 @@ Transfer-Encoding: chunked
 ```
 
 Details about an adaptive card structure and what fields are valid is located in the [Adaptive Card Specification](https://learn.microsoft.com/en-us/industry/healthcare/dragon-copilot/extensions/adaptive-card-spec).
+
+> **Tip:** Validate the adaptive card your extension generates against what Dragon Copilot accepts using the [Adaptive Card Validator](https://cardvalidator.copilot.dragon.com/). Paste in your card JSON to catch unsupported elements, schema-version mismatches, and other issues before testing end-to-end.
 
 ### Making Code Changes
 

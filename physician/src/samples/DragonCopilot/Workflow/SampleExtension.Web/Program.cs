@@ -63,7 +63,7 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseCors();
 
-// Apply full security (JWT + License Key) to all non-public routes
+// Apply JWT authentication and authorization to all non-public routes
 app.UseFullSecurity();
 
 app.MapControllers();
