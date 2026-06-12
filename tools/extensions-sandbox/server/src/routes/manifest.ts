@@ -11,6 +11,7 @@ import { mapPathsToLines } from '../utils/source-mapper.js';
 import { getToolsForCapability } from '../utils/tool-metadata.js';
 import { parseCapabilities } from '../utils/capabilities-parser.js';
 import { MANIFEST_SCHEMA_PATH } from '../utils/schema-path.js';
+import { callExtensionAsync, buildExtensionRequest } from '../services/extension-client.js';
 
 export const manifestRouter = Router();
 
@@ -303,7 +304,16 @@ manifestRouter.get('/raw', (_req, res) => {
 
 /**
  * POST /api/manifest/execute
- * Executes a tool by proxying the request to the tool's endpoint.
+ * Executes a tool by calling the extension endpoint using the same
+ * ExtensionRequest/ExtensionResponse envelope format as
+ * diag-radex-extension-service's ExtensionClient.CallExtensionAsync.
+ *
+ * Body:
+ *   - capability: string (required)
+ *   - tool: string (required)
+ *   - inputs: Record<string, string> (the capability inputs, keyed by input name)
+ *   - customerTenantId: string (optional, defaults to a placeholder GUID)
+ *   - bearerToken: string (optional, forwarded as Authorization: Bearer header)
  */
 manifestRouter.post('/execute', async (req, res) => {
   const manifest = sessionStore.getManifest();
@@ -312,10 +322,12 @@ manifestRouter.post('/execute', async (req, res) => {
     return;
   }
 
-  const { capability, tool: toolName, inputs } = req.body as {
+  const { capability, tool: toolName, inputs, customerTenantId, bearerToken } = req.body as {
     capability: string;
     tool: string;
     inputs: Record<string, string>;
+    customerTenantId?: string;
+    bearerToken?: string;
   };
 
   if (!capability || !toolName) {
@@ -332,46 +344,93 @@ manifestRouter.post('/execute', async (req, res) => {
     return;
   }
 
-  // Build the payload based on tool inputs
-  const payload: Record<string, unknown> = {};
-  for (const input of tool.inputs) {
-    if (inputs[input.name] !== undefined) {
-      payload[input.name] = inputs[input.name];
-    }
+  if (!tool.endpoint) {
+    res.status(400).json({ error: 'Tool endpoint is not configured in the manifest.' });
+    return;
   }
 
-  try {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 30000);
+  // Clear any previously stored validation results – a new execution
+  // invalidates prior results (the endpoint or manifest may have changed).
+  sessionStore.clearValidationResults();
 
-    const response = await fetch(tool.endpoint, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-      signal: controller.signal,
+  try {
+    const result = await callExtensionAsync({
+      tool,
+      inputs: inputs ?? {},
+      customerTenantId: customerTenantId || '00000000-0000-0000-0000-000000000000',
+      bearerToken,
     });
 
-    clearTimeout(timeout);
-
-    const contentType = response.headers.get('content-type') || '';
-    let responseBody: unknown;
-    if (contentType.includes('application/json')) {
-      responseBody = await response.json();
-    } else {
-      responseBody = await response.text();
-    }
-
     res.json({
-      status: response.status,
-      statusText: response.statusText,
-      headers: Object.fromEntries(response.headers.entries()),
-      body: responseBody,
+      status: result.status,
+      statusText: result.statusText,
+      headers: result.headers,
+      extensionResponse: result.extensionResponse ?? null,
+      rawBody: result.rawBody ?? null,
+      sentRequest: result.sentRequest,
     });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : 'Unknown error';
+
+    // Categorize the failure to provide actionable troubleshooting hints
+    let cause: string;
+    let troubleshooting: string[];
+
+    if (message.includes('ECONNREFUSED')) {
+      cause = 'Connection refused';
+      troubleshooting = [
+        'Ensure the extension service is running and listening on the configured port.',
+        'Verify the endpoint URL in your manifest matches the running service address.',
+        'Check firewall or network rules that may block the connection.',
+      ];
+    } else if (message.includes('ENOTFOUND') || message.includes('getaddrinfo')) {
+      cause = 'DNS resolution failed';
+      troubleshooting = [
+        'The hostname in the endpoint URL could not be resolved.',
+        'Check for typos in the endpoint URL.',
+        'Ensure DNS is reachable from the sandbox environment.',
+      ];
+    } else if (message.includes('abort') || message.includes('timeout')) {
+      cause = 'Request timed out';
+      troubleshooting = [
+        'The extension did not respond within the 30-second timeout.',
+        'Verify the service is healthy and not overloaded.',
+        'Consider increasing processing efficiency or timeout configuration.',
+      ];
+    } else if (message.includes('CERT') || message.includes('certificate') || message.includes('SSL')) {
+      cause = 'TLS/SSL error';
+      troubleshooting = [
+        'The endpoint uses HTTPS but has an invalid or self-signed certificate.',
+        'Use HTTP for local development or configure a trusted certificate.',
+      ];
+    } else {
+      cause = 'Network error';
+      troubleshooting = [
+        'An unexpected error occurred while connecting to the tool endpoint.',
+        'Check that the endpoint URL is correct and the service is reachable.',
+      ];
+    }
+
+    // Build the request that was attempted so the Outputs tab can display it
+    let sentRequest: unknown;
+    try {
+      const parsedInputs: Record<string, unknown> = {};
+      for (const [key, value] of Object.entries(inputs ?? {})) {
+        try { parsedInputs[key] = JSON.parse(value); } catch { parsedInputs[key] = value; }
+      }
+      sentRequest = buildExtensionRequest(
+        tool,
+        parsedInputs,
+        customerTenantId || '00000000-0000-0000-0000-000000000000',
+      );
+    } catch { /* best-effort */ }
+
     res.status(502).json({
       error: `Failed to reach tool endpoint: ${message}`,
       endpoint: tool.endpoint,
+      cause,
+      troubleshooting,
+      sentRequest,
     });
   }
 });

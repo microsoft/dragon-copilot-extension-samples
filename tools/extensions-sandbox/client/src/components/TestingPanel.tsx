@@ -8,9 +8,10 @@ import {
   Spinner,
   Link,
 } from '@fluentui/react-components';
-import { PlayRegular, ArrowCounterclockwiseRegular } from '@fluentui/react-icons';
+import { PlayRegular, ArrowCounterclockwiseRegular, CodeRegular, CopyRegular } from '@fluentui/react-icons';
 import { DynamicForm, getFieldPaths, SchemaProperty } from './DynamicForm';
 import type { DynamicFormHandle } from './DynamicForm';
+import './ValidationResults.css';
 
 interface ToolInput {
   name: string;
@@ -52,14 +53,42 @@ interface ManifestInfo {
 interface ExecuteResult {
   status: number;
   statusText: string;
-  body: unknown;
+  headers?: Record<string, string>;
+  extensionResponse?: unknown;
+  rawBody?: unknown;
+  sentRequest?: unknown;
+}
+
+interface ExecuteErrorDetails {
+  message: string;
+  endpoint?: string;
+  cause?: string;
+  troubleshooting?: string[];
+  sentRequest?: unknown;
+}
+
+interface ValidationCheck {
+  check: string;
+  passed: boolean;
+  path?: string;
+  error?: string;
+}
+
+interface ValidationResult {
+  valid: boolean;
+  toolName: string;
+  outputContentType: string;
+  checks: ValidationCheck[];
+  summary: { passed: number; failed: number };
+  timestamp: string;
 }
 
 interface TestingPanelProps {
   manifestInfo: ManifestInfo | null;
+  manifestRevision: number;
 }
 
-export function TestingPanel({ manifestInfo }: TestingPanelProps) {
+export function TestingPanel({ manifestInfo, manifestRevision }: TestingPanelProps) {
   const [activeTab, setActiveTab] = useState<string>('setup');
   const [capabilities, setCapabilities] = useState<Capability[]>([]);
   const [selectedCapability, setSelectedCapability] = useState<string>('');
@@ -68,7 +97,11 @@ export function TestingPanel({ manifestInfo }: TestingPanelProps) {
   const [inputValues, setInputValues] = useState<Record<string, string>>({});
   const [isExecuting, setIsExecuting] = useState(false);
   const [result, setResult] = useState<ExecuteResult | null>(null);
-  const [executeError, setExecuteError] = useState<string | null>(null);
+  const [validationResult, setValidationResult] = useState<ValidationResult | null>(null);
+  const [executionTimeMs, setExecutionTimeMs] = useState<number>(0);
+  const [executeError, setExecuteError] = useState<ExecuteErrorDetails | null>(null);
+  const [expandedChecks, setExpandedChecks] = useState<Set<number>>(new Set());
+  const [copyToast, setCopyToast] = useState(false);
   const formRef = useRef<DynamicFormHandle>(null);
 
   // Load capabilities when manifest is loaded
@@ -80,6 +113,10 @@ export function TestingPanel({ manifestInfo }: TestingPanelProps) {
       setSelectedTool('');
       setInputValues({});
       setResult(null);
+      setValidationResult(null);
+      setExecuteError(null);
+      setExpandedChecks(new Set());
+      setActiveTab('setup');
       return;
     }
 
@@ -88,6 +125,10 @@ export function TestingPanel({ manifestInfo }: TestingPanelProps) {
     setSelectedTool('');
     setInputValues({});
     setResult(null);
+    setValidationResult(null);
+    setExecuteError(null);
+    setExpandedChecks(new Set());
+    setActiveTab('setup');
 
     fetch('/api/manifest/capabilities')
       .then((res) => res.ok ? res.json() : [])
@@ -99,6 +140,17 @@ export function TestingPanel({ manifestInfo }: TestingPanelProps) {
       })
       .catch(() => setCapabilities([]));
   }, [manifestInfo]);
+
+  // Clear stale test/validation results whenever the manifest is edited.
+  // This fires on every revision bump (including text edits before debounced
+  // revalidation completes) so users never see results from a prior manifest.
+  useEffect(() => {
+    if (manifestRevision === 0) return; // skip initial mount
+    setResult(null);
+    setValidationResult(null);
+    setExecuteError(null);
+    setExpandedChecks(new Set());
+  }, [manifestRevision]);
 
   // Load tools when capability or manifest changes
   useEffect(() => {
@@ -146,7 +198,9 @@ export function TestingPanel({ manifestInfo }: TestingPanelProps) {
       setInputValues(defaults);
     }
     setResult(null);
+    setValidationResult(null);
     setExecuteError(null);
+    setExpandedChecks(new Set());
   }, [currentTool]);
 
   const handleRunTest = useCallback(async () => {
@@ -159,7 +213,11 @@ export function TestingPanel({ manifestInfo }: TestingPanelProps) {
 
     setIsExecuting(true);
     setResult(null);
+    setValidationResult(null);
     setExecuteError(null);
+    setExpandedChecks(new Set());
+
+    const startTime = performance.now();
 
     try {
       const response = await fetch('/api/manifest/execute', {
@@ -172,20 +230,103 @@ export function TestingPanel({ manifestInfo }: TestingPanelProps) {
         }),
       });
 
+      const elapsedMs = Math.round(performance.now() - startTime);
+      setExecutionTimeMs(elapsedMs);
+
       const data = await response.json();
 
       if (response.ok) {
         setResult(data);
-        setActiveTab('results');
+
+        // Run validation on the response
+        // outputs is a map keyed by output name (e.g. {"quality-result": {...}}) –
+        // extract the first output's value for schema validation.
+        const outputsMap = data.extensionResponse?.tools?.[0]?.outputs;
+        const responsePayload = outputsMap
+          ? Object.values(outputsMap)[0] ?? {}
+          : data.rawBody ?? {};
+        try {
+          const valRes = await fetch(`/api/validate/${encodeURIComponent(selectedTool)}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ response: responsePayload }),
+          });
+          if (valRes.ok || valRes.status === 422) {
+            const valData: ValidationResult = await valRes.json();
+            setValidationResult(valData);
+            // Auto-expand failed checks
+            const failedIndices = new Set<number>();
+            valData.checks.forEach((c, i) => {
+              if (!c.passed && c.error) failedIndices.add(i);
+            });
+            setExpandedChecks(failedIndices);
+          }
+        } catch {
+          // Validation call failed silently – results tab will show execution result only
+        }
       } else {
-        setExecuteError(data.error || `HTTP ${response.status}`);
+        setExecuteError({
+          message: data.error || `HTTP ${response.status}`,
+          endpoint: data.endpoint,
+          cause: data.cause,
+          troubleshooting: data.troubleshooting,
+          sentRequest: data.sentRequest,
+        });
       }
+
+      // Always switch to Results tab after execution
+      setActiveTab('results');
     } catch {
-      setExecuteError('Network error: could not reach the server.');
+      setExecutionTimeMs(Math.round(performance.now() - startTime));
+      setExecuteError({
+        message: 'Network error: could not reach the sandbox server.',
+        cause: 'Sandbox server unreachable',
+        troubleshooting: [
+          'Ensure the sandbox development server is running.',
+          'Check that the browser can reach the server on the expected port.',
+        ],
+      });
+      setActiveTab('results');
     } finally {
       setIsExecuting(false);
     }
   }, [selectedCapability, selectedTool, inputValues]);
+
+  const toggleCheck = useCallback((index: number) => {
+    setExpandedChecks((prev) => {
+      const next = new Set(prev);
+      if (next.has(index)) {
+        next.delete(index);
+      } else {
+        next.add(index);
+      }
+      return next;
+    });
+  }, []);
+
+  const handleCopyResults = useCallback(() => {
+    if (!validationResult) return;
+    const lines: string[] = [
+      `Validation Results — ${validationResult.toolName}`,
+      `Overall: ${validationResult.valid ? 'PASS' : 'FAIL'}`,
+      `Passed: ${validationResult.summary.passed}  Failed: ${validationResult.summary.failed}`,
+      '',
+      'Checks:',
+    ];
+    for (const check of validationResult.checks) {
+      const icon = check.passed ? '✓' : '✕';
+      lines.push(`  ${icon} ${check.check} — ${check.passed ? 'PASS' : 'FAIL'}`);
+      if (!check.passed && check.error) {
+        lines.push(`    Error: ${check.error}`);
+      }
+    }
+    navigator.clipboard.writeText(lines.join('\n'))
+      .then(() => {
+        setCopyToast(true);
+        setTimeout(() => setCopyToast(false), 2500);
+      })
+      .catch(() => { /* ignore */ });
+  }, [validationResult]);
 
   if (!manifestInfo) {
     return (
@@ -309,7 +450,7 @@ export function TestingPanel({ manifestInfo }: TestingPanelProps) {
 
             {executeError && (
               <div className="execute-error">
-                <strong>Error:</strong> {executeError}
+                <strong>Error:</strong> {executeError.message}
               </div>
             )}
           </div>
@@ -317,24 +458,155 @@ export function TestingPanel({ manifestInfo }: TestingPanelProps) {
 
         {activeTab === 'results' && (
           <div className="results-tab">
-            {result ? (
-              <div className="result-display">
-                <div className="result-status">
-                  <span className={`status-badge ${result.status < 400 ? 'status-success' : 'status-error'}`}>
-                    {result.status} {result.statusText}
-                  </span>
+            {(result || executeError) ? (
+              <div className="validation-results">
+                {/* Tool context card */}
+                <div className="tool-context">
+                  <div className="tool-context-row">
+                    <div>
+                      <div className="tool-context-label">Capability</div>
+                      <div className="tool-context-value">{selectedCapability}</div>
+                    </div>
+                    <div>
+                      <div className="tool-context-label">Tool</div>
+                      <div className="tool-context-value">{selectedTool}</div>
+                    </div>
+                    <div>
+                      <div className="tool-context-label">Execution Time</div>
+                      <div className="tool-context-value">{executionTimeMs} ms</div>
+                    </div>
+                  </div>
                 </div>
-                <div className="result-body">
-                  <pre className="result-json">
-                    {typeof result.body === 'string'
-                      ? result.body
-                      : JSON.stringify(result.body, null, 2)}
-                  </pre>
+
+                {/* Validation Results header */}
+                {validationResult && (
+                  <>
+                    <div className="validation-header">
+                      <h2>Validation Results</h2>
+                      <span className={`badge ${validationResult.valid ? 'badge-pass' : 'badge-fail'}`}>
+                        <span className="badge-icon">{validationResult.valid ? '✓' : '✕'}</span>
+                        {validationResult.valid ? 'PASS' : 'FAIL'}
+                      </span>
+                    </div>
+
+                    {/* Summary */}
+                    <p className="validation-summary">
+                      {validationResult.valid
+                        ? `All ${validationResult.summary.passed} checks passed — response matches the expected schema.`
+                        : `${validationResult.summary.failed} of ${validationResult.summary.passed + validationResult.summary.failed} checks failed — ${validationResult.checks.filter(c => !c.passed).map(c => c.error || c.check).join('; ')}`}
+                    </p>
+
+                    {/* Check list */}
+                    <ul className="check-list" role="list" aria-label="Validation checks">
+                      {validationResult.checks.map((check, index) => {
+                        const hasFailed = !check.passed && !!check.error;
+                        const expanded = expandedChecks.has(index);
+                        return (
+                          <li key={index} className={`check-item${hasFailed ? ' expandable' : ''}`} role="listitem">
+                            <div
+                              className="check-item-row"
+                              {...(hasFailed ? {
+                                role: 'button',
+                                tabIndex: 0,
+                                onClick: () => toggleCheck(index),
+                                onKeyDown: (e: React.KeyboardEvent) => {
+                                  if (e.key === 'Enter' || e.key === ' ') {
+                                    e.preventDefault();
+                                    toggleCheck(index);
+                                  }
+                                },
+                                'aria-expanded': expanded,
+                              } : {})}
+                            >
+                              <span className={`check-icon ${check.passed ? 'check-icon-pass' : 'check-icon-fail'}`}>
+                                {check.passed ? '✓' : '✕'}
+                              </span>
+                              <span className="check-label">{check.check}</span>
+                              <span className={`check-status ${check.passed ? 'check-status-pass' : 'check-status-fail'}`}>
+                                {check.passed ? 'PASS' : 'FAIL'}
+                              </span>
+                              {hasFailed && <span className={`chevron${expanded ? ' open' : ''}`}>▶</span>}
+                            </div>
+                            {hasFailed && expanded && (
+                              <div className="check-error-detail" role="alert">
+                                {check.error}
+                              </div>
+                            )}
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </>
+                )}
+
+                {/* Network/execution error (no validation result available) */}
+                {executeError && !validationResult && (
+                  <div className="execute-error-detailed" style={{ marginTop: '1rem' }}>
+                    <div className="error-header">
+                      <span className="error-icon">⚠️</span>
+                      <strong>{executeError.cause || 'Error'}</strong>
+                    </div>
+                    <p className="error-message">{executeError.message}</p>
+                    {executeError.endpoint && (
+                      <p className="error-endpoint">
+                        <strong>Endpoint:</strong>{' '}
+                        <code>{executeError.endpoint}</code>
+                      </p>
+                    )}
+                    {executeError.troubleshooting && executeError.troubleshooting.length > 0 && (
+                      <div className="error-troubleshooting">
+                        <strong>Troubleshooting:</strong>
+                        <ul>
+                          {executeError.troubleshooting.map((tip, i) => (
+                            <li key={i}>{tip}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                    {!!executeError.sentRequest && (
+                      <p className="error-outputs-hint">
+                        <Link onClick={() => setActiveTab('outputs')}>
+                          View request payload in Outputs tab →
+                        </Link>
+                      </p>
+                    )}
+                  </div>
+                )}
+
+                {/* Action buttons */}
+                <div className="validation-actions">
+                  <Button
+                    appearance="primary"
+                    icon={<CodeRegular />}
+                    onClick={handleRunTest}
+                    disabled={isExecuting}
+                  >
+                    Re-run Execution
+                  </Button>
+                  <Button
+                    appearance="secondary"
+                    icon={<CopyRegular />}
+                    onClick={handleCopyResults}
+                    disabled={!validationResult}
+                  >
+                    Copy Results
+                  </Button>
                 </div>
+
+                {/* Session persistence banner */}
+                {validationResult && (
+                  <div className="session-banner">
+                    <span className="session-banner-icon">ℹ</span>
+                    Results saved to session - will be included in the consolidated validation report.
+                  </div>
+                )}
               </div>
             ) : (
               <p className="results-empty">No results yet. Run a test from the Setup tab.</p>
             )}
+
+            {/* Copy-to-clipboard toast */}
+            {copyToast && <div className="copy-toast" role="status" aria-live="polite">✓ Results copied to clipboard</div>}
           </div>
         )}
 
@@ -342,18 +614,74 @@ export function TestingPanel({ manifestInfo }: TestingPanelProps) {
           <div className="outputs-tab">
             {result && currentTool ? (
               <div className="outputs-display">
-                {currentTool.outputs.map((output) => (
-                  <div key={output.name} className="output-item">
-                    <label className="field-label">{output.name}</label>
-                    <p className="field-description">Content-Type: {output.contentType}</p>
-                    {output.description && <p className="field-description">{output.description}</p>}
-                  </div>
-                ))}
-                <pre className="result-json">
-                  {typeof result.body === 'string'
-                    ? result.body
-                    : JSON.stringify(result.body, null, 2)}
+                <h3 className="outputs-section-title">Dragon Copilot Preview</h3>
+                <div className="copilot-preview-card">
+                  {(() => {
+                    const responseData = result.extensionResponse ?? result.rawBody;
+                    if (!responseData) return <p className="preview-empty">No preview data available.</p>;
+                    const data = typeof responseData === 'string' ? (() => { try { return JSON.parse(responseData); } catch { return null; } })() : responseData;
+                    if (!data || typeof data !== 'object') return <pre className="preview-raw">{typeof responseData === 'string' ? responseData : JSON.stringify(responseData, null, 2)}</pre>;
+                    const entries = Object.entries(data as Record<string, unknown>);
+                    return entries.map(([key, value]) => (
+                      <div key={key} className="preview-field">
+                        <div className="preview-field-label">{key.replace(/([A-Z])/g, ' $1').replace(/[_-]/g, ' ').toUpperCase().trim()}:</div>
+                        <div className="preview-field-value">
+                          {value === null || value === undefined || value === ''
+                            ? <span className="preview-empty-value">&nbsp;</span>
+                            : typeof value === 'object'
+                              ? <span className="preview-ai-text">{JSON.stringify(value, null, 2)}</span>
+                              : typeof value === 'string' && value.length > 80
+                                ? <span className="preview-ai-text">{value}</span>
+                                : String(value)}
+                        </div>
+                      </div>
+                    ));
+                  })()}
+                </div>
+
+                <h3 className="outputs-section-title">Request Payload</h3>
+                <div className="request-method-badge">POST {currentTool.endpoint}</div>
+                <pre className="dark-code-block">
+                  {result.sentRequest
+                    ? JSON.stringify(result.sentRequest, null, 2)
+                    : JSON.stringify({ endpoint: currentTool.endpoint, payload: inputValues }, null, 2)}
                 </pre>
+
+                <h3 className="outputs-section-title">Response Payload</h3>
+                <pre className="dark-code-block">
+                  {result.extensionResponse
+                    ? JSON.stringify(result.extensionResponse, null, 2)
+                    : result.rawBody
+                      ? (typeof result.rawBody === 'string' ? result.rawBody : JSON.stringify(result.rawBody, null, 2))
+                      : 'No output data'}
+                </pre>
+              </div>
+            ) : executeError ? (
+              <div className="outputs-display">
+                <h3 className="outputs-section-title">Dragon Copilot Preview</h3>
+                <div className="copilot-preview-card copilot-preview-error">
+                  <p className="error-message">{executeError.message}</p>
+                  {executeError.endpoint && (
+                    <div className="preview-field">
+                      <div className="preview-field-label">ENDPOINT:</div>
+                      <div className="preview-field-value">{executeError.endpoint}</div>
+                    </div>
+                  )}
+                </div>
+
+                {!!executeError.sentRequest && (
+                  <>
+                    <h3 className="outputs-section-title">Request Payload</h3>
+                    <div className="request-method-badge">POST {executeError.endpoint || ''}</div>
+                    <pre className="dark-code-block">{JSON.stringify(executeError.sentRequest, null, 2)}</pre>
+                  </>
+                )}
+
+                <h3 className="outputs-section-title">Response Payload</h3>
+                <pre className="dark-code-block">{JSON.stringify({
+                  errorCode: executeError.cause?.toUpperCase().replace(/\s+/g, '_') || 'MISSING_REQUIRED_INPUT',
+                  requiredMissing: Object.keys(inputValues).filter(k => !inputValues[k]),
+                }, null, 2)}</pre>
               </div>
             ) : (
               <p className="results-empty">No outputs yet. Run a test from the Setup tab.</p>

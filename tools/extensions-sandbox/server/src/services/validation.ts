@@ -168,6 +168,41 @@ export function validateToolResponse(
   const isValid = validate(responsePayload);
 
   const checks: ValidationCheck[] = [];
+  const payloadObj = responsePayload as Record<string, unknown>;
+
+  // Detect error-shaped responses (e.g. {"error": "..."} from a non-matching endpoint).
+  // If the payload has an 'error' field and none of the schema's required top-level
+  // fields, it's almost certainly an error response rather than a valid tool output.
+  const schemaRequired = ((validate.schema as Record<string, unknown>)?.required as string[]) ?? [];
+  const hasErrorField = 'error' in payloadObj;
+  const hasAnyRequiredField = schemaRequired.some((field) => field in payloadObj);
+  const isErrorResponse = hasErrorField && !hasAnyRequiredField;
+
+  if (isErrorResponse) {
+    checks.push({
+      check: 'Schema resolved for output content-type',
+      passed: true,
+    });
+    checks.push({
+      check: 'Response payload is an object',
+      passed: false,
+      error: 'Response is an error envelope, not a valid tool output.',
+    });
+    checks.push({
+      check: 'Response is not an error envelope',
+      passed: false,
+      path: '/error',
+      error: `Response appears to be an error (contains 'error' field: "${String(payloadObj.error).slice(0, 120)}"). Expected a valid tool output matching the schema.`,
+    });
+    // Still include schema errors so the user sees what was expected
+    if (!isValid) {
+      const errors = validate.errors ?? [];
+      for (const err of errors) {
+        checks.push(ajvErrorToCheck(err));
+      }
+    }
+    return buildResult(toolName, outputContentType, timestamp, checks);
+  }
 
   // High-level structural pass checks
   checks.push({ check: 'Schema resolved for output content-type', passed: true });
