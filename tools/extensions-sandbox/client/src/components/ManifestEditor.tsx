@@ -29,10 +29,11 @@ interface ManifestInfo {
 
 interface ManifestEditorProps {
   onManifestLoaded: (info: ManifestInfo) => void;
+  onManifestEditing: () => void;
   onReset: () => void;
 }
 
-export function ManifestEditor({ onManifestLoaded, onReset }: ManifestEditorProps) {
+export function ManifestEditor({ onManifestLoaded, onManifestEditing, onReset }: ManifestEditorProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [isUploading, setIsUploading] = useState(false);
@@ -117,7 +118,8 @@ export function ManifestEditor({ onManifestLoaded, onReset }: ManifestEditorProp
   const handleTextChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setManifestText(e.target.value);
     isUserEdit.current = true;
-  }, []);
+    onManifestEditing();
+  }, [onManifestEditing]);
 
   // Debounced re-validation on text changes
   useEffect(() => {
