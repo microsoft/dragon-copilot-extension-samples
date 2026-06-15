@@ -391,6 +391,13 @@ body {
   margin: 0;
 }
 
+.sandbox-generated-label {
+  font-size: 0.75rem;
+  font-weight: 400;
+  color: var(--color-text-secondary, #888);
+  font-style: italic;
+}
+
 /* Dragon Copilot Preview card */
 .copilot-preview-card {
   border-left: 4px solid var(--color-success);

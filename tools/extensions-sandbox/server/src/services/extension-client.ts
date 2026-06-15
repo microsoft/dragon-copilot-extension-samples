@@ -112,15 +112,7 @@ export async function callExtensionAsync(
 
   // Parse input values from strings to objects (mirrors the real service's
   // JSON deserialization of input values in ExtensionClientMapper)
-  const parsedInputs: Record<string, unknown> = {};
-  for (const [key, value] of Object.entries(inputs)) {
-    try {
-      parsedInputs[key] = JSON.parse(value);
-    } catch {
-      // If not valid JSON, pass as-is (string)
-      parsedInputs[key] = value;
-    }
-  }
+  const parsedInputs = parseInputValues(inputs);
 
   const extensionRequest = buildExtensionRequest(tool, parsedInputs, customerTenantId);
 
@@ -146,8 +138,6 @@ export async function callExtensionAsync(
       body: JSON.stringify(extensionRequest),
       signal: controller.signal,
     });
-
-    clearTimeout(timeout);
 
     const responseHeaders = Object.fromEntries(response.headers.entries());
     const contentType = response.headers.get('content-type') || '';
@@ -191,7 +181,34 @@ function isExtensionResponse(body: unknown): body is ExtensionResponse {
       (t: unknown) =>
         t !== null &&
         typeof t === 'object' &&
-        typeof (t as Record<string, unknown>).toolName === 'string',
+        typeof (t as Record<string, unknown>).toolName === 'string' &&
+        typeof (t as Record<string, unknown>).toolRequestId === 'string' &&
+        (t as Record<string, unknown>).outputs !== null &&
+        typeof (t as Record<string, unknown>).outputs === 'object',
     )
   );
+}
+
+/**
+ * Parses form input values (strings) into their appropriate types.
+ * Only parses values that look like JSON objects or arrays — primitive-looking
+ * strings (numbers, booleans) are kept as strings to avoid silent type coercion
+ * of clinical identifiers like MRNs or accession numbers.
+ */
+export function parseInputValues(inputs: Record<string, string>): Record<string, unknown> {
+  const parsed: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(inputs)) {
+    const trimmed = value.trim();
+    if ((trimmed.startsWith('{') && trimmed.endsWith('}')) ||
+        (trimmed.startsWith('[') && trimmed.endsWith(']'))) {
+      try {
+        parsed[key] = JSON.parse(value);
+      } catch {
+        parsed[key] = value;
+      }
+    } else {
+      parsed[key] = value;
+    }
+  }
+  return parsed;
 }

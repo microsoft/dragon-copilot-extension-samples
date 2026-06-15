@@ -11,7 +11,7 @@ import { mapPathsToLines } from '../utils/source-mapper.js';
 import { getToolsForCapability } from '../utils/tool-metadata.js';
 import { parseCapabilities } from '../utils/capabilities-parser.js';
 import { MANIFEST_SCHEMA_PATH } from '../utils/schema-path.js';
-import { callExtensionAsync, buildExtensionRequest } from '../services/extension-client.js';
+import { callExtensionAsync, buildExtensionRequest, parseInputValues } from '../services/extension-client.js';
 
 export const manifestRouter = Router();
 
@@ -414,10 +414,7 @@ manifestRouter.post('/execute', async (req, res) => {
     // Build the request that was attempted so the Outputs tab can display it
     let sentRequest: unknown;
     try {
-      const parsedInputs: Record<string, unknown> = {};
-      for (const [key, value] of Object.entries(inputs ?? {})) {
-        try { parsedInputs[key] = JSON.parse(value); } catch { parsedInputs[key] = value; }
-      }
+      const parsedInputs = parseInputValues(inputs ?? {});
       sentRequest = buildExtensionRequest(
         tool,
         parsedInputs,

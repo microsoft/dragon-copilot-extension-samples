@@ -98,7 +98,12 @@ export const DynamicForm = forwardRef<DynamicFormHandle, DynamicFormProps>(funct
     if (constraints.pattern) {
       try {
         const regex = new RegExp(constraints.pattern);
-        // Guard against catastrophic backtracking with a length limit
+        // Reject patterns that are likely to cause catastrophic backtracking
+        // (nested quantifiers like (a+)+, (a*)*b, etc.)
+        const dangerousPattern = /(\(.+[+*]\).+[+*])/;
+        if (dangerousPattern.test(constraints.pattern)) {
+          return `Pattern validation skipped: potentially unsafe regex`;
+        }
         if (value.length <= 10_000 && !regex.test(value)) {
           return `Must match pattern: ${constraints.pattern}`;
         }

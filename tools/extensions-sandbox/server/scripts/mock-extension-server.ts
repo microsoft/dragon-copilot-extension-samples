@@ -125,6 +125,10 @@ interface ExtensionRequest {
 }
 
 function handleProcess(body: ExtensionRequest) {
+  if (body.tools && body.tools.length > 1) {
+    console.warn(`⚠️  Request contains ${body.tools.length} tools but mock server only processes the first.`);
+  }
+
   const toolReq = body.tools?.[0];
   if (!toolReq) {
     return { status: 400, body: { success: false, error: 'No tool request provided.' } };
