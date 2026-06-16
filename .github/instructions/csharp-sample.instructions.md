@@ -56,4 +56,4 @@ The following patterns appear in some samples but are **not** universal across t
 - Source-generated `[LoggerMessage]` partials.
 - A per-sample `extension.yaml` manifest checked into the C# sample folder.
 
-When working inside a specific product folder, also follow that product's overlay (e.g. `physician.instructions.md`, `radiology.instructions.md`).
+When working inside a specific product folder, also follow that product's overlay (e.g. `radiology.instructions.md`).
