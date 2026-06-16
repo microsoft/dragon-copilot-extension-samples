@@ -11,7 +11,16 @@ your own implementation and deploy a working extension that follows the expected
 - JWT authentication via Microsoft Entra ID, toggleable via `Authentication.Enabled` in `appsettings.json`
 - Stubbed responses loaded from JSON files under `MockData/`
 - Swagger UI at the app root in Development
-- Health probes at `/health/liveness` and `/health/readiness`
+- Health probes at `/health/liveness` and `/health/readiness` (JSON responses)
+
+## API endpoints
+
+| Method | Route                 | Auth        | Description                                            |
+| ------ | --------------------- | ----------- | ----------------------------------------------------- |
+| POST   | `/v1/process`         | JWT         | Analyzes a radiology report, returns quality checks   |
+| GET    | `/health/liveness`    | Public      | Liveness probe, returns `{"status":"Healthy"}`        |
+| GET    | `/health/readiness`   | Public      | Readiness probe, returns `{"status":"Healthy"}`       |
+| GET    | `/`                   | Public      | Swagger UI (Development only)                          |
 
 ## Run locally
 
@@ -26,6 +35,36 @@ Available endpoints:
 
 A `.http` file (`SampleExtension.Radiology.Web.Quickstart.http`) is included
 for sending sample requests from Visual Studio or VS Code.
+
+## Testing the API
+
+Use the included `.http` file, or call the endpoints directly.
+
+**Health probes:**
+
+```bash
+curl http://localhost:5080/health/liveness
+curl http://localhost:5080/health/readiness
+```
+
+```powershell
+Invoke-RestMethod http://localhost:5080/health/liveness
+Invoke-RestMethod http://localhost:5080/health/readiness
+```
+
+**Process a report** (see [`SampleExtension.Radiology.Web.Quickstart.http`](./SampleExtension.Radiology.Web.Quickstart.http) for the full body). The relative path below assumes you are in the `radiology/src/samples/Workflow` directory (the same place you ran `dotnet run` from):
+
+```bash
+curl -X POST http://localhost:5080/v1/process \
+  -H "Content-Type: application/json" \
+  -d '@../requests/FullRequest-Example.json'
+```
+
+```powershell
+Invoke-RestMethod -Method Post -Uri http://localhost:5080/v1/process `
+  -ContentType "application/json" `
+  -InFile ..\requests\FullRequest-Example.json
+```
 
 ## Security
 
@@ -101,7 +140,7 @@ modifying any C# code.
 
 To replace the stub with real logic, edit
 [`Services/QualityCheckService.cs`](./Services/QualityCheckService.cs) — the
-`IQualityCheckService.Process` method is the single integration point.
+`IQualityCheckService.ProcessAsync` method is the single integration point.
 
 ## Request / response contract
 

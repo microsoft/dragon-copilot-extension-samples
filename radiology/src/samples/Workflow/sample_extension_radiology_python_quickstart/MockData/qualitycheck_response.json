@@ -1,0 +1,49 @@
+{
+  "success": true,
+  "message": "Payload processed successfully.",
+  "payload": {
+    "qualityCheckResult": {
+      "recommendations": [
+        {
+          "qualityCheckType": "Clinical",
+          "description": "Replace 'paddock steatosis' with 'hepatic steatosis'.",
+          "reason": "'Paddock steatosis' is not a recognized medical term and is a well-known speech-to-text mis-hearing of 'hepatic steatosis' (fatty liver). Leaving the erroneous term in the final report can mislead downstream clinicians, omit a clinically significant finding from the patient's problem list, and break automated coding and decision-support tools that key off standard terminology.",
+          "severityScorePercent": 85,
+          "provenance": [
+            {
+              "text": "paddock steatosis",
+              "startPosition": 42,
+              "endPosition": 59
+            }
+          ]
+        },
+        {
+          "qualityCheckType": "Clinical",
+          "description": "Replace 'for views' with '4 views' on the chest radiograph.",
+          "reason": "'For views' is a phonetic mis-hearing of '4 views'. The number of projections obtained is part of the radiographic technique and must be documented accurately so the interpreting radiologist and downstream clinicians know the exam was a complete 4-view chest series rather than a limited study. An incorrect view count can change how findings are weighed and may lead to unnecessary repeat imaging.",
+          "severityScorePercent": 50,
+          "provenance": [
+            {
+              "text": "for views",
+              "startPosition": 120,
+              "endPosition": 129
+            }
+          ]
+        },
+        {
+          "qualityCheckType": "Billing",
+          "description": "Document whether IV contrast was actually administered for the CT abdomen study.",
+          "reason": "The study is titled 'CT ABDOMEN WITH CONTRAST', but the body of the report does not explicitly state that intravenous contrast was administered, the contrast agent and volume used, or any pre-scan renal function or allergy screening. Accurate CPT selection depends on this distinction: 74150 (CT abdomen without contrast), 74160 (with contrast), and 74170 (without and with contrast). Missing documentation can lead to downcoding, payer denials, or compliance findings on audit. Confirm contrast administration with the technologist and update the technique section before finalizing the report.",
+          "severityScorePercent": 65,
+          "provenance": [
+            {
+              "text": "CT ABDOMEN WITH CONTRAST",
+              "startPosition": 0,
+              "endPosition": 24
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

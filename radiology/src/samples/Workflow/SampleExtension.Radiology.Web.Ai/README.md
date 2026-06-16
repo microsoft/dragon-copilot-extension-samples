@@ -14,7 +14,16 @@ that follows the expected contract.
 - JWT authentication via Microsoft Entra ID, toggleable via `Authentication.Enabled` in `appsettings.json`
 - AI-powered quality checks via Azure OpenAI **or** an on-device model through Microsoft.AI.Foundry.Local
 - Swagger UI at the app root in Development
-- Health probes at `/health/liveness` and `/health/readiness`
+- Health probes at `/health/liveness` and `/health/readiness` (JSON responses)
+
+## API endpoints
+
+| Method | Route                 | Auth        | Description                                            |
+| ------ | --------------------- | ----------- | ----------------------------------------------------- |
+| POST   | `/v1/process`         | JWT         | Analyzes a radiology report, returns quality checks   |
+| GET    | `/health/liveness`    | Public      | Liveness probe, returns `{"status":"Healthy"}`        |
+| GET    | `/health/readiness`   | Public      | Readiness probe, returns `{"status":"Healthy"}`       |
+| GET    | `/`                   | Public      | Swagger UI (Development only)                          |
 
 ## Run locally
 

@@ -39,7 +39,7 @@ public sealed class QualityCheckService : IQualityCheckService
     }
 
     /// <inheritdoc />
-    public ProcessResponse Process(ProcessRequest payload)
+    public Task<ProcessResponse> ProcessAsync(ProcessRequest payload, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(payload);
 
@@ -49,7 +49,7 @@ public sealed class QualityCheckService : IQualityCheckService
             payload.Report?.ReportText.Length);
 
         _logger.LogInformation("No model provider configured. Returning mock data.");
-        return ProcessWithMockData();
+        return Task.FromResult(ProcessWithMockData());
     }
 
     private ProcessResponse ProcessWithMockData()

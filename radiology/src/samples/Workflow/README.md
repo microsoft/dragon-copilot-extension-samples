@@ -13,7 +13,7 @@ partner extension pattern for Dragon Copilot.
 
 ## Solution
 
-[`SampleExtensions.Radiology.Web.slnx`](./SampleExtensions.Radiology.Web.slnx)
+[`SampleExtension.Radiology.Web.slnx`](./SampleExtension.Radiology.Web.slnx)
 contains the sample projects plus the shared
 [`Dragon.Copilot.Radiology.Models`](../../models/Dragon.Copilot.Radiology.Models/Dragon.Copilot.Radiology.Models.csproj)
 contract project.
@@ -21,7 +21,7 @@ contract project.
 ## Build everything
 
 ```powershell
-dotnet build SampleExtensions.Radiology.Web.slnx
+dotnet build SampleExtension.Radiology.Web.slnx
 ```
 
 ## Run a sample
@@ -33,3 +33,17 @@ dotnet run --project SampleExtension.Radiology.Web.Quickstart
 # AI-backed (Azure OpenAI + Foundry Local fallback)
 dotnet run --project SampleExtension.Radiology.Web.Ai
 ```
+
+## Samples in other languages
+
+These samples are written in C#, but the same wire contract works in any
+language. To scaffold an equivalent sample in Python, Go, Java, Node.js,
+TypeScript, or Rust, use the reusable Copilot prompt:
+
+1. Open the repo in VS Code with GitHub Copilot Chat enabled.
+2. In Copilot Chat, type `/` and select `radiology-scaffold-language-sample`.
+3. Provide the target language when prompted, then review and run the generated sample.
+
+The prompt lives at
+[`.github/prompts/radiology-scaffold-language-sample.prompt.md`](../../../../.github/prompts/radiology-scaffold-language-sample.prompt.md)
+and mirrors the C# Quickstart's contract, structure, and tests.

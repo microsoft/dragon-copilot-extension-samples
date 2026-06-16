@@ -1,6 +1,7 @@
 // Minimal, self-contained Radiology extension sample.
 // Partners can copy this project folder and run it with `dotnet run`.
 
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using SampleExtension.Radiology.Web.Ai.Configuration;
 using SampleExtension.Radiology.Web.Ai.Extensions;
 using SampleExtension.Radiology.Web.Ai.Services;
@@ -67,8 +68,19 @@ if (app.Environment.IsDevelopment())
     });
 }
 
-app.MapHealthChecks("/health/liveness");
-app.MapHealthChecks("/health/readiness");
+// Health probes return a JSON body (e.g. {"status":"Healthy"}) so monitoring
+// tools can parse the result rather than reading a plain-text string.
+var healthCheckOptions = new HealthCheckOptions
+{
+    ResponseWriter = async (context, report) =>
+    {
+        context.Response.ContentType = "application/json";
+        await context.Response.WriteAsJsonAsync(new { status = report.Status.ToString() }).ConfigureAwait(false);
+    },
+};
+
+app.MapHealthChecks("/health/liveness", healthCheckOptions);
+app.MapHealthChecks("/health/readiness", healthCheckOptions);
 
 // Apply JWT authentication to all non-public routes
 app.UseFullSecurity();
