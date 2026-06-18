@@ -398,7 +398,7 @@ body {
   font-style: italic;
 }
 
-/* Dragon Copilot Preview card */
+/* Extension Response card */
 .copilot-preview-card {
   border-left: 4px solid var(--color-success);
   background: var(--color-surface);

@@ -183,13 +183,17 @@ export function ManifestEditor({ onManifestLoaded, onManifestEditing, onReset }:
         >
           Upload Manifest
         </Button>
-        <Tooltip content="Use Dragon Copilot CLI to create manifests" relationship="description">
-          <Button
-            appearance="secondary"
-            icon={<CodeRegular />}
-          >
-            Dragon Copilot CLI
-          </Button>
+        {/* TODO: Re-enable when CLI integration (story #2848832) is complete */}
+        <Tooltip content="Coming Soon - CLI integration in progress" relationship="description">
+          <span>
+            <Button
+              appearance="secondary"
+              icon={<CodeRegular />}
+              disabled
+            >
+              Dragon Copilot CLI
+            </Button>
+          </span>
         </Tooltip>
         <Button
           appearance="subtle"

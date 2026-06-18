@@ -762,7 +762,7 @@ export function TestingPanel({ manifestInfo, manifestRevision }: TestingPanelPro
           <div className="outputs-tab">
             {result && currentTool ? (
               <div className="outputs-display">
-                <h3 className="outputs-section-title">Dragon Copilot Preview</h3>
+                <h3 className="outputs-section-title">Extension Response</h3>
                 <div className="copilot-preview-card">
                   <ResponsePreview data={result.extensionResponse ?? result.rawBody} />
                 </div>
@@ -786,7 +786,7 @@ export function TestingPanel({ manifestInfo, manifestRevision }: TestingPanelPro
               </div>
             ) : executeError ? (
               <div className="outputs-display">
-                <h3 className="outputs-section-title">Dragon Copilot Preview</h3>
+                <h3 className="outputs-section-title">Extension Response</h3>
                 <div className="copilot-preview-card copilot-preview-error">
                   <p className="error-message">{executeError.message}</p>
                   {executeError.endpoint && (
