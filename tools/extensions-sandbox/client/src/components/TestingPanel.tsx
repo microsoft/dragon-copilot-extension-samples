@@ -83,6 +83,21 @@ interface ValidationResult {
   timestamp: string;
 }
 
+interface InputValidationCheck {
+  check: string;
+  passed: boolean;
+  path?: string;
+  error?: string;
+}
+
+interface InputValidationError {
+  valid: boolean;
+  inputName: string;
+  inputContentType: string;
+  checks: InputValidationCheck[];
+  summary: { passed: number; failed: number };
+}
+
 interface TestingPanelProps {
   manifestInfo: ManifestInfo | null;
   manifestRevision: number;
@@ -138,6 +153,7 @@ export function TestingPanel({ manifestInfo, manifestRevision }: TestingPanelPro
   const [executeError, setExecuteError] = useState<ExecuteErrorDetails | null>(null);
   const [expandedChecks, setExpandedChecks] = useState<Set<number>>(new Set());
   const [copyToast, setCopyToast] = useState(false);
+  const [inputValidationErrors, setInputValidationErrors] = useState<InputValidationError[] | null>(null);
   const formRef = useRef<DynamicFormHandle>(null);
 
   // Load capabilities when manifest is loaded
@@ -152,6 +168,7 @@ export function TestingPanel({ manifestInfo, manifestRevision }: TestingPanelPro
       setValidationResult(null);
       setExecuteError(null);
       setExpandedChecks(new Set());
+      setInputValidationErrors(null);
       setActiveTab('setup');
       return;
     }
@@ -164,6 +181,7 @@ export function TestingPanel({ manifestInfo, manifestRevision }: TestingPanelPro
     setValidationResult(null);
     setExecuteError(null);
     setExpandedChecks(new Set());
+    setInputValidationErrors(null);
     setActiveTab('setup');
 
     fetch('/api/manifest/capabilities')
@@ -186,6 +204,7 @@ export function TestingPanel({ manifestInfo, manifestRevision }: TestingPanelPro
     setValidationResult(null);
     setExecuteError(null);
     setExpandedChecks(new Set());
+    setInputValidationErrors(null);
   }, [manifestRevision]);
 
   // Load tools when capability or manifest changes
@@ -237,6 +256,7 @@ export function TestingPanel({ manifestInfo, manifestRevision }: TestingPanelPro
     setValidationResult(null);
     setExecuteError(null);
     setExpandedChecks(new Set());
+    setInputValidationErrors(null);
   }, [currentTool]);
 
   const handleRunTest = useCallback(async () => {
@@ -252,6 +272,66 @@ export function TestingPanel({ manifestInfo, manifestRevision }: TestingPanelPro
     setValidationResult(null);
     setExecuteError(null);
     setExpandedChecks(new Set());
+    setInputValidationErrors(null);
+
+    // --- Input schema validation ---
+    // Build the parsed inputs map (same logic as the server's parseInputValues)
+    const parsedInputs: Record<string, unknown> = {};
+    for (const [key, value] of Object.entries(inputValues)) {
+      const trimmed = value.trim();
+      if ((trimmed.startsWith('{') && trimmed.endsWith('}')) ||
+          (trimmed.startsWith('[') && trimmed.endsWith(']'))) {
+        try {
+          parsedInputs[key] = JSON.parse(value);
+        } catch {
+          parsedInputs[key] = value;
+        }
+      } else {
+        parsedInputs[key] = value;
+      }
+    }
+
+    // Group flat field paths (e.g. "report.reportText") into nested objects by input name
+    const groupedInputs: Record<string, unknown> = {};
+    for (const [path, value] of Object.entries(parsedInputs)) {
+      const dotIndex = path.indexOf('.');
+      if (dotIndex > 0) {
+        const inputName = path.slice(0, dotIndex);
+        const fieldName = path.slice(dotIndex + 1);
+        if (!groupedInputs[inputName] || typeof groupedInputs[inputName] !== 'object') {
+          groupedInputs[inputName] = {};
+        }
+        // Only include non-empty values
+        if (value !== '' && value !== null && value !== undefined) {
+          (groupedInputs[inputName] as Record<string, unknown>)[fieldName] = value;
+        }
+      } else {
+        // Flat input (no dot)
+        if (value !== '' && value !== null && value !== undefined) {
+          groupedInputs[path] = value;
+        }
+      }
+    }
+
+    try {
+      const inputValRes = await fetch(`/api/validate/inputs/${encodeURIComponent(selectedTool)}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ inputs: groupedInputs }),
+      });
+
+      if (inputValRes.status === 422) {
+        const inputValData = await inputValRes.json();
+        const failedResults = (inputValData.results || []).filter((r: InputValidationError) => !r.valid);
+        if (failedResults.length > 0) {
+          setInputValidationErrors(failedResults);
+          setIsExecuting(false);
+          return;
+        }
+      }
+    } catch {
+      // If input validation endpoint is unreachable, proceed with execution anyway
+    }
 
     const startTime = performance.now();
 
@@ -487,6 +567,38 @@ export function TestingPanel({ manifestInfo, manifestRevision }: TestingPanelPro
             {executeError && (
               <div className="execute-error">
                 <strong>Error:</strong> {executeError.message}
+              </div>
+            )}
+
+            {inputValidationErrors && inputValidationErrors.length > 0 && (
+              <div className="input-validation-errors" role="alert">
+                <div className="input-validation-header">
+                  <span className="error-icon">⚠️</span>
+                  <strong>Input Schema Validation Failed</strong>
+                </div>
+                <p className="input-validation-summary">
+                  The input data does not match the expected schema for the declared content-type(s). Fix the errors below before running the test.
+                </p>
+                {inputValidationErrors.map((inputErr, idx) => (
+                  <div key={idx} className="input-validation-input-block">
+                    <div className="input-validation-input-header">
+                      <span className="check-icon check-icon-fail">✕</span>
+                      <strong>{inputErr.inputName}</strong>
+                      <code className="input-content-type-badge">{inputErr.inputContentType}</code>
+                    </div>
+                    <ul className="input-validation-check-list">
+                      {inputErr.checks.filter(c => !c.passed).map((check, cIdx) => (
+                        <li key={cIdx} className="input-validation-check-item">
+                          <span className="check-icon check-icon-fail">✕</span>
+                          <span className="input-validation-check-text">
+                            {check.error || check.check}
+                            {check.path && <code className="input-validation-path">{check.path}</code>}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
               </div>
             )}
           </div>

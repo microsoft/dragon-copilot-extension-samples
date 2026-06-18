@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { validateToolResponse } from '../services/validation.js';
+import { validateToolResponse, validateToolInputs } from '../services/validation.js';
 import { sessionStore } from '../store/session.js';
 
 export const validateRouter = Router();
@@ -24,6 +24,37 @@ validateRouter.get('/results', (_req, res) => {
 validateRouter.delete('/results', (_req, res) => {
   sessionStore.clearValidationResults();
   res.json({ message: 'Validation results cleared.' });
+});
+
+/**
+ * POST /api/validate/inputs/:toolName
+ * Validates tool input data against the expected input schemas
+ * based on the content-types declared in the manifest.
+ *
+ * Body: { "inputs": { "<inputName>": <parsed input data>, ... } }
+ */
+validateRouter.post('/inputs/:toolName', (req, res) => {
+  const { toolName } = req.params;
+
+  if (!req.body || !('inputs' in req.body)) {
+    res.status(400).json({
+      error: "Request body must contain an 'inputs' field with a map of input name to input data.",
+      example: { inputs: { report: { reportText: "..." } } },
+    });
+    return;
+  }
+
+  const inputs: Record<string, unknown> = req.body.inputs;
+  const results = validateToolInputs(toolName, inputs);
+
+  const allValid = results.every((r) => r.valid);
+  const statusCode = allValid ? 200 : 422;
+
+  res.status(statusCode).json({
+    valid: allValid,
+    toolName,
+    results,
+  });
 });
 
 /**
