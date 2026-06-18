@@ -1,21 +1,21 @@
 ﻿---
-applyTo: '**/*.py,**/requirements.txt,**/pyproject.toml'
+applyTo: "**/*.py,**/requirements.txt,**/pyproject.toml"
 ---
 
 # Python Sample Conventions — Copilot Instructions
 
-Shared Python conventions for sample extensions in this repository. This repository contains samples for multiple Dragon Copilot products (Physician, Radiology, and potentially others in the future). Product-specific patterns live in the matching `<product>.instructions.md` overlay.
+Shared Python conventions for sample extensions in this repository. This repository contains samples for multiple Dragon Copilot products (Physicians, Radiologists, and potentially others in the future). Product-specific patterns live in the matching `<product>.instructions.md` overlay.
 
 ## Stack
 
-| Component | Version |
-| --- | --- |
-| Python | 3.12 |
-| FastAPI | 0.116.1 |
-| uvicorn | 0.35.0 |
-| pydantic | 2.11.7 |
-| pydantic-settings | 2.10.1 |
-| pytest | 9.0.3 |
+| Component         | Version |
+| ----------------- | ------- |
+| Python            | 3.12    |
+| FastAPI           | 0.116.1 |
+| uvicorn           | 0.35.0  |
+| pydantic          | 2.11.7  |
+| pydantic-settings | 2.10.1  |
+| pytest            | 9.0.3   |
 
 Pin these exact versions in `requirements.txt`. Use `requirements.txt`, not `pyproject.toml`, to match the existing precedent and keep installation simple for partners.
 
@@ -31,7 +31,7 @@ Pin these exact versions in `requirements.txt`. Use `requirements.txt`, not `pyp
     ├── __init__.py
     ├── main.py            # FastAPI app, /v1/process, /health endpoints
     ├── config.py          # pydantic-settings
-    ├── models.py          # Pydantic mirrors of the C# models (Physician: DragonStandardPayload; Radiology: ProcessRequest/ProcessResponse)
+    ├── models.py          # Pydantic mirrors of the C# models (Physicians: DragonStandardPayload; Radiologists: ProcessRequest/ProcessResponse)
     ├── service.py         # Business logic / mock data fallback
     └── tests/
         ├── __init__.py
@@ -41,7 +41,7 @@ Pin these exact versions in `requirements.txt`. Use `requirements.txt`, not `pyp
 ## Endpoint pattern
 
 - Use FastAPI's decorator-based routing: `@app.post("/v1/process")`.
-- Define request and response models with Pydantic; do not return raw dicts. The exact DTO types vary by product — Physician uses `DragonStandardPayload`, Radiology uses `ProcessRequest`/`ProcessResponse`. Mirror the corresponding C# models project (`physician/src/models/` or `radiology/src/models/`).
+- Define request and response models with Pydantic; do not return raw dicts. The exact DTO types vary by product — Physicians use `DragonStandardPayload`, Radiologists use `ProcessRequest`/`ProcessResponse`. Mirror the corresponding C# models project (`physician/src/models/` or `radiologists/src/models/`).
 - Health endpoints at `/health/liveness` and `/health/readiness` return JSON status payloads, matching the C# samples and the scaffold prompt.
 - Enable FastAPI's automatic Swagger / OpenAPI generation; expose it at `/docs`.
 
@@ -54,7 +54,7 @@ Pin these exact versions in `requirements.txt`. Use `requirements.txt`, not `pyp
 ## Naming
 
 - snake_case for filenames inside the `app/` package.
-- Mock data filenames use the language's idiomatic casing (e.g., `qualitycheck_response.json` for Radiology). The exact filename varies — check the corresponding C# sample's `MockData/` folder.
+- Mock data filenames use the language's idiomatic casing (e.g., `qualitycheck_response.json` for Radiologists). The exact filename varies — check the corresponding C# sample's `MockData/` folder.
 - PascalCase for Pydantic model classes mirroring C# DTOs (`Report`, `PatientInformation`, `DragonStandardPayload`, etc.).
 - snake_case for field names exposed by Pydantic; use `alias` / `populate_by_name` if the JSON contract uses camelCase.
 
@@ -73,7 +73,7 @@ python3.12 -m venv .venv && source .venv/bin/activate && python3.12 -m pip insta
 python3.12 -m uvicorn app.main:app --host 0.0.0.0 --port <port> --reload
 ```
 
-Pick a port that matches the C# sample default for the same product (Physician: 5181, Radiology: 5080) so partners can swap implementations without changing client URLs.
+Pick a port that matches the C# sample default for the same product (Physicians: 5181, Radiologists: 5080) so partners can swap implementations without changing client URLs.
 
 ## Testing
 

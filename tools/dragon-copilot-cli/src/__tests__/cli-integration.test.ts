@@ -25,11 +25,11 @@ const EXTENSION_MANIFEST = [
   '        data: DSP',
 ].join('\n');
 
-const RADIOLOGY_EXTENSION_MANIFEST = [
-  'name: integrationRadiologyExtension',
-  'description: Radiology extension manifest used in integration tests',
+const RADIOLOGISTS_EXTENSION_MANIFEST = [
+  'name: integrationRadiologistsExtension',
+  'description: Radiologists extension manifest used in integration tests',
   'version: 0.0.1',
-  'radiologyExtensibilityApiVersion: 1.0.0',
+  'radiologistsExtensibilityApiVersion: 1.0.0',
   'auth:',
   '  tenantId: 00000000-0000-0000-0000-000000000001',
   'tools:',
@@ -151,14 +151,14 @@ describe('CLI integration paths', () => {
     expect(process.exitCode).toBe(0);
   });
 
-  test('radiology validate succeeds for a valid manifest with qualityCheck capability', async () => {
+  test('radiologists validate succeeds for a valid manifest with qualityCheck capability', async () => {
     const manifestPath = join(workingDir, 'extension.yaml');
-    writeFileSync(manifestPath, RADIOLOGY_EXTENSION_MANIFEST, 'utf8');
+    writeFileSync(manifestPath, RADIOLOGISTS_EXTENSION_MANIFEST, 'utf8');
 
     const program = new Command();
     registerCommands(program);
 
-    await program.parseAsync(['node', 'cli', 'radiology', 'validate', manifestPath]);
+    await program.parseAsync(['node', 'cli', 'radiologists', 'validate', manifestPath]);
 
     const combinedLogs = logSpy.mock.calls.flat().join(' ');
     expect(combinedLogs.toLowerCase()).toMatch(/valid|passed/);

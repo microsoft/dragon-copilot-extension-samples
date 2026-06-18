@@ -1,0 +1,26 @@
+name: sampleQualityCheckExtension
+description: Sample radiology quality check extension
+version: 0.0.1
+radiologistsExtensibilityApiVersion: 1.0.0
+auth:
+  tenantId: 00000000-0000-0000-0000-000000000000
+tools:
+  - name: sampleQualityCheckTool
+    toolType: contractBased
+    capability: qualityCheck
+    description: Tool to check quality of a radiology report
+    endpoint: http://localhost:5080/v1/process
+    inputs:
+      - name: report
+        description: Radiology report from Dragon Copilot
+        content-type: application/vnd.ms-dragon.rad.report+json
+        schemaVersion: "1.0"
+      - name: patientInformation
+        description: Patient demographic information
+        content-type: application/vnd.ms-dragon.rad.patient-information+json
+        schemaVersion: "1.0"
+    outputs:
+      - name: qualityCheckResult
+        description: Quality check findings and score
+        content-type: application/vnd.ms-dragon.rad.quality-check-result+json
+        schemaVersion: "1.0"
