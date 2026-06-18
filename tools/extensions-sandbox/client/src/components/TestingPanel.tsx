@@ -8,7 +8,7 @@ import {
   Spinner,
   Link,
 } from '@fluentui/react-components';
-import { PlayRegular, ArrowCounterclockwiseRegular, CodeRegular, CopyRegular } from '@fluentui/react-icons';
+import { ArrowCounterclockwiseRegular, CodeRegular, CopyRegular } from '@fluentui/react-icons';
 import { DynamicForm, getFieldPaths, SchemaProperty } from './DynamicForm';
 import type { DynamicFormHandle } from './DynamicForm';
 import './ValidationResults.css';
@@ -507,7 +507,7 @@ export function TestingPanel({ manifestInfo, manifestRevision }: TestingPanelPro
             <div className="action-bar">
               <Button
                 appearance="primary"
-                icon={<PlayRegular />}
+                icon={<CodeRegular />}
                 onClick={handleRunTest}
                 disabled={isExecuting}
               >

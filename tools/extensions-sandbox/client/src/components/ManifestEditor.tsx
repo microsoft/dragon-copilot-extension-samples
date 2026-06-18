@@ -241,35 +241,37 @@ export function ManifestEditor({ onManifestLoaded, onManifestEditing, onReset }:
         </div>
       </div>
 
-      <div className="manifest-validation">
-        <span className="validation-title">Manifest Validation</span>
-        {isValid === true && (
-          <Badge appearance="filled" color="success">✓ Valid</Badge>
+      <div className="validation-block">
+        <div className="manifest-validation">
+          <span className="validation-title">Manifest Validation</span>
+          {isValid === true && (
+            <Badge appearance="filled" color="success">✓ Valid</Badge>
+          )}
+          {isValid === false && (
+            <Badge appearance="filled" color="danger">✗ Invalid</Badge>
+          )}
+          {isValid === null && (
+            <Badge appearance="filled" color="informative">Awaiting upload</Badge>
+          )}
+        </div>
+        {validationMessage && (
+          <p className={`validation-message ${isValid ? 'valid' : 'invalid'}`}>
+            {validationMessage}
+          </p>
         )}
-        {isValid === false && (
-          <Badge appearance="filled" color="danger">✗ Invalid</Badge>
-        )}
-        {isValid === null && (
-          <Badge appearance="filled" color="informative">Awaiting upload</Badge>
+        {errors.length > 0 && (
+          <ul className="validation-errors">
+            {errors.map((err, i) => (
+              <li key={i} className="validation-error-item">
+                {err.line && <code className="error-line">Line {err.line}</code>}
+                {err.path && <code className="error-path">{err.path}</code>}
+                <span>{err.detail || err.message}</span>
+                {err.hint && <span className="error-hint">Fix: {err.hint}</span>}
+              </li>
+            ))}
+          </ul>
         )}
       </div>
-      {validationMessage && (
-        <p className={`validation-message ${isValid ? 'valid' : 'invalid'}`}>
-          {validationMessage}
-        </p>
-      )}
-      {errors.length > 0 && (
-        <ul className="validation-errors">
-          {errors.map((err, i) => (
-            <li key={i} className="validation-error-item">
-              {err.line && <code className="error-line">Line {err.line}</code>}
-              {err.path && <code className="error-path">{err.path}</code>}
-              <span>{err.detail || err.message}</span>
-              {err.hint && <span className="error-hint">Fix: {err.hint}</span>}
-            </li>
-          ))}
-        </ul>
-      )}
     </div>
   );
 }
