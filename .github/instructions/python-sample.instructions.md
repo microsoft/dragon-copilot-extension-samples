@@ -31,6 +31,7 @@ Pin these exact versions in `requirements.txt`. Use `requirements.txt`, not `pyp
     ├── __init__.py
     ├── main.py            # FastAPI app, /v1/process, /health endpoints
     ├── config.py          # pydantic-settings
+    ├── auth.py            # Entra ID JWT bearer validation (toggleable)
     ├── models.py          # Pydantic mirrors of the C# models (Physicians: DragonStandardPayload; Radiologists: ProcessRequest/ProcessResponse)
     ├── service.py         # Business logic / mock data fallback
     └── tests/

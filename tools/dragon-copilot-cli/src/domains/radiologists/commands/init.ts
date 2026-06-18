@@ -64,7 +64,7 @@ export async function initProject(options: InitOptions): Promise<void> {
       defaults: {
         toolName: 'myRadiologistsTool',
         toolDescription: 'Processes radiology reports and imaging data',
-        endpoint: 'https://api.example.com/radiology/v1/process'
+        endpoint: 'https://api.example.com/radiologists/v1/process'
       }
     });
 

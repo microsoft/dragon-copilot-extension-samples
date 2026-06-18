@@ -151,7 +151,7 @@ Use the same lowercase language token (`python`, `nodejs`, `typescript`, `go`, `
                 content-type: application/vnd.ms-dragon.rad.report+json
                 schemaVersion: "1.0"               # Required for Radiologists
               - name: patientInformation
-                description: Patient demographic information
+                description: Patient demographic information from Dragon Copilot
                 content-type: application/vnd.ms-dragon.rad.patient-information+json
                 schemaVersion: "1.0"
             outputs:
@@ -159,6 +159,15 @@ Use the same lowercase language token (`python`, `nodejs`, `typescript`, `go`, `
                 description: Quality check findings and score
                 content-type: application/vnd.ms-dragon.rad.quality-check-result+json
                 schemaVersion: "1.0"
+            # Optional: limits this tool to studies matching the listed body parts and modalities.
+            # Omit to consider this tool regardless of body part or modality.
+            relevanceFilteringCriteria:
+              relevantBodyParts:
+                - CHEST
+                - ABDOMEN
+              relevantModalities:
+                - CT
+                - CR
 
     See `tools/dragon-copilot-cli/src/schemas/radiologists/radiologists-extension-manifest-schema.json` for the full JSON Schema.
 

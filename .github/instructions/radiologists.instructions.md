@@ -42,7 +42,8 @@ Defined in `Dragon.Copilot.Radiologists.Models`:
 - `Recommendation` — an individual quality-check finding
 - `Provenance` — the span of report text a recommendation was derived from (`text`, `startPosition`, `endPosition`)
 - `ReferenceResource` — supporting references attached to a recommendation
-- `BiologicalSex`, `QualityCheckType` — enums (`Billing`, `Clinical`)
+- `BiologicalSex` — the patient's biological sex enum (`Male`, `Female`, `Unknown`, `Other`)
+- `QualityCheckType` — the quality-check category enum (`Billing`, `Clinical`)
 
 ## Quality-check service
 

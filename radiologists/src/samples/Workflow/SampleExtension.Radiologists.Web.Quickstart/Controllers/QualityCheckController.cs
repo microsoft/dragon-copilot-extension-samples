@@ -2,14 +2,14 @@ using Dragon.Copilot.Radiologists.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SampleExtension.Radiologists.Web.Quickstart.Services;
-using System.Text.Json;
 
 namespace SampleExtension.Radiologists.Web.Quickstart.Controllers;
 
 /// <summary>
 /// Single entry point of the Radiologists simple extension.
-/// Demonstrates a single-endpoint extension with model binding
-/// performed by the framework and no authentication.
+/// Demonstrates a single-endpoint extension with model binding performed by
+/// the framework, with the endpoint protected by JWT bearer authentication
+/// (Microsoft Entra ID) via the "RequiredClaims" authorization policy.
 /// </summary>
 [ApiController]
 [Route("v1")]
@@ -58,12 +58,11 @@ public sealed class QualityCheckController : ControllerBase
         var result = await _qualityCheckService.ProcessAsync(payload, cancellationToken).ConfigureAwait(false);
 
         _logger.LogInformation(
-            "Response {Method} {Path} - Success: {Success} - Message: {Message} - Response Body: {ResponseBody}",
+            "Response {Method} {Path} - Success: {Success} - Message: {Message}",
             Request.Method,
             Request.Path,
             result.Success,
-            result.Message,
-            JsonSerializer.Serialize(result));
+            result.Message);
 
         return Ok(result);
     }

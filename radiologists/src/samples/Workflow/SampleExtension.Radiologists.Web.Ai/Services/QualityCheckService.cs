@@ -37,7 +37,7 @@ public sealed class QualityCheckService : IQualityCheckService
           "report": {"reportText": "<radiology report text>"},
           "patientInformation": {
             "dateOfBirth": "<YYYY-MM-DD>",
-            "biologicalSex": "<Male|Female|Other>"
+            "biologicalSex": "<Male|Female|Unknown|Other>"
           }
         }
 
