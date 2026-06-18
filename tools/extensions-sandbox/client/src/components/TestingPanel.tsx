@@ -103,42 +103,6 @@ interface TestingPanelProps {
   manifestRevision: number;
 }
 
-/** Renders a preview of extension response data as labeled fields. */
-function ResponsePreview({ data }: { data: unknown }) {
-  if (!data) return <p className="preview-empty">No preview data available.</p>;
-
-  let parsed: unknown;
-  if (typeof data === 'string') {
-    try { parsed = JSON.parse(data); } catch { parsed = null; }
-  } else {
-    parsed = data;
-  }
-
-  if (!parsed || typeof parsed !== 'object') {
-    return <pre className="preview-raw">{typeof data === 'string' ? data : JSON.stringify(data, null, 2)}</pre>;
-  }
-
-  const entries = Object.entries(parsed as Record<string, unknown>);
-  return (
-    <>
-      {entries.map(([key, value]) => (
-        <div key={key} className="preview-field">
-          <div className="preview-field-label">{key.replace(/([A-Z])/g, ' $1').replace(/[_-]/g, ' ').toUpperCase().trim()}:</div>
-          <div className="preview-field-value">
-            {value === null || value === undefined || value === ''
-              ? <span className="preview-empty-value">&nbsp;</span>
-              : typeof value === 'object'
-                ? <span className="preview-ai-text">{JSON.stringify(value, null, 2)}</span>
-                : typeof value === 'string' && value.length > 80
-                  ? <span className="preview-ai-text">{value}</span>
-                  : String(value)}
-          </div>
-        </div>
-      ))}
-    </>
-  );
-}
-
 export function TestingPanel({ manifestInfo, manifestRevision }: TestingPanelProps) {
   const [activeTab, setActiveTab] = useState<string>('setup');
   const [capabilities, setCapabilities] = useState<Capability[]>([]);
@@ -762,11 +726,6 @@ export function TestingPanel({ manifestInfo, manifestRevision }: TestingPanelPro
           <div className="outputs-tab">
             {result && currentTool ? (
               <div className="outputs-display">
-                <h3 className="outputs-section-title">Extension Response</h3>
-                <div className="copilot-preview-card">
-                  <ResponsePreview data={result.extensionResponse ?? result.rawBody} />
-                </div>
-
                 <h3 className="outputs-section-title">Request Payload</h3>
                 <div className="request-method-badge">POST {currentTool.endpoint}</div>
                 <pre className="dark-code-block">
@@ -786,17 +745,6 @@ export function TestingPanel({ manifestInfo, manifestRevision }: TestingPanelPro
               </div>
             ) : executeError ? (
               <div className="outputs-display">
-                <h3 className="outputs-section-title">Extension Response</h3>
-                <div className="copilot-preview-card copilot-preview-error">
-                  <p className="error-message">{executeError.message}</p>
-                  {executeError.endpoint && (
-                    <div className="preview-field">
-                      <div className="preview-field-label">ENDPOINT:</div>
-                      <div className="preview-field-value">{executeError.endpoint}</div>
-                    </div>
-                  )}
-                </div>
-
                 {!!executeError.sentRequest && (
                   <>
                     <h3 className="outputs-section-title">Request Payload</h3>
