@@ -10,6 +10,11 @@ import {
   ArrowCounterclockwiseRegular,
   CodeRegular,
 } from '@fluentui/react-icons';
+import { EditorView, lineNumbers, placeholder as cmPlaceholder } from '@codemirror/view';
+import { EditorState, Compartment } from '@codemirror/state';
+import { json } from '@codemirror/lang-json';
+import { yaml } from '@codemirror/lang-yaml';
+import { syntaxHighlighting, defaultHighlightStyle } from '@codemirror/language';
 
 interface ValidationError {
   path: string | null;
@@ -33,23 +38,122 @@ interface ManifestEditorProps {
   onReset: () => void;
 }
 
+// Detect whether content looks like JSON (starts with '{' or '[')
+function detectLanguage(text: string) {
+  const trimmed = text.trimStart();
+  return trimmed.startsWith('{') || trimmed.startsWith('[') ? json() : yaml();
+}
+
+const editorTheme = EditorView.theme({
+  '&': {
+    fontSize: '12px',
+    minHeight: '350px',
+    maxHeight: '500px',
+    fontFamily: "'Cascadia Code', Consolas, monospace",
+  },
+  '.cm-content': {
+    padding: '10px 0',
+    fontFamily: "'Cascadia Code', Consolas, monospace",
+    lineHeight: '20px',
+  },
+  '.cm-line': {
+    padding: '0 10px',
+  },
+  '.cm-gutters': {
+    background: 'rgb(244, 248, 255)',
+    color: 'var(--color-text-secondary)',
+    borderRight: '1px solid var(--color-border-subtle)',
+    minWidth: '56px',
+    fontFamily: "'Cascadia Code', Consolas, monospace",
+    fontSize: '12px',
+    lineHeight: '20px',
+  },
+  '.cm-lineNumbers .cm-gutterElement': {
+    padding: '0 8px 0 0',
+    textAlign: 'right',
+  },
+  '.cm-scroller': {
+    overflow: 'auto',
+    maxHeight: '500px',
+  },
+  '&.cm-focused': {
+    outline: 'none',
+  },
+  '.cm-placeholder': {
+    color: '#999',
+    fontStyle: 'italic',
+  },
+});
+
 export function ManifestEditor({ onManifestLoaded, onManifestEditing, onReset }: ManifestEditorProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const editorContainerRef = useRef<HTMLDivElement>(null);
+  const editorViewRef = useRef<EditorView | null>(null);
+  const langCompartment = useRef(new Compartment());
   const [isUploading, setIsUploading] = useState(false);
   const [manifestText, setManifestText] = useState<string>('');
   const [isValid, setIsValid] = useState<boolean | null>(null);
   const [validationMessage, setValidationMessage] = useState<string>('');
   const [errors, setErrors] = useState<ValidationError[]>([]);
 
-  // Auto-resize textarea to fit content
+  // Track whether the text was changed by the user (not by upload/programmatic)
+  const isUserEdit = useRef(false);
+
+  // Stable refs for callbacks used inside CodeMirror listener
+  const onManifestEditingRef = useRef(onManifestEditing);
+  onManifestEditingRef.current = onManifestEditing;
+
+  // Initialize CodeMirror
   useEffect(() => {
-    const ta = textareaRef.current;
-    if (ta) {
-      ta.style.height = 'auto';
-      ta.style.height = `${ta.scrollHeight}px`;
-    }
-  }, [manifestText]);
+    if (!editorContainerRef.current) return;
+
+    const state = EditorState.create({
+      doc: '',
+      extensions: [
+        lineNumbers(),
+        langCompartment.current.of(yaml()),
+        syntaxHighlighting(defaultHighlightStyle, { fallback: true }),
+        editorTheme,
+        cmPlaceholder('No manifest loaded. Upload a file or paste content here.'),
+        EditorView.updateListener.of((update) => {
+          if (update.docChanged) {
+            const newText = update.state.doc.toString();
+            isUserEdit.current = true;
+            setManifestText(newText);
+            onManifestEditingRef.current();
+          }
+        }),
+        EditorView.lineWrapping,
+      ],
+    });
+
+    const view = new EditorView({ state, parent: editorContainerRef.current });
+    editorViewRef.current = view;
+
+    return () => {
+      view.destroy();
+      editorViewRef.current = null;
+    };
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Sync programmatic text changes (upload/reset) into CodeMirror
+  const setEditorContent = useCallback((text: string) => {
+    const view = editorViewRef.current;
+    if (!view) return;
+
+    const currentText = view.state.doc.toString();
+    if (currentText === text) return;
+
+    // Replace content and switch language in one transaction
+    view.dispatch({
+      changes: { from: 0, to: currentText.length, insert: text },
+    });
+
+    // Reconfigure language based on content
+    view.dispatch({
+      effects: langCompartment.current.reconfigure(detectLanguage(text)),
+    });
+  }, []);
 
   const uploadFile = useCallback(async (file: File) => {
     setIsUploading(true);
@@ -69,19 +173,19 @@ export function ManifestEditor({ onManifestLoaded, onManifestEditing, onReset }:
         setIsValid(true);
         setValidationMessage('Manifest is valid and ready for sandbox testing.');
         onManifestLoaded(data.manifest);
-        // Fetch raw text to display in editor
         const rawRes = await fetch('/api/manifest/raw');
         if (rawRes.ok) {
           const rawData = await rawRes.json();
           setManifestText(rawData.content);
+          setEditorContent(rawData.content);
         }
       } else {
         setIsValid(false);
         setValidationMessage(data.message);
         setErrors(data.errors || []);
-        // Show the manifest content even when invalid
         if (data.rawContent) {
           setManifestText(data.rawContent);
+          setEditorContent(data.rawContent);
         }
       }
     } catch {
@@ -91,7 +195,7 @@ export function ManifestEditor({ onManifestLoaded, onManifestEditing, onReset }:
     } finally {
       setIsUploading(false);
     }
-  }, [onManifestLoaded]);
+  }, [onManifestLoaded, setEditorContent]);
 
   const handleFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -105,21 +209,13 @@ export function ManifestEditor({ onManifestLoaded, onManifestEditing, onReset }:
 
   const handleReset = useCallback(() => {
     setManifestText('');
+    setEditorContent('');
     setIsValid(null);
     setValidationMessage('');
     setErrors([]);
     fetch('/api/manifest', { method: 'DELETE' });
     onReset();
-  }, [onReset]);
-
-  // Track whether the text was changed by the user (not by upload)
-  const isUserEdit = useRef(false);
-
-  const handleTextChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setManifestText(e.target.value);
-    isUserEdit.current = true;
-    onManifestEditing();
-  }, [onManifestEditing]);
+  }, [onReset, setEditorContent]);
 
   // Debounced re-validation on text changes
   useEffect(() => {
@@ -165,8 +261,6 @@ export function ManifestEditor({ onManifestLoaded, onManifestEditing, onReset }:
 
     return () => { clearTimeout(timer); controller.abort(); };
   }, [manifestText, onManifestLoaded]);
-
-  const lines = manifestText.split('\n');
 
   return (
     <div className="manifest-editor">
@@ -219,27 +313,7 @@ export function ManifestEditor({ onManifestLoaded, onManifestEditing, onReset }:
       )}
 
       <div className="manifest-label">Manifest (YAML or JSON)</div>
-      <div className="code-editor">
-        <div className="code-editor-gutter">
-          {lines.length > 0 && manifestText ? (
-            lines.map((_, i) => (
-              <div key={i} className="line-number">{i + 1}</div>
-            ))
-          ) : (
-            <div className="line-number">1</div>
-          )}
-        </div>
-        <div className="code-editor-content">
-          <textarea
-            ref={textareaRef}
-            className="code-textarea"
-            value={manifestText}
-            onChange={handleTextChange}
-            placeholder="No manifest loaded. Upload a file or paste content here."
-            spellCheck={false}
-          />
-        </div>
-      </div>
+      <div className="code-editor" ref={editorContainerRef} />
 
       <div className="validation-block">
         <div className="manifest-validation">

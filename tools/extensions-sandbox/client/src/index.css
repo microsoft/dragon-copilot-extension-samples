@@ -150,56 +150,22 @@ body {
   margin-bottom: 4px;
 }
 
-/* Code editor */
+/* Code editor (CodeMirror container) */
 .code-editor {
-  display: grid;
-  grid-template-columns: 56px 1fr;
   border: 1px solid var(--color-border);
   border-radius: 4px;
-  font-family: 'Cascadia Code', Consolas, monospace;
-  font-size: 12px;
-  line-height: 20px;
   min-height: 350px;
   max-height: 500px;
   overflow: hidden;
 }
 
-.code-editor-gutter {
-  padding: 10px 8px;
-  text-align: right;
-  background: rgb(244, 248, 255);
-  color: var(--color-text-secondary);
-  user-select: none;
-  border-right: 1px solid var(--color-border-subtle);
-  overflow: hidden;
-}
-
-.line-number {
-  padding-right: 4px;
-}
-
-.code-editor-content {
-  overflow: auto;
-}
-
-.code-textarea {
-  width: 100%;
-  min-height: 100%;
-  margin: 0;
-  padding: 10px;
-  border: none;
-  outline: none;
-  resize: none;
+.code-editor .cm-editor {
   background: rgb(251, 253, 255);
-  color: rgb(16, 24, 40);
-  font: inherit;
-  white-space: pre;
-  tab-size: 2;
+  min-height: 350px;
 }
 
-.code-textarea::placeholder {
-  color: #999;
-  font-style: italic;
+.code-editor .cm-editor.cm-focused {
+  outline: none;
 }
 
 /* Validation block */

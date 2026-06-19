@@ -9,7 +9,7 @@
     "server"
   ],
   "scripts": {
-    "build": "npm run build --workspaces",
+    "build": "npm run build --workspaces --if-present",
     "start": "npm run start --workspace=server",
     "dev": "concurrently \"npm run dev --workspace=server\" \"npm run dev --workspace=client\"",
     "clean": "npm run clean --workspaces --if-present"
