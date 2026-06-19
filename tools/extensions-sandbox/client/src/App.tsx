@@ -29,7 +29,7 @@ function App() {
     setManifestInfo(null);
   }, []);
 
-  // Called immediately when user edits manifest text, before debounced validation.
+  // Called immediately when user edits manifest text.
   // Invalidates stale test results so the UI doesn't show old pass/fail state.
   const handleManifestEditing = useCallback(() => {
     revisionRef.current += 1;
@@ -42,10 +42,10 @@ function App() {
         <header className="app-header">
           <div className="header-content">
             <div className="header-logo">
-              <img src="/dragon-copilot-logo.png" alt="Dragon Copilot" width="32" height="32" />
+              <img src="/dragon-copilot-logo.png" alt="Microsoft Dragon Copilot" width="32" height="32" />
             </div>
             <div className="header-text">
-              <h1>Dragon Copilot Radiology Extensions Sandbox</h1>
+              <h1>Microsoft Dragon Copilot (radiologists) Extensions Sandbox</h1>
               <p className="subtitle">Test and validate your extensions before deployment</p>
             </div>
           </div>
