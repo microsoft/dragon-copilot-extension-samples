@@ -1,5 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import type { ManifestTool } from '../schemas/manifest.schema.js';
+import { parseInputValues } from 'extensions-sandbox-shared';
 
 /**
  * Request envelope sent to extension endpoints.
@@ -189,26 +190,3 @@ function isExtensionResponse(body: unknown): body is ExtensionResponse {
   );
 }
 
-/**
- * Parses form input values (strings) into their appropriate types.
- * Only parses values that look like JSON objects or arrays — primitive-looking
- * strings (numbers, booleans) are kept as strings to avoid silent type coercion
- * of clinical identifiers like MRNs or accession numbers.
- */
-export function parseInputValues(inputs: Record<string, string>): Record<string, unknown> {
-  const parsed: Record<string, unknown> = {};
-  for (const [key, value] of Object.entries(inputs)) {
-    const trimmed = value.trim();
-    if ((trimmed.startsWith('{') && trimmed.endsWith('}')) ||
-        (trimmed.startsWith('[') && trimmed.endsWith(']'))) {
-      try {
-        parsed[key] = JSON.parse(value);
-      } catch {
-        parsed[key] = value;
-      }
-    } else {
-      parsed[key] = value;
-    }
-  }
-  return parsed;
-}

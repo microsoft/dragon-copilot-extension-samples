@@ -11,7 +11,8 @@ import { mapPathsToLines } from '../utils/source-mapper.js';
 import { getToolsForCapability } from '../utils/tool-metadata.js';
 import { parseCapabilities } from '../utils/capabilities-parser.js';
 import { MANIFEST_SCHEMA_PATH } from '../utils/schema-path.js';
-import { callExtensionAsync, buildExtensionRequest, parseInputValues } from '../services/extension-client.js';
+import { callExtensionAsync, buildExtensionRequest } from '../services/extension-client.js';
+import { parseInputValues } from 'extensions-sandbox-shared';
 
 export const manifestRouter = Router();
 

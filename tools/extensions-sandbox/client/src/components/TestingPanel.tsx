@@ -11,6 +11,7 @@ import {
 import { ArrowCounterclockwiseRegular, CodeRegular, CopyRegular } from '@fluentui/react-icons';
 import { DynamicForm, getFieldPaths, SchemaProperty } from './DynamicForm';
 import type { DynamicFormHandle } from './DynamicForm';
+import { parseAndGroupInputs } from 'extensions-sandbox-shared';
 import './ValidationResults.css';
 
 interface ToolInput {
@@ -239,43 +240,7 @@ export function TestingPanel({ manifestInfo, manifestRevision }: TestingPanelPro
     setInputValidationErrors(null);
 
     // --- Input schema validation ---
-    // Build the parsed inputs map (same logic as the server's parseInputValues)
-    const parsedInputs: Record<string, unknown> = {};
-    for (const [key, value] of Object.entries(inputValues)) {
-      const trimmed = value.trim();
-      if ((trimmed.startsWith('{') && trimmed.endsWith('}')) ||
-          (trimmed.startsWith('[') && trimmed.endsWith(']'))) {
-        try {
-          parsedInputs[key] = JSON.parse(value);
-        } catch {
-          parsedInputs[key] = value;
-        }
-      } else {
-        parsedInputs[key] = value;
-      }
-    }
-
-    // Group flat field paths (e.g. "report.reportText") into nested objects by input name
-    const groupedInputs: Record<string, unknown> = {};
-    for (const [path, value] of Object.entries(parsedInputs)) {
-      const dotIndex = path.indexOf('.');
-      if (dotIndex > 0) {
-        const inputName = path.slice(0, dotIndex);
-        const fieldName = path.slice(dotIndex + 1);
-        if (!groupedInputs[inputName] || typeof groupedInputs[inputName] !== 'object') {
-          groupedInputs[inputName] = {};
-        }
-        // Only include non-empty values
-        if (value !== '' && value !== null && value !== undefined) {
-          (groupedInputs[inputName] as Record<string, unknown>)[fieldName] = value;
-        }
-      } else {
-        // Flat input (no dot)
-        if (value !== '' && value !== null && value !== undefined) {
-          groupedInputs[path] = value;
-        }
-      }
-    }
+    const groupedInputs = parseAndGroupInputs(inputValues);
 
     try {
       const inputValRes = await fetch(`/api/validate/inputs/${encodeURIComponent(selectedTool)}`, {
@@ -293,8 +258,8 @@ export function TestingPanel({ manifestInfo, manifestRevision }: TestingPanelPro
           return;
         }
       }
-    } catch {
-      // If input validation endpoint is unreachable, proceed with execution anyway
+    } catch (err) {
+      console.warn('[InputValidation] Validation endpoint unavailable, proceeding without input validation:', err);
     }
 
     const startTime = performance.now();
@@ -537,7 +502,7 @@ export function TestingPanel({ manifestInfo, manifestRevision }: TestingPanelPro
             {inputValidationErrors && inputValidationErrors.length > 0 && (
               <div className="input-validation-errors" role="alert">
                 <div className="input-validation-header">
-                  <span className="error-icon">⚠️</span>
+                  <span className="error-icon" aria-hidden="true">⚠️</span>
                   <strong>Input Schema Validation Failed</strong>
                 </div>
                 <p className="input-validation-summary">
@@ -546,14 +511,14 @@ export function TestingPanel({ manifestInfo, manifestRevision }: TestingPanelPro
                 {inputValidationErrors.map((inputErr, idx) => (
                   <div key={idx} className="input-validation-input-block">
                     <div className="input-validation-input-header">
-                      <span className="check-icon check-icon-fail">✕</span>
+                      <span className="check-icon check-icon-fail" aria-hidden="true">✕</span>
                       <strong>{inputErr.inputName}</strong>
                       <code className="input-content-type-badge">{inputErr.inputContentType}</code>
                     </div>
                     <ul className="input-validation-check-list">
                       {inputErr.checks.filter(c => !c.passed).map((check, cIdx) => (
                         <li key={cIdx} className="input-validation-check-item">
-                          <span className="check-icon check-icon-fail">✕</span>
+                          <span className="check-icon check-icon-fail" aria-hidden="true">✕</span>
                           <span className="input-validation-check-text">
                             {check.error || check.check}
                             {check.path && <code className="input-validation-path">{check.path}</code>}
@@ -596,7 +561,7 @@ export function TestingPanel({ manifestInfo, manifestRevision }: TestingPanelPro
                     <div className="validation-header">
                       <h2>Validation Results</h2>
                       <span className={`badge ${validationResult.valid ? 'badge-pass' : 'badge-fail'}`}>
-                        <span className="badge-icon">{validationResult.valid ? '✓' : '✕'}</span>
+                        <span className="badge-icon" aria-hidden="true">{validationResult.valid ? '✓' : '✕'}</span>
                         {validationResult.valid ? 'PASS' : 'FAIL'}
                       </span>
                     </div>
@@ -630,7 +595,7 @@ export function TestingPanel({ manifestInfo, manifestRevision }: TestingPanelPro
                                 'aria-expanded': expanded,
                               } : {})}
                             >
-                              <span className={`check-icon ${check.passed ? 'check-icon-pass' : 'check-icon-fail'}`}>
+                              <span className={`check-icon ${check.passed ? 'check-icon-pass' : 'check-icon-fail'}`} aria-hidden="true">
                                 {check.passed ? '✓' : '✕'}
                               </span>
                               <span className="check-label">{check.check}</span>
@@ -655,7 +620,7 @@ export function TestingPanel({ manifestInfo, manifestRevision }: TestingPanelPro
                 {executeError && !validationResult && (
                   <div className="execute-error-detailed" style={{ marginTop: '1rem' }}>
                     <div className="error-header">
-                      <span className="error-icon">⚠️</span>
+                      <span className="error-icon" aria-hidden="true">⚠️</span>
                       <strong>{executeError.cause || 'Error'}</strong>
                     </div>
                     <p className="error-message">{executeError.message}</p>

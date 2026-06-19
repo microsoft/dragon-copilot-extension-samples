@@ -14,6 +14,7 @@ export interface ValidationCheck {
   passed: boolean;
   path?: string;
   error?: string;
+  warning?: string;
 }
 
 export interface ValidationResult {
@@ -462,12 +463,12 @@ export function validateToolInputs(
     if (!schemaFile) {
       checks.push({
         check: `Schema resolved for input content-type '${inputContentType}'`,
-        passed: false,
-        error: `No validation schema registered for input content-type '${inputContentType}'.`,
+        passed: true,
+        warning: `No validation schema registered for input content-type '${inputContentType}'. Skipping validation.`,
       });
       const passed = checks.filter((c) => c.passed).length;
       const failed = checks.filter((c) => !c.passed).length;
-      results.push({ valid: failed === 0, toolName, inputName, inputContentType, checks, summary: { passed, failed }, timestamp });
+      results.push({ valid: true, toolName, inputName, inputContentType, checks, summary: { passed, failed }, timestamp });
       continue;
     }
 

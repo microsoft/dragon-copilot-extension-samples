@@ -4,6 +4,7 @@
   "private": true,
   "description": "Dragon Copilot Extensions Integration Sandbox - test and validate extensions locally",
   "workspaces": [
+    "shared",
     "client",
     "server"
   ],

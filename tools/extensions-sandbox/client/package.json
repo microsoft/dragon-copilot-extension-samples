@@ -12,6 +12,7 @@
   "dependencies": {
     "@fluentui/react-components": "^9.74.1",
     "@fluentui/react-icons": "^2.0.329",
+    "extensions-sandbox-shared": "*",
     "react": "^19.1.0",
     "react-dom": "^19.1.0"
   },
