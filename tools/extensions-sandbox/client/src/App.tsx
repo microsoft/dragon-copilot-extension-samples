@@ -42,10 +42,7 @@ function App() {
         <header className="app-header">
           <div className="header-content">
             <div className="header-logo">
-              <svg width="28" height="28" viewBox="0 0 28 28" fill="none" aria-hidden="true">
-                <circle cx="14" cy="14" r="14" fill="white" fillOpacity="0.15"/>
-                <path d="M14 4C8.48 4 4 8.48 4 14s4.48 10 10 10 10-4.48 10-10S19.52 4 14 4zm-1 15l-5-5 1.41-1.41L13 16.17l6.59-6.59L21 11l-8 8z" fill="white"/>
-              </svg>
+              <img src="/dragon-copilot-logo.png" alt="Dragon Copilot" width="32" height="32" />
             </div>
             <div className="header-text">
               <h1>Dragon Copilot Radiology Extensions Sandbox</h1>

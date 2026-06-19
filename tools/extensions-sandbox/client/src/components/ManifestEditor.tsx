@@ -183,13 +183,17 @@ export function ManifestEditor({ onManifestLoaded, onManifestEditing, onReset }:
         >
           Upload Manifest
         </Button>
-        <Tooltip content="Use Dragon Copilot CLI to create manifests" relationship="description">
-          <Button
-            appearance="secondary"
-            icon={<CodeRegular />}
-          >
-            Dragon Copilot CLI
-          </Button>
+        {/* TODO: Re-enable when CLI integration (story #2848832) is complete */}
+        <Tooltip content="Coming Soon - CLI integration in progress" relationship="description">
+          <span>
+            <Button
+              appearance="secondary"
+              icon={<CodeRegular />}
+              disabled
+            >
+              Dragon Copilot CLI
+            </Button>
+          </span>
         </Tooltip>
         <Button
           appearance="subtle"
@@ -237,35 +241,37 @@ export function ManifestEditor({ onManifestLoaded, onManifestEditing, onReset }:
         </div>
       </div>
 
-      <div className="manifest-validation">
-        <span className="validation-title">Manifest Validation</span>
-        {isValid === true && (
-          <Badge appearance="filled" color="success">✓ Valid</Badge>
+      <div className="validation-block">
+        <div className="manifest-validation">
+          <span className="validation-title">Manifest Validation</span>
+          {isValid === true && (
+            <Badge appearance="filled" color="success">✓ Valid</Badge>
+          )}
+          {isValid === false && (
+            <Badge appearance="filled" color="danger">✗ Invalid</Badge>
+          )}
+          {isValid === null && (
+            <Badge appearance="filled" color="informative">Awaiting upload</Badge>
+          )}
+        </div>
+        {validationMessage && (
+          <p className={`validation-message ${isValid ? 'valid' : 'invalid'}`}>
+            {validationMessage}
+          </p>
         )}
-        {isValid === false && (
-          <Badge appearance="filled" color="danger">✗ Invalid</Badge>
-        )}
-        {isValid === null && (
-          <Badge appearance="filled" color="informative">Awaiting upload</Badge>
+        {errors.length > 0 && (
+          <ul className="validation-errors">
+            {errors.map((err, i) => (
+              <li key={i} className="validation-error-item">
+                {err.line && <code className="error-line">Line {err.line}</code>}
+                {err.path && <code className="error-path">{err.path}</code>}
+                <span>{err.detail || err.message}</span>
+                {err.hint && <span className="error-hint">Fix: {err.hint}</span>}
+              </li>
+            ))}
+          </ul>
         )}
       </div>
-      {validationMessage && (
-        <p className={`validation-message ${isValid ? 'valid' : 'invalid'}`}>
-          {validationMessage}
-        </p>
-      )}
-      {errors.length > 0 && (
-        <ul className="validation-errors">
-          {errors.map((err, i) => (
-            <li key={i} className="validation-error-item">
-              {err.line && <code className="error-line">Line {err.line}</code>}
-              {err.path && <code className="error-path">{err.path}</code>}
-              <span>{err.detail || err.message}</span>
-              {err.hint && <span className="error-hint">Fix: {err.hint}</span>}
-            </li>
-          ))}
-        </ul>
-      )}
     </div>
   );
 }

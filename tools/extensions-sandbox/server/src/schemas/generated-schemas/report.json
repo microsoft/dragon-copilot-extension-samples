@@ -1,0 +1,13 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Report",
+  "description": "Radiology report input.",
+  "type": "object",
+  "required": ["reportText"],
+  "properties": {
+    "reportText": {
+      "type": "string",
+      "description": "The radiology report text."
+    }
+  }
+}

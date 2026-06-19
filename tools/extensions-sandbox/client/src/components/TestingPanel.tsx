@@ -8,9 +8,10 @@ import {
   Spinner,
   Link,
 } from '@fluentui/react-components';
-import { PlayRegular, ArrowCounterclockwiseRegular, CodeRegular, CopyRegular } from '@fluentui/react-icons';
+import { ArrowCounterclockwiseRegular, CodeRegular, CopyRegular } from '@fluentui/react-icons';
 import { DynamicForm, getFieldPaths, SchemaProperty } from './DynamicForm';
 import type { DynamicFormHandle } from './DynamicForm';
+import { parseAndGroupInputs } from 'extensions-sandbox-shared';
 import './ValidationResults.css';
 
 interface ToolInput {
@@ -83,45 +84,24 @@ interface ValidationResult {
   timestamp: string;
 }
 
+interface InputValidationCheck {
+  check: string;
+  passed: boolean;
+  path?: string;
+  error?: string;
+}
+
+interface InputValidationError {
+  valid: boolean;
+  inputName: string;
+  inputContentType: string;
+  checks: InputValidationCheck[];
+  summary: { passed: number; failed: number };
+}
+
 interface TestingPanelProps {
   manifestInfo: ManifestInfo | null;
   manifestRevision: number;
-}
-
-/** Renders a preview of extension response data as labeled fields. */
-function ResponsePreview({ data }: { data: unknown }) {
-  if (!data) return <p className="preview-empty">No preview data available.</p>;
-
-  let parsed: unknown;
-  if (typeof data === 'string') {
-    try { parsed = JSON.parse(data); } catch { parsed = null; }
-  } else {
-    parsed = data;
-  }
-
-  if (!parsed || typeof parsed !== 'object') {
-    return <pre className="preview-raw">{typeof data === 'string' ? data : JSON.stringify(data, null, 2)}</pre>;
-  }
-
-  const entries = Object.entries(parsed as Record<string, unknown>);
-  return (
-    <>
-      {entries.map(([key, value]) => (
-        <div key={key} className="preview-field">
-          <div className="preview-field-label">{key.replace(/([A-Z])/g, ' $1').replace(/[_-]/g, ' ').toUpperCase().trim()}:</div>
-          <div className="preview-field-value">
-            {value === null || value === undefined || value === ''
-              ? <span className="preview-empty-value">&nbsp;</span>
-              : typeof value === 'object'
-                ? <span className="preview-ai-text">{JSON.stringify(value, null, 2)}</span>
-                : typeof value === 'string' && value.length > 80
-                  ? <span className="preview-ai-text">{value}</span>
-                  : String(value)}
-          </div>
-        </div>
-      ))}
-    </>
-  );
 }
 
 export function TestingPanel({ manifestInfo, manifestRevision }: TestingPanelProps) {
@@ -138,6 +118,7 @@ export function TestingPanel({ manifestInfo, manifestRevision }: TestingPanelPro
   const [executeError, setExecuteError] = useState<ExecuteErrorDetails | null>(null);
   const [expandedChecks, setExpandedChecks] = useState<Set<number>>(new Set());
   const [copyToast, setCopyToast] = useState(false);
+  const [inputValidationErrors, setInputValidationErrors] = useState<InputValidationError[] | null>(null);
   const formRef = useRef<DynamicFormHandle>(null);
 
   // Load capabilities when manifest is loaded
@@ -152,6 +133,7 @@ export function TestingPanel({ manifestInfo, manifestRevision }: TestingPanelPro
       setValidationResult(null);
       setExecuteError(null);
       setExpandedChecks(new Set());
+      setInputValidationErrors(null);
       setActiveTab('setup');
       return;
     }
@@ -164,6 +146,7 @@ export function TestingPanel({ manifestInfo, manifestRevision }: TestingPanelPro
     setValidationResult(null);
     setExecuteError(null);
     setExpandedChecks(new Set());
+    setInputValidationErrors(null);
     setActiveTab('setup');
 
     fetch('/api/manifest/capabilities')
@@ -186,6 +169,7 @@ export function TestingPanel({ manifestInfo, manifestRevision }: TestingPanelPro
     setValidationResult(null);
     setExecuteError(null);
     setExpandedChecks(new Set());
+    setInputValidationErrors(null);
   }, [manifestRevision]);
 
   // Load tools when capability or manifest changes
@@ -237,6 +221,7 @@ export function TestingPanel({ manifestInfo, manifestRevision }: TestingPanelPro
     setValidationResult(null);
     setExecuteError(null);
     setExpandedChecks(new Set());
+    setInputValidationErrors(null);
   }, [currentTool]);
 
   const handleRunTest = useCallback(async () => {
@@ -252,6 +237,30 @@ export function TestingPanel({ manifestInfo, manifestRevision }: TestingPanelPro
     setValidationResult(null);
     setExecuteError(null);
     setExpandedChecks(new Set());
+    setInputValidationErrors(null);
+
+    // --- Input schema validation ---
+    const groupedInputs = parseAndGroupInputs(inputValues);
+
+    try {
+      const inputValRes = await fetch(`/api/validate/inputs/${encodeURIComponent(selectedTool)}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ inputs: groupedInputs }),
+      });
+
+      if (inputValRes.status === 422) {
+        const inputValData = await inputValRes.json();
+        const failedResults = (inputValData.results || []).filter((r: InputValidationError) => !r.valid);
+        if (failedResults.length > 0) {
+          setInputValidationErrors(failedResults);
+          setIsExecuting(false);
+          return;
+        }
+      }
+    } catch (err) {
+      console.warn('[InputValidation] Validation endpoint unavailable, proceeding without input validation:', err);
+    }
 
     const startTime = performance.now();
 
@@ -463,7 +472,7 @@ export function TestingPanel({ manifestInfo, manifestRevision }: TestingPanelPro
             <div className="action-bar">
               <Button
                 appearance="primary"
-                icon={<PlayRegular />}
+                icon={<CodeRegular />}
                 onClick={handleRunTest}
                 disabled={isExecuting}
               >
@@ -487,6 +496,38 @@ export function TestingPanel({ manifestInfo, manifestRevision }: TestingPanelPro
             {executeError && (
               <div className="execute-error">
                 <strong>Error:</strong> {executeError.message}
+              </div>
+            )}
+
+            {inputValidationErrors && inputValidationErrors.length > 0 && (
+              <div className="input-validation-errors" role="alert">
+                <div className="input-validation-header">
+                  <span className="error-icon" aria-hidden="true">⚠️</span>
+                  <strong>Input Schema Validation Failed</strong>
+                </div>
+                <p className="input-validation-summary">
+                  The input data does not match the expected schema for the declared content-type(s). Fix the errors below before running the test.
+                </p>
+                {inputValidationErrors.map((inputErr, idx) => (
+                  <div key={idx} className="input-validation-input-block">
+                    <div className="input-validation-input-header">
+                      <span className="check-icon check-icon-fail" aria-hidden="true">✕</span>
+                      <strong>{inputErr.inputName}</strong>
+                      <code className="input-content-type-badge">{inputErr.inputContentType}</code>
+                    </div>
+                    <ul className="input-validation-check-list">
+                      {inputErr.checks.filter(c => !c.passed).map((check, cIdx) => (
+                        <li key={cIdx} className="input-validation-check-item">
+                          <span className="check-icon check-icon-fail" aria-hidden="true">✕</span>
+                          <span className="input-validation-check-text">
+                            {check.error || check.check}
+                            {check.path && <code className="input-validation-path">{check.path}</code>}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
               </div>
             )}
           </div>
@@ -520,7 +561,7 @@ export function TestingPanel({ manifestInfo, manifestRevision }: TestingPanelPro
                     <div className="validation-header">
                       <h2>Validation Results</h2>
                       <span className={`badge ${validationResult.valid ? 'badge-pass' : 'badge-fail'}`}>
-                        <span className="badge-icon">{validationResult.valid ? '✓' : '✕'}</span>
+                        <span className="badge-icon" aria-hidden="true">{validationResult.valid ? '✓' : '✕'}</span>
                         {validationResult.valid ? 'PASS' : 'FAIL'}
                       </span>
                     </div>
@@ -554,7 +595,7 @@ export function TestingPanel({ manifestInfo, manifestRevision }: TestingPanelPro
                                 'aria-expanded': expanded,
                               } : {})}
                             >
-                              <span className={`check-icon ${check.passed ? 'check-icon-pass' : 'check-icon-fail'}`}>
+                              <span className={`check-icon ${check.passed ? 'check-icon-pass' : 'check-icon-fail'}`} aria-hidden="true">
                                 {check.passed ? '✓' : '✕'}
                               </span>
                               <span className="check-label">{check.check}</span>
@@ -579,7 +620,7 @@ export function TestingPanel({ manifestInfo, manifestRevision }: TestingPanelPro
                 {executeError && !validationResult && (
                   <div className="execute-error-detailed" style={{ marginTop: '1rem' }}>
                     <div className="error-header">
-                      <span className="error-icon">⚠️</span>
+                      <span className="error-icon" aria-hidden="true">⚠️</span>
                       <strong>{executeError.cause || 'Error'}</strong>
                     </div>
                     <p className="error-message">{executeError.message}</p>
@@ -650,11 +691,6 @@ export function TestingPanel({ manifestInfo, manifestRevision }: TestingPanelPro
           <div className="outputs-tab">
             {result && currentTool ? (
               <div className="outputs-display">
-                <h3 className="outputs-section-title">Dragon Copilot Preview</h3>
-                <div className="copilot-preview-card">
-                  <ResponsePreview data={result.extensionResponse ?? result.rawBody} />
-                </div>
-
                 <h3 className="outputs-section-title">Request Payload</h3>
                 <div className="request-method-badge">POST {currentTool.endpoint}</div>
                 <pre className="dark-code-block">
@@ -674,17 +710,6 @@ export function TestingPanel({ manifestInfo, manifestRevision }: TestingPanelPro
               </div>
             ) : executeError ? (
               <div className="outputs-display">
-                <h3 className="outputs-section-title">Dragon Copilot Preview</h3>
-                <div className="copilot-preview-card copilot-preview-error">
-                  <p className="error-message">{executeError.message}</p>
-                  {executeError.endpoint && (
-                    <div className="preview-field">
-                      <div className="preview-field-label">ENDPOINT:</div>
-                      <div className="preview-field-value">{executeError.endpoint}</div>
-                    </div>
-                  )}
-                </div>
-
                 {!!executeError.sentRequest && (
                   <>
                     <h3 className="outputs-section-title">Request Payload</h3>
