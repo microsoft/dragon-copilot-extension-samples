@@ -168,10 +168,24 @@ body {
   outline: none;
 }
 
-/* Validation block */
-.validation-block {
-  margin-top: 1rem;
-  padding-top: 0.75rem;
+.editor-actions-bottom {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.editor-actions-left {
+  flex-shrink: 0;
+}
+
+.editor-actions-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.5rem;
 }
 
 /* Validation status */

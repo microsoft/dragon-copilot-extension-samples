@@ -2,7 +2,7 @@
   "name": "extensions-sandbox",
   "version": "0.1.0",
   "private": true,
-  "description": "Dragon Copilot Extensions Integration Sandbox - test and validate extensions locally",
+  "description": "Microsoft Dragon Copilot (radiologists) Extensions Sandbox - test and validate extensions locally",
   "workspaces": [
     "shared",
     "client",

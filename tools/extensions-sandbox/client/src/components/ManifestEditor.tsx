@@ -9,6 +9,7 @@ import {
   ArrowUploadRegular,
   ArrowCounterclockwiseRegular,
   CodeRegular,
+  CheckmarkRegular,
 } from '@fluentui/react-icons';
 import { EditorView, lineNumbers, placeholder as cmPlaceholder } from '@codemirror/view';
 import { EditorState, Compartment } from '@codemirror/state';
@@ -95,9 +96,7 @@ export function ManifestEditor({ onManifestLoaded, onManifestEditing, onReset }:
   const [isValid, setIsValid] = useState<boolean | null>(null);
   const [validationMessage, setValidationMessage] = useState<string>('');
   const [errors, setErrors] = useState<ValidationError[]>([]);
-
-  // Track whether the text was changed by the user (not by upload/programmatic)
-  const isUserEdit = useRef(false);
+  const [isValidating, setIsValidating] = useState(false);
 
   // Stable refs for callbacks used inside CodeMirror listener
   const onManifestEditingRef = useRef(onManifestEditing);
@@ -118,8 +117,10 @@ export function ManifestEditor({ onManifestLoaded, onManifestEditing, onReset }:
         EditorView.updateListener.of((update) => {
           if (update.docChanged) {
             const newText = update.state.doc.toString();
-            isUserEdit.current = true;
             setManifestText(newText);
+            setIsValid(null);
+            setValidationMessage('');
+            setErrors([]);
             onManifestEditingRef.current();
           }
         }),
@@ -158,6 +159,8 @@ export function ManifestEditor({ onManifestLoaded, onManifestEditing, onReset }:
   const uploadFile = useCallback(async (file: File) => {
     setIsUploading(true);
     setErrors([]);
+    setIsValid(null);
+    setValidationMessage('');
 
     const formData = new FormData();
     formData.append('manifest', file);
@@ -169,24 +172,24 @@ export function ManifestEditor({ onManifestLoaded, onManifestEditing, onReset }:
       });
       const data = await response.json();
 
-      if (data.valid) {
-        setIsValid(true);
-        setValidationMessage('Manifest is valid and ready for sandbox testing.');
-        onManifestLoaded(data.manifest);
-        const rawRes = await fetch('/api/manifest/raw');
-        if (rawRes.ok) {
-          const rawData = await rawRes.json();
-          setManifestText(rawData.content);
-          setEditorContent(rawData.content);
-        }
-      } else {
-        setIsValid(false);
-        setValidationMessage(data.message);
-        setErrors(data.errors || []);
+      if (!response.ok) {
+        // Upload failed — show raw content if available
         if (data.rawContent) {
           setManifestText(data.rawContent);
           setEditorContent(data.rawContent);
         }
+        return;
+      }
+
+      // Load content into editor without validating
+      const rawRes = await fetch('/api/manifest/raw');
+      if (rawRes.ok) {
+        const rawData = await rawRes.json();
+        setManifestText(rawData.content);
+        setEditorContent(rawData.content);
+      } else if (data.rawContent) {
+        setManifestText(data.rawContent);
+        setEditorContent(data.rawContent);
       }
     } catch {
       setIsValid(false);
@@ -195,7 +198,7 @@ export function ManifestEditor({ onManifestLoaded, onManifestEditing, onReset }:
     } finally {
       setIsUploading(false);
     }
-  }, [onManifestLoaded, setEditorContent]);
+  }, [setEditorContent]);
 
   const handleFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -217,49 +220,38 @@ export function ManifestEditor({ onManifestLoaded, onManifestEditing, onReset }:
     onReset();
   }, [onReset, setEditorContent]);
 
-  // Debounced re-validation on text changes
-  useEffect(() => {
-    if (!isUserEdit.current) return;
-    isUserEdit.current = false;
+  // User-initiated validation via "Validate" button
+  const handleValidate = useCallback(async () => {
+    if (!manifestText.trim()) return;
 
-    if (!manifestText.trim()) {
-      setIsValid(null);
-      setValidationMessage('');
-      setErrors([]);
-      return;
-    }
+    setIsValidating(true);
+    setErrors([]);
 
-    const controller = new AbortController();
-    const timer = setTimeout(async () => {
-      try {
-        const response = await fetch('/api/manifest/validate', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ content: manifestText }),
-          signal: controller.signal,
-        });
-        if (controller.signal.aborted) return;
-        const data = await response.json();
+    try {
+      const response = await fetch('/api/manifest/validate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content: manifestText }),
+      });
+      const data = await response.json();
 
-        if (data.valid) {
-          setIsValid(true);
-          setValidationMessage(data.message);
-          setErrors([]);
-          onManifestLoaded(data.manifest);
-        } else {
-          setIsValid(false);
-          setValidationMessage(data.message);
-          setErrors(data.errors || []);
-        }
-      } catch (err) {
-        if (err instanceof DOMException && err.name === 'AbortError') return;
+      if (data.valid) {
+        setIsValid(true);
+        setValidationMessage(data.message);
+        setErrors([]);
+        onManifestLoaded(data.manifest);
+      } else {
         setIsValid(false);
-        setValidationMessage('Network error: could not reach the server.');
-        setErrors([{ path: null, message: 'Network error', severity: 'error' }]);
+        setValidationMessage(data.message);
+        setErrors(data.errors || []);
       }
-    }, 800);
-
-    return () => { clearTimeout(timer); controller.abort(); };
+    } catch {
+      setIsValid(false);
+      setValidationMessage('Network error: could not reach the server.');
+      setErrors([{ path: null, message: 'Network error', severity: 'error' }]);
+    } finally {
+      setIsValidating(false);
+    }
   }, [manifestText, onManifestLoaded]);
 
   return (
@@ -308,43 +300,58 @@ export function ManifestEditor({ onManifestLoaded, onManifestEditing, onReset }:
 
       {isUploading && (
         <div className="editor-loading">
-          <Spinner size="small" label="Validating manifest..." />
+          <Spinner size="small" label="Loading manifest..." />
         </div>
       )}
 
       <div className="manifest-label">Manifest (YAML or JSON)</div>
       <div className="code-editor" ref={editorContainerRef} />
 
-      <div className="validation-block">
-        <div className="manifest-validation">
-          <span className="validation-title">Manifest Validation</span>
-          {isValid === true && (
-            <Badge appearance="filled" color="success">✓ Valid</Badge>
+      <div className="editor-actions-bottom">
+        <div className="editor-actions-left">
+          <Button
+            appearance="primary"
+            icon={<CheckmarkRegular />}
+            onClick={handleValidate}
+            disabled={!manifestText.trim() || isValidating}
+          >
+            {isValidating ? 'Validating...' : 'Validate'}
+          </Button>
+        </div>
+        <div className="editor-actions-right">
+          <div className="manifest-validation">
+            <span className="validation-title">Manifest Validation</span>
+            {isValid === true && (
+              <Badge appearance="filled" color="success">✓ Valid</Badge>
+            )}
+            {isValid === false && (
+              <Badge appearance="filled" color="danger">✗ Invalid</Badge>
+            )}
+            {isValid === null && !manifestText.trim() && (
+              <Badge appearance="filled" color="informative">Awaiting upload</Badge>
+            )}
+            {isValid === null && manifestText.trim() && (
+              <Badge appearance="filled" color="informative">Not validated</Badge>
+            )}
+          </div>
+          {validationMessage && (
+            <p className={`validation-message ${isValid ? 'valid' : 'invalid'}`}>
+              {validationMessage}
+            </p>
           )}
-          {isValid === false && (
-            <Badge appearance="filled" color="danger">✗ Invalid</Badge>
-          )}
-          {isValid === null && (
-            <Badge appearance="filled" color="informative">Awaiting upload</Badge>
+          {errors.length > 0 && (
+            <ul className="validation-errors">
+              {errors.map((err, i) => (
+                <li key={i} className="validation-error-item">
+                  {err.line && <code className="error-line">Line {err.line}</code>}
+                  {err.path && <code className="error-path">{err.path}</code>}
+                  <span>{err.detail || err.message}</span>
+                  {err.hint && <span className="error-hint">Fix: {err.hint}</span>}
+                </li>
+              ))}
+            </ul>
           )}
         </div>
-        {validationMessage && (
-          <p className={`validation-message ${isValid ? 'valid' : 'invalid'}`}>
-            {validationMessage}
-          </p>
-        )}
-        {errors.length > 0 && (
-          <ul className="validation-errors">
-            {errors.map((err, i) => (
-              <li key={i} className="validation-error-item">
-                {err.line && <code className="error-line">Line {err.line}</code>}
-                {err.path && <code className="error-path">{err.path}</code>}
-                <span>{err.detail || err.message}</span>
-                {err.hint && <span className="error-hint">Fix: {err.hint}</span>}
-              </li>
-            ))}
-          </ul>
-        )}
       </div>
     </div>
   );

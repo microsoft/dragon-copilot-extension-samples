@@ -1,6 +1,6 @@
-# Dragon Copilot Extensions Sandbox
+# Microsoft Dragon Copilot (radiologists) Extensions Sandbox
 
-A local development environment for testing and validating Dragon Copilot extensions before deployment to customer sites.
+A local development environment for testing and validating Microsoft Dragon Copilot (radiologists) extensions before deployment to customer sites.
 
 ## Prerequisites
 
@@ -103,7 +103,7 @@ The generation script (`scripts/generate-output-schemas.ts`) extracts schema def
 
 ## Mock Extension Server
 
-The sandbox ships with a **mock extension server** that simulates a real Dragon Copilot Radiology extension. It implements the `ExtensionRequest`/`ExtensionResponse` envelope contract from the Radiology Extensibility API and responds with valid `QualityCheckResult` payloads — making it useful for end-to-end testing of the sandbox UI without deploying a real extension.
+The sandbox ships with a **mock extension server** that simulates a real Microsoft Dragon Copilot (radiologists) extension. It implements the `ExtensionRequest`/`ExtensionResponse` envelope contract from the Radiology Extensibility API and responds with valid `QualityCheckResult` payloads — making it useful for end-to-end testing of the sandbox UI without deploying a real extension.
 
 ### What It Does
 
