@@ -2,4 +2,5 @@
   <Project Path="../../models/Dragon.Copilot.Radiologists.Models/Dragon.Copilot.Radiologists.Models.csproj" />
   <Project Path="SampleExtension.Radiologists.Web.Quickstart/SampleExtension.Radiologists.Web.Quickstart.csproj" />
   <Project Path="SampleExtension.Radiologists.Web.Ai/SampleExtension.Radiologists.Web.Ai.csproj" />
+  <Project Path="SampleExtension.Radiologists.Web.FoundryLocal/SampleExtension.Radiologists.Web.FoundryLocal.csproj" />
 </Solution>

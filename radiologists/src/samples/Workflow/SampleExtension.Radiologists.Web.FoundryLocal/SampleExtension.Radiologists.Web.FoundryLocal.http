@@ -1,14 +1,14 @@
-@SampleExtension.Radiologists.Web.Ai_HostAddress = http://localhost:5080
+@SampleExtension.Radiologists.Web.FoundryLocal_HostAddress = http://localhost:5080
 
 ### Liveness probe
-GET {{SampleExtension.Radiologists.Web.Ai_HostAddress}}/health/liveness
+GET {{SampleExtension.Radiologists.Web.FoundryLocal_HostAddress}}/health/liveness
 
 ### Readiness probe
-GET {{SampleExtension.Radiologists.Web.Ai_HostAddress}}/health/readiness
+GET {{SampleExtension.Radiologists.Web.FoundryLocal_HostAddress}}/health/readiness
 
 ### Process a radiology report (happy path)
-# @timeout 60
-POST {{SampleExtension.Radiologists.Web.Ai_HostAddress}}/v1/process
+# @timeout 600
+POST {{SampleExtension.Radiologists.Web.FoundryLocal_HostAddress}}/v1/process
 Content-Type: application/json
 
 {

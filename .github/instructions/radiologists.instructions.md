@@ -17,16 +17,17 @@ Radiologists extensions analyze radiology reports and return quality-check recom
 
 ## Sample variants
 
-Two C# sample variants live under `radiologists/src/samples/Workflow/`:
+Three C# sample variants live under `radiologists/src/samples/Workflow/`:
 
-| Variant    | Folder                                         | Purpose                                                                                                                                           | Target                      | Platform                     |
-| ---------- | ---------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------- | ---------------------------- |
-| Quickstart | `SampleExtension.Radiologists.Web.Quickstart/` | Returns a canned response from `MockData/qualitycheck-response.json`. The fastest way to get a working extension running locally.                 | `net10.0`                   | Cross-platform               |
-| Ai         | `SampleExtension.Radiologists.Web.Ai/`         | Calls Azure OpenAI when its config is populated; otherwise calls Foundry Local on-device inference when enabled. Throws if neither is configured. | `net10.0-windows10.0.26100` | Windows-only (Foundry Local) |
+| Variant      | Folder                                           | Purpose                                                                                                                           | Target                      | Platform       |
+| ------------ | ------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------- | --------------------------- | -------------- |
+| Quickstart   | `SampleExtension.Radiologists.Web.Quickstart/`   | Returns a canned response from `MockData/qualitycheck-response.json`. The fastest way to get a working extension running locally. | `net10.0`                   | Cross-platform |
+| Ai           | `SampleExtension.Radiologists.Web.Ai/`           | Calls **Azure OpenAI** when the `OpenAI` config is populated; otherwise returns a `503` "not configured" error.                   | `net10.0`                   | Cross-platform |
+| FoundryLocal | `SampleExtension.Radiologists.Web.FoundryLocal/` | Runs an on-device model via **Foundry Local** (`Microsoft.AI.Foundry.Local.WinML`); no cloud account or API key needed.           | `net10.0-windows10.0.26100` | Windows-only   |
 
 ## Stack facts
 
-- C# target framework: `net10.0` (Quickstart), `net10.0-windows10.0.26100` (AI sample, due to Foundry Local dependency).
+- C# target framework: `net10.0` (Quickstart and Ai, cross-platform), `net10.0-windows10.0.26100` (FoundryLocal, due to the Foundry Local dependency).
 - Default dev ports: **5080** (HTTP), **7080** (HTTPS).
 - `Authentication.Enabled` is `false` by default in `appsettings.json` so partners can clone and run without setting up Entra ID first.
 - Health probes at `/health/liveness` and `/health/readiness`, returning a JSON body (e.g. `{"status":"Healthy"}`) via a health-check response writer.
@@ -47,20 +48,19 @@ Defined in `Dragon.Copilot.Radiologists.Models`:
 
 ## Quality-check service
 
-Both sample variants use `IQualityCheckService.ProcessAsync` (async with `CancellationToken`) as the single integration point. Replace its implementation to wire in your own logic.
+All sample variants use `IQualityCheckService.ProcessAsync` (async with `CancellationToken`) as the single integration point. Replace its implementation to wire in your own logic.
 
-- **Quickstart variant:** Returns the canned response in `MockData/qualitycheck-response.json`. Partners can edit the JSON directly to tweak the stubbed output without rebuilding (the file is copied to the build output with `PreserveNewest`).
-- **Ai variant:** Selects a provider per request from configuration:
-    1. **Azure OpenAI** when the `OpenAI` section in `appsettings.json` has `Endpoint`, `ApiKey`, and `DeploymentName` populated.
-    2. Otherwise **Foundry Local** when `FoundryLocal:Enabled` is `true`.
+- **Quickstart variant** (`net10.0`, cross-platform): Returns the canned response in `MockData/qualitycheck-response.json`. Partners can edit the JSON directly to tweak the stubbed output without rebuilding (the file is copied to the build output with `PreserveNewest`).
+- **Ai variant** (`net10.0`, cross-platform): Calls **Azure OpenAI** when the `OpenAI` section in `appsettings.json` has `Endpoint`, `ApiKey`, and `DeploymentName` populated; otherwise returns `503 Service Unavailable` with a clear "not configured" message.
+- **FoundryLocal variant** (`net10.0-windows`, **Windows-only**): Runs an on-device model via **Foundry Local** (`Microsoft.AI.Foundry.Local.WinML`). No cloud account or API key is required — all inference is local.
 
-    **Graceful fallback:** If the model returns malformed JSON or omits the expected `qualityCheckResult` property, the service logs a warning and returns a well-formed `ProcessResponse` with an empty recommendations list instead of throwing. Partners adapting this sample can replace this fallback with their own error-handling strategy.
+    **Graceful fallback:** If the model returns malformed JSON or omits the expected `qualityCheckResult` property, the Ai/FoundryLocal services log a warning and return a well-formed `ProcessResponse` with an empty recommendations list instead of throwing. Partners adapting these samples can replace this fallback with their own error-handling strategy.
 
-    The full AI system prompt lives in code at `SampleExtension.Radiologists.Web.Ai/Services/QualityCheckService.cs` as the private `SystemPrompt` const, so it stays in sync with the running code.
+    The full AI system prompt lives in code as the private `SystemPrompt` const in the Ai and FoundryLocal samples' `Services/QualityCheckService.cs`, so it stays in sync with the running code.
 
 ## Endpoint shape
 
-Both samples use an async controller action with `CancellationToken`:
+All three samples use an async controller action with `CancellationToken`:
 
 ```csharp
 [ApiController]

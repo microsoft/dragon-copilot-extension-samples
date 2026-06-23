@@ -1,8 +1,7 @@
-namespace SampleExtension.Radiologists.Web.Ai.Configuration;
+namespace SampleExtension.Radiologists.Web.FoundryLocal.Configuration;
 
 /// <summary>
 /// Settings for Microsoft.AI.Foundry.Local on-device model inference.
-/// Used when Azure OpenAI is not configured.
 /// </summary>
 public class FoundryLocalSettings
 {
@@ -10,11 +9,6 @@ public class FoundryLocalSettings
     /// Configuration section name for Foundry Local settings.
     /// </summary>
     public const string SectionName = "FoundryLocal";
-
-    /// <summary>
-    /// When true, the Foundry Local provider is used if Azure OpenAI is not configured.
-    /// </summary>
-    public bool Enabled { get; set; } = true;
 
     /// <summary>
     /// Foundry Local model alias to download and load.

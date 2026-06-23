@@ -1,18 +1,19 @@
 using System.Text.Json;
 using Dragon.Copilot.Radiologists.Models;
+using Microsoft.Extensions.Options;
 using OpenAI.Chat;
+using SampleExtension.Radiologists.Web.FoundryLocal.Configuration;
 
-namespace SampleExtension.Radiologists.Web.Ai.Services;
+namespace SampleExtension.Radiologists.Web.FoundryLocal.Services;
 
 /// <summary>
-/// Quality-check service backed by Azure OpenAI. Runs inference via the configured
-/// Azure OpenAI deployment when Endpoint, ApiKey, and DeploymentName are set;
-/// otherwise throws <see cref="InvalidOperationException"/>.
+/// Quality-check service backed by an on-device Foundry Local model.
+/// Runs inference locally via <see cref="IFoundryLocalService"/>.
 /// </summary>
 public sealed class QualityCheckService : IQualityCheckService
 {
     /// <summary>
-    /// System prompt used to instruct the Azure OpenAI model.
+    /// System prompt used to instruct the on-device Foundry Local model.
     /// </summary>
     private const string SystemPrompt = """
 
@@ -80,21 +81,22 @@ public sealed class QualityCheckService : IQualityCheckService
     };
 
     private readonly ILogger<QualityCheckService> _logger;
-    private readonly IAzureOpenAIService _azureOpenAi;
+    private readonly IFoundryLocalService _foundryLocal;
+    private readonly FoundryLocalSettings _foundryLocalSettings;
 
     public QualityCheckService(
         ILogger<QualityCheckService> logger,
-        IAzureOpenAIService azureOpenAi)
+        IFoundryLocalService foundryLocal,
+        IOptions<FoundryLocalSettings> foundryLocalOptions)
     {
         ArgumentNullException.ThrowIfNull(logger);
-        ArgumentNullException.ThrowIfNull(azureOpenAi);
+        ArgumentNullException.ThrowIfNull(foundryLocal);
+        ArgumentNullException.ThrowIfNull(foundryLocalOptions);
 
         _logger = logger;
-        _azureOpenAi = azureOpenAi;
+        _foundryLocal = foundryLocal;
+        _foundryLocalSettings = foundryLocalOptions.Value;
     }
-
-    /// <inheritdoc />
-    public bool IsConfigured => _azureOpenAi.IsConfigured;
 
     /// <inheritdoc />
     public async Task<ProcessResponse> ProcessAsync(ProcessRequest payload, CancellationToken cancellationToken = default)
@@ -106,8 +108,13 @@ public sealed class QualityCheckService : IQualityCheckService
             payload.SessionData.CorrelationId,
             payload.Report?.ReportText.Length);
 
-        _logger.LogInformation("Using Azure OpenAI provider.");
-        return await ProcessWithChatClientAsync(payload, _azureOpenAi.GetChatClient(), cancellationToken).ConfigureAwait(false);
+        _logger.LogInformation(
+            "Using Foundry Local provider (model={Model}). If this is the first request after startup, the model may need to download and load — this can take several minutes.",
+            _foundryLocalSettings.ModelAlias);
+        // GetChatClientAsync is lazily memoized; first call may be slow due to model download/load,
+        // but awaiting it (rather than blocking) keeps the ASP.NET Core thread-pool free.
+        var chatClient = await _foundryLocal.GetChatClientAsync(cancellationToken).ConfigureAwait(false);
+        return await ProcessWithChatClientAsync(payload, chatClient, cancellationToken).ConfigureAwait(false);
     }
 
     private async Task<ProcessResponse> ProcessWithChatClientAsync(ProcessRequest payload, ChatClient chatClient, CancellationToken cancellationToken)

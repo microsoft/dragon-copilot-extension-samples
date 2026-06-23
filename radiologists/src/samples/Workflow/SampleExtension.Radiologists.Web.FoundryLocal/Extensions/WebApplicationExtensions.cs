@@ -1,4 +1,4 @@
-namespace SampleExtension.Radiologists.Web.Quickstart.Extensions;
+namespace SampleExtension.Radiologists.Web.FoundryLocal.Extensions;
 
 /// <summary>
 /// Extension methods for configuring the web application security pipeline.

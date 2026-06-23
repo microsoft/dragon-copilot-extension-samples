@@ -1,18 +1,22 @@
-# Partner Extension Sample — AI
+# Partner Extension Sample — AI (Azure OpenAI)
 
 A radiologists extension for Dragon Copilot that performs **AI-powered**
-quality checks. This sample wires up Azure OpenAI for cloud inference
-and falls back to an on-device Foundry Local model when Azure OpenAI
-is not configured. Use it as the starting point for partners that need
-real model inference; copy the project, replace the prompt and result
-handling with your own implementation, and deploy a working extension
-that follows the expected contract.
+quality checks via **Azure OpenAI**. This sample is **cross-platform**
+(`net10.0`) and is the real-model example partners can build and run on
+Windows, Linux, or macOS. Use it as the starting point for partners that
+need real model inference; copy the project, replace the prompt and result
+handling with your own implementation, and deploy a working extension that
+follows the expected contract.
+
+> **Want on-device inference instead?** See the
+> [`SampleExtension.Radiologists.Web.FoundryLocal`](../SampleExtension.Radiologists.Web.FoundryLocal/README.md)
+> sample, which runs a local model via Foundry Local (**Windows-only**).
 
 ## What's included
 
-- ASP.NET Core Web API (.NET 10, Windows-only because of Foundry Local), single controller: `POST /v1/process`
+- ASP.NET Core Web API (.NET 10, **cross-platform**), single controller: `POST /v1/process`
 - JWT authentication via Microsoft Entra ID, toggleable via `Authentication.Enabled` in `appsettings.json`
-- AI-powered quality checks via Azure OpenAI **or** an on-device model through Microsoft.AI.Foundry.Local
+- AI-powered quality checks via **Azure OpenAI**
 - Swagger UI at the app root in Development
 - Health probes at `/health/liveness` and `/health/readiness` (JSON responses)
 
@@ -106,20 +110,18 @@ Authorization: Bearer <entra-id-jwt>
 
 ## Quality check provider
 
-The extension performs the AI-powered quality check using one of two providers,
-selected automatically in this priority order:
+The extension performs the AI-powered quality check using **Azure OpenAI**,
+configured via the `OpenAI` section in `appsettings.json` (`Endpoint`, `ApiKey`,
+and `DeploymentName`).
 
-1. **Azure OpenAI** — used when `OpenAI.Endpoint`, `OpenAI.ApiKey`, and
-   `OpenAI.DeploymentName` are all set in `appsettings.json`.
-2. **Foundry Local** — used when Azure OpenAI is not configured and
-   `FoundryLocal.Enabled` is `true`. Runs an on-device model with no cloud
-   calls. Enabled by default so the sample runs out-of-the-box (the model
-   downloads on first use).
+If Azure OpenAI is not configured, the extension responds with
+`503 Service Unavailable` and a message naming the settings to populate — by
+design, so a misconfigured deployment fails fast and visibly rather than
+silently returning empty results.
 
-If neither provider is available (Azure OpenAI not configured **and**
-`FoundryLocal.Enabled` is `false`), the service throws an
-`InvalidOperationException` on the first request — by design, so misconfigured
-deployments fail fast rather than silently returning empty results.
+> For an on-device alternative that needs no cloud account, see the
+> [`SampleExtension.Radiologists.Web.FoundryLocal`](../SampleExtension.Radiologists.Web.FoundryLocal/README.md)
+> sample (**Windows-only**).
 
 ## Azure OpenAI Configuration
 
@@ -147,38 +149,17 @@ To configure the AI-powered quality check, you need an Azure OpenAI model deploy
     }
     ```
 
-For production deployments, store the API key in a secure location such as
-Azure Key Vault or environment variables rather than in `appsettings.json`.
+For production, prefer **environment variables** or a secret store (e.g. Azure
+Key Vault) over putting secrets in `appsettings.json`. Each `OpenAI` setting maps
+to an environment variable via ASP.NET Core's `__` (double-underscore) convention:
 
-## Foundry Local (on-device model) Configuration
+```bash
+OpenAI__Endpoint=https://<your-resource-name>.openai.azure.com/
+OpenAI__ApiKey=<your-api-key>
+OpenAI__DeploymentName=<your-deployment-name>
+```
 
-Foundry Local runs a small language model directly on the host machine with no
-cloud dependency. Requires Windows 10 build 26100 or later.
-
-Configure in the `FoundryLocal` section of `appsettings.json`:
-
-| Setting      | Description                                                                                                                                                                                                       |
-| ------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `Enabled`    | When `true`, Foundry Local is used if Azure OpenAI is not configured. Defaults to `true` so the sample runs out-of-the-box. Set to `false` to require Azure OpenAI configuration.                                 |
-| `ModelAlias` | Foundry Local model alias to download and load. Defaults to `qwen2.5-1.5b`. Other options: `qwen2.5-0.5b`, `phi-3.5-mini`, `phi-4-mini`, `mistral-7b`, `gpt-oss-20b`.                                             |
-| `DeviceType` | `CPU`, `GPU`, or `NPU`. Defaults to `CPU` so the sample runs on machines without a GPU/NPU.                                                                                                                       |
-| `AppName`    | Application name passed to Foundry Local; used for log/data directory naming.                                                                                                                                     |
-| `AppDataDir` | Local directory for the model cache and logs. Empty (default) uses `%USERPROFILE%\.foundry` so the cache is shared with other Foundry Local apps and tools on the same machine. Set an absolute path to override. |
-
-### First-run behavior
-
-On the first request that uses Foundry Local, the configured model is
-downloaded into the local cache and loaded into memory before inference runs.
-Depending on model size and network speed, this can take from several seconds
-to several minutes.
-
-The first request takes time while the model downloads and loads. You can
-send request using an HTTP client tool such as Bruno, or use the included `.http`
-file — in that case, raise the request timeout (for example by adding
-`# @timeout 600` above the request) so the model has time to download and
-load.
-
-Subsequent requests reuse the loaded model and respond quickly.
+These are the same variables shown in the sample's `Dockerfile`.
 
 ## Request / response contract
 

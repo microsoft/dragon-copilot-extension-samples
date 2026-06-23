@@ -1,4 +1,4 @@
-namespace SampleExtension.Radiologists.Web.Ai.Configuration;
+namespace SampleExtension.Radiologists.Web.FoundryLocal.Configuration;
 
 /// <summary>
 /// JWT Authentication configuration options.

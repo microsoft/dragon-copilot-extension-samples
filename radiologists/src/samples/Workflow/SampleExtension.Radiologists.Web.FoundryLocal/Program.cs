@@ -1,19 +1,19 @@
-// Minimal, self-contained Radiologists extension sample.
+// Minimal, self-contained Radiologists extension sample (on-device Foundry Local, Windows-only).
 // Partners can copy this project folder and run it with `dotnet run`.
 
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
-using SampleExtension.Radiologists.Web.Ai.Configuration;
-using SampleExtension.Radiologists.Web.Ai.Extensions;
-using SampleExtension.Radiologists.Web.Ai.Services;
+using SampleExtension.Radiologists.Web.FoundryLocal.Configuration;
+using SampleExtension.Radiologists.Web.FoundryLocal.Extensions;
+using SampleExtension.Radiologists.Web.FoundryLocal.Services;
 using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// OpenAI configuration
-builder.Services.Configure<OpenAiSettings>(builder.Configuration.GetSection(OpenAiSettings.SectionName));
+// Foundry Local (on-device model) configuration.
+builder.Services.Configure<FoundryLocalSettings>(builder.Configuration.GetSection(FoundryLocalSettings.SectionName));
 
 // Services
-builder.Services.AddSingleton<IAzureOpenAIService, AzureOpenAIService>();
+builder.Services.AddSingleton<IFoundryLocalService, FoundryLocalService>();
 builder.Services.AddSingleton<IQualityCheckService, QualityCheckService>();
 
 // JWT authentication (Microsoft Entra ID).
@@ -34,9 +34,9 @@ builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new Microsoft.OpenApi.OpenApiInfo
     {
-        Title = "Simple Radiologists Extension API",
+        Title = "Radiologists Extension API (Foundry Local, Windows-only)",
         Version = "v1",
-        Description = "A simple radiologists extension sample that demonstrates the extension pattern for Dragon Copilot."
+        Description = "A radiologists extension sample that runs on-device inference via Foundry Local (Windows-only)."
     });
 });
 builder.Services.AddHealthChecks();
@@ -59,7 +59,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI(c =>
     {
-        c.SwaggerEndpoint("/swagger/v1/swagger.json", "Simple Radiologists Extension API v1");
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "Radiologists Extension API (Foundry Local) v1");
         c.RoutePrefix = string.Empty; // Serve Swagger UI at the app's root.
     });
 }

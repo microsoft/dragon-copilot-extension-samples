@@ -1,9 +1,9 @@
 using Dragon.Copilot.Radiologists.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using SampleExtension.Radiologists.Web.Ai.Services;
+using SampleExtension.Radiologists.Web.FoundryLocal.Services;
 
-namespace SampleExtension.Radiologists.Web.Ai.Controllers;
+namespace SampleExtension.Radiologists.Web.FoundryLocal.Controllers;
 
 /// <summary>
 /// Single entry point of the Radiologists simple extension.
@@ -33,13 +33,12 @@ public sealed class QualityCheckController : ControllerBase
     /// Analyzes a radiology report and returns a list of quality-check recommendations.
     /// </summary>
     /// <remarks>
-    /// This sample uses Azure OpenAI. Replace <see cref="IQualityCheckService.ProcessAsync"/>
+    /// This sample runs an on-device Foundry Local model. Replace <see cref="IQualityCheckService.ProcessAsync"/>
     /// with your real implementation.
     /// </remarks>
     [HttpPost("process")]
     [ProducesResponseType(typeof(ProcessResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status503ServiceUnavailable)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<ProcessResponse>> PostAsync([FromBody] ProcessRequest payload, CancellationToken cancellationToken)
     {
@@ -48,14 +47,6 @@ public sealed class QualityCheckController : ControllerBase
         if (!ModelState.IsValid)
         {
             return BadRequest(ModelState);
-        }
-
-        if (!_qualityCheckService.IsConfigured)
-        {
-            return Problem(
-                statusCode: StatusCodes.Status503ServiceUnavailable,
-                title: "Azure OpenAI is not configured",
-                detail: "Set the OpenAI Endpoint, ApiKey, and DeploymentName in appsettings.json and restart the app.");
         }
 
         _logger.LogInformation(

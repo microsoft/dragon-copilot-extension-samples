@@ -3,9 +3,10 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Identity.Web;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
-using AuthOptions = SampleExtension.Radiologists.Web.Quickstart.Configuration.AuthenticationOptions;
+using SampleExtension.Radiologists.Web.FoundryLocal.Configuration;
+using AuthOptions = SampleExtension.Radiologists.Web.FoundryLocal.Configuration.AuthenticationOptions;
 
-namespace SampleExtension.Radiologists.Web.Quickstart.Extensions;
+namespace SampleExtension.Radiologists.Web.FoundryLocal.Extensions;
 
 /// <summary>
 /// Extension methods for service collection configuration.

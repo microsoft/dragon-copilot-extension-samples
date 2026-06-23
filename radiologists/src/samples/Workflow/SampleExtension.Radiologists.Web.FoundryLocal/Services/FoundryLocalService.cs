@@ -4,10 +4,10 @@ using Microsoft.AI.Foundry.Local;
 using Microsoft.Extensions.Options;
 using OpenAI;
 using OpenAI.Chat;
-using SampleExtension.Radiologists.Web.Ai.Configuration;
+using SampleExtension.Radiologists.Web.FoundryLocal.Configuration;
 using FoundryConfiguration = Microsoft.AI.Foundry.Local.Configuration;
 
-namespace SampleExtension.Radiologists.Web.Ai.Services;
+namespace SampleExtension.Radiologists.Web.FoundryLocal.Services;
 
 /// <summary>
 /// On-device chat completion provider backed by Microsoft.AI.Foundry.Local.

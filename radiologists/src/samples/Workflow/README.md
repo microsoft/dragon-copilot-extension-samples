@@ -5,10 +5,11 @@
 This folder contains ASP.NET Core sample projects that demonstrate the
 partner extension pattern for Dragon Copilot.
 
-| Project                                                                                                  | Purpose                                                                                                              | Default port (http/https) | Target                                                                |
-| -------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- | ------------------------- | --------------------------------------------------------------------- |
-| [`SampleExtension.Radiologists.Web.Quickstart`](./SampleExtension.Radiologists.Web.Quickstart/README.md) | Returns a canned response loaded from `MockData/qualitycheck-response.json`. No model inference, no AI dependencies. | 5080 / 7080               | `net10.0` (cross-platform)                                            |
-| [`SampleExtension.Radiologists.Web.Ai`](./SampleExtension.Radiologists.Web.Ai/README.md)                 | Uses Azure OpenAI when configured, falls back to an on-device Foundry Local model otherwise.                         | 5080 / 7080               | `net10.0-windows10.0.26100` (Windows-only, required by Foundry Local) |
+| Project                                                                                                      | Purpose                                                                                                              | Default port (http/https) | Target                                                                |
+| ------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------- | ------------------------- | --------------------------------------------------------------------- |
+| [`SampleExtension.Radiologists.Web.Quickstart`](./SampleExtension.Radiologists.Web.Quickstart/README.md)     | Returns a canned response loaded from `MockData/qualitycheck-response.json`. No model inference, no AI dependencies. | 5080 / 7080               | `net10.0` (cross-platform)                                            |
+| [`SampleExtension.Radiologists.Web.Ai`](./SampleExtension.Radiologists.Web.Ai/README.md)                     | AI-powered quality checks via **Azure OpenAI** (cloud).                                                              | 5080 / 7080               | `net10.0` (cross-platform)                                            |
+| [`SampleExtension.Radiologists.Web.FoundryLocal`](./SampleExtension.Radiologists.Web.FoundryLocal/README.md) | AI-powered quality checks via **Foundry Local** (on-device).                                                         | 5080 / 7080               | `net10.0-windows10.0.26100` (**Windows-only**, Foundry Local / WinML) |
 
 ## Solution
 
@@ -29,8 +30,11 @@ dotnet build SampleExtension.Radiologists.Web.slnx
 # Stub-only (mock data)
 dotnet run --project SampleExtension.Radiologists.Web.Quickstart
 
-# AI-backed (Azure OpenAI + Foundry Local fallback)
+# AI-backed, cross-platform (Azure OpenAI)
 dotnet run --project SampleExtension.Radiologists.Web.Ai
+
+# AI-backed, on-device (Foundry Local — Windows-only)
+dotnet run --project SampleExtension.Radiologists.Web.FoundryLocal
 ```
 
 ## Samples in other languages

@@ -3,6 +3,7 @@
 
   <ItemGroup>
     <PackageVersion Include="Azure.AI.OpenAI" Version="2.1.0" />
+    <PackageVersion Include="OpenAI" Version="2.1.0" />
     <PackageVersion Include="Microsoft.AI.Foundry.Local.WinML" Version="1.0.0" />
     <!-- Required by CPM only. Transitive from Microsoft.AI.Foundry.Local.WinML; not deployed on win-x64. -->
     <PackageVersion Include="Microsoft.ML.OnnxRuntime.Gpu.Linux" Version="1.25.1" />

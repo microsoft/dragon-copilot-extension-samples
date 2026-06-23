@@ -1,11 +1,12 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
-    <TargetFramework>net10.0</TargetFramework>
+    <TargetFramework>net10.0-windows10.0.26100</TargetFramework>
+    <RuntimeIdentifiers>win-x64</RuntimeIdentifiers>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <RootNamespace>SampleExtension.Radiologists.Web.Ai</RootNamespace>
-    <AssemblyName>SampleExtension.Radiologists.Web.Ai</AssemblyName>
+    <RootNamespace>SampleExtension.Radiologists.Web.FoundryLocal</RootNamespace>
+    <AssemblyName>SampleExtension.Radiologists.Web.FoundryLocal</AssemblyName>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <!--
       CA1812: False positive for classes instantiated via DI, model binding, or JSON deserialization.
@@ -17,11 +18,13 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <!-- OpenAPI document generation is built into ASP.NET Core starting with .NET 9. -->
-    <PackageReference Include="Azure.AI.OpenAI" />
     <PackageReference Include="Swashbuckle.AspNetCore" />
     <!-- Authentication: Entra ID (Azure AD) JWT bearer via Microsoft Identity Web -->
     <PackageReference Include="Microsoft.Identity.Web" />
+    <!-- Foundry Local WinML: on-device model inference via Windows ML (Windows-only). -->
+    <PackageReference Include="Microsoft.AI.Foundry.Local.WinML" />
+    <!-- OpenAI .NET SDK: ChatClient talks to the local Foundry endpoint (OpenAI-compatible). -->
+    <PackageReference Include="OpenAI" />
   </ItemGroup>
 
   <ItemGroup>
