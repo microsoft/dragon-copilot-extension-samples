@@ -315,11 +315,8 @@ npm run dev --workspace=server
 ```
 Then enable authentication in the UI, click **Test connection** (green claim checks, no Azure), and run a tool test against the echo listener above or the [mock extension server](#mock-extension-server) to confirm the full enabled-auth path end-to-end. Leave `ENTRA_TOKEN_ENDPOINT` unset in any real environment.
 
-## Next Steps
+## Upcoming Features
 
-The sandbox will support the following workflows (upcoming features):
-- Upload & validate extension manifests
-- Browse capabilities and tools from manifests
-- Execute tools with custom inputs against local endpoints
-- Validate responses against expected schemas
-- Generate consolidated test reports
+- Dragon Copilot preview pane for extension results
+- Sample scenario picker & sample data packs
+- Dragon Copilot CLI integration with the manifest editor
