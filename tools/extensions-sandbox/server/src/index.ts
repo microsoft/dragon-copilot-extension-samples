@@ -3,6 +3,7 @@ import cors from 'cors';
 import { healthRouter } from './routes/health.js';
 import { manifestRouter, multerErrorHandler } from './routes/manifest.js';
 import { validateRouter } from './routes/validate.js';
+import { authRouter } from './routes/auth.js';
 
 const app = express();
 const PORT = Number(process.env.PORT) || 4000;
@@ -13,6 +14,7 @@ app.use(express.json());
 app.use('/api/health', healthRouter);
 app.use('/api/manifest', manifestRouter);
 app.use('/api/validate', validateRouter);
+app.use('/api/auth', authRouter);
 
 // Handle multer-specific errors with user-friendly messages
 app.use('/api/manifest', multerErrorHandler);

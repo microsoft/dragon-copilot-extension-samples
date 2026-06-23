@@ -11,6 +11,7 @@ import {
 import { ArrowCounterclockwiseRegular, CodeRegular, CopyRegular } from '@fluentui/react-icons';
 import { DynamicForm, getFieldPaths, SchemaProperty } from './DynamicForm';
 import type { DynamicFormHandle } from './DynamicForm';
+import { AuthSettings } from './AuthSettings';
 import { parseAndGroupInputs } from 'extensions-sandbox-shared';
 import './ValidationResults.css';
 
@@ -458,6 +459,11 @@ export function TestingPanel({ manifestInfo, manifestRevision }: TestingPanelPro
               <p className="field-description">
                 No sample loaded. You can fill fields manually or choose one of 3 sample scenarios.
               </p>
+            </div>
+
+            <div className="form-field">
+              <label className="field-label">Authentication</label>
+              <AuthSettings />
             </div>
 
             {currentTool && (
