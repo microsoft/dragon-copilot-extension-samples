@@ -84,3 +84,28 @@ export const normalizeNoteSections = (
 export const getDefaultNoteSections = (): Record<NoteSectionKey, NoteSectionValue> =>
   normalizeNoteSections(DEFAULT_NOTE_SECTION_VALUES);
 
+/**
+ * Static default note-sections mapping written to generated connector manifests.
+ *
+ * Note sections are no longer used by Dragon backend services, but the Dragon Admin
+ * Center still requires the `note-sections` block to be present when uploading a
+ * connector. This 1:1 mapping satisfies that requirement without prompting the user.
+ */
+export const DEFAULT_MANIFEST_NOTE_SECTIONS: Record<string, NoteSectionValue> = {
+  hpi: 'hpi',
+  'chief-complaint': 'chief-complaint',
+  'past-medical-history': 'past-medical-history',
+  assessment: 'assessment',
+  plan: 'plan',
+  medications: 'medications',
+  allergies: 'allergies',
+  'review-of-systems': 'review-of-systems',
+  'physical-exam': 'physical-exam',
+  procedures: 'procedures',
+  results: 'results'
+};
+
+export const getDefaultManifestNoteSections = (): Record<string, NoteSectionValue> => ({
+  ...DEFAULT_MANIFEST_NOTE_SECTIONS
+});
+
