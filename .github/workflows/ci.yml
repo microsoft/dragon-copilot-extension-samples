@@ -7,7 +7,7 @@ on:
     branches: [ main ]
 
 jobs:
-  build-physicians:
+  build-and-test-physicians:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -52,7 +52,7 @@ jobs:
       run: |
         docker build -f ${{ matrix.product.dockerfile }} -t ${{ matrix.product.name }}-sample-extension .
 
-  build-radiologists:
+  build-and-test-radiologists:
     runs-on: ubuntu-latest
 
     steps:
@@ -69,17 +69,32 @@ jobs:
         dotnet restore
         dotnet build --no-restore --configuration Release
 
+    - name: Test Radiologists Models
+      working-directory: radiologists/src/models/Dragon.Copilot.Radiologists.Models
+      run: |
+        dotnet test --no-build --configuration Release --verbosity normal
+
     - name: Build Radiologists Quickstart sample (cross-platform)
       working-directory: radiologists/src/samples/Workflow/SampleExtension.Radiologists.Web.Quickstart
       run: |
         dotnet restore
         dotnet build --no-restore --configuration Release
 
+    - name: Test Radiologists Quickstart sample
+      working-directory: radiologists/src/samples/Workflow/SampleExtension.Radiologists.Web.Quickstart
+      run: |
+        dotnet test --no-build --configuration Release --verbosity normal
+
     - name: Build Radiologists AI sample (cross-platform, Azure OpenAI)
       working-directory: radiologists/src/samples/Workflow/SampleExtension.Radiologists.Web.Ai
       run: |
         dotnet restore
         dotnet build --no-restore --configuration Release
+
+    - name: Test Radiologists AI sample
+      working-directory: radiologists/src/samples/Workflow/SampleExtension.Radiologists.Web.Ai
+      run: |
+        dotnet test --no-build --configuration Release --verbosity normal
 
     - name: Build Radiologists Quickstart Docker image
       run: |
