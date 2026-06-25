@@ -12,6 +12,7 @@ import { getToolsForCapability } from '../utils/tool-metadata.js';
 import { parseCapabilities } from '../utils/capabilities-parser.js';
 import { MANIFEST_SCHEMA_PATH } from '../utils/schema-path.js';
 import { callExtensionAsync, buildExtensionRequest } from '../services/extension-client.js';
+import { acquireToken, buildClaimChecks, AuthError } from '../services/auth.js';
 import { parseInputValues } from 'extensions-sandbox-shared';
 
 export const manifestRouter = Router();
@@ -354,12 +355,46 @@ manifestRouter.post('/execute', async (req, res) => {
   // invalidates prior results (the endpoint or manifest may have changed).
   sessionStore.clearValidationResults();
 
+  // When service-to-service authentication is enabled, acquire an Entra ID
+  // access token (client credentials flow) and forward it as a Bearer token.
+  // When disabled, fall back to any bearerToken supplied directly in the body
+  // (preserves the prior behavior for testing unauthenticated endpoints).
+  let resolvedToken: string | undefined = bearerToken;
+  let claimChecks: ReturnType<typeof buildClaimChecks> | undefined;
+  const authConfig = sessionStore.getAuthConfig();
+  if (authConfig.enabled) {
+    try {
+      const tokenResult = await acquireToken(authConfig);
+      resolvedToken = tokenResult.accessToken;
+      claimChecks = buildClaimChecks(tokenResult.claims, authConfig.tenantId);
+    } catch (err: unknown) {
+      if (err instanceof AuthError) {
+        res.status(401).json({
+          error: `Authentication failed: ${err.message}`,
+          cause: 'Entra ID token acquisition failed',
+          category: err.category,
+          entraCode: err.entraCode,
+          troubleshooting: err.troubleshooting,
+        });
+        return;
+      }
+      // acquireToken only throws AuthError today, but handle any unexpected
+      // error here so it never escapes to Express's default handler.
+      const message = err instanceof Error ? err.message : 'Unknown error';
+      res.status(500).json({
+        error: `Authentication failed: ${message}`,
+        cause: 'Entra ID token acquisition failed',
+      });
+      return;
+    }
+  }
+
   try {
     const result = await callExtensionAsync({
       tool,
       inputs: inputs ?? {},
       customerTenantId: customerTenantId || '00000000-0000-0000-0000-000000000000',
-      bearerToken,
+      bearerToken: resolvedToken,
     });
 
     res.json({
@@ -369,6 +404,8 @@ manifestRouter.post('/execute', async (req, res) => {
       extensionResponse: result.extensionResponse ?? null,
       rawBody: result.rawBody ?? null,
       sentRequest: result.sentRequest,
+      authenticated: authConfig.enabled,
+      claimChecks: claimChecks ?? null,
     });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : 'Unknown error';

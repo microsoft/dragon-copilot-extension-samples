@@ -643,3 +643,68 @@ body {
   margin-bottom: 0.35rem;
 }
 
+/* Auth settings (Entra ID service-to-service authentication) */
+.auth-settings {
+  border: 1px solid #e1dfdd;
+  border-radius: 4px;
+  padding: 0.75rem;
+}
+
+.auth-settings-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.auth-toggle-link {
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+
+.auth-settings-body {
+  margin-top: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.auth-settings-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.auth-test-result {
+  border-radius: 4px;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.85rem;
+}
+
+.auth-test-success {
+  background: #f1faf1;
+  border: 1px solid #9fd89f;
+}
+
+.auth-test-error {
+  background: #fdf3f4;
+  border: 1px solid #eeacb2;
+}
+
+.claim-check-list {
+  list-style: none;
+  padding-left: 0;
+  margin: 0.5rem 0 0;
+}
+
+.claim-check-list li {
+  margin-bottom: 0.25rem;
+}
+
+.claim-pass {
+  color: #0e700e;
+}
+
+.claim-fail {
+  color: #a4262c;
+}
+
