@@ -251,16 +251,16 @@ Click **Save**, then **Test connection** to acquire a token without calling the 
 
 To exercise the full **authentication-enabled** flow without a real Entra tenant, set the `ENTRA_TOKEN_ENDPOINT` environment variable so the sandbox acquires tokens from a local fake issuer instead of `login.microsoftonline.com`. The value may include a `{tenantId}` placeholder.
 
-1. Start a fake token issuer that returns a JWT-shaped `access_token`:
+1. Start a fake token issuer that returns a JWT-shaped `access_token`. The token's `iss` and `tid` must use the **same tenant GUID** you enter in the UI, otherwise the `iss` claim check cannot be verified locally:
    ```powershell
-   node -e "const c={iss:'https://login.microsoftonline.com/tid/v2.0',idtyp:'app',azp:'7c2215ec-e1fa-4aa6-9204-8ee91e63d29f'};const t=['e30',Buffer.from(JSON.stringify(c)).toString('base64url'),'sig'].join('.');require('http').createServer((q,r)=>{r.writeHead(200,{'Content-Type':'application/json'});r.end(JSON.stringify({access_token:t,expires_in:3600,token_type:'Bearer'}))}).listen(9200,()=>console.log('fake issuer on :9200'))"
+   node -e "const c={iss:'https://login.microsoftonline.com/11111111-1111-1111-1111-111111111111/v2.0',idtyp:'app',azp:'7c2215ec-e1fa-4aa6-9204-8ee91e63d29f',tid:'11111111-1111-1111-1111-111111111111'};const t=['e30',Buffer.from(JSON.stringify(c)).toString('base64url'),'sig'].join('.');require('http').createServer((q,r)=>{r.writeHead(200,{'Content-Type':'application/json'});r.end(JSON.stringify({access_token:t,expires_in:3600,token_type:'Bearer'}))}).listen(9200,()=>console.log('fake issuer on :9200'))"
    ```
-2. Start the sandbox server pointed at the fake issuer:
+2. Start the sandbox (server **and** client) pointed at the fake issuer:
    ```powershell
    $env:ENTRA_TOKEN_ENDPOINT = "http://localhost:9200/token"
-   npm run dev --workspace=server
+   npm run dev
    ```
-3. In the UI, enable authentication and click **Test connection** — you'll get a token and green claim checks entirely offline. Run a test against the [mock extension server](#mock-extension-server) to verify the end-to-end enabled-auth path.
+3. In the UI, enable authentication and configure it with **Tenant ID** `11111111-1111-1111-1111-111111111111` (the GUID baked into the fake token above), the Radiance client id as **Client ID**, any non-empty **Client Secret**, and a scope. Click **Test connection** — you'll get a token and all three claim checks (`iss` / `idtyp` / `azp`) green, entirely offline. Run a test against the [mock extension server](#mock-extension-server) to verify the end-to-end enabled-auth path.
 
 > `ENTRA_TOKEN_ENDPOINT` is for local testing only. Leave it unset in any real environment so tokens are acquired from Microsoft Entra ID.
 
@@ -306,14 +306,15 @@ The listener prints `AUTH: Bearer test-token-123`, proving the token is attached
 
 *Fully offline with auth ON:* mint a token from a local fake issuer via the `ENTRA_TOKEN_ENDPOINT` override (see [Offline end-to-end testing](#offline-end-to-end-testing-no-azure) for details), then run a test against the echo/mock endpoint to exercise the entire enabled-auth path without Azure:
 ```powershell
-# 1. Fake token issuer on :9200 returning a JWT-shaped access_token with valid claims:
-node -e "const c={iss:'https://login.microsoftonline.com/tid/v2.0',idtyp:'app',azp:'7c2215ec-e1fa-4aa6-9204-8ee91e63d29f'};const t=['e30',Buffer.from(JSON.stringify(c)).toString('base64url'),'sig'].join('.');require('http').createServer((q,r)=>{r.writeHead(200,{'Content-Type':'application/json'});r.end(JSON.stringify({access_token:t,expires_in:3600,token_type:'Bearer'}))}).listen(9200,()=>console.log('fake issuer on :9200'))"
+# 1. Fake token issuer on :9200 returning a JWT-shaped access_token with valid claims
+#    (iss + tid use the same tenant GUID you'll enter in the UI):
+node -e "const c={iss:'https://login.microsoftonline.com/11111111-1111-1111-1111-111111111111/v2.0',idtyp:'app',azp:'7c2215ec-e1fa-4aa6-9204-8ee91e63d29f',tid:'11111111-1111-1111-1111-111111111111'};const t=['e30',Buffer.from(JSON.stringify(c)).toString('base64url'),'sig'].join('.');require('http').createServer((q,r)=>{r.writeHead(200,{'Content-Type':'application/json'});r.end(JSON.stringify({access_token:t,expires_in:3600,token_type:'Bearer'}))}).listen(9200,()=>console.log('fake issuer on :9200'))"
 
-# 2. Point the sandbox server at the fake issuer and start it:
+# 2. Point the sandbox (server + client) at the fake issuer and start it:
 $env:ENTRA_TOKEN_ENDPOINT = "http://localhost:9200/token"
-npm run dev --workspace=server
+npm run dev
 ```
-Then enable authentication in the UI, click **Test connection** (green claim checks, no Azure), and run a tool test against the echo listener above or the [mock extension server](#mock-extension-server) to confirm the full enabled-auth path end-to-end. Leave `ENTRA_TOKEN_ENDPOINT` unset in any real environment.
+Then enable authentication in the UI with **Tenant ID** `11111111-1111-1111-1111-111111111111` (the GUID baked into the fake token), click **Test connection** (all three claim checks green, no Azure), and run a tool test against the echo listener above or the [mock extension server](#mock-extension-server) to confirm the full enabled-auth path end-to-end. Leave `ENTRA_TOKEN_ENDPOINT` unset in any real environment.
 
 ## Upcoming Features
 
