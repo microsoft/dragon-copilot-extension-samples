@@ -1,14 +1,14 @@
-@SampleExtension.Radiologists.Web.Quickstart_HostAddress = http://localhost:5080
+@SampleExtension_Radiologists_Web_Quickstart_HostAddress = http://localhost:5080
 
 ### Liveness probe
-GET {{SampleExtension.Radiologists.Web.Quickstart_HostAddress}}/health/liveness
+GET {{SampleExtension_Radiologists_Web_Quickstart_HostAddress}}/health/liveness
 
 ### Readiness probe
-GET {{SampleExtension.Radiologists.Web.Quickstart_HostAddress}}/health/readiness
+GET {{SampleExtension_Radiologists_Web_Quickstart_HostAddress}}/health/readiness
 
 ### Process a radiology report (happy path)
 # @timeout 60
-POST {{SampleExtension.Radiologists.Web.Quickstart_HostAddress}}/v1/process
+POST {{SampleExtension_Radiologists_Web_Quickstart_HostAddress}}/v1/process
 Content-Type: application/json
 
 {
