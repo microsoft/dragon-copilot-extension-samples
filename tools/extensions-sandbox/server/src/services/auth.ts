@@ -9,6 +9,10 @@
  * (tenant id, client id, scope, expiry) may appear in errors/logs.
  */
 
+import { createLogger } from '../utils/logger.js';
+
+const log = createLogger('auth');
+
 /** The Radiance (Dragon Copilot radiologists) Entra application client id. */
 export const RADIANCE_CLIENT_ID = '7c2215ec-e1fa-4aa6-9204-8ee91e63d29f';
 
@@ -132,6 +136,7 @@ function validateConfig(config: AuthConfig): void {
   if (!config.clientSecret?.trim()) missing.push('clientSecret');
   if (!config.scope?.trim()) missing.push('scope');
   if (missing.length > 0) {
+    log.warn(`Token request rejected: missing required config value(s): ${missing.join(', ')}.`);
     throw new AuthError(
       `Authentication is enabled but the following configuration value(s) are missing: ${missing.join(', ')}.`,
       'invalid_config',
@@ -211,6 +216,10 @@ export async function acquireToken(
   }
 
   const tokenUrl = resolveTokenEndpoint(config.tenantId);
+  log.info(
+    `Acquiring token (client credentials) for tenant '${config.tenantId}', ` +
+    `clientId '${config.clientId}', scope '${scope}'.`,
+  );
 
   const body = new URLSearchParams({
     grant_type: 'client_credentials',
@@ -232,6 +241,7 @@ export async function acquireToken(
     });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : 'Unknown network error';
+    log.error(`Could not reach Entra token endpoint for tenant '${config.tenantId}': ${message}`);
     throw new AuthError(
       `Could not reach the Microsoft Entra token endpoint: ${message}`,
       'network',
@@ -249,6 +259,10 @@ export async function acquireToken(
   if (!response.ok) {
     const entraCode =
       typeof payload.error === 'string' ? payload.error : `HTTP ${response.status}`;
+    log.warn(
+      `Entra token request for tenant '${config.tenantId}' failed ` +
+      `(status ${response.status}, code '${entraCode}').`,
+    );
     const description =
       typeof payload.error_description === 'string'
         ? // The Entra error_description can be multi-line; keep the first line.
@@ -280,6 +294,7 @@ export async function acquireToken(
 
   const accessToken = typeof payload.access_token === 'string' ? payload.access_token : '';
   if (!accessToken) {
+    log.error(`Entra token response for tenant '${config.tenantId}' did not contain an access_token.`);
     throw new AuthError(
       'Entra token response did not contain an access_token.',
       'token_endpoint_error',
@@ -289,6 +304,11 @@ export async function acquireToken(
   const expiresInSec = typeof payload.expires_in === 'number' ? payload.expires_in : 3600;
   const expiresOnMs = now + expiresInSec * 1000;
   const claims = decodeJwtClaims(accessToken);
+
+  log.info(
+    `Acquired token for tenant '${config.tenantId}' (expires in ${expiresInSec}s, ` +
+    `cached=${!options.noCache}).`,
+  );
 
   if (!options.noCache) {
     tokenCache.set(key, { accessToken, expiresOnMs, claims });

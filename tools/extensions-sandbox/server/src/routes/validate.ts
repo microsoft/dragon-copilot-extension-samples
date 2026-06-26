@@ -1,8 +1,11 @@
 import { Router } from 'express';
 import { validateToolResponse, validateToolInputs } from '../services/validation.js';
 import { sessionStore } from '../store/session.js';
+import { createLogger } from '../utils/logger.js';
 
 export const validateRouter = Router();
+
+const log = createLogger('validate');
 
 /**
  * GET /api/validate/results
@@ -50,6 +53,15 @@ validateRouter.post('/inputs/:toolName', (req, res) => {
   const allValid = results.every((r) => r.valid);
   const statusCode = allValid ? 200 : 422;
 
+  if (allValid) {
+    log.info(`Input validation for tool '${toolName}': VALID (${results.length} input(s)).`);
+  } else {
+    const failed = results.filter((r) => !r.valid).length;
+    log.warn(
+      `Input validation for tool '${toolName}': INVALID — ${failed} of ${results.length} input(s) failed (422).`,
+    );
+  }
+
   res.status(statusCode).json({
     valid: allValid,
     toolName,
@@ -82,5 +94,10 @@ validateRouter.post('/:toolName', (req, res) => {
   sessionStore.addValidationResult(result);
 
   const statusCode = result.valid ? 200 : 422;
+  if (result.valid) {
+    log.info(`Response validation for tool '${toolName}': VALID.`);
+  } else {
+    log.warn(`Response validation for tool '${toolName}': INVALID (422).`);
+  }
   res.status(statusCode).json(result);
 });
