@@ -138,7 +138,7 @@ public sealed class QualityCheckService : IQualityCheckService
         return response.Value.Content[0].Text;
     }
 
-    private ProcessResponse MapToResult(string json)
+    internal ProcessResponse MapToResult(string json)
     {
         const string qualityCheckResultPropertyName = "qualityCheckResult";
 

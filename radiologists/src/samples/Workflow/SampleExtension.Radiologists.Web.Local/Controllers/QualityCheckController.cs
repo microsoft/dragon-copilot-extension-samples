@@ -1,9 +1,9 @@
 using Dragon.Copilot.Radiologists.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using SampleExtension.Radiologists.Web.FoundryLocal.Services;
+using SampleExtension.Radiologists.Web.Local.Services;
 
-namespace SampleExtension.Radiologists.Web.FoundryLocal.Controllers;
+namespace SampleExtension.Radiologists.Web.Local.Controllers;
 
 /// <summary>
 /// Single entry point of the Radiologists simple extension.

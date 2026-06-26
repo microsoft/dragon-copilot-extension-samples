@@ -1,6 +1,9 @@
 <Solution>
   <Project Path="../../models/Dragon.Copilot.Radiologists.Models/Dragon.Copilot.Radiologists.Models.csproj" />
   <Project Path="SampleExtension.Radiologists.Web.Quickstart/SampleExtension.Radiologists.Web.Quickstart.csproj" />
+  <Project Path="SampleExtension.Radiologists.Web.Quickstart.Tests/SampleExtension.Radiologists.Web.Quickstart.Tests.csproj" />
   <Project Path="SampleExtension.Radiologists.Web.Ai/SampleExtension.Radiologists.Web.Ai.csproj" />
-  <Project Path="SampleExtension.Radiologists.Web.FoundryLocal/SampleExtension.Radiologists.Web.FoundryLocal.csproj" />
+  <Project Path="SampleExtension.Radiologists.Web.Ai.Tests/SampleExtension.Radiologists.Web.Ai.Tests.csproj" />
+  <Project Path="SampleExtension.Radiologists.Web.Local/SampleExtension.Radiologists.Web.Local.csproj" />
+  <Project Path="SampleExtension.Radiologists.Web.Local.Tests/SampleExtension.Radiologists.Web.Local.Tests.csproj" />
 </Solution>

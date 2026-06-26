@@ -8,4 +8,11 @@
     <!-- Required by CPM only. Transitive from Microsoft.AI.Foundry.Local.WinML; not deployed on win-x64. -->
     <PackageVersion Include="Microsoft.ML.OnnxRuntime.Gpu.Linux" Version="1.25.1" />
   </ItemGroup>
+
+  <ItemGroup>
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.0.1" />
+    <PackageVersion Include="xunit" Version="2.9.3" />
+    <PackageVersion Include="xunit.runner.visualstudio" Version="3.1.5" />
+    <PackageVersion Include="Moq" Version="4.20.72" />
+  </ItemGroup>
 </Project>

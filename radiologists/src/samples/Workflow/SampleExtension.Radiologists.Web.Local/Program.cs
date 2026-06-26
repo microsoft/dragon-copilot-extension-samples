@@ -2,9 +2,9 @@
 // Partners can copy this project folder and run it with `dotnet run`.
 
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
-using SampleExtension.Radiologists.Web.FoundryLocal.Configuration;
-using SampleExtension.Radiologists.Web.FoundryLocal.Extensions;
-using SampleExtension.Radiologists.Web.FoundryLocal.Services;
+using SampleExtension.Radiologists.Web.Local.Configuration;
+using SampleExtension.Radiologists.Web.Local.Extensions;
+using SampleExtension.Radiologists.Web.Local.Services;
 using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);

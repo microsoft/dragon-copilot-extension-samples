@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Identity.Web;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
-using SampleExtension.Radiologists.Web.Ai.Configuration;
 using AuthOptions = SampleExtension.Radiologists.Web.Ai.Configuration.AuthenticationOptions;
 
 namespace SampleExtension.Radiologists.Web.Ai.Extensions;

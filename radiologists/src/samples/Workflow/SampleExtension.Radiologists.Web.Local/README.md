@@ -35,7 +35,7 @@ implementation to run a contract-compliant quality check entirely on local hardw
 ## Run locally (Windows)
 
 ```powershell
-dotnet run --project SampleExtension.Radiologists.Web.FoundryLocal
+dotnet run --project SampleExtension.Radiologists.Web.Local
 ```
 
 On the first request the configured model is downloaded and loaded, which can take
@@ -46,7 +46,7 @@ Available endpoints:
 - Swagger UI: http://localhost:5080/
 - Health: `/health/liveness`, `/health/readiness`
 
-A `.http` file (`SampleExtension.Radiologists.Web.FoundryLocal.http`) is included for
+A `.http` file (`SampleExtension.Radiologists.Web.Local.http`) is included for
 sending sample requests from Visual Studio or VS Code.
 
 ## Foundry Local provider

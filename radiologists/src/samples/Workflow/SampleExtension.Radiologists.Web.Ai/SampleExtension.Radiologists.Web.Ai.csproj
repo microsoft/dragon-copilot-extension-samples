@@ -28,4 +28,8 @@
     <ProjectReference Include="..\..\..\models\Dragon.Copilot.Radiologists.Models\Dragon.Copilot.Radiologists.Models.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <InternalsVisibleTo Include="SampleExtension.Radiologists.Web.Ai.Tests" />
+  </ItemGroup>
+
 </Project>

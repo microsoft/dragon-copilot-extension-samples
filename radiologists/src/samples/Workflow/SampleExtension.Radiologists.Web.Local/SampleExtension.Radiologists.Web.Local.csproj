@@ -5,8 +5,8 @@
     <RuntimeIdentifiers>win-x64</RuntimeIdentifiers>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <RootNamespace>SampleExtension.Radiologists.Web.FoundryLocal</RootNamespace>
-    <AssemblyName>SampleExtension.Radiologists.Web.FoundryLocal</AssemblyName>
+    <RootNamespace>SampleExtension.Radiologists.Web.Local</RootNamespace>
+    <AssemblyName>SampleExtension.Radiologists.Web.Local</AssemblyName>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <!--
       CA1812: False positive for classes instantiated via DI, model binding, or JSON deserialization.
@@ -29,6 +29,10 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\models\Dragon.Copilot.Radiologists.Models\Dragon.Copilot.Radiologists.Models.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="SampleExtension.Radiologists.Web.Local.Tests" />
   </ItemGroup>
 
 </Project>

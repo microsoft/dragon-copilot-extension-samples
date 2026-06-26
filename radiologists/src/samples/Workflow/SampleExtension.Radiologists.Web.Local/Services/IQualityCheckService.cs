@@ -1,6 +1,6 @@
 using Dragon.Copilot.Radiologists.Models;
 
-namespace SampleExtension.Radiologists.Web.FoundryLocal.Services;
+namespace SampleExtension.Radiologists.Web.Local.Services;
 
 /// <summary>
 /// Abstraction for the component that turns an incoming radiology report

@@ -9,7 +9,7 @@ handling with your own implementation, and deploy a working extension that
 follows the expected contract.
 
 > **Want on-device inference instead?** See the
-> [`SampleExtension.Radiologists.Web.FoundryLocal`](../SampleExtension.Radiologists.Web.FoundryLocal/README.md)
+> [`SampleExtension.Radiologists.Web.Local`](../SampleExtension.Radiologists.Web.Local/README.md)
 > sample, which runs a local model via Foundry Local (**Windows-only**).
 
 ## What's included
@@ -120,7 +120,7 @@ design, so a misconfigured deployment fails fast and visibly rather than
 silently returning empty results.
 
 > For an on-device alternative that needs no cloud account, see the
-> [`SampleExtension.Radiologists.Web.FoundryLocal`](../SampleExtension.Radiologists.Web.FoundryLocal/README.md)
+> [`SampleExtension.Radiologists.Web.Local`](../SampleExtension.Radiologists.Web.Local/README.md)
 > sample (**Windows-only**).
 
 ## Azure OpenAI Configuration

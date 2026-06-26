@@ -2,9 +2,9 @@ using System.Text.Json;
 using Dragon.Copilot.Radiologists.Models;
 using Microsoft.Extensions.Options;
 using OpenAI.Chat;
-using SampleExtension.Radiologists.Web.FoundryLocal.Configuration;
+using SampleExtension.Radiologists.Web.Local.Configuration;
 
-namespace SampleExtension.Radiologists.Web.FoundryLocal.Services;
+namespace SampleExtension.Radiologists.Web.Local.Services;
 
 /// <summary>
 /// Quality-check service backed by an on-device Foundry Local model.
@@ -145,7 +145,7 @@ public sealed class QualityCheckService : IQualityCheckService
         return response.Value.Content[0].Text;
     }
 
-    private ProcessResponse MapToResult(string json)
+    internal ProcessResponse MapToResult(string json)
     {
         const string qualityCheckResultPropertyName = "qualityCheckResult";
 

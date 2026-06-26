@@ -81,9 +81,9 @@ jobs:
         dotnet build --no-restore --configuration Release
 
     - name: Test Radiologists Quickstart sample
-      working-directory: radiologists/src/samples/Workflow/SampleExtension.Radiologists.Web.Quickstart
+      working-directory: radiologists/src/samples/Workflow/SampleExtension.Radiologists.Web.Quickstart.Tests
       run: |
-        dotnet test --no-build --configuration Release --verbosity normal
+        dotnet test --configuration Release --verbosity normal
 
     - name: Build Radiologists AI sample (cross-platform, Azure OpenAI)
       working-directory: radiologists/src/samples/Workflow/SampleExtension.Radiologists.Web.Ai
@@ -92,9 +92,9 @@ jobs:
         dotnet build --no-restore --configuration Release
 
     - name: Test Radiologists AI sample
-      working-directory: radiologists/src/samples/Workflow/SampleExtension.Radiologists.Web.Ai
+      working-directory: radiologists/src/samples/Workflow/SampleExtension.Radiologists.Web.Ai.Tests
       run: |
-        dotnet test --no-build --configuration Release --verbosity normal
+        dotnet test --configuration Release --verbosity normal
 
     - name: Build Radiologists Quickstart Docker image
       run: |
@@ -115,13 +115,18 @@ jobs:
       with:
         dotnet-version: '10.0.x'
 
-    # The FoundryLocal sample is Windows-only (net10.0-windows, Microsoft.AI.Foundry.Local.WinML),
+    # The Foundry Local sample is Windows-only (net10.0-windows, Microsoft.AI.Foundry.Local.WinML),
     # so it is built on a Windows runner rather than the cross-platform ubuntu job above.
-    - name: Build Radiologists FoundryLocal sample (Windows-only, on-device)
-      working-directory: radiologists/src/samples/Workflow/SampleExtension.Radiologists.Web.FoundryLocal
+    - name: Build Radiologists Foundry Local sample (Windows-only, on-device)
+      working-directory: radiologists/src/samples/Workflow/SampleExtension.Radiologists.Web.Local
       run: |
         dotnet restore
         dotnet build --no-restore --configuration Release
+
+    - name: Test Radiologists Foundry Local sample (Windows-only, on-device)
+      working-directory: radiologists/src/samples/Workflow/SampleExtension.Radiologists.Web.Local.Tests
+      run: |
+        dotnet test --configuration Release --verbosity normal
 
   nodejs-tools:
     runs-on: ubuntu-latest

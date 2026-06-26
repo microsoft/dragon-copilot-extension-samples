@@ -1,6 +1,6 @@
 using OpenAI.Chat;
 
-namespace SampleExtension.Radiologists.Web.FoundryLocal.Services;
+namespace SampleExtension.Radiologists.Web.Local.Services;
 
 /// <summary>
 /// Provides on-device chat completion via Microsoft.AI.Foundry.Local.

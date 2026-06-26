@@ -9,7 +9,7 @@ partner extension pattern for Dragon Copilot.
 | ------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------- | ------------------------- | --------------------------------------------------------------------- |
 | [`SampleExtension.Radiologists.Web.Quickstart`](./SampleExtension.Radiologists.Web.Quickstart/README.md)     | Returns a canned response loaded from `MockData/qualitycheck-response.json`. No model inference, no AI dependencies. | 5080 / 7080               | `net10.0` (cross-platform)                                            |
 | [`SampleExtension.Radiologists.Web.Ai`](./SampleExtension.Radiologists.Web.Ai/README.md)                     | AI-powered quality checks via **Azure OpenAI** (cloud).                                                              | 5080 / 7080               | `net10.0` (cross-platform)                                            |
-| [`SampleExtension.Radiologists.Web.FoundryLocal`](./SampleExtension.Radiologists.Web.FoundryLocal/README.md) | AI-powered quality checks via **Foundry Local** (on-device).                                                         | 5080 / 7080               | `net10.0-windows10.0.26100` (**Windows-only**, Foundry Local / WinML) |
+| [`SampleExtension.Radiologists.Web.Local`](./SampleExtension.Radiologists.Web.Local/README.md) | AI-powered quality checks via **Foundry Local** (on-device).                                                         | 5080 / 7080               | `net10.0-windows10.0.26100` (**Windows-only**, Foundry Local / WinML) |
 
 ## Solution
 
@@ -34,7 +34,7 @@ dotnet run --project SampleExtension.Radiologists.Web.Quickstart
 dotnet run --project SampleExtension.Radiologists.Web.Ai
 
 # AI-backed, on-device (Foundry Local — Windows-only)
-dotnet run --project SampleExtension.Radiologists.Web.FoundryLocal
+dotnet run --project SampleExtension.Radiologists.Web.Local
 ```
 
 ## Samples in other languages

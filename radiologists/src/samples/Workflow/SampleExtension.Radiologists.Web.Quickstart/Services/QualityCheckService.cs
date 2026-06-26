@@ -93,7 +93,9 @@ public sealed class QualityCheckService : IQualityCheckService
 
         _logger.LogInformation(
             "Loaded {Count} mock recommendation(s) from {Path}.",
-            response.Payload?[QualityCheckPayloadKey].Recommendations.Count ?? 0,
+            response.Payload is not null && response.Payload.TryGetValue(QualityCheckPayloadKey, out var qualityCheckResult)
+                ? qualityCheckResult.Recommendations.Count
+                : 0,
             fullPath);
 
         return response;
