@@ -4,6 +4,9 @@ import { fileURLToPath } from 'node:url';
 import Ajv, { type ValidateFunction, type ErrorObject } from 'ajv';
 import addFormats from 'ajv-formats';
 import { sessionStore } from '../store/session.js';
+import { createLogger } from '../utils/logger.js';
+
+const log = createLogger('validation');
 
 // ---------------------------------------------------------------------------
 // Types
@@ -139,10 +142,12 @@ export function validateToolResponse(
 
   // ── Resolve output content-type ────────────────────────────────────────
   const outputContentType = tool.outputs[0]['content-type'];
+  log.info(`Validating output of tool '${toolName}' against content-type '${outputContentType}'.`);
 
   // ── Guard: no schema registered for this content-type ──────────────────
   const schemaFile = CONTENT_TYPE_SCHEMA_MAP[outputContentType];
   if (!schemaFile) {
+    log.warn(`No output schema registered for content-type '${outputContentType}'.`);
     return makeErrorResult(
       toolName,
       outputContentType,
@@ -358,6 +363,19 @@ function buildResult(
   const passed = checks.filter((c) => c.passed).length;
   const failed = checks.filter((c) => !c.passed).length;
 
+  log.info(
+    `Output validation for tool '${toolName}' (${outputContentType}): ` +
+    `${failed === 0 ? 'VALID' : 'INVALID'} — ${passed} passed, ${failed} failed.`,
+  );
+  if (failed > 0) {
+    for (const c of checks.filter((c) => !c.passed)) {
+      log.warn(
+        `  ✖ Output check failed [${toolName}]${c.path ? ` at ${c.path}` : ''}: ` +
+        `${c.error ?? c.check}`,
+      );
+    }
+  }
+
   return {
     valid: failed === 0,
     toolName,
@@ -430,6 +448,11 @@ export function validateToolInputs(
 
   const results: InputValidationResult[] = [];
 
+  log.info(
+    `Validating ${tool.inputs.length} input(s) for tool '${toolName}': ` +
+    tool.inputs.map((i) => `${i.name} (${i['content-type']})`).join(', '),
+  );
+
   for (const inputDef of tool.inputs) {
     const inputContentType = inputDef['content-type'];
     const inputName = inputDef.name;
@@ -461,6 +484,7 @@ export function validateToolInputs(
     // Check if we have a schema for this content-type
     const schemaFile = INPUT_CONTENT_TYPE_SCHEMA_MAP[inputContentType];
     if (!schemaFile) {
+      log.warn(`No input schema registered for content-type '${inputContentType}' (input '${inputName}'); skipping.`);
       checks.push({
         check: `Schema resolved for input content-type '${inputContentType}'`,
         passed: true,
@@ -508,9 +532,11 @@ export function validateToolInputs(
     const isValid = validate(inputData);
 
     if (isValid) {
+      log.info(`Input '${inputName}' (${inputContentType}) passed schema validation.`);
       checks.push({ check: `Input '${inputName}' passes schema validation`, passed: true });
     } else {
       const errors = validate.errors ?? [];
+      log.warn(`Input '${inputName}' (${inputContentType}) failed schema validation with ${errors.length} error(s).`);
       for (const err of errors) {
         checks.push(ajvErrorToCheck(err));
       }
@@ -519,6 +545,17 @@ export function validateToolInputs(
     const passed = checks.filter((c) => c.passed).length;
     const failed = checks.filter((c) => !c.passed).length;
     results.push({ valid: failed === 0, toolName, inputName, inputContentType, checks, summary: { passed, failed }, timestamp });
+  }
+
+  // Log a consolidated summary pinpointing exactly which input checks failed.
+  for (const r of results) {
+    if (r.valid) continue;
+    for (const c of r.checks.filter((c) => !c.passed)) {
+      log.warn(
+        `  ✖ Input check failed [${toolName}/${r.inputName}] (${r.inputContentType})` +
+        `${c.path ? ` at ${c.path}` : ''}: ${c.error ?? c.check}`,
+      );
+    }
   }
 
   return results;

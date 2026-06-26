@@ -1,6 +1,9 @@
 import { randomUUID } from 'node:crypto';
 import type { ManifestTool } from '../schemas/manifest.schema.js';
 import { parseInputValues } from 'extensions-sandbox-shared';
+import { createLogger } from '../utils/logger.js';
+
+const log = createLogger('extension-call');
 
 /**
  * Request envelope sent to extension endpoints.
@@ -129,19 +132,41 @@ export async function callExtensionAsync(
     headers['Authorization'] = `Bearer ${bearerToken}`;
   }
 
+  const requestBody = JSON.stringify(extensionRequest);
+  log.info(`POST ${tool.endpoint} (timeout ${timeoutMs}ms)`);
+  log.info(`Request headers: ${JSON.stringify(redactHeaders(headers))}`);
+  log.info(
+    `Request envelope: requestId=${extensionRequest.requestId}, ` +
+    `tool='${tool.name}', inputs=[${Object.keys(parsedInputs).join(', ') || 'none'}], ` +
+    `bodySize=${requestBody.length} bytes`,
+  );
+  // The raw request body and reproducible curl command can contain
+  // clinical/PHI-shaped input values, so they are only emitted at debug level
+  // (set LOG_LEVEL=debug). They are never logged during normal runs.
+  log.debug(`Request body: ${requestBody}`);
+  log.debug(`Reproduce with curl:\n${buildCurlCommand(tool.endpoint, headers, requestBody)}`);
+
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), timeoutMs);
 
+  const startedAt = Date.now();
   try {
     const response = await fetch(tool.endpoint, {
       method: 'POST',
       headers,
-      body: JSON.stringify(extensionRequest),
+      body: requestBody,
       signal: controller.signal,
     });
 
     const responseHeaders = Object.fromEntries(response.headers.entries());
     const contentType = response.headers.get('content-type') || '';
+    const durationMs = Date.now() - startedAt;
+
+    log.info(
+      `Response ${response.status} ${response.statusText} in ${durationMs}ms ` +
+      `(content-type: ${contentType || 'unknown'})`,
+    );
+    log.info(`Response headers: ${JSON.stringify(redactHeaders(responseHeaders))}`);
 
     let rawBody: unknown;
     if (contentType.includes('application/json')) {
@@ -154,6 +179,11 @@ export async function callExtensionAsync(
     let extensionResponse: ExtensionResponse | undefined;
     if (isExtensionResponse(rawBody)) {
       extensionResponse = rawBody;
+      log.info(
+        `Response matched ExtensionResponse envelope: ${extensionResponse.tools.length} tool result(s).`,
+      );
+    } else {
+      log.warn('Response did not match the expected ExtensionResponse envelope; returning raw body.');
     }
 
     return {
@@ -164,9 +194,62 @@ export async function callExtensionAsync(
       rawBody: extensionResponse ? undefined : rawBody,
       sentRequest: extensionRequest,
     };
+  } catch (err: unknown) {
+    const durationMs = Date.now() - startedAt;
+    const message = err instanceof Error ? err.message : 'Unknown error';
+    log.error(`Request to ${tool.endpoint} failed after ${durationMs}ms: ${message}`);
+    throw err;
   } finally {
     clearTimeout(timeout);
   }
+}
+
+/**
+ * Header names whose values must never be written to the console, matched
+ * case-insensitively. Covers request auth as well as sensitive headers that
+ * may appear on extension responses (e.g. Set-Cookie).
+ */
+const SENSITIVE_HEADERS = new Set([
+  'authorization',
+  'proxy-authorization',
+  'cookie',
+  'set-cookie',
+]);
+
+/**
+ * Returns a shallow copy of headers with any sensitive values redacted,
+ * so bearer tokens, cookies, and similar secrets are never written to the
+ * console. Matching is case-insensitive and applies to both request and
+ * response headers.
+ */
+function redactHeaders(headers: Record<string, string>): Record<string, string> {
+  const redacted: Record<string, string> = {};
+  for (const [name, value] of Object.entries(headers)) {
+    redacted[name] = SENSITIVE_HEADERS.has(name.toLowerCase()) ? '***redacted***' : value;
+  }
+  return redacted;
+}
+
+/**
+ * Builds a copy-pasteable `curl` command that reproduces the extension call.
+ *
+ * The Authorization header is redacted so bearer tokens are never logged.
+ * Single quotes inside values are escaped so the command is safe to paste
+ * into a POSIX shell. The body is passed via --data so it round-trips exactly.
+ */
+function buildCurlCommand(
+  endpoint: string,
+  headers: Record<string, string>,
+  body: string,
+): string {
+  const shellQuote = (value: string): string => `'${value.replace(/'/g, `'\\''`)}'`;
+
+  const parts = [`curl -X POST ${shellQuote(endpoint)}`];
+  for (const [name, value] of Object.entries(redactHeaders(headers))) {
+    parts.push(`  -H ${shellQuote(`${name}: ${value}`)}`);
+  }
+  parts.push(`  --data ${shellQuote(body)}`);
+  return parts.join(' \\\n');
 }
 
 /**

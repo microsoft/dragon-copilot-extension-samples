@@ -1,5 +1,5 @@
 /**
- * Extracts JSON Schema definitions from the radiology OpenAPI YAML spec.
+ * Extracts JSON Schema definitions from the radiologists OpenAPI YAML spec.
  *
  * Reads the OpenAPI document, resolves internal $refs for the target schema
  * (QualityCheckResult) and its transitive dependencies, then writes a
@@ -18,7 +18,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 const OPENAPI_PATH = resolve(
-  __dirname, '..', 'src', 'schemas', 'radiology', 'radiology-extensibility-api.yaml',
+  __dirname, '..', 'src', 'schemas', 'radiologists', 'radiologists-extensibility-api.yaml',
 );
 const OUTPUT_DIR = resolve(__dirname, '..', 'src', 'schemas', 'generated-schemas');
 

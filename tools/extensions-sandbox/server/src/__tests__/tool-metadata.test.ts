@@ -124,7 +124,7 @@ describe('Tool Metadata - getToolsForCapability', () => {
       name: 'empty',
       description: 'Empty',
       version: '0.0.1',
-      radiologyExtensibilityApiVersion: '0.1.0',
+      radiologistsExtensibilityApiVersion: '0.1.0',
       auth: { tenantId: '00000000-0000-0000-0000-000000000000' },
       tools: [
         { ...baseTool, name: 'only-tool', capability: 'qualityCheck', description: 'Only tool' },

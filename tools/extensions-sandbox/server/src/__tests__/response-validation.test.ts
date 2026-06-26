@@ -9,7 +9,7 @@ function loadTestManifest(): void {
     name: 'test-extension',
     description: 'Extension for validation tests',
     version: '1.0.0',
-    radiologyExtensibilityApiVersion: '0.1.0',
+    radiologistsExtensibilityApiVersion: '0.1.0',
     auth: { tenantId: '00000000-0000-0000-0000-000000000000' },
     tools: [
       {

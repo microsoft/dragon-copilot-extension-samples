@@ -3,13 +3,14 @@
   "title": "QualityCheckResult",
   "description": "Schema for QualityCheckResult",
   "type": "object",
+  "x-ms-schema-version": "1.0",
   "required": [
     "recommendations"
   ],
   "properties": {
     "recommendations": {
       "type": "array",
-      "description": "An array of billing quality check recommendations. This will be an empty list if there are no recommendations.",
+      "description": "An array of quality check recommendations (each typed via Recommendation.qualityCheckType, e.g. \"Billing\" or \"Clinical\"). This will be an empty list if there are no recommendations.",
       "items": {
         "$ref": "#/definitions/Recommendation"
       }

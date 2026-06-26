@@ -34,7 +34,7 @@ describe('buildDetailedErrors', () => {
       name: 'test',
       description: 'Test',
       version: '1.0.0',
-      radiologyExtensibilityApiVersion: '0.1.0',
+      radiologistsExtensibilityApiVersion: '0.1.0',
       auth: { tenantId: '12345678-1234-1234-1234-123456789abc' },
       tools: [{ name: 'my-tool', description: 'A tool' }],
     };
@@ -55,7 +55,7 @@ describe('buildDetailedErrors', () => {
       name: 'test',
       description: 'Test',
       version: '1.0.0',
-      radiologyExtensibilityApiVersion: '0.1.0',
+      radiologistsExtensibilityApiVersion: '0.1.0',
       auth: { tenantId: '12345678-1234-1234-1234-123456789abc' },
       tools: [
         {
@@ -94,7 +94,7 @@ describe('buildDetailedErrors', () => {
       name: 'Invalid Name!',
       description: 'Test',
       version: 'abc',
-      radiologyExtensibilityApiVersion: '0.1.0',
+      radiologistsExtensibilityApiVersion: '0.1.0',
       auth: { tenantId: 'not-a-guid' },
       tools: [
         {
@@ -134,7 +134,7 @@ describe('buildDetailedErrors', () => {
       name: 'test',
       description: 'Test',
       version: '1.0.0',
-      radiologyExtensibilityApiVersion: '0.1.0',
+      radiologistsExtensibilityApiVersion: '0.1.0',
       auth: { tenantId: '12345678-1234-1234-1234-123456789abc' },
       tools: [
         {

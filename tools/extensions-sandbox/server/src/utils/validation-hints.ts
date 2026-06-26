@@ -156,7 +156,7 @@ function getRequiredPropertyHint(path: string, missing: string, schemaPath: stri
     name: `Add a 'name' field at the root level using lowercase kebab-case (e.g., "my-extension").`,
     description: `Add a 'description' field at the root level explaining what your extension does.`,
     version: `Add a 'version' field in semver format (e.g., "1.0.0").`,
-    radiologyExtensibilityApiVersion: `Add a 'radiologyExtensibilityApiVersion' field with the API version in x.y.z format (e.g., "0.1.0").`,
+    radiologistsExtensibilityApiVersion: `Add a 'radiologistsExtensibilityApiVersion' field with the API version in x.y.z format (e.g., "0.1.0").`,
     auth: `Add an 'auth' object with a 'tenantId' property containing your Azure Entra ID tenant GUID.`,
     tools: `Add a 'tools' array with at least one tool definition.`,
   };

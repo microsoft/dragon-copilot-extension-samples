@@ -57,9 +57,9 @@ extensions-sandbox/
     ├── src/
     │   ├── index.ts      # Server entry point
     │   ├── schemas/
-    │   │   ├── radiology/              # Source-of-truth schemas (see note below)
-    │   │   │   ├── radiology-extension-manifest-schema.json
-    │   │   │   └── radiology-extensibility-api.yaml
+    │   │   ├── radiologists/           # Source-of-truth schemas (see note below)
+    │   │   │   ├── radiologists-extension-manifest-schema.json
+    │   │   │   └── radiologists-extensibility-api.yaml
     │   │   ├── generated-schemas/      # Auto-generated (do not edit by hand)
     │   │   │   └── quality-check-result.json
     │   │   └── manifest.schema.ts      # TypeScript types for manifests
@@ -76,7 +76,7 @@ extensions-sandbox/
 
 ### Generated Schemas
 
-The `server/src/schemas/generated-schemas/` folder contains JSON Schema files that are **auto-generated** from the OpenAPI specification (`radiology-extensibility-api.yaml`). These files should not be edited by hand — they are regenerated on every build and test run via:
+The `server/src/schemas/generated-schemas/` folder contains JSON Schema files that are **auto-generated** from the OpenAPI specification (`radiologists-extensibility-api.yaml`). These files should not be edited by hand — they are regenerated on every build and test run via:
 
 ```bash
 npm run generate-schemas
@@ -84,7 +84,7 @@ npm run generate-schemas
 
 The generation script (`scripts/generate-output-schemas.ts`) extracts schema definitions (e.g., `QualityCheckResult`, `Recommendation`, `Provenance`) from the OpenAPI YAML and produces standalone JSON Schema files used for response validation.
 
-> **Note:** The radiology schemas in `src/schemas/radiology/` are temporarily copied from
+> **Note:** The radiologists schemas in `src/schemas/radiologists/` are temporarily copied from
 > `diag-radex-extension-service` and will be replaced with internal package references once
 > those are in sync with the service's authoritative versions.
 
@@ -106,7 +106,7 @@ The generation script (`scripts/generate-output-schemas.ts`) extracts schema def
 
 ## Mock Extension Server
 
-The sandbox ships with a **mock extension server** that simulates a real Microsoft Dragon Copilot (radiologists) extension. It implements the `ExtensionRequest`/`ExtensionResponse` envelope contract from the Radiology Extensibility API and responds with valid `QualityCheckResult` payloads — making it useful for end-to-end testing of the sandbox UI without deploying a real extension.
+The sandbox ships with a **mock extension server** that simulates a real Microsoft Dragon Copilot (radiologists) extension. It implements the `ExtensionRequest`/`ExtensionResponse` envelope contract from the Extensibility API for Dragon Copilot (radiologists) and responds with valid `QualityCheckResult` payloads — making it useful for end-to-end testing of the sandbox UI without deploying a real extension.
 
 ### What It Does
 

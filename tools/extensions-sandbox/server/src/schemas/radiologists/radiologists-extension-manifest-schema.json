@@ -1,12 +1,12 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "Schema for all Extension manifests for Dragon Copilot for Radiology",
+  "title": "Extension manifest schema for Dragon Copilot (radiologists)",
   "type": "object",
   "required": [
     "name",
     "description",
     "version",
-    "radiologyExtensibilityApiVersion",
+    "radiologistsExtensibilityApiVersion",
     "auth",
     "tools"
   ],
@@ -27,10 +27,10 @@
       "pattern": "^\\d+\\.\\d+\\.\\d+$",
       "description": "Partner's own version for this extension, in x.y.z format"
     },
-    "radiologyExtensibilityApiVersion": {
+    "radiologistsExtensibilityApiVersion": {
       "type": "string",
       "pattern": "^\\d+\\.\\d+\\.\\d+$",
-      "description": "Version of the Radiology Extensibility API (radiology-extensibility-api.yaml info.version) this manifest was authored against, in x.y.z format"
+      "description": "Version of the extensibility API that this manifest was authored against (radiologists-extensibility-api.yaml info.version), in x.y.z format"
     },
     "auth": {
       "$ref": "#/definitions/AuthConfig",
@@ -85,7 +85,7 @@
             "contractBased"
           ],
           "default": "contractBased",
-          "description": "The integration pattern for this tool. contractBased: platform calls a partner API with typed payloads."
+          "description": "The integration pattern for this tool. contractBased: Dragon Copilot (radiologists) calls a partner API with typed payloads."
         },
         "capability": {
           "type": "string",
@@ -198,19 +198,19 @@
         "application/vnd.ms-dragon.rad.report+json",
         "application/vnd.ms-dragon.rad.patient-information+json"
       ],
-      "description": "Media type for a tool input. The '+json' subtype is the kebab-case form of the payload's schema object name in radiology-extensibility-api.yaml (e.g. 'application/vnd.ms-dragon.rad.report+json' maps to the Report schema)."
+      "description": "Media type for a tool input. The '+json' subtype is the kebab-case form of the payload's schema object name in radiologists-extensibility-api.yaml (e.g. 'application/vnd.ms-dragon.rad.report+json' maps to the Report schema)."
     },
     "OutputContentType": {
       "type": "string",
       "enum": [
         "application/vnd.ms-dragon.rad.quality-check-result+json"
       ],
-      "description": "Media type for a tool output. The '+json' subtype is the kebab-case form of the payload's schema object name in radiology-extensibility-api.yaml (e.g. 'application/vnd.ms-dragon.rad.quality-check-result+json' maps to the QualityCheckResult schema)."
+      "description": "Media type for a tool output. The '+json' subtype is the kebab-case form of the payload's schema object name in radiologists-extensibility-api.yaml (e.g. 'application/vnd.ms-dragon.rad.quality-check-result+json' maps to the QualityCheckResult schema)."
     },
     "PayloadSchemaVersion": {
       "type": "string",
       "pattern": "^\\d+\\.\\d+$",
-      "description": "Version of the payload schema, in major.minor format (e.g. \"0.1\"), that the extension accepts for this input or produces for this output. Declared at manifest upload time so the platform knows which version of each payload to exchange with the extension."
+      "description": "Version of the payload schema, in major.minor format (e.g. \"0.1\"), that the extension accepts for this input or produces for this output. Declared at manifest upload time so Dragon Copilot (radiologists) knows which version of each payload to exchange with the extension."
     },
     "RelevanceFilteringCriteria": {
       "$comment": "Tool-level gate: only consider invoking this tool if the current context (e.g., the study being reported on) matches these criteria. If omitted, the tool is always considered.",

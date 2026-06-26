@@ -62,7 +62,7 @@ describe('Capabilities Parser', () => {
       name: 'empty-extension',
       description: 'No tools',
       version: '0.0.1',
-      radiologyExtensibilityApiVersion: '0.1.0',
+      radiologistsExtensibilityApiVersion: '0.1.0',
       auth: { tenantId: '00000000-0000-0000-0000-000000000000' },
       tools: [],
     };
@@ -97,7 +97,7 @@ describe('Capabilities Parser', () => {
       name: 'session-test',
       description: 'Session test',
       version: '0.0.1',
-      radiologyExtensibilityApiVersion: '0.1.0',
+      radiologistsExtensibilityApiVersion: '0.1.0',
       auth: { tenantId: '00000000-0000-0000-0000-000000000000' },
       tools: [
         { ...baseTool, name: 'tool-a', capability: 'qualityCheck', description: 'Quality A' },

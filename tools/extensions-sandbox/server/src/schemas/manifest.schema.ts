@@ -57,7 +57,7 @@ export interface ExtensionManifest {
   name: string;
   description: string;
   version: string;
-  radiologyExtensibilityApiVersion: string;
+  radiologistsExtensibilityApiVersion: string;
   auth: ManifestAuth;
   tools: ManifestTool[];
 }

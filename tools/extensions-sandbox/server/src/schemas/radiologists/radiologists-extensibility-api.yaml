@@ -1,18 +1,16 @@
-# OpenAPI spec defining the API contract for extensions for Dragon Copilot for Radiology.
-
 openapi: 3.0.0
 info:
-  title: Radiology Extensibility API
-  version: 0.0.1
-  description: API definition for enabling Dragon Copilot for Radiology extension integrations
+  title: Extensibility API for Dragon Copilot (radiologists)
+  version: 1.0.0
+  description: API definition for enabling partner extension integrations
 
 paths:
   /v1/process:
     post:
-      summary: Process Radiology Standard payload
+      summary: Process a standard payload for Dragon Copilot (radiologists)
       description: >-
-        Endpoint to trigger processing within a Radiology extension.
-      operationId: processDragonRadiology
+        Endpoint to trigger processing within a partner extension.
+      operationId: processDragonRadiologists
       parameters:
         - name: x-ms-request-id
           in: header
@@ -104,36 +102,25 @@ components:
   schemas:
     ProcessRequest:
       type: object
-      description: >-
-        Request envelope for /v1/process.
+      description: Request envelope for /v1/process.
       required:
-        - schemaVersion
         - sessionData
       properties:
-        schemaVersion:
+        extensibilityApiVersion:
           type: string
-          description: >-
-            Wire-level contract version of the Radiology Extensibility API envelope.
-            Mirrors the MAJOR.MINOR of `info.version`.
-          example: "0.0"
+          description: Dragon Copilot Extensibility API version.
+          example: "1.1.1"
         sessionData:
           $ref: "#/components/schemas/SessionData"
-      additionalProperties:
-        oneOf:
-          - $ref: "#/components/schemas/PatientInfo"
-          - $ref: "#/components/schemas/Report"
+        patientInformation:
+          $ref: "#/components/schemas/PatientInformation"
+        report:
+          $ref: "#/components/schemas/Report"
+      additionalProperties: true
 
     ProcessResponse:
       type: object
-      required:
-        - schemaVersion
       properties:
-        schemaVersion:
-          type: string
-          description: >-
-            Wire-level contract version of the Radiology Extensibility API envelope.
-            Mirrors the MAJOR.MINOR of `info.version`.
-          example: "0.0"
         success:
           type: boolean
           example: true
@@ -142,9 +129,7 @@ components:
           example: "Payload processed successfully"
         payload:
           type: object
-          description: >-
-            Map of named outputs. Each key is the output name declared in the extension
-            manifest, and its value is a QualityCheckResult.
+          description: Map of named outputs, keyed by output name from the extension manifest.
           additionalProperties:
             $ref: "#/components/schemas/QualityCheckResult"
 
@@ -159,16 +144,17 @@ components:
         session_start:
           type: string
           format: date-time
-          description: Session start timestamp.
+          description: Session start timestamp. Optional; may be absent.
           example: "2025-06-20T08:57:35.978Z"
         environment_id:
           type: string
           description: Environment identifier.
           example: "01bd0d47-1621-4a29-941d-00e9a9420f20"
 
-    PatientInfo:
+    PatientInformation:
       type: object
       description: Patient demographic information.
+      x-ms-schema-version: "1.0"
       properties:
         dateOfBirth:
           type: string
@@ -187,6 +173,7 @@ components:
 
     Report:
       type: object
+      x-ms-schema-version: "1.0"
       required:
         - reportText
       properties:
@@ -197,12 +184,13 @@ components:
 
     QualityCheckResult:
       type: object
+      x-ms-schema-version: "1.0"
       required:
         - recommendations
       properties:
         recommendations:
           type: array
-          description: An array of billing quality check recommendations. This will be an empty list if there are no recommendations.
+          description: An array of quality check recommendations (each typed via Recommendation.qualityCheckType, e.g. "Billing" or "Clinical"). This will be an empty list if there are no recommendations.
           items:
             $ref: "#/components/schemas/Recommendation"
 

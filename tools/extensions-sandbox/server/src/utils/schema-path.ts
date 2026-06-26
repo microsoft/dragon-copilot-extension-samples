@@ -2,7 +2,7 @@ import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
 /**
- * Resolved paths to the Dragon Copilot radiology schemas.
+ * Resolved paths to the Dragon Copilot (radiologists) schemas.
  * Shared across route handlers, tests, and build scripts to avoid duplicating path resolution logic.
  *
  * NOTE: These schemas are temporarily copied from diag-radex-extension-service and will be
@@ -11,7 +11,7 @@ import { dirname, join } from 'node:path';
  */
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
-const SCHEMAS_DIR = join(__dirname, '..', 'schemas', 'radiology');
+const SCHEMAS_DIR = join(__dirname, '..', 'schemas', 'radiologists');
 
-export const MANIFEST_SCHEMA_PATH = join(SCHEMAS_DIR, 'radiology-extension-manifest-schema.json');
-export const OPENAPI_SPEC_PATH = join(SCHEMAS_DIR, 'radiology-extensibility-api.yaml');
+export const MANIFEST_SCHEMA_PATH = join(SCHEMAS_DIR, 'radiologists-extension-manifest-schema.json');
+export const OPENAPI_SPEC_PATH = join(SCHEMAS_DIR, 'radiologists-extensibility-api.yaml');

@@ -2,7 +2,7 @@
 /**
  * Mock Extension Server
  *
- * Brings up a dummy HTTP service that implements the Dragon Copilot Radiology
+ * Brings up a dummy HTTP service that implements the Dragon Copilot (radiologists)
  * Extension API contract (/v1/process) for both test fixture manifests:
  *
  *   1. valid-manifest-simple.json   → tool "chestCtQuality" (capability: qualityCheck)

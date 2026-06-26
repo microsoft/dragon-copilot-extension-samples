@@ -14,8 +14,11 @@ import { MANIFEST_SCHEMA_PATH } from '../utils/schema-path.js';
 import { callExtensionAsync, buildExtensionRequest } from '../services/extension-client.js';
 import { acquireToken, buildClaimChecks, AuthError } from '../services/auth.js';
 import { parseInputValues } from 'extensions-sandbox-shared';
+import { createLogger } from '../utils/logger.js';
 
 export const manifestRouter = Router();
+
+const log = createLogger('manifest');
 
 const upload = multer({
   limits: { fileSize: 1 * 1024 * 1024 }, // 1MB limit
@@ -43,6 +46,7 @@ const validate = ajv.compile(manifestJsonSchema);
  */
 manifestRouter.post('/upload', upload.single('manifest'), (req, res) => {
   if (!req.file) {
+    log.warn('Upload rejected: no file provided.');
     res.status(400).json({
       valid: false,
       errors: [{ path: null, message: 'No file uploaded', severity: 'error' }],
@@ -53,6 +57,7 @@ manifestRouter.post('/upload', upload.single('manifest'), (req, res) => {
 
   const fileContent = req.file.buffer.toString('utf-8');
   const ext = req.file.originalname.toLowerCase().slice(req.file.originalname.lastIndexOf('.'));
+  log.info(`Validating uploaded manifest '${req.file.originalname}' (${ext}, ${fileContent.length} bytes).`);
 
   // Parse file content
   let parsed: unknown;
@@ -64,6 +69,7 @@ manifestRouter.post('/upload', upload.single('manifest'), (req, res) => {
     }
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : 'Unknown parse error';
+    log.error(`Manifest parse failed: ${message}`);
     res.status(400).json({
       valid: false,
       errors: [{ path: null, message: `Failed to parse file: ${message}`, severity: 'error' }],
@@ -89,6 +95,7 @@ manifestRouter.post('/upload', upload.single('manifest'), (req, res) => {
 
   if (!isValid) {
     const rawErrors = validate.errors ?? [];
+    log.warn(`Manifest schema validation failed with ${rawErrors.length} error(s).`);
     // Compute precise target paths for line resolution.
     // For 'required' errors, AJV points to the parent — extend to the missing property.
     // For 'additionalProperties', extend to the extra property.
@@ -110,6 +117,9 @@ manifestRouter.post('/upload', upload.single('manifest'), (req, res) => {
     // but we pass the targetPaths-keyed map directly since buildDetailedErrors
     // will look up by the same target path.
     const errors = buildDetailedErrors(rawErrors, lineMap, targetPaths);
+    for (const e of errors) {
+      log.warn(`Manifest invalid at ${e.path}${e.line !== null ? ` (line ${e.line})` : ''}: ${e.detail}`);
+    }
 
     res.status(422).json({
       valid: false,
@@ -125,6 +135,10 @@ manifestRouter.post('/upload', upload.single('manifest'), (req, res) => {
 
   // Extract capabilities
   const capabilities = [...new Set(manifest.tools.map((t) => t.capability))];
+  log.info(
+    `Manifest '${manifest.name}' v${manifest.version} is valid: ` +
+    `${manifest.tools.length} tool(s) across ${capabilities.length} capability(ies) [${capabilities.join(', ')}].`,
+  );
 
   res.json({
     valid: true,
@@ -146,6 +160,7 @@ manifestRouter.post('/validate', (req, res) => {
   const { content } = req.body as { content: string };
 
   if (!content || typeof content !== 'string') {
+    log.warn('Validate rejected: no content provided.');
     res.status(400).json({
       valid: false,
       errors: [{ path: null, message: 'No content provided.', severity: 'error' }],
@@ -153,6 +168,8 @@ manifestRouter.post('/validate', (req, res) => {
     });
     return;
   }
+
+  log.info(`Validating manifest content (${content.length} bytes).`);
 
   // Try parsing as JSON first, then YAML
   let parsed: unknown;
@@ -163,6 +180,7 @@ manifestRouter.post('/validate', (req, res) => {
       parsed = yaml.load(content);
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Unknown parse error';
+      log.error(`Manifest parse failed: ${message}`);
       res.status(400).json({
         valid: false,
         errors: [{ path: null, message: `Failed to parse: ${message}`, severity: 'error' }],
@@ -185,6 +203,7 @@ manifestRouter.post('/validate', (req, res) => {
 
   if (!isValid) {
     const rawErrors = validate.errors ?? [];
+    log.warn(`Manifest schema validation failed with ${rawErrors.length} error(s).`);
     const targetPaths = rawErrors.map((err) => {
       const base = err.instancePath || '/';
       const params = err.params as Record<string, unknown>;
@@ -200,6 +219,9 @@ manifestRouter.post('/validate', (req, res) => {
     });
     const lineMap = mapPathsToLines(content, targetPaths);
     const errors = buildDetailedErrors(rawErrors, lineMap, targetPaths);
+    for (const e of errors) {
+      log.warn(`Manifest invalid at ${e.path}${e.line !== null ? ` (line ${e.line})` : ''}: ${e.detail}`);
+    }
 
     res.status(422).json({
       valid: false,
@@ -213,6 +235,10 @@ manifestRouter.post('/validate', (req, res) => {
   sessionStore.setManifest(manifest, content);
 
   const capabilities = [...new Set(manifest.tools.map((t) => t.capability))];
+  log.info(
+    `Manifest '${manifest.name}' v${manifest.version} is valid: ` +
+    `${manifest.tools.length} tool(s) across ${capabilities.length} capability(ies) [${capabilities.join(', ')}].`,
+  );
   res.json({
     valid: true,
     manifest: {
@@ -257,7 +283,12 @@ manifestRouter.get('/capabilities', (_req, res) => {
     return;
   }
 
-  res.json(parseCapabilities(manifest));
+  const capabilities = parseCapabilities(manifest);
+  log.info(
+    `Parsed ${capabilities.length} capability(ies): ` +
+    capabilities.map((c) => `${c.name} (${c.toolCount} tool(s))`).join(', '),
+  );
+  res.json(capabilities);
 });
 
 /**
@@ -275,10 +306,15 @@ manifestRouter.get('/capabilities/:capabilityName/tools', (req, res) => {
   const tools = getToolsForCapability(manifest, capabilityName);
 
   if (tools === null) {
+    log.warn(`Capability '${capabilityName}' not found in manifest.`);
     res.status(404).json({ error: 'Capability not found in manifest.' });
     return;
   }
 
+  log.info(
+    `Resolved ${tools.length} tool(s) for capability '${capabilityName}': ` +
+    tools.map((t) => t.name).join(', '),
+  );
   res.json(tools);
 });
 
@@ -333,6 +369,7 @@ manifestRouter.post('/execute', async (req, res) => {
   };
 
   if (!capability || !toolName) {
+    log.warn('Execute rejected: capability and tool are required.');
     res.status(400).json({ error: 'capability and tool are required.' });
     return;
   }
@@ -342,14 +379,21 @@ manifestRouter.post('/execute', async (req, res) => {
   );
 
   if (!tool) {
+    log.warn(`Execute rejected: tool '${toolName}' not found in capability '${capability}'.`);
     res.status(404).json({ error: `Tool '${toolName}' not found in capability '${capability}'.` });
     return;
   }
 
   if (!tool.endpoint) {
+    log.warn(`Execute rejected: tool '${toolName}' has no endpoint configured.`);
     res.status(400).json({ error: 'Tool endpoint is not configured in the manifest.' });
     return;
   }
+
+  log.info(
+    `Executing tool '${toolName}' (capability '${capability}') against endpoint ${tool.endpoint}. ` +
+    `Inputs: [${Object.keys(inputs ?? {}).join(', ') || 'none'}].`,
+  );
 
   // Clear any previously stored validation results – a new execution
   // invalidates prior results (the endpoint or manifest may have changed).
@@ -397,6 +441,11 @@ manifestRouter.post('/execute', async (req, res) => {
       bearerToken: resolvedToken,
     });
 
+    log.info(
+      `Tool '${toolName}' responded ${result.status} ${result.statusText}. ` +
+      `Recognized ExtensionResponse envelope: ${result.extensionResponse ? 'yes' : 'no'}.`,
+    );
+
     res.json({
       status: result.status,
       statusText: result.statusText,
@@ -409,6 +458,7 @@ manifestRouter.post('/execute', async (req, res) => {
     });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : 'Unknown error';
+    log.error(`Tool '${toolName}' call to ${tool.endpoint} failed: ${message}`);
 
     // Categorize the failure to provide actionable troubleshooting hints
     let cause: string;

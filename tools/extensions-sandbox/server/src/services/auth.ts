@@ -9,7 +9,7 @@
  * (tenant id, client id, scope, expiry) may appear in errors/logs.
  */
 
-/** The Radiance (Dragon Copilot radiology) Entra application client id. */
+/** The Radiance (Dragon Copilot radiologists) Entra application client id. */
 export const RADIANCE_CLIENT_ID = '7c2215ec-e1fa-4aa6-9204-8ee91e63d29f';
 
 /** Authentication configuration supplied by the partner developer. */
