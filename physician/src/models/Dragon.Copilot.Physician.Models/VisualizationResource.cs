@@ -48,7 +48,10 @@ public class VisualizationResource : IResource
     public required AdaptiveCardPayload AdaptiveCardPayload { get; set; }
 
     /// <summary>
-    /// References to related data sources
+    /// References to related data sources. Should contain at least one entry
+    /// for the card to render in the Dragon Copilot UI / validator preview;
+    /// an empty array causes the validator preview to fail silently.
+    /// See https://learn.microsoft.com/en-us/industry/healthcare/dragon-copilot/extensions/adaptive-card-spec.
     /// </summary>
     [JsonPropertyName("references")]
     public IList<VisualizationReference>? References { get; init; }

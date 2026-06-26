@@ -176,7 +176,10 @@ class ProcessingService:
             adaptive_card_payload={
                 "type": "AdaptiveCard",
                 "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
-                "version": "1.6",
+                # `version` is intentionally omitted. The Dragon Copilot adaptive
+                # card spec does not require it and the validator's reference
+                # sample omits it. Set it explicitly only if you require a
+                # specific Adaptive Cards schema version.
                 "body": body,
                 "actions": [
                     {
@@ -208,7 +211,18 @@ class ProcessingService:
             ],
             dragonCopilotCopyData="Clinical entities extracted from note content",
             partnerLogo="https://contoso.com/logo.png",
-            references=[],
+            # `references` must contain at least one entry for the card to
+            # render in the Dragon Copilot UI / validator preview. An empty
+            # list causes the validator preview to fail silently. See
+            # https://learn.microsoft.com/en-us/industry/healthcare/dragon-copilot/extensions/adaptive-card-spec
+            references=[
+                {
+                    "id": str(uuid4()),
+                    "type": "Web",
+                    "title": "Dragon Copilot adaptive card specification",
+                    "url": "https://learn.microsoft.com/en-us/industry/healthcare/dragon-copilot/extensions/adaptive-card-spec"
+                }
+            ],
         )
 
     # NOTE: _composite_medication_summary and _timeline_card are not currently
@@ -248,7 +262,7 @@ class ProcessingService:
     #         adaptive_card_payload={
     #             "type": "AdaptiveCard",
     #             "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
-    #             "version": "1.6",
+    #             # `version` intentionally omitted; see _adaptive_card above.
     #             "body": body,
     #             "actions": [
     #                 {
@@ -266,7 +280,15 @@ class ProcessingService:
     #             {"identifier": str(uuid4()), "description": "Python Demo Medication Analysis Service", "url": "http://localhost:5181/v1/process"}
     #         ],
     #         dragonCopilotCopyData="medication_analysis|demo:1|generated:" + datetime.now(timezone.utc).isoformat(),
-    #         references=[],
+    #         # `references` must be non-empty; see _adaptive_card above.
+    #         references=[
+    #             {
+    #                 "id": str(uuid4()),
+    #                 "type": "Web",
+    #                 "title": "Dragon Copilot adaptive card specification",
+    #                 "url": "https://learn.microsoft.com/en-us/industry/healthcare/dragon-copilot/extensions/adaptive-card-spec"
+    #             }
+    #         ],
     #         partnerLogo="https://contoso.com/logo.png",
     #     )
     #
@@ -288,7 +310,7 @@ class ProcessingService:
     #         adaptive_card_payload={
     #             "type": "AdaptiveCard",
     #             "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
-    #             "version": "1.6",
+    #             # `version` intentionally omitted; see _adaptive_card above.
     #             "body": body,
     #             "actions": [
     #                 {
@@ -307,5 +329,13 @@ class ProcessingService:
     #         ],
     #         dragonCopilotCopyData="lab_timeline|demo:1|generated:" + datetime.now(timezone.utc).isoformat(),
     #         partnerLogo="https://contoso.com/logo.png",
-    #         references=[],
+    #         # `references` must be non-empty; see _adaptive_card above.
+    #         references=[
+    #             {
+    #                 "id": str(uuid4()),
+    #                 "type": "Web",
+    #                 "title": "Dragon Copilot adaptive card specification",
+    #                 "url": "https://learn.microsoft.com/en-us/industry/healthcare/dragon-copilot/extensions/adaptive-card-spec"
+    #             }
+    #         ],
     #     )

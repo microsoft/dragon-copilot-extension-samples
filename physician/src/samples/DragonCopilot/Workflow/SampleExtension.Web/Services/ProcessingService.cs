@@ -319,7 +319,6 @@ public class ProcessingService : IProcessingService
             AdaptiveCardPayload = new AdaptiveCardPayload
             {
                 Type = "AdaptiveCard",
-                Version = "1.3",
                 Body = bodyElements.ToArray(),
                 Actions = new List<VisualizationAction>
                 {
@@ -407,7 +406,16 @@ public class ProcessingService : IProcessingService
                     },
                 },
             },
-            References = new List<VisualizationReference>(),
+            References = new List<VisualizationReference>
+            {
+                new()
+                {
+                    Id = Guid.NewGuid().ToString(),
+                    Type = ReferenceType.Web,
+                    Title = "Dragon Copilot adaptive card specification",
+                    Url = new Uri("https://learn.microsoft.com/en-us/industry/healthcare/dragon-copilot/extensions/adaptive-card-spec")
+                }
+            },
             PayloadSources = new List<PayloadSource>
             {
                 new()

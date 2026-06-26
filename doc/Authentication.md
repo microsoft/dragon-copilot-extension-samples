@@ -2,114 +2,81 @@
 
 ## Overview
 
-The Dragon Copilot Sample Extension implements a multi-layered security approach combining **Microsoft Entra ID (Azure AD) JWT authentication** with **custom license key validation**. This design provides both enterprise-grade identity verification and flexible business logic enforcement.
+The Dragon Copilot Sample Extension authenticates incoming service-to-service requests using **Microsoft Entra ID (Azure AD) JWT bearer tokens**. The Dragon Copilot Extension Runtime acquires a token for the extension's app registration and includes it as a standard `Authorization: Bearer <token>` header on every request.
+
+> **Hitting auth errors?** See [Troubleshooting-Authentication.md](Troubleshooting-Authentication.md) for a symptom → cause matrix, FAQ, and pre-flight checklist covering the most common partner issues (`InvalidAudience`/`InvalidIssuer`, `identifierUris` mistakes, `AADSTS500011`, and more).
 
 ## Architecture
 
-The security system uses a **dual-gate approach**:
-
-1. **First Gate**: JWT Authentication & Authorization (Microsoft Entra ID)  
-   The protection of the service-to-service requests from the Dragon Copilot Extension Runtime is covered in detail in [AuthenticationDesign.md](AuthenticationDesign.md).
-
-2. **Second Gate**: License Key Validation (Custom Business Logic)
-
 ```
-┌─────────────┐    ┌──────────────┐    ┌─────────────────┐    ┌─────────────┐
-│   Request   │--->│ JWT Auth &   │--->│ License Key     │--->│   Protected │
-│             │    │ Authorization│    │ Validation      │    │   Endpoint  │
-└─────────────┘    └──────────────┘    └─────────────────┘    └─────────────┘
-                         ↓                       ↓
-                    401 Unauthorized        403 Forbidden
+┌─────────────┐    ┌──────────────────────┐    ┌─────────────┐
+│   Request   │--->│ JWT Authentication & │--->│  Protected  │
+│             │    │     Authorization    │    │   Endpoint  │
+└─────────────┘    └──────────────────────┘    └─────────────┘
+                             ↓
+                       401 Unauthorized
+                       403 Forbidden (required claims missing)
 ```
+
+The full design — token validation rules, required claims, and threat model — is documented in [AuthenticationDesign.md](AuthenticationDesign.md).
 
 ## Configuration
 
-> **Note**: The configuration examples below reference the [Physician sample extension](../physician/). Each product's sample follows the same authentication pattern.
+> **Note:** The configuration examples below reference the [Physician sample extension](../physician/). Each product's sample follows the same authentication pattern.
 
 ### Development Environment
 
-The development configuration in file [appsettings.Development.json](../physician/src/samples/DragonCopilot/Workflow/SampleExtension.Web/appsettings.Development.json) disables both authentication layers for ease of testing:
+The development configuration in [appsettings.Development.json](../physician/src/samples/DragonCopilot/Workflow/SampleExtension.Web/appsettings.Development.json) disables authentication for ease of testing:
 
 - **Authentication**: Disabled
-- **License Key Validation**: Disabled
 
-**Purpose**: Allows easy testing and development without authentication overhead.
+**Purpose:** allow easy local testing and development without authentication overhead. Never ship a configuration that disables authentication to production.
 
 ### Production Environment
 
-The production configuration in file [appsettings.json](../physician/src/samples/DragonCopilot/Workflow/SampleExtension.Web/appsettings.json) enables full security:
+The production configuration in [appsettings.json](../physician/src/samples/DragonCopilot/Workflow/SampleExtension.Web/appsettings.json) enables JWT authentication:
 
 - **Authentication**: Enabled with Microsoft Entra ID integration
-- **License Key Validation**: Enabled with configurable header name and valid keys
 
-**Required Production Settings**:
+**Required production settings:**
 
-- `TenantId`: Your organization's Entra ID tenant identifier
-- `ClientId`: The registered application identifier in Entra ID
-- `Instance`: The Entra ID authority URL (typically `https://login.microsoftonline.com/`)
-- `RequiredClaims`: Array of required claims for authorization (e.g., `["idtyp", "azp"]`)
-- `HeaderName`: Custom header name for license keys (e.g., `"X-License-Key"`)
-- `ValidKeys`: Array of valid license key values
+- `TenantId` — your organization's Entra ID tenant identifier
+- `ClientId` — the registered application identifier in Entra ID
+- `Instance` — the Entra ID authority URL (typically `https://login.microsoftonline.com/`)
+- `RequiredClaims` — claims required for authorization (e.g. `idtyp`, `azp`)
 
-> **CLI Note**: When you generate Clinical App Connector or Physician Workflow manifests with the `dragon-copilot` CLI, the `auth.tenantId` field captured in `extension.yaml` must match the `TenantId` configured here. The CLI wizard will prompt for the same tenant information to keep runtime and manifest settings aligned.
+> **CLI Note:** When you generate Clinical App Connector or Physician Workflow manifests with the `dragon-copilot` CLI, the `auth.tenantId` field captured in `extension.yaml` must match the `TenantId` configured here. The CLI wizard prompts for the same tenant information to keep runtime and manifest settings aligned.
 
 ## Microsoft Entra ID (JWT) Authentication
 
-### Implementation Features
+### Implementation features
 
-1. **Microsoft Identity Web Integration**: Uses Microsoft's official library for seamless Entra ID integration
-2. **Conditional Enablement**: Can be completely disabled for development environments
-3. **Custom Authorization Policies**: Supports additional claim-based requirements beyond basic authentication
-4. **Graceful Degradation**: When disabled, authorization policies automatically allow access
+1. **Microsoft Identity Web integration** — uses Microsoft's official library for Entra ID integration.
+2. **Conditional enablement** — can be completely disabled for development environments.
+3. **Custom authorization policies** — supports additional claim-based requirements beyond basic authentication.
+4. **Graceful degradation** — when disabled, authorization policies automatically allow access.
 
-### Usage in Controllers
+### Usage in controllers
 
 Controllers use the `[Authorize]` attribute with custom policies to enforce JWT authentication and any additional claim requirements.
 
-## License Key Validation
-
-### Purpose
-
-The license key system demonstrates how to implement **custom business authorization** beyond identity verification. This pattern can represent:
-
-- **Subscription tiers** (basic, premium, enterprise)
-- **Feature flags** (access to specific functionality)
-- **Partner access** (different API rate limits or features)
-- **Usage quotas** (track and limit API calls per key)
-
-### Implementation Features
-
-1. **Conditional Processing**: Only runs when enabled in configuration
-2. **Configurable Header**: Header name is fully configurable
-3. **Structured Error Responses**: Returns consistent JSON error messages
-4. **Context Storage**: Makes validated license key available to downstream controllers
-5. **Multiple Valid Keys**: Supports different license types and values
-
-### Key Features
-
-- Validates license keys from HTTP headers
-- Returns 403 Forbidden for invalid or missing keys
-- Stores validated keys in the request context for downstream use
-- Supports multiple valid keys for different access levels
-
 ## Route Protection Strategy
 
-### Public vs Protected Routes
+### Public vs protected routes
 
-The system defines specific routes that bypass all security checks:
+The sample defines specific routes that bypass authentication:
 
 - **Health endpoints**: `/health` and `/v1/health` for monitoring
 - **Swagger UI**: `/index.html` for API documentation (development only)
 
-All other routes require both JWT authentication and license key validation when enabled.
+All other routes require JWT authentication when enabled.
 
-### Conditional Security Application
+### Conditional security application
 
-Security middleware is applied selectively using route filtering:
+Authentication middleware is applied selectively using route filtering:
 
-- **Public routes**: Bypass all security checks
-- **Protected routes**: Require JWT authentication first, then license key validation
-- **Order matters**: JWT validation occurs before license key validation
+- **Public routes** — bypass authentication.
+- **Protected routes** — require JWT authentication and claim-based authorization.
 
 ## API Response Codes
 
@@ -118,46 +85,30 @@ Security middleware is applied selectively using route filtering:
 | **200** | Success | Request processed successfully |
 | **400** | Bad Request | Invalid payload or parameters |
 | **401** | Unauthorized | JWT authentication failed or missing |
-| **403** | Forbidden | JWT required claims missing, License key validation failed |
+| **403** | Forbidden | Required claims missing |
 | **500** | Internal Server Error | Processing exception |
 
 ## Swagger Integration
 
-The API documentation automatically includes security schemes for both authentication methods when enabled:
+The API documentation automatically includes the Bearer security scheme when authentication is enabled:
 
-- **Bearer Authentication**: JWT token in Authorization header
-- **License Key**: Custom header for license key validation
+- **Bearer Authentication** — JWT token in the `Authorization` header.
 
-Security requirements are dynamically added based on configuration, ensuring the documentation accurately reflects the current security setup.
+The security requirement is added dynamically based on configuration, so the documentation reflects the current setup.
 
 ## Usage Examples
 
-### Development (No Authentication)
+### Development (no authentication)
 
-Simple requests without any authentication headers work in development mode.
+Requests without an `Authorization` header work in development mode.
 
-### Production (Full Authentication)
+### Production (JWT authentication)
 
-Production requests require both JWT tokens and license keys:
-
-- **Authorization header**: Bearer token from Entra ID
-- **License key header**: Valid license key value
-
-## Extension Points
-
-This architecture provides several extension opportunities:
-
-1. **Enhanced License Logic**: Replace simple key validation with database lookups, expiration checks, feature flags
-2. **Rate Limiting**: Implement different limits per license tier
-3. **Audit Logging**: Track API usage per license key
-4. **Multi-tenant Support**: Route requests based on license key to different processing logic
+Production requests must include a valid bearer token in the `Authorization` header. The token is acquired by the Dragon Copilot Extension Runtime against your extension's Entra ID app registration.
 
 ## Security Best Practices
 
-1. **Defense in Depth**: Multiple security layers provide redundancy
-2. **Graceful Degradation**: System works in development without security overhead
-3. **Structured Errors**: Consistent error responses don't leak implementation details
-4. **Configuration-Driven**: Security can be toggled without code changes
-5. **Standards Compliance**: Uses standard JWT and HTTP authentication patterns
-
-This dual-layer security approach provides both enterprise identity integration and flexible business logic enforcement, making it suitable for various deployment scenarios and business requirements.
+1. **Standards compliance** — uses standard JWT and HTTP authentication patterns.
+2. **Graceful degradation** — system works in development without authentication overhead.
+3. **Structured errors** — consistent error responses do not leak implementation details.
+4. **Configuration-driven** — authentication can be toggled without code changes.

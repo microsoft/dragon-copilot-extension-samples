@@ -175,7 +175,6 @@ public static class ServiceCollectionExtensions
 
         // Configure options
         services.Configure<AuthenticationOptions>(configuration.GetSection(AuthenticationOptions.SectionName));
-        services.Configure<LicenseKeyOptions>(configuration.GetSection(LicenseKeyOptions.SectionName));
 
         return services;
     }
