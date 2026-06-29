@@ -37,6 +37,35 @@ This starts both the frontend (Vite dev server on port 3000) and backend (Expres
 
 Open `http://localhost:3000` in your browser.
 
+### Server logging
+
+The Express server emits scoped, leveled logs through a shared logger (`server/src/utils/logger.ts`). Each entry is tagged with a scope identifying the area (e.g. `http`, `manifest`, `extension-call`, `validate`, `auth`, `validation`).
+
+**Level** is controlled by the `LOG_LEVEL` environment variable (`debug` | `info` | `warn` | `error`), defaulting to `info`:
+
+```bash
+# Windows (PowerShell)
+$env:LOG_LEVEL = "debug"; npm run dev
+
+# macOS / Linux
+LOG_LEVEL=debug npm run dev
+```
+
+- `info` (default) shows request flow, outbound extension calls, and validation outcomes.
+- `debug` additionally surfaces verbose dumps such as raw request bodies and a reproducible `curl` command for each outbound call.
+
+**Format** is controlled by the `LOG_FORMAT` environment variable (`pretty` | `json`). It defaults to `pretty` in development and `json` in production (`NODE_ENV=production`):
+
+- `pretty` — human-readable lines, e.g. `[sandbox-server] [manifest] 2026-06-25T... Validating manifest...`
+- `json` — one structured object per line, suitable for machine parsing / log aggregation, e.g. `{"time":"2026-06-25T...","level":"info","scope":"manifest","msg":"Validating manifest..."}`
+
+```bash
+# Force structured JSON output in development
+LOG_FORMAT=json npm run dev
+```
+
+**Secrets are never logged.** Bearer tokens / `Authorization` headers are redacted, and client secrets never reach the logs; only non-sensitive metadata (tenant id, client id, scope, expiry) may appear.
+
 ## Project Structure
 
 ```
