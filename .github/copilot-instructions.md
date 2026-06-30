@@ -35,7 +35,7 @@ This repository contains sample code and tools for developing **Dragon Copilot E
    - Creates extension manifests and publisher configurations
 
 3. **Documentation** (`doc/`)
-   - Authentication patterns (JWT + custom license keys)
+   - Authentication patterns (Microsoft Entra ID JWT)
    - API contracts and integration guides
 
 ## Development Patterns
@@ -46,14 +46,13 @@ This repository contains sample code and tools for developing **Dragon Copilot E
 public async Task<ProcessResponse> ProcessAsync([FromBody] ProcessRequest request)
 ```
 
-### Authentication Layers
+### Authentication
 1. **JWT Authentication**: Microsoft Entra ID integration for service-to-service auth
-2. **License Key Validation**: Custom business logic for subscription/feature control
-3. **Conditional Security**: Can be disabled for development environments
+2. **Conditional Security**: Can be disabled for development environments
 
 ### Configuration Patterns
 - **Development**: Authentication disabled for easier testing
-- **Production**: Full security with Entra ID + license validation
+- **Production**: JWT authentication with Microsoft Entra ID
 - **Environment-specific**: `appsettings.json` vs `appsettings.Development.json`
 
 ## Extension Manifest Format

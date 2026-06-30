@@ -7,7 +7,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.OpenApi;
 using SampleExtension.Web.Configuration;
-using SampleExtension.Web.Middleware;
 
 namespace SampleExtension.Web.Extensions;
 
@@ -17,23 +16,19 @@ namespace SampleExtension.Web.Extensions;
 internal static class WebApplicationExtensions
 {
     /// <summary>
-    /// Applies full security (JWT + License Key) to all non-public routes
+    /// Applies JWT authentication and authorization to all non-public routes
     /// </summary>
     /// <param name="app">The web application</param>
     /// <returns>The web application</returns>
     internal static WebApplication UseFullSecurity(this WebApplication app)
     {
-        // Apply both JWT authentication and license key validation to all non-public routes
+        // Apply JWT authentication and authorization to all non-public routes
         app.UseWhen(
             context => !KnownRoutes.IsPublicRoute(context.Request.Path.Value ?? string.Empty),
             protectedBranch =>
             {
-                // First: JWT Authentication & Authorization
                 protectedBranch.UseAuthentication();
                 protectedBranch.UseAuthorization();
-
-                // Second: License Key Validation (after JWT is validated)
-                protectedBranch.UseMiddleware<LicenseKeyMiddleware>();
             });
 
         return app;
@@ -67,29 +62,6 @@ internal static class WebApplicationExtensions
                 c.AddSecurityRequirement(document =>
                 {
                     OpenApiSecuritySchemeReference schemeRef = new("Bearer", document);
-
-                    return new OpenApiSecurityRequirement
-                    {
-                        [schemeRef] = new List<string>()
-                    };
-                });
-            }
-
-            // Add license key header to Swagger
-            var licenseOptions = webApplicationBuilder.Configuration.GetSection(LicenseKeyOptions.SectionName).Get<LicenseKeyOptions>();
-            if (licenseOptions?.Enabled == true)
-            {
-                c.AddSecurityDefinition("LicenseKey", new OpenApiSecurityScheme
-                {
-                    Description = $"License key header for protected routes. Example: \"{licenseOptions.HeaderName}: your-license-key\"",
-                    Name = licenseOptions.HeaderName,
-                    In = ParameterLocation.Header,
-                    Type = SecuritySchemeType.ApiKey
-                });
-
-                c.AddSecurityRequirement(document =>
-                {
-                    OpenApiSecuritySchemeReference schemeRef = new("LicenseKey", document);
 
                     return new OpenApiSecurityRequirement
                     {
