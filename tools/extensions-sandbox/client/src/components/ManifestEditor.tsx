@@ -263,7 +263,7 @@ export function ManifestEditor({ onManifestLoaded, onManifestEditing, onReset }:
 
       <div className="editor-toolbar">
         <Button
-          appearance="primary"
+          appearance="secondary"
           icon={<ArrowUploadRegular />}
           onClick={handleUploadClick}
         >
