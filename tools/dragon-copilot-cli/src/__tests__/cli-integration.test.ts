@@ -1,5 +1,5 @@
 import { describe, expect, test, beforeEach, afterEach, beforeAll, afterAll, jest } from '@jest/globals';
-import { mkdtempSync, rmSync, writeFileSync } from 'fs';
+import { mkdtempSync, rmSync, writeFileSync, existsSync } from 'fs';
 import { tmpdir } from 'os';
 import { join } from 'path';
 import { Command } from 'commander';
@@ -158,6 +158,23 @@ describe('CLI integration paths', () => {
 
     const combinedLogs = logSpy.mock.calls.flat().join(' ');
     expect(combinedLogs.toLowerCase()).toMatch(/valid|passed/);
+    expect(process.exitCode).toBe(0);
+  });
+
+  test('connector package succeeds with only a manifest (no publisher.json or assets)', async () => {
+    const manifestPath = join(workingDir, 'extension.yaml');
+    writeFileSync(manifestPath, PARTNER_MANIFEST, 'utf8');
+
+    const program = new Command();
+    registerCommands(program);
+
+    await program.parseAsync(['node', 'cli', 'connector', 'package', '--silent']);
+
+    const outputZip = join(workingDir, 'integration-partner-0.0.1.zip');
+    expect(existsSync(outputZip)).toBe(true);
+    expect(existsSync(join(workingDir, 'publisher.json'))).toBe(false);
+    expect(existsSync(join(workingDir, 'assets'))).toBe(false);
+    expect(errorSpy).not.toHaveBeenCalled();
     expect(process.exitCode).toBe(0);
   });
 });
