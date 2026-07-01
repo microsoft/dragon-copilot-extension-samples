@@ -25,14 +25,15 @@ const EXTENSION_MANIFEST = [
   '        data: DSP',
 ].join('\n');
 
-const RADIOLOGY_EXTENSION_MANIFEST = [
-  'name: integration-radiology-extension',
-  'description: Radiology extension manifest used in integration tests',
+const RADIOLOGISTS_EXTENSION_MANIFEST = [
+  'name: integrationRadiologistsExtension',
+  'description: Radiologists extension manifest used in integration tests',
   'version: 0.0.1',
+  'radiologistsExtensibilityApiVersion: 1.0.0',
   'auth:',
   '  tenantId: 00000000-0000-0000-0000-000000000001',
   'tools:',
-  '  - name: quality-checker',
+  '  - name: qualityChecker',
   '    toolType: contractBased',
   '    capability: qualityCheck',
   '    description: Checks the quality of a radiology report',
@@ -41,13 +42,16 @@ const RADIOLOGY_EXTENSION_MANIFEST = [
   '      - name: report',
   '        description: Radiology report from Dragon Copilot',
   '        content-type: application/vnd.ms-dragon.rad.report+json',
-  '      - name: patient-info',
+  '        schemaVersion: "1.0"',
+  '      - name: patientInformation',
   '        description: Patient demographic information',
-  '        content-type: application/vnd.ms-dragon.rad.patient-info+json',
+  '        content-type: application/vnd.ms-dragon.rad.patient-information+json',
+  '        schemaVersion: "1.0"',
   '    outputs:',
-  '      - name: quality-check-result',
+  '      - name: qualityCheckResult',
   '        description: Quality check findings and score',
   '        content-type: application/vnd.ms-dragon.rad.quality-check-result+json',
+  '        schemaVersion: "1.0"',
 ].join('\n');
 
 const PARTNER_MANIFEST = [
@@ -147,14 +151,14 @@ describe('CLI integration paths', () => {
     expect(process.exitCode).toBe(0);
   });
 
-  test('radiology validate succeeds for a valid manifest with qualityCheck capability', async () => {
+  test('radiologists validate succeeds for a valid manifest with qualityCheck capability', async () => {
     const manifestPath = join(workingDir, 'extension.yaml');
-    writeFileSync(manifestPath, RADIOLOGY_EXTENSION_MANIFEST, 'utf8');
+    writeFileSync(manifestPath, RADIOLOGISTS_EXTENSION_MANIFEST, 'utf8');
 
     const program = new Command();
     registerCommands(program);
 
-    await program.parseAsync(['node', 'cli', 'radiology', 'validate', manifestPath]);
+    await program.parseAsync(['node', 'cli', 'radiologists', 'validate', manifestPath]);
 
     const combinedLogs = logSpy.mock.calls.flat().join(' ');
     expect(combinedLogs.toLowerCase()).toMatch(/valid|passed/);

@@ -40,7 +40,7 @@
       <PropertyGroup>
         <IsPackable>false</IsPackable>
         <IsTestProject>true</IsTestProject>
-        <NoWarn>$(NoWarn);CA1515;CA1710;CA1711;CA1859;CA2201;CA5350;CA5394;CS1591</NoWarn>
+        <NoWarn>$(NoWarn);CA1515;CA1710;CA1711;CA1859;CA2201;CA5350;CA5394;CS1591;CA1707;CA2007</NoWarn>
       </PropertyGroup>
     </When>
     <Otherwise>

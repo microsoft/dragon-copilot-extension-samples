@@ -1,0 +1,285 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Extension manifest schema for Dragon Copilot (radiologists)",
+  "type": "object",
+  "required": [
+    "name",
+    "description",
+    "version",
+    "radiologistsExtensibilityApiVersion",
+    "auth",
+    "tools"
+  ],
+  "properties": {
+    "name": {
+      "type": "string",
+      "pattern": "^[a-z][a-zA-Z0-9]*$",
+      "minLength": 1,
+      "description": "Extension name (camelCase: must start with a lowercase letter, followed by letters and numbers)"
+    },
+    "description": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Extension description"
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$",
+      "description": "Partner's own version for this extension, in x.y.z format"
+    },
+    "radiologistsExtensibilityApiVersion": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$",
+      "description": "Version of the extensibility API that this manifest was authored against (radiologists-extensibility-api.yaml info.version), in x.y.z format"
+    },
+    "auth": {
+      "$ref": "#/definitions/AuthConfig",
+      "description": "Authentication configuration"
+    },
+    "tools": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/definitions/DragonTool"
+      },
+      "description": "Array of tools provided by this extension"
+    }
+  },
+  "additionalProperties": false,
+  "definitions": {
+    "AuthConfig": {
+      "type": "object",
+      "required": [
+        "tenantId"
+      ],
+      "properties": {
+        "tenantId": {
+          "type": "string",
+          "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$",
+          "description": "Azure Entra ID tenant ID (GUID format)"
+        }
+      },
+      "additionalProperties": false
+    },
+    "DragonTool": {
+      "type": "object",
+      "required": [
+        "name",
+        "toolType",
+        "capability",
+        "description",
+        "endpoint",
+        "inputs",
+        "outputs"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "pattern": "^[a-z][a-zA-Z0-9]*$",
+          "minLength": 1,
+          "description": "Tool name (camelCase: must start with a lowercase letter, followed by letters and numbers)"
+        },
+        "toolType": {
+          "type": "string",
+          "enum": [
+            "contractBased"
+          ],
+          "default": "contractBased",
+          "description": "The integration pattern for this tool. contractBased: Dragon Copilot (radiologists) calls a partner API with typed payloads."
+        },
+        "capability": {
+          "type": "string",
+          "enum": [
+            "qualityCheck"
+          ],
+          "description": "The capability / function this tool provides"
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Tool description"
+        },
+        "endpoint": {
+          "type": "string",
+          "format": "uri",
+          "description": "API endpoint URL"
+        },
+        "inputs": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/definitions/DragonInput"
+          },
+          "description": "Array of input definitions"
+        },
+        "outputs": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/definitions/DragonOutput"
+          },
+          "description": "Array of output definitions"
+        },
+        "relevanceFilteringCriteria": {
+          "$ref": "#/definitions/RelevanceFilteringCriteria",
+          "description": "Tool-level filtering criteria. If specified, the tool is only considered for invocation when the current context matches these criteria."
+        },
+        "configurationTemplate": {
+          "$ref": "#/definitions/ConfigurationTemplate",
+          "description": "Optional configuration surface the partner exposes to customers. Customers provide values matching this schema at installation time to customize tool behavior."
+        }
+      },
+      "additionalProperties": false
+    },
+    "DragonInput": {
+      "type": "object",
+      "required": [
+        "name",
+        "description",
+        "content-type",
+        "schemaVersion"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Input name"
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Input description"
+        },
+        "required": {
+          "type": "boolean",
+          "default": true,
+          "description": "Whether this input is required. Defaults to true if omitted."
+        },
+        "content-type": {
+          "$ref": "#/definitions/InputContentType"
+        },
+        "schemaVersion": {
+          "$ref": "#/definitions/PayloadSchemaVersion"
+        }
+      },
+      "additionalProperties": false
+    },
+    "DragonOutput": {
+      "type": "object",
+      "required": [
+        "name",
+        "description",
+        "content-type",
+        "schemaVersion"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Output name"
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Output description"
+        },
+        "content-type": {
+          "$ref": "#/definitions/OutputContentType"
+        },
+        "schemaVersion": {
+          "$ref": "#/definitions/PayloadSchemaVersion"
+        }
+      },
+      "additionalProperties": false
+    },
+    "InputContentType": {
+      "type": "string",
+      "enum": [
+        "application/vnd.ms-dragon.rad.report+json",
+        "application/vnd.ms-dragon.rad.patient-information+json"
+      ],
+      "description": "Media type for a tool input. The '+json' subtype is the kebab-case form of the payload's schema object name in radiologists-extensibility-api.yaml (e.g. 'application/vnd.ms-dragon.rad.report+json' maps to the Report schema)."
+    },
+    "OutputContentType": {
+      "type": "string",
+      "enum": [
+        "application/vnd.ms-dragon.rad.quality-check-result+json"
+      ],
+      "description": "Media type for a tool output. The '+json' subtype is the kebab-case form of the payload's schema object name in radiologists-extensibility-api.yaml (e.g. 'application/vnd.ms-dragon.rad.quality-check-result+json' maps to the QualityCheckResult schema)."
+    },
+    "PayloadSchemaVersion": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+$",
+      "description": "Version of the payload schema, in major.minor format (e.g. \"0.1\"), that the extension accepts for this input or produces for this output. Declared at manifest upload time so Dragon Copilot (radiologists) knows which version of each payload to exchange with the extension."
+    },
+    "RelevanceFilteringCriteria": {
+      "$comment": "Tool-level gate: only consider invoking this tool if the current context (e.g., the study being reported on) matches these criteria. If omitted, the tool is always considered.",
+      "type": "object",
+      "properties": {
+        "relevantBodyParts": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/BodyPart"
+          },
+          "description": "Body parts this tool is designed for"
+        },
+        "relevantModalities": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/DicomModality"
+          },
+          "description": "Imaging modalities this tool is designed for"
+        }
+      },
+      "additionalProperties": false
+    },
+    "DicomModality": {
+      "type": "string",
+      "enum": [
+        "CR",
+        "CT",
+        "DX",
+        "MG",
+        "MR",
+        "NM",
+        "PT",
+        "RF",
+        "US",
+        "XA"
+      ],
+      "description": "DICOM standard imaging modality code (Tag 0008,0060). CR=Computed Radiography, CT=CT, DX=Digital Radiography, MG=Mammography, MR=MRI, NM=Nuclear Medicine, PT=PET, RF=Fluoroscopy, US=Ultrasound, XA=X-ray Angiography."
+    },
+    "BodyPart": {
+      "type": "string",
+      "enum": [
+        "HEAD",
+        "BRAIN",
+        "SKULL",
+        "SINUS",
+        "NECK",
+        "CSPINE",
+        "TSPINE",
+        "LSPINE",
+        "SPINE",
+        "CHEST",
+        "ABDOMEN",
+        "PELVIS",
+        "SHOULDER",
+        "ELBOW",
+        "WRIST",
+        "HAND",
+        "HIP",
+        "KNEE",
+        "ANKLE",
+        "FOOT",
+        "WHOLEBODY"
+      ],
+      "description": "Body part identifier based on DICOM Body Part Examined (Tag 0018,0015). Curated subset of commonly used values in radiology."
+    },
+    "ConfigurationTemplate": {
+      "$comment": "A standard JSON Schema (Draft-07) snippet that defines the configuration surface a partner exposes to customers. The partner declares configurable properties (settings) with types, allowed values, and defaults. After installing the tool, the customer configures their preferred settings via a platform-rendered UI (derived from this schema).",
+      "type": "object",
+      "description": "JSON Schema defining configurable properties for this tool. Customers provide values matching this schema at installation time."
+    }
+  }
+}

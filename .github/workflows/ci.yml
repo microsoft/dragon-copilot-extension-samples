@@ -7,7 +7,7 @@ on:
     branches: [ main ]
 
 jobs:
-  build-and-test:
+  build-and-test-physicians:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -51,6 +51,82 @@ jobs:
     - name: Build ${{ matrix.product.name }} Docker Image
       run: |
         docker build -f ${{ matrix.product.dockerfile }} -t ${{ matrix.product.name }}-sample-extension .
+
+  build-and-test-radiologists:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v6
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v5
+      with:
+        dotnet-version: '10.0.x'
+
+    - name: Build Radiologists Models
+      working-directory: radiologists/src/models/Dragon.Copilot.Radiologists.Models
+      run: |
+        dotnet restore
+        dotnet build --no-restore --configuration Release
+
+    - name: Test Radiologists Models
+      working-directory: radiologists/src/models/Dragon.Copilot.Radiologists.Models
+      run: |
+        dotnet test --no-build --configuration Release --verbosity normal
+
+    - name: Build Radiologists Quickstart sample (cross-platform)
+      working-directory: radiologists/src/samples/Workflow/SampleExtension.Radiologists.Web.Quickstart
+      run: |
+        dotnet restore
+        dotnet build --no-restore --configuration Release
+
+    - name: Test Radiologists Quickstart sample
+      working-directory: radiologists/src/samples/Workflow/SampleExtension.Radiologists.Web.Quickstart.Tests
+      run: |
+        dotnet test --configuration Release --verbosity normal
+
+    - name: Build Radiologists AI sample (cross-platform, Azure OpenAI)
+      working-directory: radiologists/src/samples/Workflow/SampleExtension.Radiologists.Web.Ai
+      run: |
+        dotnet restore
+        dotnet build --no-restore --configuration Release
+
+    - name: Test Radiologists AI sample
+      working-directory: radiologists/src/samples/Workflow/SampleExtension.Radiologists.Web.Ai.Tests
+      run: |
+        dotnet test --configuration Release --verbosity normal
+
+    - name: Build Radiologists Quickstart Docker image
+      run: |
+        docker build -f radiologists/src/samples/Workflow/SampleExtension.Radiologists.Web.Quickstart/Dockerfile -t radiologists-quickstart-sample .
+
+    - name: Build Radiologists AI Docker image
+      run: |
+        docker build -f radiologists/src/samples/Workflow/SampleExtension.Radiologists.Web.Ai/Dockerfile -t radiologists-ai-sample .
+
+  build-radiologists-foundry-local:
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v6
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v5
+      with:
+        dotnet-version: '10.0.x'
+
+    # The Foundry Local sample is Windows-only (net10.0-windows, Microsoft.AI.Foundry.Local.WinML),
+    # so it is built on a Windows runner rather than the cross-platform ubuntu job above.
+    - name: Build Radiologists Foundry Local sample (Windows-only, on-device)
+      working-directory: radiologists/src/samples/Workflow/SampleExtension.Radiologists.Web.Local
+      run: |
+        dotnet restore
+        dotnet build --no-restore --configuration Release
+
+    - name: Test Radiologists Foundry Local sample (Windows-only, on-device)
+      working-directory: radiologists/src/samples/Workflow/SampleExtension.Radiologists.Web.Local.Tests
+      run: |
+        dotnet test --configuration Release --verbosity normal
 
   nodejs-tools:
     runs-on: ubuntu-latest

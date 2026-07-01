@@ -15,7 +15,7 @@ async function bundle() {
 	const schemasDir = path.join(rootDir, 'src', 'schemas');
 	const schemaSources = [
 		{ aliases: ['physician/physician-extension-manifest-schema.json', 'physician-extension-manifest-schema.json'], file: path.join('physician', 'physician-extension-manifest-schema.json') },
-		{ aliases: ['radiology/radiology-extension-manifest-schema.json', 'radiology-extension-manifest-schema.json'], file: path.join('radiology', 'radiology-extension-manifest-schema.json') },
+		{ aliases: ['radiologists/radiologists-extension-manifest-schema.json', 'radiologists-extension-manifest-schema.json'], file: path.join('radiologists', 'radiologists-extension-manifest-schema.json') },
 		{ aliases: ['connector-manifest.json'], file: 'connector-manifest.json' },
 	];
 
