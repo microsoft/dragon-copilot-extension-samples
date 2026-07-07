@@ -1,6 +1,6 @@
 # Dragon Copilot CLI
 
-The `dragon-copilot` CLI allows you to generate, validate, and package manifests for Dragon Copilot Physician Workflows and Clinical Application Connectors.
+The `dragon-copilot` CLI allows you to generate, validate, and package manifests for Dragon Copilot Physician Workflows, Radiologists Workflows, and Clinical Application Connectors.
 
 ## Installation
 
@@ -68,6 +68,10 @@ Run `npm unlink -g dragon-copilot` only once per workstation; subsequent rebuild
 | Physician  | `dragon-copilot physician init`                        | Interactive wizard that generates an extension manifest |
 | Physician  | `dragon-copilot physician validate ./extension.yaml`   | Validates the manifest against JSON schema + business rules |
 | Physician  | `dragon-copilot physician package`                     | Produces a zip containing the manifest and any included files |
+| Radiologists | `dragon-copilot radiologists init`                     | Interactive wizard that scaffolds a radiologists extension manifest |
+| Radiologists | `dragon-copilot radiologists generate --template quality-check -o extension.yaml` | Generate a manifest from a built-in template (currently `quality-check`) or interactively with `--interactive` |
+| Radiologists | `dragon-copilot radiologists validate ./extension.yaml` | Validates the radiologists manifest against JSON schema + business rules |
+| Radiologists | `dragon-copilot radiologists package`                  | Produces a zip containing the radiologists manifest and any included files |
 | Connector  | `dragon-copilot connector init`                          | Clinical Application Connector manifest wizard (note sections, context retrieval, authentication) |
 | Connector  | `dragon-copilot connector validate ./extension.yaml`   | Validates Clinical Application Connector manifests |
 | Connector  | `dragon-copilot connector package`                     | Produces a zip containing the manifest and any included files |
@@ -80,7 +84,7 @@ During the connector wizard you will be asked to confirm a **clinical applicatio
 
 - Shared helpers now live under `src/common`, keeping the CLI self-contained without external workspaces.
 - `npm run build` emits compiled JS plus copies schemas/resources into `dist/`.
-- `npm test` covers extension + connector flows (command registration, schema validation, CLI integration).
+- `npm test` covers physician, radiologists, and connector flows (command registration, schema validation, CLI integration).
 
 ## Versioning & Releases
 

@@ -39,4 +39,30 @@ For repo setup, cloning instructions, and contributing guidelines, see the [root
 
 ## 🛠️ Tools
 
-See the [Dragon Copilot CLI](../tools/dragon-copilot-cli/README.md) for tools to initialize, generate manifests, validate, and package radiologists extensions.
+The [Dragon Copilot CLI](../tools/dragon-copilot-cli/README.md) scaffolds, validates, and packages radiologists extension manifests. See the [CLI README](../tools/dragon-copilot-cli/README.md) for installation and the full command reference.
+
+### Typical workflow
+
+```bash
+# 1. Scaffold a new extension manifest. The wizard prompts for the extension name,
+#    version, your Azure Entra ID tenant ID, and an optional initial tool.
+#    Add a tool when prompted so the manifest passes validation.
+dragon-copilot radiologists init
+
+# 2. Alternatively, start from the built-in quality-check template:
+dragon-copilot radiologists generate --template quality-check -o extension.yaml
+
+# 3. Edit extension.yaml — set your real endpoint and adjust the inputs/outputs.
+
+# 4. Validate the manifest against the JSON schema and business rules:
+dragon-copilot radiologists validate ./extension.yaml
+
+# 5. Package the manifest into a distributable .zip (validation runs first):
+dragon-copilot radiologists package
+```
+
+**Notes**
+
+- `generate` requires either `--template <name>` (currently only `quality-check`) or `--interactive`. Use `--interactive` to add more tools to an existing manifest.
+- A manifest must declare at least one tool to pass `validate`.
+- Run `dragon-copilot radiologists --help` (or `dragon-copilot radiologists <command> --help`) for all options.
