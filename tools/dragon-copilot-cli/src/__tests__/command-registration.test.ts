@@ -10,7 +10,7 @@ describe('registerCommands', () => {
     registerCommands(program);
 
     const commandNames = program.commands.map(command => command.name());
-    expect(commandNames).toEqual(expect.arrayContaining(['physician', 'connector', 'radiology']));
+    expect(commandNames).toEqual(expect.arrayContaining(['physician', 'connector', 'radiologists']));
   });
 
   test('registers expected physician subcommands', () => {
@@ -37,13 +37,13 @@ describe('registerCommands', () => {
     );
   });
 
-  test('registers expected radiology subcommands', () => {
+  test('registers expected radiologists subcommands', () => {
     const program = new Command();
     registerCommands(program);
 
-    const radiology = program.commands.find(command => command.name() === 'radiology');
-    expect(radiology).toBeDefined();
-    const subCommands = radiology?.commands.map(command => command.name()) ?? [];
+    const radiologists = program.commands.find(command => command.name() === 'radiologists');
+    expect(radiologists).toBeDefined();
+    const subCommands = radiologists?.commands.map(command => command.name()) ?? [];
     expect(subCommands).toEqual(
       expect.arrayContaining(['init', 'generate', 'validate', 'package']),
     );

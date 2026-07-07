@@ -7,7 +7,7 @@ import {
 } from '../shared/schema-validator.js';
 import type { DragonExtensionManifest } from '../domains/physician/types.js';
 import type { ConnectorIntegrationManifest } from '../domains/connector/types.js';
-import type { DcrExtensionManifest } from '../domains/radiology/types.js';
+import type { DcrExtensionManifest } from '../domains/radiologists/types.js';
 
 const TENANT_ID = '00000000-0000-0000-0000-000000000001';
 
@@ -282,18 +282,19 @@ describe('validateConnectorManifest', () => {
   });
 });
 
-describe('validateDcrExtensionManifest (radiology)', () => {
-  function buildValidRadiologyManifest(): DcrExtensionManifest {
+describe('validateDcrExtensionManifest (radiologists)', () => {
+  function buildValidRadiologistsManifest(): DcrExtensionManifest {
     return {
-      name: 'test-radiology-extension',
-      description: 'Radiology extension for schema validation tests',
+      name: 'testRadiologistsExtension',
+      description: 'Radiologists extension for schema validation tests',
       version: '1.0.0',
+      radiologistsExtensibilityApiVersion: '1.0.0',
       auth: {
         tenantId: TENANT_ID,
       },
       tools: [
         {
-          name: 'quality-checker',
+          name: 'qualityChecker',
           toolType: 'contractBased',
           capability: 'qualityCheck',
           description: 'Checks radiology report quality',
@@ -303,18 +304,21 @@ describe('validateDcrExtensionManifest (radiology)', () => {
               name: 'report',
               description: 'Radiology report',
               'content-type': 'application/vnd.ms-dragon.rad.report+json',
+              schemaVersion: '1.0',
             },
             {
-              name: 'patient-info',
+              name: 'patientInformation',
               description: 'Patient demographic information',
-              'content-type': 'application/vnd.ms-dragon.rad.patient-info+json',
+              'content-type': 'application/vnd.ms-dragon.rad.patient-information+json',
+              schemaVersion: '1.0',
             },
           ],
           outputs: [
             {
-              name: 'quality-check-result',
+              name: 'qualityCheckResult',
               description: 'Quality check findings',
               'content-type': 'application/vnd.ms-dragon.rad.quality-check-result+json',
+              schemaVersion: '1.0',
             },
           ],
         },
@@ -322,8 +326,8 @@ describe('validateDcrExtensionManifest (radiology)', () => {
     };
   }
 
-  it('returns valid for a well-formed radiology manifest with qualityCheck capability', () => {
-    const manifest = buildValidRadiologyManifest();
+  it('returns valid for a well-formed radiologists manifest with qualityCheck capability', () => {
+    const manifest = buildValidRadiologistsManifest();
 
     const result = validateDcrExtensionManifest(manifest);
 
@@ -332,7 +336,7 @@ describe('validateDcrExtensionManifest (radiology)', () => {
   });
 
   it('rejects an invalid capability value', () => {
-    const manifest = buildValidRadiologyManifest();
+    const manifest = buildValidRadiologistsManifest();
     (manifest.tools[0] as any).capability = 'invalidCapability';
 
     const result = validateDcrExtensionManifest(manifest);
@@ -342,7 +346,7 @@ describe('validateDcrExtensionManifest (radiology)', () => {
   });
 
   it('rejects an invalid output content-type', () => {
-    const manifest = buildValidRadiologyManifest();
+    const manifest = buildValidRadiologistsManifest();
     (manifest.tools[0].outputs[0] as any)['content-type'] = 'application/vnd.ms-dragon.rad.invalid+json';
 
     const result = validateDcrExtensionManifest(manifest);
@@ -352,7 +356,7 @@ describe('validateDcrExtensionManifest (radiology)', () => {
   });
 
   it('flags duplicate tool names as a business-rule error', () => {
-    const manifest = buildValidRadiologyManifest();
+    const manifest = buildValidRadiologistsManifest();
     manifest.tools.push({ ...manifest.tools[0] });
 
     const result = validateDcrExtensionManifest(manifest);
@@ -362,7 +366,7 @@ describe('validateDcrExtensionManifest (radiology)', () => {
   });
 
   it('validates manifest with relevanceFilteringCriteria', () => {
-    const manifest = buildValidRadiologyManifest();
+    const manifest = buildValidRadiologistsManifest();
     manifest.tools[0].relevanceFilteringCriteria = {
       relevantBodyParts: ['CHEST'],
       relevantModalities: ['CT'],
@@ -375,13 +379,131 @@ describe('validateDcrExtensionManifest (radiology)', () => {
   });
 
   it('rejects additional properties on tools', () => {
-    const manifest = buildValidRadiologyManifest();
+    const manifest = buildValidRadiologistsManifest();
     (manifest.tools[0] as any)['unknown-field'] = 'should not be here';
 
     const result = validateDcrExtensionManifest(manifest);
 
     expect(result.isValid).toBe(false);
     expect(result.errors.some((e: SchemaError) => e.keyword === 'additionalProperties')).toBe(true);
+  });
+
+  it('rejects manifest missing top-level radiologistsExtensibilityApiVersion', () => {
+    const manifest = buildValidRadiologistsManifest();
+    delete (manifest as any).radiologistsExtensibilityApiVersion;
+
+    const result = validateDcrExtensionManifest(manifest);
+
+    expect(result.isValid).toBe(false);
+    expect(
+      result.errors.some(
+        (e: SchemaError) =>
+          e.keyword === 'required' && e.params?.missingProperty === 'radiologistsExtensibilityApiVersion',
+      ),
+    ).toBe(true);
+  });
+
+  it('rejects radiologistsExtensibilityApiVersion in wrong format', () => {
+    const manifest = buildValidRadiologistsManifest();
+    manifest.radiologistsExtensibilityApiVersion = '1.0';
+
+    const result = validateDcrExtensionManifest(manifest);
+
+    expect(result.isValid).toBe(false);
+    expect(
+      result.errors.some((e: SchemaError) =>
+        e.instancePath?.includes('radiologistsExtensibilityApiVersion'),
+      ),
+    ).toBe(true);
+  });
+
+  it('rejects input missing schemaVersion', () => {
+    const manifest = buildValidRadiologistsManifest();
+    delete (manifest.tools[0].inputs[0] as any).schemaVersion;
+
+    const result = validateDcrExtensionManifest(manifest);
+
+    expect(result.isValid).toBe(false);
+    expect(
+      result.errors.some(
+        (e: SchemaError) =>
+          e.keyword === 'required' && e.params?.missingProperty === 'schemaVersion',
+      ),
+    ).toBe(true);
+  });
+
+  it('rejects output missing schemaVersion', () => {
+    const manifest = buildValidRadiologistsManifest();
+    delete (manifest.tools[0].outputs[0] as any).schemaVersion;
+
+    const result = validateDcrExtensionManifest(manifest);
+
+    expect(result.isValid).toBe(false);
+    expect(
+      result.errors.some(
+        (e: SchemaError) =>
+          e.keyword === 'required' && e.params?.missingProperty === 'schemaVersion',
+      ),
+    ).toBe(true);
+  });
+
+  it('rejects schemaVersion in wrong format (three segments)', () => {
+    const manifest = buildValidRadiologistsManifest();
+    manifest.tools[0].inputs[0].schemaVersion = '1.0.0';
+
+    const result = validateDcrExtensionManifest(manifest);
+
+    expect(result.isValid).toBe(false);
+    expect(
+      result.errors.some((e: SchemaError) =>
+        e.instancePath?.includes('schemaVersion'),
+      ),
+    ).toBe(true);
+  });
+
+  it('rejects extension name in kebab-case (camelCase required)', () => {
+    const manifest = buildValidRadiologistsManifest();
+    manifest.name = 'not-camel-case';
+
+    const result = validateDcrExtensionManifest(manifest);
+
+    expect(result.isValid).toBe(false);
+    expect(
+      result.errors.some(
+        (e: SchemaError) =>
+          e.keyword === 'pattern' && e.instancePath === '/name',
+      ),
+    ).toBe(true);
+  });
+
+  it('rejects tool name in kebab-case (camelCase required)', () => {
+    const manifest = buildValidRadiologistsManifest();
+    manifest.tools[0].name = 'quality-checker';
+
+    const result = validateDcrExtensionManifest(manifest);
+
+    expect(result.isValid).toBe(false);
+    expect(
+      result.errors.some(
+        (e: SchemaError) =>
+          e.keyword === 'pattern' && e.instancePath?.includes('/tools/0/name'),
+      ),
+    ).toBe(true);
+  });
+
+  it('rejects an invalid input content-type', () => {
+    const manifest = buildValidRadiologistsManifest();
+    (manifest.tools[0].inputs[0] as any)['content-type'] =
+      'application/vnd.ms-dragon.rad.unknown+json';
+
+    const result = validateDcrExtensionManifest(manifest);
+
+    expect(result.isValid).toBe(false);
+    expect(
+      result.errors.some((e: SchemaError) =>
+        e.instancePath?.includes('content-type'),
+      ),
+    ).toBe(true);
   });
 });
 

@@ -8,7 +8,7 @@ import { join, resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import type { DragonExtensionManifest } from '../domains/physician/types.js';
 import type { ConnectorIntegrationManifest } from '../domains/connector/types.js';
-import type { DcrExtensionManifest } from '../domains/radiology/types.js';
+import type { DcrExtensionManifest } from '../domains/radiologists/types.js';
 
 type ManifestLike = DragonExtensionManifest | ConnectorIntegrationManifest | DcrExtensionManifest;
 
@@ -86,7 +86,7 @@ function loadSchema(name: string): any {
 
 const extensionManifestSchema = loadSchema('physician/physician-extension-manifest-schema.json');
 const connectorManifestSchema = loadSchema('connector-manifest.json');
-const dcrExtensionManifestSchema = loadSchema('radiology/radiology-extension-manifest-schema.json');
+const dcrExtensionManifestSchema = loadSchema('radiologists/radiologists-extension-manifest-schema.json');
 
 const validateExtensionSchema = ajv.compile(extensionManifestSchema);
 const validateConnectorSchema = ajv.compile(connectorManifestSchema);
