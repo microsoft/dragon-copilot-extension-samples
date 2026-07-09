@@ -44,9 +44,10 @@ The [Dragon Copilot CLI](../tools/dragon-copilot-cli/README.md) scaffolds, valid
 ### Typical workflow
 
 ```bash
-# 1. Scaffold a new extension manifest. The wizard prompts for the extension name,
-#    version, your Azure Entra ID tenant ID, and an optional initial tool.
-#    Add a tool when prompted so the manifest passes validation.
+# 1. Scaffold a new extension manifest. The wizard prompts for the extension
+#    name, description, version, and extensibility API version, then your Azure
+#    Entra ID tenant ID and an optional initial tool. Add a tool when prompted
+#    so the manifest passes validation.
 dragon-copilot radiologists init
 
 # 2. Alternatively, start from the built-in quality-check template:

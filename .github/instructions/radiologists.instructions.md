@@ -113,4 +113,4 @@ See `tools/dragon-copilot-cli/src/schemas/radiologists/radiologists-extension-ma
 
 ## Scaffolding a sample in another language
 
-When a partner wants a Radiologists sample in a language other than C# (for example Python, Go, Java, or Node.js), invoke the reusable Copilot prompt at `.github/prompts/radiologists-scaffold-language-sample.prompt.md`. Its usage instructions live inside the prompt file itself.
+A Python sample already ships at `radiologists/src/samples/Workflow/sample_extension_radiologists_python_quickstart/`. When a partner wants a Radiologists sample in another language (for example Go, Java, or Node.js), invoke the reusable Copilot prompt at `.github/prompts/radiologists-scaffold-language-sample.prompt.md`. Its usage instructions live inside the prompt file itself.

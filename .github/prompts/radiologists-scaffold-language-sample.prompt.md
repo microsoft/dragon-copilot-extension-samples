@@ -1,6 +1,6 @@
 ﻿---
 description: "Scaffold a Radiologists extension sample in the language of your choice, mirroring the C# Quickstart."
-mode: agent
+agent: agent
 ---
 
 # Scaffold a Radiologists sample in another language
@@ -131,7 +131,7 @@ Use the same lowercase language token (`python`, `nodejs`, `typescript`, `go`, `
 
 ### Files & docs
 
-12. **`extension.yaml`:** Include a Radiologists manifest at the sample root. **Radiologists manifests differ from Physicians manifests** — use this structure:
+12. **`extension.yaml`:** The Radiologists Workflow samples **share one manifest** at the Workflow root (`radiologists/src/samples/Workflow/extension.yaml`) — do **not** create a per-sample manifest. Instead, reference it from the sample README (see item 13). **Radiologists manifests differ from Physicians manifests**; for reference, the shared manifest uses this structure:
 
         name: sampleQualityCheckExtension          # camelCase, starts lowercase
         description: Sample radiology quality check extension
@@ -171,7 +171,7 @@ Use the same lowercase language token (`python`, `nodejs`, `typescript`, `go`, `
 
     See `tools/dragon-copilot-cli/src/schemas/radiologists/radiologists-extension-manifest-schema.json` for the full JSON Schema.
 
-13. **README:** Mirror the structure of `radiologists/src/samples/Workflow/SampleExtension.Radiologists.Web.Quickstart/README.md`. Required sections: What's included, API endpoints (table), Run locally (separate Linux/macOS and Windows PowerShell blocks), Testing the API (with both `curl` and `Invoke-RestMethod` examples for `/v1/process` and both health probes), Security (with explicit Entra ID enable steps), Quality-check provider, Request/response contract. Add a Running the tests section as well (the C# samples ship no tests, but other-language samples do — see item 14).
+13. **README:** Mirror the structure of `radiologists/src/samples/Workflow/SampleExtension.Radiologists.Web.Quickstart/README.md`. Required sections: What's included, Extension manifest (a short section pointing to the shared `../extension.yaml`), API endpoints (table), Run locally (separate Linux/macOS and Windows PowerShell blocks), Testing the API (with both `curl` and `Invoke-RestMethod` examples for `/v1/process` and both health probes), Security (with explicit Entra ID enable steps), Quality-check provider, Request/response contract. Add a Running the tests section as well (the C# samples ship no tests, but other-language samples do — see item 14).
 
 ### Validation
 
