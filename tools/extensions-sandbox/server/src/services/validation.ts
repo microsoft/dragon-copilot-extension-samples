@@ -460,9 +460,13 @@ export function validateToolInputs(
 
     const checks: ValidationCheck[] = [];
 
-    // Check if input data was provided
+    // Check if input data was provided.
+    // An input is only mandatory when the manifest explicitly declares `required: true`.
+    // A missing `required` flag means optional — matching how tool metadata is surfaced to
+    // the UI (`required: input.required ?? false`) and the extensibility contract, where only
+    // sessionData is required and inputs like report/patientInformation are optional.
     if (inputData === undefined || inputData === null) {
-      if (inputDef.required !== false) {
+      if (inputDef.required === true) {
         checks.push({
           check: `Input '${inputName}' is provided`,
           passed: false,

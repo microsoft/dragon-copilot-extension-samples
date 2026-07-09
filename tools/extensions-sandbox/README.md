@@ -135,16 +135,16 @@ The generation script (`scripts/generate-output-schemas.ts`) extracts schema def
 
 ## Mock Extension Server
 
-The sandbox ships with a **mock extension server** that simulates a real Microsoft Dragon Copilot (radiologists) extension. It implements the `ExtensionRequest`/`ExtensionResponse` envelope contract from the Extensibility API for Dragon Copilot (radiologists) and responds with valid `QualityCheckResult` payloads — making it useful for end-to-end testing of the sandbox UI without deploying a real extension.
+The sandbox ships with a **mock extension server** that simulates a real Microsoft Dragon Copilot (radiologists) extension. It implements the `ProcessRequest`/`ProcessResponse` envelope contract from the Extensibility API for Dragon Copilot (radiologists) and responds with valid `QualityCheckResult` payloads — making it useful for end-to-end testing of the sandbox UI without deploying a real extension.
 
 ### What It Does
 
-The mock server exposes a single processing endpoint (`POST /v1/process`) that handles two tools matching the test fixture manifests in `server/src/__tests__/fixtures/`:
+The mock server exposes a single processing endpoint (`POST /v1/process`) that mimics the two test fixture manifests in `server/src/__tests__/fixtures/`. Because a `ProcessRequest` carries no tool name (the endpoint identifies the tool), the mock selects its behaviour by whether patient information is present:
 
-| Tool Name | Manifest Fixture | Behaviour |
-|-----------|-----------------|-----------|
-| `chestCtQuality` | `valid-manifest-simple.json` | Analyses chest CT report text and returns Clinical/Billing recommendations (checks for comparison section, impression, bilateral procedures) |
-| `brainMriQuality` | `valid-manifest-full-featured.json` | Analyses brain MRI report text and returns Clinical recommendations (checks for DWI mention, ventricular assessment) |
+| Behaviour | Manifest Fixture | Selected when | Description |
+|-----------|-----------------|---------------|-------------|
+| Chest CT (`chestCtQuality`) | `valid-manifest-simple.json` | no `patientInformation` input | Analyses chest CT report text and returns Clinical/Billing recommendations (checks for comparison section, impression, bilateral procedures) |
+| Brain MRI (`brainMriQuality`) | `valid-manifest-full-featured.json` | `patientInformation` input present | Analyses brain MRI report text and returns Clinical recommendations (checks for DWI mention, ventricular assessment) |
 
 Both tools return schema-valid responses that pass the sandbox's built-in response validation.
 
@@ -174,7 +174,7 @@ The server starts at `http://localhost:9100` and prints available endpoints.
 
 | Method | Path | Description |
 |--------|------|-------------|
-| `POST` | `/v1/process` | Main processing endpoint (accepts `ExtensionRequest`, returns `ExtensionResponse`) |
+| `POST` | `/v1/process` | Main processing endpoint (accepts `ProcessRequest`, returns `ProcessResponse`) |
 | `GET` | `/health` | Health check — returns `{ status, tools }` |
 
 ### Example Request
@@ -183,17 +183,13 @@ The server starts at `http://localhost:9100` and prints available endpoints.
 curl -X POST http://localhost:9100/v1/process \
   -H "Content-Type: application/json" \
   -d '{
-    "requestId": "test-123",
-    "customerTenantId": "00000000-0000-0000-0000-000000000000",
-    "tools": [{
-      "toolName": "chestCtQuality",
-      "toolRequestId": "tr-1",
-      "inputs": {
-        "report": {
-          "reportText": "Chest CT shows bilateral ground-glass opacities. No pleural effusion."
-        }
-      }
-    }]
+    "extensibilityApiVersion": "1.0.0",
+    "sessionData": {
+      "correlation_id": "f40dd0d0-4201-d29d-79b4-df40189fd2f0"
+    },
+    "report": {
+      "reportText": "Chest CT shows bilateral ground-glass opacities. No pleural effusion."
+    }
   }'
 ```
 
@@ -201,29 +197,26 @@ curl -X POST http://localhost:9100/v1/process \
 
 ```json
 {
-  "requestId": "test-123",
-  "tools": [{
-    "toolName": "chestCtQuality",
-    "toolRequestId": "tr-1",
-    "outputs": {
-      "quality-result": {
-        "recommendations": [
-          {
-            "qualityCheckType": "Clinical",
-            "description": "Missing comparison with prior studies",
-            "reason": "No comparison section found in report.",
-            "severityScorePercent": 55
-          },
-          {
-            "qualityCheckType": "Billing",
-            "description": "Missing CPT modifier for bilateral procedure",
-            "reason": "Bilateral finding described but modifier -50 not referenced.",
-            "severityScorePercent": 75
-          }
-        ]
-      }
+  "success": true,
+  "message": "Payload processed successfully.",
+  "payload": {
+    "quality-result": {
+      "recommendations": [
+        {
+          "qualityCheckType": "Clinical",
+          "description": "Missing comparison with prior studies",
+          "reason": "No comparison section found in report.",
+          "severityScorePercent": 55
+        },
+        {
+          "qualityCheckType": "Billing",
+          "description": "Missing CPT modifier for bilateral procedure",
+          "reason": "Bilateral finding described but modifier -50 not referenced.",
+          "severityScorePercent": 75
+        }
+      ]
     }
-  }]
+  }
 }
 ```
 
@@ -325,7 +318,7 @@ Confirm the GET response contains no `clientSecret`, and that saving other field
 *No Azure (forwarding seam):* the `/execute` proxy still forwards a body-supplied `bearerToken` when auth is disabled. Start an echo listener and call `/execute` directly:
 ```powershell
 # Echo listener on :9100 that prints the Authorization header and returns a valid envelope:
-node -e "require('http').createServer((q,r)=>{let b='';q.on('data',c=>b+=c);q.on('end',()=>{console.log('AUTH:',q.headers.authorization);r.writeHead(200,{'Content-Type':'application/json'});r.end(JSON.stringify({requestId:'x',tools:[{toolName:'chestCtQuality',toolRequestId:'1',outputs:{'quality-result':{recommendations:[]}}}]}))})}).listen(9100)"
+node -e "require('http').createServer((q,r)=>{let b='';q.on('data',c=>b+=c);q.on('end',()=>{console.log('AUTH:',q.headers.authorization);r.writeHead(200,{'Content-Type':'application/json'});r.end(JSON.stringify({success:true,message:'ok',payload:{'quality-result':{recommendations:[]}}}))})}).listen(9100)"
 
 # Set the manifest tool endpoint to http://localhost:9100/v1/process, then:
 curl.exe -s -X POST http://localhost:4000/api/manifest/execute -H "Content-Type: application/json" `

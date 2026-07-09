@@ -112,69 +112,53 @@ function generateBrainMriRecommendations(reportText: string, _patientInfo?: unkn
 
 // ─── Request Handling ────────────────────────────────────────────────────────
 
-interface ToolRequest {
-  toolName: string;
-  toolRequestId: string;
-  inputs: Record<string, unknown>;
+interface SessionData {
+  correlation_id: string;
+  session_start?: string;
+  environment_id?: string;
 }
 
-interface ExtensionRequest {
-  requestId: string;
-  customerTenantId: string;
-  tools: ToolRequest[];
+interface ProcessRequest {
+  extensibilityApiVersion?: string;
+  sessionData: SessionData;
+  report?: unknown;
+  patientInformation?: unknown;
+  [inputName: string]: unknown;
 }
 
-function handleProcess(body: ExtensionRequest) {
-  if (body.tools && body.tools.length > 1) {
-    console.warn(`⚠️  Request contains ${body.tools.length} tools but mock server only processes the first.`);
+function handleProcess(body: ProcessRequest) {
+  if (!body || typeof body !== 'object' || !body.sessionData) {
+    return { status: 400, body: { success: false, message: 'Missing required sessionData.' } };
   }
 
-  const toolReq = body.tools?.[0];
-  if (!toolReq) {
-    return { status: 400, body: { success: false, error: 'No tool request provided.' } };
-  }
-
-  const { toolName, toolRequestId, inputs } = toolReq;
-
-  // Extract report text from inputs (handles both string and object forms)
+  // Extract report text from the named input (handles both string and object forms)
   let reportText = '';
-  const reportInput = inputs.report;
+  const reportInput = body.report;
   if (typeof reportInput === 'string') {
     reportText = reportInput;
   } else if (reportInput && typeof reportInput === 'object') {
     reportText = (reportInput as { reportText?: string }).reportText ?? JSON.stringify(reportInput);
   }
 
-  let recommendations: Recommendation[];
+  // The ProcessRequest contract carries no tool name — the endpoint identifies
+  // the tool. This mock serves both fixture manifests on one endpoint, so it
+  // selects the generator heuristically: the full-featured (brainMriQuality)
+  // manifest declares a patientInformation input, the simple (chestCtQuality)
+  // one does not.
+  const recommendations: Recommendation[] = body.patientInformation
+    ? generateBrainMriRecommendations(reportText, body.patientInformation)
+    : generateChestCtRecommendations(reportText);
 
-  switch (toolName) {
-    case 'chestCtQuality':
-      recommendations = generateChestCtRecommendations(reportText);
-      break;
-    case 'brainMriQuality':
-      recommendations = generateBrainMriRecommendations(reportText, inputs['patient-info']);
-      break;
-    default:
-      return {
-        status: 404,
-        body: { success: false, error: `Unknown tool: ${toolName}. Supported: chestCtQuality, brainMriQuality` },
-      };
-  }
-
-  // Return the ExtensionResponse envelope
+  // Return the ProcessResponse envelope. `payload` is keyed by the manifest
+  // output name (both fixtures use "quality-result").
   return {
     status: 200,
     body: {
-      requestId: body.requestId,
-      tools: [
-        {
-          toolName,
-          toolRequestId,
-          outputs: {
-            'quality-result': { recommendations },
-          },
-        },
-      ],
+      success: true,
+      message: 'Payload processed successfully.',
+      payload: {
+        'quality-result': { recommendations },
+      },
     },
   };
 }
@@ -206,7 +190,7 @@ const server = http.createServer((req, res) => {
     req.on('data', (chunk) => { rawBody += chunk; });
     req.on('end', () => {
       try {
-        const parsed = JSON.parse(rawBody) as ExtensionRequest;
+        const parsed = JSON.parse(rawBody) as ProcessRequest;
         const result = handleProcess(parsed);
         res.writeHead(result.status, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify(result.body, null, 2));
