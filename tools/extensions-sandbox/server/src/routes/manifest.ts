@@ -11,9 +11,9 @@ import { mapPathsToLines } from '../utils/source-mapper.js';
 import { getToolsForCapability } from '../utils/tool-metadata.js';
 import { parseCapabilities } from '../utils/capabilities-parser.js';
 import { MANIFEST_SCHEMA_PATH } from '../utils/schema-path.js';
-import { callExtensionAsync, buildExtensionRequest } from '../services/extension-client.js';
+import { callExtensionAsync, buildProcessRequest } from '../services/extension-client.js';
 import { acquireToken, buildClaimChecks, AuthError } from '../services/auth.js';
-import { parseInputValues } from 'extensions-sandbox-shared';
+import { parseAndGroupInputs } from 'extensions-sandbox-shared';
 import { createLogger } from '../utils/logger.js';
 
 export const manifestRouter = Router();
@@ -342,9 +342,9 @@ manifestRouter.get('/raw', (_req, res) => {
 
 /**
  * POST /api/manifest/execute
- * Executes a tool by calling the extension endpoint using the same
- * ExtensionRequest/ExtensionResponse envelope format as
- * diag-radex-extension-service's ExtensionClient.CallExtensionAsync.
+ * Executes a tool by calling the extension's `v1/process` endpoint using the
+ * Dragon Copilot (radiologists) Extensibility API contract — a ProcessRequest
+ * envelope in, a ProcessResponse envelope out (see radiologists-extensibility-api.yaml).
  *
  * Body:
  *   - capability: string (required)
@@ -438,19 +438,20 @@ manifestRouter.post('/execute', async (req, res) => {
       tool,
       inputs: inputs ?? {},
       customerTenantId: customerTenantId || '00000000-0000-0000-0000-000000000000',
+      extensibilityApiVersion: manifest.radiologistsExtensibilityApiVersion,
       bearerToken: resolvedToken,
     });
 
     log.info(
       `Tool '${toolName}' responded ${result.status} ${result.statusText}. ` +
-      `Recognized ExtensionResponse envelope: ${result.extensionResponse ? 'yes' : 'no'}.`,
+      `Recognized ProcessResponse envelope: ${result.processResponse ? 'yes' : 'no'}.`,
     );
 
     res.json({
       status: result.status,
       statusText: result.statusText,
       headers: result.headers,
-      extensionResponse: result.extensionResponse ?? null,
+      processResponse: result.processResponse ?? null,
       rawBody: result.rawBody ?? null,
       sentRequest: result.sentRequest,
       authenticated: authConfig.enabled,
@@ -502,12 +503,11 @@ manifestRouter.post('/execute', async (req, res) => {
     // Build the request that was attempted so the Outputs tab can display it
     let sentRequest: unknown;
     try {
-      const parsedInputs = parseInputValues(inputs ?? {});
-      sentRequest = buildExtensionRequest(
-        tool,
-        parsedInputs,
-        customerTenantId || '00000000-0000-0000-0000-000000000000',
-      );
+      const parsedInputs = parseAndGroupInputs(inputs ?? {});
+      sentRequest = buildProcessRequest(tool, parsedInputs, {
+        customerTenantId: customerTenantId || '00000000-0000-0000-0000-000000000000',
+        extensibilityApiVersion: manifest.radiologistsExtensibilityApiVersion,
+      });
     } catch { /* best-effort */ }
 
     res.status(502).json({

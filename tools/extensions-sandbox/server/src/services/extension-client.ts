@@ -1,41 +1,45 @@
 import { randomUUID } from 'node:crypto';
 import type { ManifestTool } from '../schemas/manifest.schema.js';
-import { parseInputValues } from 'extensions-sandbox-shared';
+import { parseAndGroupInputs } from 'extensions-sandbox-shared';
 import { createLogger } from '../utils/logger.js';
 
 const log = createLogger('extension-call');
 
 /**
- * Request envelope sent to extension endpoints.
- * Mirrors the ExtensionRequest format used by
- * diag-radex-extension-service's ExtensionClient.
+ * Session context for request correlation and tracking.
+ * Corresponds to the SessionData schema in radiologists-extensibility-api.yaml.
+ * Property names are snake_case by design, inherited from the upstream Dragon
+ * SessionData contract.
  */
-export interface ExtensionRequest {
-  requestId: string;
-  customerTenantId: string;
-  tools: ToolRequest[];
-}
-
-export interface ToolRequest {
-  toolName: string;
-  toolRequestId: string;
-  inputs: Record<string, unknown>;
+export interface SessionData {
+  correlation_id: string;
+  session_start?: string;
+  environment_id?: string;
 }
 
 /**
- * Response envelope expected from extension endpoints.
- * Mirrors the ExtensionResponse format used by
- * diag-radex-extension-service's ExtensionClient.
+ * Request envelope sent to the extension's `v1/process` endpoint.
+ * Corresponds to the ProcessRequest schema in radiologists-extensibility-api.yaml:
+ * a required `sessionData`, an optional `extensibilityApiVersion`, and the tool's
+ * named inputs (e.g. `report`, `patientInformation`) spread as top-level
+ * properties (the schema allows `additionalProperties: true`).
  */
-export interface ExtensionResponse {
-  requestId: string;
-  tools: ToolResponse[];
+export interface ProcessRequest {
+  extensibilityApiVersion?: string;
+  sessionData: SessionData;
+  [inputName: string]: unknown;
 }
 
-export interface ToolResponse {
-  toolName: string;
-  toolRequestId: string;
-  outputs: Record<string, unknown>;
+/**
+ * Response envelope returned by the extension's `v1/process` endpoint.
+ * Corresponds to the ProcessResponse schema in radiologists-extensibility-api.yaml.
+ * `payload` is a map of named outputs (keyed by the output name from the manifest,
+ * e.g. `qualityCheckResult`), each value being a tool-specific result object.
+ */
+export interface ProcessResponse {
+  success?: boolean;
+  message?: string;
+  payload?: Record<string, unknown>;
 }
 
 /**
@@ -45,6 +49,8 @@ export interface ExecuteToolOptions {
   tool: ManifestTool;
   inputs: Record<string, string>;
   customerTenantId: string;
+  /** Extensibility API version from the manifest, echoed into the ProcessRequest. */
+  extensibilityApiVersion?: string;
   bearerToken?: string;
   timeoutMs?: number;
 }
@@ -56,69 +62,80 @@ export interface ExecuteToolResult {
   status: number;
   statusText: string;
   headers: Record<string, string>;
-  /** The parsed ExtensionResponse if the response matched the expected envelope. */
-  extensionResponse?: ExtensionResponse;
+  /** The parsed ProcessResponse if the response matched the expected envelope. */
+  processResponse?: ProcessResponse;
   /** Raw response body (used when the response doesn't match the expected envelope). */
   rawBody?: unknown;
-  /** The ExtensionRequest that was sent (for debugging/inspection). */
-  sentRequest: ExtensionRequest;
+  /** The ProcessRequest that was sent (for debugging/inspection). */
+  sentRequest: ProcessRequest;
 }
 
 /**
- * Builds an ExtensionRequest envelope matching the format used by
- * diag-radex-extension-service's ExtensionClient.CallExtensionAsync.
+ * Builds a ProcessRequest envelope for the extension's `v1/process` endpoint,
+ * matching the contract in radiologists-extensibility-api.yaml.
  *
- * The real service uses ExtensionClientMapper.ToExtensionRequest() which:
- * - Generates a new GUID for requestId
- * - Sets customerTenantId from the caller's tenant
- * - Creates a single ToolRequest with:
- *   - toolName from extension.Tools[0].Name
- *   - a new GUID for toolRequestId
- *   - inputs deserialized from the capability request, keys in camelCase
+ * The envelope carries:
+ * - `sessionData` with a freshly generated `correlation_id` (required by the schema),
+ *   and `environment_id` set from the caller's tenant when available.
+ * - `extensibilityApiVersion` echoed from the manifest, when provided.
+ * - The tool's named inputs (e.g. `report`, `patientInformation`) spread as
+ *   top-level properties. Input names come straight from the manifest, so they
+ *   map onto the schema's `report` / `patientInformation` fields (and any extra
+ *   inputs land in the schema's `additionalProperties`).
  */
-export function buildExtensionRequest(
-  tool: ManifestTool,
+export function buildProcessRequest(
+  _tool: ManifestTool,
   inputs: Record<string, unknown>,
-  customerTenantId: string,
-): ExtensionRequest {
-  return {
-    requestId: randomUUID(),
-    customerTenantId,
-    tools: [
-      {
-        toolName: tool.name,
-        toolRequestId: randomUUID(),
-        inputs,
-      },
-    ],
-  };
+  options: { customerTenantId?: string; extensibilityApiVersion?: string } = {},
+): ProcessRequest {
+  const { customerTenantId, extensibilityApiVersion } = options;
+
+  const sessionData: SessionData = { correlation_id: randomUUID() };
+  if (customerTenantId) {
+    sessionData.environment_id = customerTenantId;
+  }
+
+  const request: ProcessRequest = { sessionData };
+  if (extensibilityApiVersion) {
+    request.extensibilityApiVersion = extensibilityApiVersion;
+  }
+
+  for (const [name, value] of Object.entries(inputs)) {
+    request[name] = value;
+  }
+
+  return request;
 }
 
 /**
- * Calls an extension endpoint mimicking diag-radex-extension-service's
- * ExtensionClient.CallExtensionAsync behavior:
+ * Calls an extension's `v1/process` endpoint using the Dragon Copilot
+ * (radiologists) Extensibility API contract:
  *
- * 1. Builds ExtensionRequest envelope
+ * 1. Builds a ProcessRequest envelope (sessionData + named inputs)
  * 2. Sets Accept: application/json header
  * 3. Optionally attaches Bearer token (in the real service this comes from
  *    EntraAuth client-credentials flow)
  * 4. POSTs JSON to tool.endpoint
- * 5. Expects ExtensionResponse envelope back
+ * 5. Expects a ProcessResponse envelope back
  */
 export async function callExtensionAsync(
   options: ExecuteToolOptions,
 ): Promise<ExecuteToolResult> {
-  const { tool, inputs, customerTenantId, bearerToken, timeoutMs = 30000 } = options;
+  const { tool, inputs, customerTenantId, extensibilityApiVersion, bearerToken, timeoutMs = 30000 } = options;
 
   if (!tool.endpoint) {
     throw new Error('Tool endpoint is not configured.');
   }
 
-  // Parse input values from strings to objects (mirrors the real service's
-  // JSON deserialization of input values in ExtensionClientMapper)
-  const parsedInputs = parseInputValues(inputs);
+  // Parse input values from strings to objects and group dot-delimited field
+  // paths (e.g. "report.reportText") into nested objects keyed by input name,
+  // so they map onto the ProcessRequest's named-input properties.
+  const parsedInputs = parseAndGroupInputs(inputs);
 
-  const extensionRequest = buildExtensionRequest(tool, parsedInputs, customerTenantId);
+  const processRequest = buildProcessRequest(tool, parsedInputs, {
+    customerTenantId,
+    extensibilityApiVersion,
+  });
 
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
@@ -132,11 +149,11 @@ export async function callExtensionAsync(
     headers['Authorization'] = `Bearer ${bearerToken}`;
   }
 
-  const requestBody = JSON.stringify(extensionRequest);
+  const requestBody = JSON.stringify(processRequest);
   log.info(`POST ${tool.endpoint} (timeout ${timeoutMs}ms)`);
   log.info(`Request headers: ${JSON.stringify(redactHeaders(headers))}`);
   log.info(
-    `Request envelope: requestId=${extensionRequest.requestId}, ` +
+    `Request envelope: correlationId=${processRequest.sessionData.correlation_id}, ` +
     `tool='${tool.name}', inputs=[${Object.keys(parsedInputs).join(', ') || 'none'}], ` +
     `bodySize=${requestBody.length} bytes`,
   );
@@ -175,24 +192,25 @@ export async function callExtensionAsync(
       rawBody = await response.text();
     }
 
-    // Attempt to interpret as ExtensionResponse envelope
-    let extensionResponse: ExtensionResponse | undefined;
-    if (isExtensionResponse(rawBody)) {
-      extensionResponse = rawBody;
+    // Attempt to interpret as a ProcessResponse envelope
+    let processResponse: ProcessResponse | undefined;
+    if (isProcessResponse(rawBody)) {
+      processResponse = rawBody;
+      const outputCount = processResponse.payload ? Object.keys(processResponse.payload).length : 0;
       log.info(
-        `Response matched ExtensionResponse envelope: ${extensionResponse.tools.length} tool result(s).`,
+        `Response matched ProcessResponse envelope: success=${processResponse.success ?? 'n/a'}, ${outputCount} output(s).`,
       );
     } else {
-      log.warn('Response did not match the expected ExtensionResponse envelope; returning raw body.');
+      log.warn('Response did not match the expected ProcessResponse envelope; returning raw body.');
     }
 
     return {
       status: response.status,
       statusText: response.statusText,
       headers: responseHeaders,
-      extensionResponse,
-      rawBody: extensionResponse ? undefined : rawBody,
-      sentRequest: extensionRequest,
+      processResponse,
+      rawBody: processResponse ? undefined : rawBody,
+      sentRequest: processRequest,
     };
   } catch (err: unknown) {
     const durationMs = Date.now() - startedAt;
@@ -253,23 +271,20 @@ function buildCurlCommand(
 }
 
 /**
- * Type guard to check if a response body matches the ExtensionResponse envelope.
+ * Type guard to check if a response body matches the ProcessResponse envelope.
+ *
+ * A ProcessResponse carries its named tool outputs under `payload` (a map keyed
+ * by output name). We require a non-null `payload` object so the caller can
+ * reliably extract the tool output for schema validation; error envelopes
+ * (e.g. `{ "error": ... }` or RFC 9110 problem details) are excluded.
  */
-function isExtensionResponse(body: unknown): body is ExtensionResponse {
+function isProcessResponse(body: unknown): body is ProcessResponse {
   if (body === null || typeof body !== 'object') return false;
   const obj = body as Record<string, unknown>;
   return (
-    typeof obj.requestId === 'string' &&
-    Array.isArray(obj.tools) &&
-    obj.tools.every(
-      (t: unknown) =>
-        t !== null &&
-        typeof t === 'object' &&
-        typeof (t as Record<string, unknown>).toolName === 'string' &&
-        typeof (t as Record<string, unknown>).toolRequestId === 'string' &&
-        (t as Record<string, unknown>).outputs !== null &&
-        typeof (t as Record<string, unknown>).outputs === 'object',
-    )
+    obj.payload !== null &&
+    typeof obj.payload === 'object' &&
+    !Array.isArray(obj.payload)
   );
 }
 

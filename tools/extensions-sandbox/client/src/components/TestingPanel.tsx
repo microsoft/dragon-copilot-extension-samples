@@ -56,7 +56,7 @@ interface ExecuteResult {
   status: number;
   statusText: string;
   headers?: Record<string, string>;
-  extensionResponse?: unknown;
+  processResponse?: { success?: boolean; message?: string; payload?: Record<string, unknown> } | null;
   rawBody?: unknown;
   sentRequest?: unknown;
 }
@@ -285,11 +285,11 @@ export function TestingPanel({ manifestInfo, manifestRevision }: TestingPanelPro
         setResult(data);
 
         // Run validation on the response
-        // outputs is a map keyed by output name (e.g. {"quality-result": {...}}) –
+        // payload is a map keyed by output name (e.g. {"qualityCheckResult": {...}}) –
         // extract the first output's value for schema validation.
-        const outputsMap = data.extensionResponse?.tools?.[0]?.outputs;
-        const responsePayload = outputsMap
-          ? Object.values(outputsMap)[0] ?? {}
+        const payloadMap = data.processResponse?.payload;
+        const responsePayload = payloadMap
+          ? Object.values(payloadMap)[0] ?? {}
           : data.rawBody ?? {};
         try {
           const valRes = await fetch(`/api/validate/${encodeURIComponent(selectedTool)}`, {
@@ -707,8 +707,8 @@ export function TestingPanel({ manifestInfo, manifestRevision }: TestingPanelPro
 
                 <h3 className="outputs-section-title">Response Payload</h3>
                 <pre className="dark-code-block">
-                  {result.extensionResponse
-                    ? JSON.stringify(result.extensionResponse, null, 2)
+                  {result.processResponse
+                    ? JSON.stringify(result.processResponse, null, 2)
                     : result.rawBody
                       ? (typeof result.rawBody === 'string' ? result.rawBody : JSON.stringify(result.rawBody, null, 2))
                       : 'No output data'}
