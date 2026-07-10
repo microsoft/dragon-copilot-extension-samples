@@ -7,25 +7,27 @@ agent: agent
 
 Generate a new Radiologists extension sample, in the language the user provides, that implements the **same wire contract** as the C# Quickstart and can be checked into this repository once reviewed. Treat the rest of this file as your working instructions and reference material.
 
-## Start here — establish the target language
+## Start here — establish the target language and destination
 
-Your first step is to confirm which language to scaffold:
+Your first step is to confirm two things — which language to scaffold, and where to generate the sample:
 
-1. If the user has already named a language (in their message or via the `${input:language}` variable below), use it and continue straight to scaffolding.
-2. Otherwise, reply with a single short question asking the user to choose one of `python`, `go`, `java`, `nodejs`, `typescript`, `rust`, or another language they specify, then wait for their answer.
+1. **Language.** If the user has already named a language (in their message or via the `${input:language}` variable below), use it. Otherwise, ask the user to choose one of `python`, `go`, `java`, `nodejs`, `typescript`, `rust`, or another language they specify.
+2. **Destination folder.** If the user has already given one (in their message or via the `${input:targetFolder}` variable below), use it. Otherwise, ask where to generate the sample and make clear it **defaults to this repository** at `radiologists/src/samples/Workflow/`. If the user accepts the default (or gives no answer), generate in-repo exactly as described under **Folder and naming conventions**. If the user supplies a different folder, generate there and follow the **Generating outside the repository** notes.
 
-Keep that first reply to just the question. Begin reading the source material and scaffolding only once the language is known.
+Ask for whatever is still unknown in a single short reply — combine the language and destination questions if both are missing — then wait for the answer. Begin reading the source material and scaffolding only once both are known.
 
 ## How a partner uses this prompt
 
 1. Open the repo in an editor with GitHub Copilot Chat enabled (for example Visual Studio or VS Code).
 2. In Copilot Chat, type `/` and select `radiologists-scaffold-language-sample`.
 3. Provide the target language when asked (for example `python`, `go`, `java`, `nodejs`, `typescript`, `rust`).
-4. Review, run, and adjust before committing.
+4. Choose where to generate it, or accept the default (this repository, under `radiologists/src/samples/Workflow/`).
+5. Review, run, and adjust before committing.
 
 ## Input
 
 - `${input:language:Target language for the new sample (e.g. python, go, java, nodejs, typescript, rust)}`
+- `${input:targetFolder:Destination folder for the sample — press Enter to default to radiologists/src/samples/Workflow/ in this repo}`
 
 ## Source material to read first
 
@@ -89,9 +91,18 @@ Only `sessionData` is required on the request per the OpenAPI spec. `Recommendat
 
 ## Folder and naming conventions
 
-Folder lives at `radiologists/src/samples/Workflow/<folder-name>/`. The folder name **reads as** "sample extension radiologists `<language>` quickstart" using the **language's idiomatic package-naming convention** (snake_case for Python/Rust, kebab-case for Node/TypeScript/Go/Java, dotted PascalCase for C#).
+By default the sample is generated in this repository at `radiologists/src/samples/Workflow/<folder-name>/`. If the user chose a different destination (see **Start here**), create `<folder-name>/` under that destination instead. The folder name **reads as** "sample extension radiologists `<language>` quickstart" using the **language's idiomatic package-naming convention** (snake_case for Python/Rust, kebab-case for Node/TypeScript/Go/Java, dotted PascalCase for C#).
 
 Use the same lowercase language token (`python`, `nodejs`, `typescript`, `go`, `java`, `rust`) consistently in code (namespaces, packages, module names) and README headings. Do not introduce a separate PascalCase variant.
+
+### Generating outside the repository
+
+The in-repo default relies on files that sit next to the sample — the shared manifest (`radiologists/src/samples/Workflow/extension.yaml`), the canonical request payloads (`radiologists/src/samples/requests/`), and the API spec (`radiologists/radiologists-extensibility-api.yaml`). Always read that source material from **this repo** (that's where the prompt runs), but when the destination is **outside** the repo, keep the generated sample self-contained:
+
+- Instead of referencing the shared `../extension.yaml`, generate a per-sample `extension.yaml` in the sample folder using the manifest structure in item 12, and point the README at it. (This is the one case where a per-sample manifest is expected.)
+- Copy any request payloads the sample's tests or docs rely on into the sample folder rather than linking to `radiologists/src/samples/requests/`.
+- Replace the README's repo-relative links (API spec, requests, C# Quickstart) with short descriptions or absolute URLs, since those targets won't exist at the destination.
+- Everything else — wire contract, endpoints, auth, tests — is unchanged.
 
 ## What the sample must do
 
