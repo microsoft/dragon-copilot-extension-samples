@@ -30,9 +30,13 @@ const SERVER_AUTH_COMMENT = [
 ].join('\n');
 
 const SERVER_AUTH_LINE_REGEX = /^server-authentication:/m;
+const SERVER_AUTH_DOC_COMMENT_LINE_REGEX = new RegExp(
+  `^[ \\t]*# ${ENTRA_ID_DOC_URL.replace(/[.*+?^${}()|[\\]\\\\]/g, '\\\\$&')}[ \\t]*$`,
+  'm'
+);
 
 const annotateServerAuth = (text: string): string => {
-  if (text.includes(ENTRA_ID_DOC_URL)) {
+  if (SERVER_AUTH_DOC_COMMENT_LINE_REGEX.test(text)) {
     return text;
   }
   return text.replace(SERVER_AUTH_LINE_REGEX, `${SERVER_AUTH_COMMENT}\nserver-authentication:`);
