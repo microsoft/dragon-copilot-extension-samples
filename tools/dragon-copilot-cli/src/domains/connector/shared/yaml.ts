@@ -57,9 +57,13 @@ const CLIENT_AUTH_COMMENT_LINES = [
 ];
 
 const CLIENT_AUTH_LINE_REGEX = /^([ \t]*)client-authentication:/m;
+const CLIENT_AUTH_ANNOTATED_REGEX = new RegExp(
+  `^([ \\t]*)#\\s*${CLIENT_AUTH_ENTRA_DOC_URL.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\n\\1client-authentication:`,
+  'm'
+);
 
 const annotateClientAuth = (text: string): string => {
-  if (text.includes(CLIENT_AUTH_ENTRA_DOC_URL)) {
+  if (CLIENT_AUTH_ANNOTATED_REGEX.test(text)) {
     return text;
   }
   return text.replace(CLIENT_AUTH_LINE_REGEX, (_match, indent: string) => {
