@@ -86,6 +86,7 @@ Field casing is **mixed** and must be reproduced exactly:
 - `SessionData` fields are **snake_case**: `correlation_id`, `session_start`, `environment_id`.
 - `PatientInformation` and `Report` fields are **camelCase**: `dateOfBirth`, `biologicalSex`, `reportText`.
 - `payload` on the response is a **map**, not a fixed object. The key (`qualityCheckResult` in the canned mock) is declared by the extension's `extension.yaml` `outputs[].name`.
+- **Omit null / absent properties from the response — never emit an explicit `null`.** No response field is `nullable` in the OpenAPI schema; optional fields are simply absent when unset. The C# samples enforce this with `DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull` and the Python sample with `model_dump(exclude_none=True)`. Mirror it using the target language's idiomatic null-omission (e.g. Go `,omitempty`, Jackson `@JsonInclude(JsonInclude.Include.NON_NULL)`, serde `skip_serializing_if`).
 
 Only `sessionData` is required on the request per the OpenAPI spec. `Recommendation`, `Provenance`, `ReferenceResource`, `BiologicalSex`, `QualityCheckType` mirror the shared `Dragon.Copilot.Radiologists.Models` types exactly.
 
