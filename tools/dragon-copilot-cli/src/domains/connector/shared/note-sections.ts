@@ -14,6 +14,9 @@ export const NOTE_SECTION_ORDER = [
 ] as const;
 
 export type NoteSectionKey = (typeof NOTE_SECTION_ORDER)[number];
+type ManifestOnlyNoteSectionKey = 'plan';
+type NormalizedNoteSections = Record<NoteSectionKey, NoteSectionValue> &
+  Partial<Record<ManifestOnlyNoteSectionKey, NoteSectionValue>>;
 
 export const NOTE_SECTION_LABELS: Record<NoteSectionKey, string> = {
   hpi: 'History of Present Illness',
@@ -65,8 +68,8 @@ const cleanseValue = (value: NoteSectionValue | undefined): NoteSectionValue => 
 
 export const normalizeNoteSections = (
   input?: Record<string, NoteSectionValue>
-): Record<NoteSectionKey, NoteSectionValue> => {
-  const normalized = {} as Record<NoteSectionKey, NoteSectionValue>;
+): NormalizedNoteSections => {
+  const normalized = {} as NormalizedNoteSections;
   NOTE_SECTION_ORDER.forEach(key => {
     const source = input?.[key];
     const cleansed = cleanseValue(source);
@@ -78,6 +81,13 @@ export const normalizeNoteSections = (
       ? cleansed.filter(Boolean).length ? [...cleansed] : DEFAULT_NOTE_SECTION_VALUES[key]
       : cleansed;
   });
+  const planSource = input?.plan;
+  if (planSource !== undefined) {
+    const cleansedPlan = cleanseValue(planSource);
+    normalized.plan = Array.isArray(cleansedPlan)
+      ? cleansedPlan.filter(Boolean).length ? [...cleansedPlan] : 'plan'
+      : cleansedPlan === EMPTY_NOTE_PLACEHOLDER ? 'plan' : cleansedPlan;
+  }
   return normalized;
 };
 
@@ -111,4 +121,3 @@ export const DEFAULT_MANIFEST_NOTE_SECTIONS = {
 export const getDefaultManifestNoteSections = (): Record<string, NoteSectionValue> => ({
   ...DEFAULT_MANIFEST_NOTE_SECTIONS
 });
-
