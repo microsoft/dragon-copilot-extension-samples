@@ -91,7 +91,10 @@ export const getDefaultNoteSections = (): Record<NoteSectionKey, NoteSectionValu
  * Center still requires the `note-sections` block to be present when uploading a
  * connector. This 1:1 mapping satisfies that requirement without prompting the user.
  */
-export const DEFAULT_MANIFEST_NOTE_SECTIONS: Record<string, NoteSectionValue> = {
+const MANIFEST_NOTE_SECTION_KEYS = [...NOTE_SECTION_ORDER, 'plan'] as const;
+type ManifestNoteSectionKey = (typeof MANIFEST_NOTE_SECTION_KEYS)[number];
+
+export const DEFAULT_MANIFEST_NOTE_SECTIONS = {
   hpi: 'hpi',
   'chief-complaint': 'chief-complaint',
   'past-medical-history': 'past-medical-history',
@@ -103,7 +106,7 @@ export const DEFAULT_MANIFEST_NOTE_SECTIONS: Record<string, NoteSectionValue> = 
   'physical-exam': 'physical-exam',
   procedures: 'procedures',
   results: 'results'
-};
+} satisfies Record<ManifestNoteSectionKey, NoteSectionValue>;
 
 export const getDefaultManifestNoteSections = (): Record<string, NoteSectionValue> => ({
   ...DEFAULT_MANIFEST_NOTE_SECTIONS
