@@ -37,6 +37,20 @@ dotnet run --project SampleExtension.Radiologists.Web.Ai
 dotnet run --project SampleExtension.Radiologists.Web.Local
 ```
 
+## Extension manifest
+
+All Radiologists Workflow samples implement the **same** extension contract, so they
+share one manifest: [`extension.yaml`](./extension.yaml). It declares the
+`qualityCheck` tool, its inputs and outputs, and the endpoint
+(`http://localhost:5080/v1/process`), and it's what you register with Dragon
+Copilot so it can call your extension. Update `endpoint` and `auth.tenantId` for
+your deployment, along with `name`, `description`, `version`, and the optional
+`relevanceFilteringCriteria`, or regenerate it with the CLI:
+
+```bash
+dragon-copilot radiologists generate --template quality-check
+```
+
 ## Samples in other languages
 
 These samples are written in C#, but the same wire contract works in any

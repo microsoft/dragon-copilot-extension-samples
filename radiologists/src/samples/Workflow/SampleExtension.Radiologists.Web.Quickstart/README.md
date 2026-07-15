@@ -13,6 +13,20 @@ your own implementation and deploy a working extension that follows the expected
 - Swagger UI at the app root in Development
 - Health probes at `/health/liveness` and `/health/readiness` (JSON responses)
 
+## Extension manifest
+
+All Radiologists Workflow samples implement the **same** extension contract, so they
+share one manifest: [`extension.yaml`](../extension.yaml). It declares the
+`qualityCheck` tool, its inputs and outputs, and the endpoint
+(`http://localhost:5080/v1/process`), and it's what you register with Dragon
+Copilot so it can call your extension. Update `endpoint` and `auth.tenantId` for
+your deployment, along with `name`, `description`, `version`, and the optional
+`relevanceFilteringCriteria`, or regenerate it with the CLI:
+
+```bash
+dragon-copilot radiologists generate --template quality-check
+```
+
 ## API endpoints
 
 | Method | Route               | Auth   | Description                                         |

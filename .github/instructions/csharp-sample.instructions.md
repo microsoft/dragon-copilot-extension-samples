@@ -11,7 +11,7 @@ Shared C# conventions used across the C# samples in this repository. This reposi
 - ASP.NET Core (Web SDK, `Microsoft.NET.Sdk.Web`).
 - Target framework varies by product and sample: Physicians use `net9.0`; Radiologists Quickstart uses `net10.0`; Radiologists AI uses `net10.0-windows10.0.26100` (Windows-only due to Foundry Local). Check the product overlay or `.csproj` for the exact TFM.
 - `Microsoft.Identity.Web` and `Microsoft.AspNetCore.Authentication.JwtBearer` for Entra ID JWT bearer authentication.
-- `System.Text.Json` for serialization, with `JsonStringEnumConverter` registered for enum-as-string serialization and `PropertyNameCaseInsensitive = true`.
+- `System.Text.Json` for serialization, with `JsonStringEnumConverter` registered for enum-as-string serialization, `PropertyNameCaseInsensitive = true`, and `DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull` so null-valued properties are omitted from responses (the OpenAPI/manifest contract marks optional fields as absent, not `null`).
 - `Swashbuckle.AspNetCore` for OpenAPI / Swagger documentation in Development.
 
 ## Endpoint and controller pattern
