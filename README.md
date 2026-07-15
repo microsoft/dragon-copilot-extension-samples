@@ -49,7 +49,7 @@ Pick the product you are building an extension for and follow its dedicated quic
 
 ### Dragon Copilot CLI
 
-CLI to easily generate manifests and package integrations for publishing or upload. The CLI supports two types of integrations:
+CLI to easily generate manifests and package integrations for publishing or upload. The CLI supports extensions for multiple Dragon Copilot products (**Physician** and **Radiologists** Workflows) and **Clinical Application Connectors**:
 
 #### Installation
 
@@ -64,6 +64,17 @@ dragon-copilot physician init       # Initialize a new extension project
 dragon-copilot physician generate   # Generate or update extension manifest
 dragon-copilot physician validate   # Validate extension manifest
 dragon-copilot physician package    # Package for distribution
+```
+
+#### Radiologists Extension Commands
+
+For creating **Radiologists Workflows** that analyze radiology reports and return quality-check recommendations:
+
+```bash
+dragon-copilot radiologists init                              # Initialize a new extension project (interactive)
+dragon-copilot radiologists generate --template quality-check # Generate a manifest from a template (or use --interactive)
+dragon-copilot radiologists validate ./extension.yaml         # Validate extension manifest
+dragon-copilot radiologists package                           # Package for distribution
 ```
 
 #### Connector Commands

@@ -43,6 +43,7 @@ Pin these exact versions in `requirements.txt`. Use `requirements.txt`, not `pyp
 
 - Use FastAPI's decorator-based routing: `@app.post("/v1/process")`.
 - Define request and response models with Pydantic; do not return raw dicts. The exact DTO types vary by product — Physicians use `DragonStandardPayload`, Radiologists use `ProcessRequest`/`ProcessResponse`. Mirror the corresponding C# models project (`physician/src/models/` or `radiologists/src/models/`).
+- Serialize responses with `model_dump(by_alias=True, exclude_none=True)` so `None`-valued properties are omitted from the wire — matching the C# `DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull` convention (the OpenAPI contract marks optional fields as absent, not `null`).
 - Health endpoints at `/health/liveness` and `/health/readiness` return JSON status payloads, matching the C# samples and the scaffold prompt.
 - Enable FastAPI's automatic Swagger / OpenAPI generation; expose it at `/docs`.
 
