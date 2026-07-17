@@ -222,16 +222,16 @@ curl -X POST http://localhost:9100/v1/process \
 
 ## Authentication
 
-The sandbox can authenticate calls to your extension endpoint using **Microsoft Entra ID service-to-service (client credentials)** authentication, mirroring the Radiance-to-Extension authentication scheme. When enabled, the sandbox backend acquires an OAuth 2.0 access token and attaches it as a `Bearer` token on every tool execution.
+The sandbox can authenticate calls to your extension endpoint using **Microsoft Entra ID service-to-service (client credentials)** authentication, mirroring the Dragon Copilot Extension Runtime-to-Extension authentication scheme. When enabled, the sandbox backend acquires an OAuth 2.0 access token and attaches it as a `Bearer` token on every tool execution.
 
 ### One-time setup (in the partner tenant)
 
-1. **Service principal for the Radiance app** — create a service principal for the Radiance application (client id `7c2215ec-e1fa-4aa6-9204-8ee91e63d29f`) in your tenant:
+1. **Service principal for the Dragon Copilot Extension Runtime** — create a service principal for the Dragon Copilot Extension Runtime (client id `d9350f5d-71c2-46b9-b41d-3c5d51ffe6e8`) in your tenant:
    ```powershell
-   New-MgServicePrincipal -AppId 7c2215ec-e1fa-4aa6-9204-8ee91e63d29f
+   New-MgServicePrincipal -AppId d9350f5d-71c2-46b9-b41d-3c5d51ffe6e8
    ```
 2. **Extension app registration** — create a single-tenant app registration for your extension with an Application ID URI of the form `api://{partner_tenant_id}/{FQDN_of_extension_endpoint}` and set `requestedAccessTokenVersion: 2` in its manifest.
-3. **Client secret** — create a client secret for the calling app (the Radiance app, or your own app registered as the caller).
+3. **Client secret** — create a client secret for the calling app (the Dragon Copilot Extension Runtime, or your own app registered as the caller).
 
 ### Configuring in the sandbox
 
@@ -241,7 +241,7 @@ In the **Setup** tab, open **Authentication → Configure**:
 |-------|-------------|
 | **Authenticate calls** | Toggle service-to-service auth on/off. Off = unauthenticated calls (for local testing). |
 | **Tenant ID** | The Entra tenant that issues the token (your partner tenant). |
-| **Client ID** | The calling app's client id (defaults to the Radiance client id). |
+| **Client ID** | The calling app's client id (defaults to the Dragon Copilot Extension Runtime client id). |
 | **Client Secret** | Stored **in memory on the server only**; never returned to the UI or logged. |
 | **Application ID URI / Scope** | Your extension's Application ID URI. A bare URI is fine — `/.default` is appended automatically. |
 
@@ -255,13 +255,13 @@ Click **Save**, then **Test connection** to acquire a token without calling the 
    Content-Type: application/x-www-form-urlencoded
 
    grant_type=client_credentials
-   &client_id=7c2215ec-e1fa-4aa6-9204-8ee91e63d29f
+   &client_id=d9350f5d-71c2-46b9-b41d-3c5d51ffe6e8
    &client_secret=<secret>
    &scope=api://{tenantId}/ext.contoso.com/.default
    ```
 2. Tokens are **cached** until shortly before expiry (60s skew) to avoid unnecessary requests.
 3. The token is sent to your endpoint as `Authorization: Bearer <token>`.
-4. Your extension should validate these JWT claims: `iss`, `idtyp` (must be `app`), and `azp` (must equal the Radiance client id `7c2215ec-e1fa-4aa6-9204-8ee91e63d29f`). The sandbox surfaces these as pass/fail guidance in the test results.
+4. Your extension should validate these JWT claims: `iss`, `idtyp` (must be `app`), and `azp` (must equal the Dragon Copilot Extension Runtime client id `d9350f5d-71c2-46b9-b41d-3c5d51ffe6e8`). The sandbox surfaces these as pass/fail guidance in the test results.
 
 ### Security notes
 
@@ -275,14 +275,14 @@ To exercise the full **authentication-enabled** flow without a real Entra tenant
 
 1. Start a fake token issuer that returns a JWT-shaped `access_token`. The token's `iss` and `tid` must use the **same tenant GUID** you enter in the UI, otherwise the `iss` claim check cannot be verified locally:
    ```powershell
-   node -e "const c={iss:'https://login.microsoftonline.com/11111111-1111-1111-1111-111111111111/v2.0',idtyp:'app',azp:'7c2215ec-e1fa-4aa6-9204-8ee91e63d29f',tid:'11111111-1111-1111-1111-111111111111'};const t=['e30',Buffer.from(JSON.stringify(c)).toString('base64url'),'sig'].join('.');require('http').createServer((q,r)=>{r.writeHead(200,{'Content-Type':'application/json'});r.end(JSON.stringify({access_token:t,expires_in:3600,token_type:'Bearer'}))}).listen(9200,()=>console.log('fake issuer on :9200'))"
+   node -e "const c={iss:'https://login.microsoftonline.com/11111111-1111-1111-1111-111111111111/v2.0',idtyp:'app',azp:'d9350f5d-71c2-46b9-b41d-3c5d51ffe6e8',tid:'11111111-1111-1111-1111-111111111111'};const t=['e30',Buffer.from(JSON.stringify(c)).toString('base64url'),'sig'].join('.');require('http').createServer((q,r)=>{r.writeHead(200,{'Content-Type':'application/json'});r.end(JSON.stringify({access_token:t,expires_in:3600,token_type:'Bearer'}))}).listen(9200,()=>console.log('fake issuer on :9200'))"
    ```
 2. Start the sandbox (server **and** client) pointed at the fake issuer:
    ```powershell
    $env:ENTRA_TOKEN_ENDPOINT = "http://localhost:9200/token"
    npm run dev
    ```
-3. In the UI, enable authentication and configure it with **Tenant ID** `11111111-1111-1111-1111-111111111111` (the GUID baked into the fake token above), the Radiance client id as **Client ID**, any non-empty **Client Secret**, and a scope. Click **Test connection** — you'll get a token and all three claim checks (`iss` / `idtyp` / `azp`) green, entirely offline. Run a test against the [mock extension server](#mock-extension-server) to verify the end-to-end enabled-auth path.
+3. In the UI, enable authentication and configure it with **Tenant ID** `11111111-1111-1111-1111-111111111111` (the GUID baked into the fake token above), the Dragon Copilot Extension Runtime client id as **Client ID**, any non-empty **Client Secret**, and a scope. Click **Test connection** — you'll get a token and all three claim checks (`iss` / `idtyp` / `azp`) green, entirely offline. Run a test against the [mock extension server](#mock-extension-server) to verify the end-to-end enabled-auth path.
 
 > `ENTRA_TOKEN_ENDPOINT` is for local testing only. Leave it unset in any real environment so tokens are acquired from Microsoft Entra ID.
 
@@ -330,7 +330,7 @@ The listener prints `AUTH: Bearer test-token-123`, proving the token is attached
 ```powershell
 # 1. Fake token issuer on :9200 returning a JWT-shaped access_token with valid claims
 #    (iss + tid use the same tenant GUID you'll enter in the UI):
-node -e "const c={iss:'https://login.microsoftonline.com/11111111-1111-1111-1111-111111111111/v2.0',idtyp:'app',azp:'7c2215ec-e1fa-4aa6-9204-8ee91e63d29f',tid:'11111111-1111-1111-1111-111111111111'};const t=['e30',Buffer.from(JSON.stringify(c)).toString('base64url'),'sig'].join('.');require('http').createServer((q,r)=>{r.writeHead(200,{'Content-Type':'application/json'});r.end(JSON.stringify({access_token:t,expires_in:3600,token_type:'Bearer'}))}).listen(9200,()=>console.log('fake issuer on :9200'))"
+node -e "const c={iss:'https://login.microsoftonline.com/11111111-1111-1111-1111-111111111111/v2.0',idtyp:'app',azp:'d9350f5d-71c2-46b9-b41d-3c5d51ffe6e8',tid:'11111111-1111-1111-1111-111111111111'};const t=['e30',Buffer.from(JSON.stringify(c)).toString('base64url'),'sig'].join('.');require('http').createServer((q,r)=>{r.writeHead(200,{'Content-Type':'application/json'});r.end(JSON.stringify({access_token:t,expires_in:3600,token_type:'Bearer'}))}).listen(9200,()=>console.log('fake issuer on :9200'))"
 
 # 2. Point the sandbox (server + client) at the fake issuer and start it:
 $env:ENTRA_TOKEN_ENDPOINT = "http://localhost:9200/token"
