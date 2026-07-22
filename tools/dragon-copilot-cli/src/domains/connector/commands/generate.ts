@@ -1,7 +1,6 @@
 import fs from 'fs-extra';
 const { readFileSync, writeFileSync } = fs;
-import yaml from 'js-yaml';
-const { load } = yaml;
+import { load } from 'js-yaml';
 import chalk from 'chalk';
 import type { GenerateOptions, IntegrationDetails, ConnectorIntegrationManifest } from '../types.js';
 import { getTemplate } from '../templates/index.js';

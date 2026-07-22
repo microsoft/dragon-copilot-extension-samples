@@ -1,7 +1,5 @@
-import yaml from 'js-yaml';
+import { dump } from 'js-yaml';
 import { EMPTY_NOTE_PLACEHOLDER } from './note-sections.js';
-
-const { dump } = yaml;
 
 const YES_NO_COLON_REGEX = /(:\s*)(['\"])(yes|no)\2/g;
 const YES_NO_LIST_REGEX = /(-\s*)(['\"])(yes|no)\2/g;
