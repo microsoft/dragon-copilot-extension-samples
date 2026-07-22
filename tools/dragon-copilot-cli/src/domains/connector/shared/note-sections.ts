@@ -14,6 +14,9 @@ export const NOTE_SECTION_ORDER = [
 ] as const;
 
 export type NoteSectionKey = (typeof NOTE_SECTION_ORDER)[number];
+type ManifestOnlyNoteSectionKey = 'plan';
+type NormalizedNoteSections = Record<NoteSectionKey, NoteSectionValue> &
+  Partial<Record<ManifestOnlyNoteSectionKey, NoteSectionValue>>;
 
 export const NOTE_SECTION_LABELS: Record<NoteSectionKey, string> = {
   hpi: 'History of Present Illness',
@@ -65,8 +68,8 @@ const cleanseValue = (value: NoteSectionValue | undefined): NoteSectionValue => 
 
 export const normalizeNoteSections = (
   input?: Record<string, NoteSectionValue>
-): Record<NoteSectionKey, NoteSectionValue> => {
-  const normalized = {} as Record<NoteSectionKey, NoteSectionValue>;
+): NormalizedNoteSections => {
+  const normalized = {} as NormalizedNoteSections;
   NOTE_SECTION_ORDER.forEach(key => {
     const source = input?.[key];
     const cleansed = cleanseValue(source);
@@ -78,9 +81,43 @@ export const normalizeNoteSections = (
       ? cleansed.filter(Boolean).length ? [...cleansed] : DEFAULT_NOTE_SECTION_VALUES[key]
       : cleansed;
   });
+  const planSource = input?.plan;
+  if (planSource !== undefined) {
+    const cleansedPlan = cleanseValue(planSource);
+    normalized.plan = Array.isArray(cleansedPlan)
+      ? cleansedPlan.filter(Boolean).length ? [...cleansedPlan] : 'plan'
+      : cleansedPlan === EMPTY_NOTE_PLACEHOLDER ? 'plan' : cleansedPlan;
+  }
   return normalized;
 };
 
 export const getDefaultNoteSections = (): Record<NoteSectionKey, NoteSectionValue> =>
   normalizeNoteSections(DEFAULT_NOTE_SECTION_VALUES);
 
+/**
+ * Static default note-sections mapping written to generated connector manifests.
+ *
+ * Note sections are no longer used by Dragon backend services, but the Dragon Admin
+ * Center still requires the `note-sections` block to be present when uploading a
+ * connector. This 1:1 mapping satisfies that requirement without prompting the user.
+ */
+const MANIFEST_NOTE_SECTION_KEYS = [...NOTE_SECTION_ORDER, 'plan'] as const;
+type ManifestNoteSectionKey = (typeof MANIFEST_NOTE_SECTION_KEYS)[number];
+
+export const DEFAULT_MANIFEST_NOTE_SECTIONS = {
+  hpi: 'hpi',
+  'chief-complaint': 'chief-complaint',
+  'past-medical-history': 'past-medical-history',
+  assessment: 'assessment',
+  plan: 'plan',
+  medications: 'medications',
+  allergies: 'allergies',
+  'review-of-systems': 'review-of-systems',
+  'physical-exam': 'physical-exam',
+  procedures: 'procedures',
+  results: 'results'
+} satisfies Record<ManifestNoteSectionKey, NoteSectionValue>;
+
+export const getDefaultManifestNoteSections = (): Record<string, NoteSectionValue> => ({
+  ...DEFAULT_MANIFEST_NOTE_SECTIONS
+});
