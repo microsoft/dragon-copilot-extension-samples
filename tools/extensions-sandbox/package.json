@@ -1,0 +1,23 @@
+{
+  "name": "extensions-sandbox",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Microsoft Dragon Copilot (radiologists) Extensions Sandbox - test and validate extensions locally",
+  "workspaces": [
+    "shared",
+    "client",
+    "server"
+  ],
+  "scripts": {
+    "build": "npm run build --workspaces --if-present",
+    "start": "npm run start --workspace=server",
+    "dev": "concurrently \"npm run dev --workspace=server\" \"npm run dev --workspace=client\"",
+    "clean": "npm run clean --workspaces --if-present"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  },
+  "overrides": {
+    "shell-quote": ">=1.8.4"
+  }
+}

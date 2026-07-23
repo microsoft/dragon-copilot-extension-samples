@@ -1,0 +1,19 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "PatientInformation",
+  "description": "Patient demographic information.",
+  "x-ms-schema-version": "1.0",
+  "type": "object",
+  "properties": {
+    "dateOfBirth": {
+      "type": "string",
+      "description": "The date of birth of the patient in YYYY-MM-DD format.",
+      "format": "date"
+    },
+    "biologicalSex": {
+      "type": "string",
+      "description": "The sex of the patient.",
+      "enum": ["Male", "Female", "Unknown", "Other"]
+    }
+  }
+}
