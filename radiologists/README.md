@@ -9,7 +9,7 @@ Welcome! This section contains sample code and documentation for building **Drag
 - [Dragon Copilot Extension Samples](#dragon-copilot-extension-samples)
     - [📝 Overview](#-overview)
     - [🚀 Getting Started](#-getting-started)
-    - [️ Tools](#️-tools)
+    - [🛠️ Tools](#️-tools)
 
 ## 📝 Overview
 
@@ -23,7 +23,7 @@ Key resources:
 
 | Type                      | Description                                                                            | Use Case                                                    |
 | ------------------------- | -------------------------------------------------------------------------------------- | ----------------------------------------------------------- |
-| **Radiologists Workflow** | Custom AI-powered extensions with automation scripts, event triggers, and dependencies | Extend Dragon Copilot with custom radiology data processing |
+| **Radiologists Workflow** | Custom AI-powered extensions that analyze radiology reports and return quality-check recommendations | Extend Dragon Copilot with radiology report quality checking |
 
 ### Versioning
 
@@ -36,6 +36,8 @@ Three independent version axes appear in these artifacts. They are **declaration
 ## 🚀 Getting Started
 
 For repo setup, cloning instructions, and contributing guidelines, see the [root README](../README.md).
+
+For a beginner-focused, step-by-step guide, see [QUICKSTART.md](./QUICKSTART.md).
 
 ## 🛠️ Tools
 
@@ -67,3 +69,4 @@ dragon-copilot radiologists package
 - `generate` requires either `--template <name>` (currently only `quality-check`) or `--interactive`. Use `--interactive` to add more tools to an existing manifest.
 - A manifest must declare at least one tool to pass `validate`.
 - Run `dragon-copilot radiologists --help` (or `dragon-copilot radiologists <command> --help`) for all options.
+- The scaffold commands prompt for a **tenant ID** (your Microsoft Entra/Azure AD directory GUID). For local testing, you can use `00000000-0000-0000-0000-000000000000` (the sample value) and set your real value later (see [Configure production security and tenant setup](./QUICKSTART.md#configure-production-security-and-tenant-setup)).

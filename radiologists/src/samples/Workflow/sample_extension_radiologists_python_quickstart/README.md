@@ -199,7 +199,7 @@ To replace the stub with real logic, edit
 
 ## Request / response contract
 
-See [`radiologists-extensibility-api.yaml`](../../../radiologists-extensibility-api.yaml)
+See [`radiologists-extensibility-api.yaml`](../../../../radiologists-extensibility-api.yaml)
 for the full OpenAPI spec.
 
 Only `sessionData` is required. `extensibilityApiVersion` shows which Dragon

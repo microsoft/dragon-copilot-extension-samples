@@ -5,6 +5,8 @@
 This folder contains ASP.NET Core sample projects that demonstrate the
 partner extension pattern for Dragon Copilot.
 
+> **Note:** Run all commands in this README from the `radiologists/src/samples/Workflow` directory (the folder containing this file).
+
 | Project                                                                                                      | Purpose                                                                                                              | Default port (http/https) | Target                                                                |
 | ------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------- | ------------------------- | --------------------------------------------------------------------- |
 | [`SampleExtension.Radiologists.Web.Quickstart`](./SampleExtension.Radiologists.Web.Quickstart/README.md)     | Returns a canned response loaded from `MockData/qualitycheck-response.json`. No model inference, no AI dependencies. | 5080 / 7080               | `net10.0` (cross-platform)                                            |
@@ -36,6 +38,16 @@ dotnet run --project SampleExtension.Radiologists.Web.Ai
 # AI-backed, on-device (Foundry Local — Windows-only)
 dotnet run --project SampleExtension.Radiologists.Web.Local
 ```
+
+## Running the tests
+
+Run:
+
+```bash
+dotnet test
+```
+
+This runs the test projects for the Quickstart, AI, and Foundry Local samples.
 
 ## Extension manifest
 

@@ -17,6 +17,7 @@ This repo includes:
 
 - [Shared Platform Documentation](doc/) for authentication guides and resources common across all products
 - Sample [`Physician Workflow`](physician/) with best practices
+- Sample [`Radiologists Workflow`](radiologists/) with best practices
 - CLI [`tools`](tools/dragon-copilot-cli/README.md) to initialize & package both **Extensions** and **Clinical Application Connectors**
 
 ### Extensions vs. Clinical Application Connectors
@@ -25,6 +26,14 @@ This repo includes:
 | ---------------------------------- | -------------------------------------------------------------------------------------- | ---------------------------------------------------------- |
 | **Physician Workflow**             | Custom AI-powered extensions with automation scripts, event triggers, and dependencies | Extend Dragon Copilot with custom clinical data processing |
 | **Clinical Application Connector** | EHR integrations and API connectors that interface with clinical applications          | Connect Dragon Copilot to external clinical systems        |
+
+### Radiologists Extensions
+
+| Type                               | Description                                                                            | Use Case                                                   |
+| ---------------------------------- | -------------------------------------------------------------------------------------- | ---------------------------------------------------------- |
+| **Radiologists Workflow**          | Custom AI-powered extensions that analyze radiology reports and return quality-check recommendations | Extend Dragon Copilot with radiology report quality checking |
+
+See [radiologists/README.md](radiologists/README.md) for the available sample variants.
 
 ## 🚀 Getting Started
 
@@ -42,6 +51,7 @@ Pick the product you are building an extension for and follow its dedicated quic
 | Product       | README                                     | Quick Start Guide                                  |
 | ------------- | ------------------------------------------ | -------------------------------------------------- |
 | **Physician** | [physician/README.md](physician/README.md) | [physician/QUICKSTART.md](physician/QUICKSTART.md) |
+| **Radiologists** | [radiologists/README.md](radiologists/README.md) | [radiologists/QUICKSTART.md](radiologists/QUICKSTART.md) |
 
 > **Tip:** Each product's `QUICKSTART.md` is a self-contained, end-to-end walkthrough from setting up your dev environment to testing your extension inside Dragon Copilot.
 
