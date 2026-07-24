@@ -1,4 +1,4 @@
-﻿# Dragon Copilot (radiologists) Extension Samples
+﻿in l# Dragon Copilot (radiologists) Extension Samples
 
 Welcome! This section contains sample code and documentation for building **Dragon Copilot (radiologists)** extensions. You can read, play with, or adapt from these samples to create your own extensions.
 
@@ -23,7 +23,7 @@ Key resources:
 
 | Type                      | Description                                                                            | Use Case                                                    |
 | ------------------------- | -------------------------------------------------------------------------------------- | ----------------------------------------------------------- |
-| **Radiologists Workflow** | Custom AI-powered extensions that analyze radiology reports and return quality-check recommendations | Extend Dragon Copilot with radiology report quality checking |
+| **Radiologists Workflow** | Custom AI-powered extensions with automation scripts, event triggers, and dependencies | Extend Dragon Copilot with custom radiology data processing |
 
 ### Versioning
 
