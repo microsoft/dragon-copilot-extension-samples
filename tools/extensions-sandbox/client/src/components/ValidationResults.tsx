@@ -43,12 +43,16 @@ export function ValidationResults() {
 
     const startTime = performance.now();
 
-    // TODO: Replace empty payload with actual tool execution response
-    // once the execution engine is integrated.
+    // Placeholder payload until the execution engine is integrated. An empty
+    // `recommendations` array is schema-valid (QualityCheckResult), so the
+    // results page demonstrates a passing path instead of always showing a
+    // hard failure.
+    // TODO: Replace with the actual tool execution response once the execution
+    // engine is wired in.
     fetch(`/api/validate/${encodeURIComponent(toolName)}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ response: {} }),
+      body: JSON.stringify({ response: { recommendations: [] } }),
       signal: controller.signal,
     })
       .then((res) => {

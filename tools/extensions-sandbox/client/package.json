@@ -20,13 +20,13 @@
     "extensions-sandbox-shared": "*",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
-    "react-router-dom": "^7.18.0"
+    "react-router-dom": "^7.11.0"
   },
   "devDependencies": {
     "@types/react": "^19.1.0",
     "@types/react-dom": "^19.1.0",
     "@vitejs/plugin-react": "^6.0.2",
-    "rimraf": "^6.1.3",
+    "rimraf": "^6.1.2",
     "typescript": "^5.8.3",
     "vite": "^8.0.16"
   }

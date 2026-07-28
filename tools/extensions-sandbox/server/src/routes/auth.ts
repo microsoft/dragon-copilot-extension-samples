@@ -72,7 +72,7 @@ authRouter.post('/test', async (req, res) => {
     res.json({
       success: true,
       expiresOnMs: result.expiresOnMs,
-      claimChecks: buildClaimChecks(result.claims, config.tenantId),
+      claimChecks: buildClaimChecks(result.claims, config.tenantId, config.clientId),
     });
   } catch (err: unknown) {
     if (err instanceof AuthError) {

@@ -410,7 +410,7 @@ manifestRouter.post('/execute', async (req, res) => {
     try {
       const tokenResult = await acquireToken(authConfig);
       resolvedToken = tokenResult.accessToken;
-      claimChecks = buildClaimChecks(tokenResult.claims, authConfig.tenantId);
+      claimChecks = buildClaimChecks(tokenResult.claims, authConfig.tenantId, authConfig.clientId);
     } catch (err: unknown) {
       if (err instanceof AuthError) {
         res.status(401).json({

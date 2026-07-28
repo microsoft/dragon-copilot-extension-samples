@@ -7,7 +7,7 @@ import {
   buildClaimChecks,
   resolveTokenEndpoint,
   AuthError,
-  RADIANCE_CLIENT_ID,
+  EXTENSION_RUNTIME_CLIENT_ID,
   type AuthConfig,
 } from '../services/auth.js';
 
@@ -21,7 +21,7 @@ function makeJwt(claims: Record<string, unknown>): string {
 const validConfig: AuthConfig = {
   enabled: true,
   tenantId: '046cf90e-9c12-4b4d-a3ba-21bb36243446',
-  clientId: RADIANCE_CLIENT_ID,
+  clientId: EXTENSION_RUNTIME_CLIENT_ID,
   clientSecret: 'super-secret',
   scope: 'api://046cf90e-9c12-4b4d-a3ba-21bb36243446/ext.contoso.com',
 };
@@ -82,11 +82,11 @@ describe('resolveTokenEndpoint', () => {
 });
 
 describe('decodeJwtClaims', () => {  it('decodes iss/idtyp/azp from a JWT payload', () => {
-    const token = makeJwt({ iss: 'https://issuer', idtyp: 'app', azp: RADIANCE_CLIENT_ID });
+    const token = makeJwt({ iss: 'https://issuer', idtyp: 'app', azp: EXTENSION_RUNTIME_CLIENT_ID });
     const claims = decodeJwtClaims(token);
     expect(claims.iss).toBe('https://issuer');
     expect(claims.idtyp).toBe('app');
-    expect(claims.azp).toBe(RADIANCE_CLIENT_ID);
+    expect(claims.azp).toBe(EXTENSION_RUNTIME_CLIENT_ID);
   });
 
   it('returns empty claims for a malformed token', () => {
@@ -99,7 +99,7 @@ describe('buildClaimChecks', () => {
     const claims = {
       iss: `https://login.microsoftonline.com/${validConfig.tenantId}/v2.0`,
       idtyp: 'app',
-      azp: RADIANCE_CLIENT_ID,
+      azp: EXTENSION_RUNTIME_CLIENT_ID,
     };
     const checks = buildClaimChecks(claims, validConfig.tenantId);
     expect(checks.every((c) => c.passed)).toBe(true);
@@ -145,13 +145,13 @@ describe('acquireToken', () => {
   });
 
   it('acquires a token via the client credentials grant', async () => {
-    const { fetchMock, token } = mockTokenResponse({ idtyp: 'app', azp: RADIANCE_CLIENT_ID });
+    const { fetchMock, token } = mockTokenResponse({ idtyp: 'app', azp: EXTENSION_RUNTIME_CLIENT_ID });
 
     const result = await acquireToken(validConfig);
 
     expect(result.accessToken).toBe(token);
     expect(result.expiresOnMs).toBeGreaterThan(Date.now());
-    expect(result.claims.azp).toBe(RADIANCE_CLIENT_ID);
+    expect(result.claims.azp).toBe(EXTENSION_RUNTIME_CLIENT_ID);
 
     // Verify the request shape: token endpoint + client_credentials grant + .default scope.
     const [url, init] = (fetchMock as unknown as { mock: { calls: unknown[][] } }).mock.calls[0];
@@ -163,7 +163,7 @@ describe('acquireToken', () => {
   });
 
   it('caches the token and does not refetch within its lifetime', async () => {
-    const { fetchMock } = mockTokenResponse({ azp: RADIANCE_CLIENT_ID });
+    const { fetchMock } = mockTokenResponse({ azp: EXTENSION_RUNTIME_CLIENT_ID });
 
     const first = await acquireToken(validConfig);
     const second = await acquireToken(validConfig);
@@ -174,7 +174,7 @@ describe('acquireToken', () => {
 
   it('refetches when the cached token is near expiry', async () => {
     // expires_in of 30s is below the 60s skew, so the cache entry is never reused.
-    const { fetchMock } = mockTokenResponse({ azp: RADIANCE_CLIENT_ID }, 30);
+    const { fetchMock } = mockTokenResponse({ azp: EXTENSION_RUNTIME_CLIENT_ID }, 30);
 
     await acquireToken(validConfig);
     await acquireToken(validConfig);
@@ -183,7 +183,7 @@ describe('acquireToken', () => {
   });
 
   it('forceRefresh bypasses the cache', async () => {
-    const { fetchMock } = mockTokenResponse({ azp: RADIANCE_CLIENT_ID });
+    const { fetchMock } = mockTokenResponse({ azp: EXTENSION_RUNTIME_CLIENT_ID });
 
     await acquireToken(validConfig);
     await acquireToken(validConfig, { forceRefresh: true });
@@ -192,7 +192,7 @@ describe('acquireToken', () => {
   });
 
   it('noCache neither reads nor writes the shared token cache', async () => {
-    const { fetchMock } = mockTokenResponse({ azp: RADIANCE_CLIENT_ID });
+    const { fetchMock } = mockTokenResponse({ azp: EXTENSION_RUNTIME_CLIENT_ID });
 
     // A noCache acquisition must not seed the cache...
     await acquireToken(validConfig, { noCache: true });
@@ -223,7 +223,7 @@ describe('acquireToken', () => {
   it('honors the ENTRA_TOKEN_ENDPOINT override for the token request', async () => {
     process.env.ENTRA_TOKEN_ENDPOINT = 'http://localhost:9200/fake/token';
     try {
-      const { fetchMock } = mockTokenResponse({ azp: RADIANCE_CLIENT_ID });
+      const { fetchMock } = mockTokenResponse({ azp: EXTENSION_RUNTIME_CLIENT_ID });
       await acquireToken(validConfig);
       const [url] = (fetchMock as unknown as { mock: { calls: unknown[][] } }).mock.calls[0];
       expect(String(url)).toBe('http://localhost:9200/fake/token');

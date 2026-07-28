@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { sessionStore } from '../store/session.js';
-import { RADIANCE_CLIENT_ID } from '../services/auth.js';
+import { EXTENSION_RUNTIME_CLIENT_ID } from '../services/auth.js';
 
 describe('sessionStore auth config', () => {
   beforeEach(() => {
@@ -8,7 +8,7 @@ describe('sessionStore auth config', () => {
     sessionStore.setAuthConfig({
       enabled: false,
       tenantId: '',
-      clientId: RADIANCE_CLIENT_ID,
+      clientId: EXTENSION_RUNTIME_CLIENT_ID,
       clientSecret: '',
       scope: '',
     });
@@ -16,7 +16,7 @@ describe('sessionStore auth config', () => {
 
   it('defaults clientId to the Radiance client id', () => {
     const safe = sessionStore.getSafeAuthConfig();
-    expect(safe.clientId).toBe(RADIANCE_CLIENT_ID);
+    expect(safe.clientId).toBe(EXTENSION_RUNTIME_CLIENT_ID);
     expect(safe.hasSecret).toBe(false);
   });
 
@@ -44,6 +44,6 @@ describe('sessionStore auth config', () => {
 
   it('falls back to the Radiance client id when cleared to blank', () => {
     sessionStore.setAuthConfig({ clientId: '' });
-    expect(sessionStore.getAuthConfig().clientId).toBe(RADIANCE_CLIENT_ID);
+    expect(sessionStore.getAuthConfig().clientId).toBe(EXTENSION_RUNTIME_CLIENT_ID);
   });
 });

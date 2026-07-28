@@ -102,9 +102,10 @@ export const DynamicForm = forwardRef<DynamicFormHandle, DynamicFormProps>(funct
         // (nested quantifiers like (a+)+, (a*)*b, etc.)
         const dangerousPattern = /(\(.+[+*]\).+[+*])/;
         if (dangerousPattern.test(constraints.pattern)) {
-          return `Pattern validation skipped: potentially unsafe regex`;
-        }
-        if (value.length <= 10_000 && !regex.test(value)) {
+          // Skip pattern validation for potentially unsafe regex rather than
+          // blocking the field. Running regex.test on such patterns risks ReDoS.
+          console.warn(`Skipping pattern validation for potentially unsafe regex: ${constraints.pattern}`);
+        } else if (value.length <= 10_000 && !regex.test(value)) {
           return `Must match pattern: ${constraints.pattern}`;
         }
       } catch {
