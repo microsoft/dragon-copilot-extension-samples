@@ -13,8 +13,12 @@ import { createLogger } from '../utils/logger.js';
 
 const log = createLogger('auth');
 
-/** The Radiance (Dragon Copilot radiologists) Entra application client id. */
-export const RADIANCE_CLIENT_ID = '7c2215ec-e1fa-4aa6-9204-8ee91e63d29f';
+/**
+ * The Dragon Copilot Extension Runtime Entra application client id. This is the
+ * `azp`/`appid` value a real Dragon Copilot caller presents to a partner
+ * extension, and the default client id the sandbox uses to acquire tokens.
+ */
+export const EXTENSION_RUNTIME_CLIENT_ID = 'd9350f5d-71c2-46b9-b41d-3c5d51ffe6e8';
 
 /** Authentication configuration supplied by the partner developer. */
 export interface AuthConfig {
@@ -22,7 +26,7 @@ export interface AuthConfig {
   enabled: boolean;
   /** Entra tenant id that issues the token (the partner tenant). */
   tenantId: string;
-  /** Client id of the calling app (defaults to the Radiance client id). */
+  /** Client id of the calling app (defaults to the Extension Runtime client id). */
   clientId: string;
   /** Client secret of the calling app. Write-only; never returned by the API. */
   clientSecret: string;
@@ -332,7 +336,11 @@ export interface ClaimCheck {
 /** Matches a tenant id in GUID form (vs. a tenant domain like contoso.onmicrosoft.com). */
 const GUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-export function buildClaimChecks(claims: TokenClaims, tenantId: string): ClaimCheck[] {
+export function buildClaimChecks(
+  claims: TokenClaims,
+  tenantId: string,
+  clientId: string = EXTENSION_RUNTIME_CLIENT_ID,
+): ClaimCheck[] {
   // A token's `iss` always uses the tenant GUID. If the configured tenantId is a
   // GUID, compare against it directly (a genuine cross-check). If a tenant
   // *domain* was entered, the GUID isn't known locally, so derive the expected
@@ -360,9 +368,9 @@ export function buildClaimChecks(claims: TokenClaims, tenantId: string): ClaimCh
     },
     {
       claim: 'azp',
-      expected: RADIANCE_CLIENT_ID,
+      expected: clientId,
       actual: azp,
-      passed: azp === RADIANCE_CLIENT_ID,
+      passed: azp === clientId,
     },
   ];
 }

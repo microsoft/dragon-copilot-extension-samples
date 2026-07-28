@@ -101,7 +101,7 @@ function getRequiredPropertyHint(path: string, missing: string, schemaPath: stri
   // Tool-level required properties
   if (schemaPath.includes('DragonTool') || path.match(/\/tools\/\d+$/)) {
     const toolHints: Record<string, string> = {
-      name: `Add a 'name' field using lowercase kebab-case (e.g., "chest-ct-quality").`,
+      name: `Add a 'name' field using camelCase (e.g., "chestCtQuality").`,
       toolType: `Add a 'toolType' field. Allowed value: "contractBased". Use "contractBased" for standard REST API integrations.`,
       capability: `Add a 'capability' field. Allowed value: "qualityCheck".`,
       description: `Add a 'description' field explaining what this tool does.`,
@@ -153,7 +153,7 @@ function getRequiredPropertyHint(path: string, missing: string, schemaPath: stri
 
   // Top-level required properties
   const topLevelHints: Record<string, string> = {
-    name: `Add a 'name' field at the root level using lowercase kebab-case (e.g., "my-extension").`,
+    name: `Add a 'name' field at the root level using camelCase (e.g., "myExtension").`,
     description: `Add a 'description' field at the root level explaining what your extension does.`,
     version: `Add a 'version' field in semver format (e.g., "1.0.0").`,
     radiologistsExtensibilityApiVersion: `Add a 'radiologistsExtensibilityApiVersion' field with the API version in x.y.z format (e.g., "0.1.0").`,

@@ -5,8 +5,8 @@
   "type": "module",
   "scripts": {
     "generate-schemas": "tsx scripts/generate-output-schemas.ts",
-    "dev": "tsx watch src/index.ts",
-    "build": "npm run generate-schemas && tsc -p tsconfig.json && cpy src/schemas/generated-schemas/*.json dist/schemas/generated-schemas/",
+    "dev": "tsx watch --conditions=development src/index.ts",
+    "build": "npm run generate-schemas && tsc -p tsconfig.json && cpy \"src/schemas/**/*.json\" dist/schemas",
     "start": "node dist/index.js",
     "test": "npm run generate-schemas && vitest run",
     "clean": "rimraf dist"
@@ -17,8 +17,9 @@
     "cors": "^2.8.5",
     "express": "^5.1.0",
     "extensions-sandbox-shared": "*",
-    "js-yaml": "^4.1.1",
-    "multer": "^2.2.0"
+    "js-yaml": "^4.3.0",
+    "multer": "^2.2.0",
+    "react-router-dom": "^7.11.0"
   },
   "devDependencies": {
     "@types/cors": "^2.8.17",
@@ -27,7 +28,7 @@
     "@types/multer": "^2.1.0",
     "@types/node": "^22.15.0",
     "cpy-cli": "^7.0.0",
-    "rimraf": "^6.1.3",
+    "rimraf": "^6.1.2",
     "tsx": "^4.19.4",
     "typescript": "^5.8.3",
     "vitest": "^4.1.7"

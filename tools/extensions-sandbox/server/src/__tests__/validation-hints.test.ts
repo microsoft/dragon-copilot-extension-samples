@@ -18,7 +18,7 @@ describe('buildDetailedErrors', () => {
 
     const nameError = errors.find((e) => e.detail.includes("'name'"));
     expect(nameError).toBeDefined();
-    expect(nameError!.hint).toContain('kebab-case');
+    expect(nameError!.hint).toContain('camelCase');
 
     const authError = errors.find((e) => e.detail.includes("'auth'"));
     expect(authError).toBeDefined();

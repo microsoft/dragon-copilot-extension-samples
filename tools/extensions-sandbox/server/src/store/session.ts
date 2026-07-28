@@ -1,7 +1,7 @@
 import type { ExtensionManifest } from '../schemas/manifest.schema.js';
 import type { ValidationResult } from '../services/validation.js';
 import type { AuthConfig, SafeAuthConfig } from '../services/auth.js';
-import { RADIANCE_CLIENT_ID } from '../services/auth.js';
+import { EXTENSION_RUNTIME_CLIENT_ID } from '../services/auth.js';
 
 /**
  * In-memory global store for the sandbox.
@@ -24,7 +24,7 @@ class SessionStore {
   private authConfig: AuthConfig = {
     enabled: false,
     tenantId: '',
-    clientId: RADIANCE_CLIENT_ID,
+    clientId: EXTENSION_RUNTIME_CLIENT_ID,
     clientSecret: '',
     scope: '',
   };
@@ -76,7 +76,7 @@ class SessionStore {
       next.clientSecret = this.authConfig.clientSecret;
     }
     if (!next.clientId?.trim()) {
-      next.clientId = RADIANCE_CLIENT_ID;
+      next.clientId = EXTENSION_RUNTIME_CLIENT_ID;
     }
     this.authConfig = next;
   }
