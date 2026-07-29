@@ -146,10 +146,3 @@ tools:
 
 ## Business Context
 This is healthcare/medical AI software. Extensions process clinical data like patient notes, transcripts, and medical encounters to provide AI-powered insights, entity extraction, clinical decision support, and documentation assistance for healthcare providers.
-
-<!-- mermaid-ai-skills:start -->
-## Mermaid Diagrams
-
-When the user asks to create, edit, or visualize a diagram, follow the
-instructions in `.github/instructions/mermaid.instructions.md`.
-<!-- mermaid-ai-skills:end -->

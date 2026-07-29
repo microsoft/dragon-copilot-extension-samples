@@ -2,6 +2,12 @@
 
 A local development environment for testing and validating Microsoft Dragon Copilot (radiologists) extensions before deployment to customer sites.
 
+**Why this exists**: validating a manifest and its payloads currently requires deploying to a real Dragon Copilot environment. The sandbox runs that loop locally — load a manifest, point it at your extension, and see the manifest, request, and response payloads validated against the Extensibility API contract before you ship.
+
+**Who it's for**: partners building radiology extensions.
+
+**Where it fits**: author your manifest with `tools/dragon-copilot-cli`, run your extension (or one of the samples in `radiologists/src/samples/Workflow`), then load the manifest here to test.
+
 ## Prerequisites
 
 - [Node.js](https://nodejs.org/) >= 18.x
@@ -82,7 +88,7 @@ extensions-sandbox/
 └── server/               # Express backend
     ├── scripts/
     │   ├── generate-output-schemas.ts  # Generates JSON Schemas from OpenAPI spec
-    │   └── mock-extension-server.ts    # Dummy extension service for sandbox testing
+    │   └── sync-cli-schemas.ts         # Syncs the manifest schema from the CLI source
     ├── src/
     │   ├── index.ts      # Server entry point
     │   ├── schemas/
@@ -113,9 +119,12 @@ npm run generate-schemas
 
 The generation script (`scripts/generate-output-schemas.ts`) extracts schema definitions (e.g., `QualityCheckResult`, `Recommendation`, `Provenance`) from the OpenAPI YAML and produces standalone JSON Schema files used for response validation.
 
-> **Note:** The radiologists schemas in `src/schemas/radiologists/` are temporarily copied from
-> `diag-radex-extension-service` and will be replaced with internal package references once
-> those are in sync with the service's authoritative versions.
+> **Note:** The manifest schema (`radiologists-extension-manifest-schema.json`) is owned by the
+> `tools/dragon-copilot-cli` package and synced into `src/schemas/radiologists/` at dev/build/test
+> time by `scripts/sync-cli-schemas.ts` (the local copy is git-ignored — the CLI is the single
+> source of truth). The OpenAPI spec (`radiologists-extensibility-api.yaml`) is still a local copy
+> from `diag-radex-extension-service` and will be replaced with an internal package reference once
+> the service publishes its authoritative version.
 
 ## API Endpoints
 
@@ -133,86 +142,47 @@ The generation script (`scripts/generate-output-schemas.ts`) extracts schema def
 - **Communication**: Frontend proxies `/api/*` requests to the backend server
 - **Build**: npm workspaces for unified dependency management
 
-## Mock Extension Server
+## Testing against a sample extension
 
-The sandbox ships with a **mock extension server** that simulates a real Microsoft Dragon Copilot (radiologists) extension. It implements the `ProcessRequest`/`ProcessResponse` envelope contract from the Extensibility API for Dragon Copilot (radiologists) and responds with valid `QualityCheckResult` payloads — making it useful for end-to-end testing of the sandbox UI without deploying a real extension.
+Rather than shipping its own throwaway extension service, the sandbox is meant to be pointed at the canonical **Quickstart sample extension** that lives alongside these samples: [`SampleExtension.Radiologists.Web.Quickstart`](../../radiologists/src/samples/Workflow/README.md). It implements the same `ProcessRequest`/`ProcessResponse` envelope contract from the Extensibility API for Dragon Copilot (radiologists) and returns a schema-valid `QualityCheckResult` payload, so you can exercise the sandbox UI end-to-end without deploying a real extension.
 
-### What It Does
-
-The mock server exposes a single processing endpoint (`POST /v1/process`) that mimics the two test fixture manifests in `server/src/__tests__/fixtures/`. Because a `ProcessRequest` carries no tool name (the endpoint identifies the tool), the mock selects its behaviour by whether patient information is present:
-
-| Behaviour | Manifest Fixture | Selected when | Description |
-|-----------|-----------------|---------------|-------------|
-| Chest CT (`chestCtQuality`) | `valid-manifest-simple.json` | no `patientInformation` input | Analyses chest CT report text and returns Clinical/Billing recommendations (checks for comparison section, impression, bilateral procedures) |
-| Brain MRI (`brainMriQuality`) | `valid-manifest-full-featured.json` | `patientInformation` input present | Analyses brain MRI report text and returns Clinical recommendations (checks for DWI mention, ventricular assessment) |
-
-Both tools return schema-valid responses that pass the sandbox's built-in response validation.
-
-### Starting the Mock Server
+### Start the sample extension
 
 ```bash
-# From the extensions-sandbox directory
-cd server
-npx tsx scripts/mock-extension-server.ts
-
-# Or with a custom port (default: 9100)
-npx tsx scripts/mock-extension-server.ts --port 8080
+# From the repository root
+cd radiologists/src/samples/Workflow
+dotnet run --project SampleExtension.Radiologists.Web.Quickstart
 ```
 
-The server starts at `http://localhost:9100` and prints available endpoints.
+The service listens on `http://localhost:5080` (https `https://localhost:7080`) and exposes its processing endpoint at `POST /v1/process`.
 
-### Using with the Sandbox
+### Run it from the sandbox
 
-1. Start the mock server (port 9100)
-2. Start the sandbox (`npm run dev` from `extensions-sandbox/`)
-3. Upload one of the test manifests from `server/src/__tests__/fixtures/`
-4. **Edit the endpoint** in the manifest to `http://localhost:9100/v1/process`
-5. Switch to the **Setup** tab, fill in inputs, and click **Run**
-6. View results in the **Results** and **Outputs** tabs
-
-### Endpoints
-
-| Method | Path | Description |
-|--------|------|-------------|
-| `POST` | `/v1/process` | Main processing endpoint (accepts `ProcessRequest`, returns `ProcessResponse`) |
-| `GET` | `/health` | Health check — returns `{ status, tools }` |
-
-### Example Request
-
-```bash
-curl -X POST http://localhost:9100/v1/process \
-  -H "Content-Type: application/json" \
-  -d '{
-    "extensibilityApiVersion": "1.0.0",
-    "sessionData": {
-      "correlation_id": "f40dd0d0-4201-d29d-79b4-df40189fd2f0"
-    },
-    "report": {
-      "reportText": "Chest CT shows bilateral ground-glass opacities. No pleural effusion."
-    }
-  }'
-```
+1. Start the sample extension (port `5080`, above).
+2. Start the sandbox (`npm run dev` from `extensions-sandbox/`).
+3. Load the shared manifest [`extension.yaml`](../../radiologists/src/samples/Workflow/extension.yaml) — its `sampleQualityCheckTool` already targets `http://localhost:5080/v1/process`, so there is nothing to edit.
+4. Switch to the **Setup** tab, fill in the report inputs, and click **Run**.
+5. View results in the **Results** and **Outputs** tabs.
 
 ### Example Response
+
+The Quickstart returns a canned `QualityCheckResult` (source: `SampleExtension.Radiologists.Web.Quickstart/MockData/qualitycheck-response.json`):
 
 ```json
 {
   "success": true,
   "message": "Payload processed successfully.",
   "payload": {
-    "quality-result": {
+    "qualityCheckResult": {
       "recommendations": [
         {
           "qualityCheckType": "Clinical",
-          "description": "Missing comparison with prior studies",
-          "reason": "No comparison section found in report.",
-          "severityScorePercent": 55
-        },
-        {
-          "qualityCheckType": "Billing",
-          "description": "Missing CPT modifier for bilateral procedure",
-          "reason": "Bilateral finding described but modifier -50 not referenced.",
-          "severityScorePercent": 75
+          "description": "Replace 'paddock steatosis' with 'hepatic steatosis'.",
+          "reason": "'Paddock steatosis' is a well-known speech-to-text mis-hearing of 'hepatic steatosis' (fatty liver); leaving the erroneous term in the report can mislead downstream clinicians and break automated coding.",
+          "severityScorePercent": 85,
+          "provenance": [
+            { "text": "paddock steatosis", "startPosition": 42, "endPosition": 59 }
+          ]
         }
       ]
     }
@@ -282,13 +252,13 @@ To exercise the full **authentication-enabled** flow without a real Entra tenant
    $env:ENTRA_TOKEN_ENDPOINT = "http://localhost:9200/token"
    npm run dev
    ```
-3. In the UI, enable authentication and configure it with **Tenant ID** `11111111-1111-1111-1111-111111111111` (the GUID baked into the fake token above), the Dragon Copilot Extension Runtime client id as **Client ID**, any non-empty **Client Secret**, and a scope. Click **Test connection** — you'll get a token and all three claim checks (`iss` / `idtyp` / `azp`) green, entirely offline. Run a test against the [mock extension server](#mock-extension-server) to verify the end-to-end enabled-auth path.
+3. In the UI, enable authentication and configure it with **Tenant ID** `11111111-1111-1111-1111-111111111111` (the GUID baked into the fake token above), the Dragon Copilot Extension Runtime client id as **Client ID**, any non-empty **Client Secret**, and a scope. Click **Test connection** — you'll get a token and all three claim checks (`iss` / `idtyp` / `azp`) green, entirely offline. Run a test against a [sample extension](#testing-against-a-sample-extension) to verify the end-to-end enabled-auth path.
 
 > `ENTRA_TOKEN_ENDPOINT` is for local testing only. Leave it unset in any real environment so tokens are acquired from Microsoft Entra ID.
 
 ### Testing the authentication feature
 
-Five layers, from zero-setup to full end-to-end. Ports: client `:3000`, sandbox server `:4000`, mock extension `:9100`.
+Five layers, from zero-setup to full end-to-end. Ports: client `:3000`, sandbox server `:4000`, echo listener `:9100`.
 
 **1. Automated tests (no setup)** — fastest regression check. The auth suites mock the token endpoint and cover acquisition, caching, expiry refresh, error mapping, claim checks, and secret-never-leaked:
 ```powershell
@@ -336,7 +306,7 @@ node -e "const c={iss:'https://login.microsoftonline.com/11111111-1111-1111-1111
 $env:ENTRA_TOKEN_ENDPOINT = "http://localhost:9200/token"
 npm run dev
 ```
-Then enable authentication in the UI with **Tenant ID** `11111111-1111-1111-1111-111111111111` (the GUID baked into the fake token), click **Test connection** (all three claim checks green, no Azure), and run a tool test against the echo listener above or the [mock extension server](#mock-extension-server) to confirm the full enabled-auth path end-to-end. Leave `ENTRA_TOKEN_ENDPOINT` unset in any real environment.
+Then enable authentication in the UI with **Tenant ID** `11111111-1111-1111-1111-111111111111` (the GUID baked into the fake token), click **Test connection** (all three claim checks green, no Azure), and run a tool test against the echo listener above to confirm the full enabled-auth path end-to-end. Leave `ENTRA_TOKEN_ENDPOINT` unset in any real environment.
 
 ## Upcoming Features
 

@@ -1,3 +1,6 @@
 node_modules/
 dist/
 *.tsbuildinfo
+
+# Synced from tools/dragon-copilot-cli at build time — do not commit (single source of truth is the CLI).
+server/src/schemas/radiologists/radiologists-extension-manifest-schema.json
