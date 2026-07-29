@@ -22,12 +22,15 @@ const __dirname = dirname(__filename);
 
 const MANIFEST_SCHEMA_FILE = 'radiologists-extension-manifest-schema.json';
 
-// server/scripts -> tools/dragon-copilot-cli/src/schemas/radiologists
+// server/scripts -> repo root -> tools/dragon-copilot-cli/src/schemas/radiologists
 const CLI_SCHEMA_PATH = resolve(
   __dirname,
   '..',
   '..',
   '..',
+  '..',
+  '..',
+  'tools',
   'dragon-copilot-cli',
   'src',
   'schemas',
