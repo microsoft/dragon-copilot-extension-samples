@@ -4,7 +4,7 @@ import path from 'path';
 import chalk from 'chalk';
 import type { InitOptions, ConnectorIntegrationManifest } from '../types.js';
 import { runConnectorManifestWizard } from '../shared/prompts.js';
-import { normalizeNoteSections } from '../shared/note-sections.js';
+import { getDefaultManifestNoteSections } from '../shared/note-sections.js';
 import { dumpManifestYaml } from '../shared/yaml.js';
 
 export async function initProject(options: InitOptions): Promise<void> {
@@ -21,7 +21,7 @@ export async function initProject(options: InitOptions): Promise<void> {
     ...(options.version ? { version: options.version } : {})
   });
 
-  manifest['note-sections'] = normalizeNoteSections(manifest['note-sections']);
+  manifest['note-sections'] = manifest['note-sections'] ?? getDefaultManifestNoteSections();
 
   console.log(chalk.green('\n✅ Manifest details captured!'));
 

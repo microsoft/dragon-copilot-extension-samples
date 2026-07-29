@@ -1,4 +1,4 @@
-import { checkbox, confirm, input, select } from '@inquirer/prompts';
+import { confirm, input, select } from '@inquirer/prompts';
 import { randomUUID } from 'node:crypto';
 import type {
   AuthConfig,
@@ -7,17 +7,11 @@ import type {
   InstanceConfig,
   ManifestFieldConfig,
   NamedFieldConfig,
-  NoteSectionValue,
   ConnectorIntegrationManifest,
   ServerAuthenticationEntry,
   YesNo
 } from '../types.js';
-import {
-  EMPTY_NOTE_PLACEHOLDER,
-  NOTE_SECTION_LABELS,
-  NOTE_SECTION_ORDER
-} from './note-sections.js';
-import type { NoteSectionKey } from './note-sections.js';
+import { getDefaultManifestNoteSections } from './note-sections.js';
 import { buildIntegrationDescription } from './integration-description.js';
 import { CONTEXT_ITEM_CATALOG } from './context-items.js';
 
@@ -331,131 +325,6 @@ const summarizeServerAuthentication = (entries: ServerAuthenticationEntry[]): st
     return `Issuer ${index + 1}: ${entry.issuer} (${entry['identity-claim']} → ${identities})`;
   });
 };
-
-const describeNoteSectionValue = (value: string | string[] | null): string => {
-  const formatSection = (key: string): string => {
-    const label = NOTE_SECTION_LABELS[key as NoteSectionKey] ?? (key === 'plan' ? 'Plan' : undefined);
-    return label ? `${label} (${key})` : key;
-  };
-
-  if (Array.isArray(value)) {
-    return value.length ? value.map(formatSection).join(', ') : '(not configured)';
-  }
-  if (value === null || value === undefined) {
-    return '(not configured)';
-  }
-  const trimmed = value.trim();
-  if (!trimmed || trimmed === EMPTY_NOTE_PLACEHOLDER) return '(not configured)';
-  return formatSection(trimmed);
-};
-
-const gatherNoteSections = async (): Promise<Record<string, string | string[] | null>> => {
-  logInfo('Each note section can be generated individually or mapped to another section. Select each individually generated section and the mapped sections to it below.');
-  console.log('');
-
-  const PLAN_KEY = 'plan';
-  const sections: Record<string, string | string[] | null> = {};
-  const mappedToOther = new Set<string>();
-  const usedSections = new Set<string>();
-  let planMapped = false;
-
-  const getSectionLabel = (key: string): string => {
-    if (key === PLAN_KEY) {
-      return 'Plan';
-    }
-    const label = NOTE_SECTION_LABELS[key as NoteSectionKey];
-    return label ?? key;
-  };
-
-  const buildAvailable = (currentKey: string): string[] => {
-    const base: string[] = NOTE_SECTION_ORDER.filter(
-      option => option !== currentKey && !usedSections.has(option) && !mappedToOther.has(option)
-    );
-
-    if (!planMapped && currentKey !== PLAN_KEY && !usedSections.has(PLAN_KEY) && !mappedToOther.has(PLAN_KEY)) {
-      base.push(PLAN_KEY);
-    }
-
-    return base;
-  };
-
-  for (const key of NOTE_SECTION_ORDER) {
-    if (mappedToOther.has(key)) {
-      sections[key] = EMPTY_NOTE_PLACEHOLDER;
-      continue;
-    }
-
-    const generate = await confirm({
-      message: `Generate ${key}?`,
-      default: true
-    });
-
-    if (!generate) {
-      sections[key] = EMPTY_NOTE_PLACEHOLDER;
-      continue;
-    }
-
-    const assigned: string[] = [key];
-    usedSections.add(key);
-
-    if (key === 'assessment') {
-      const mapPlanToAssessment = await confirm({
-        message: 'Map plan to assessment?',
-        default: true
-      });
-
-      if (mapPlanToAssessment) {
-        assigned.push(PLAN_KEY);
-        planMapped = true;
-        usedSections.add(PLAN_KEY);
-        mappedToOther.add(PLAN_KEY);
-      }
-    }
-
-    const available = buildAvailable(key);
-
-    if (available.length) {
-      const selections = await checkbox<string>({
-        message: `Select sections to map to ${key} (press Space to toggle, Enter to continue):`,
-        choices: available.map(option => ({
-          name: `${getSectionLabel(option)} (${option})`,
-          value: option
-        })),
-        loop: false
-      });
-
-      for (const selection of selections) {
-        assigned.push(selection);
-        if (selection === PLAN_KEY) {
-          planMapped = true;
-        }
-        mappedToOther.add(selection);
-        usedSections.add(selection);
-      }
-    }
-
-    let value: NoteSectionValue;
-    if (assigned.length === 0) {
-      value = EMPTY_NOTE_PLACEHOLDER;
-    } else if (assigned.length === 1) {
-      value = assigned[0] ?? EMPTY_NOTE_PLACEHOLDER;
-    } else {
-      value = assigned as string[];
-    }
-
-    sections[key] = value;
-  }
-
-  return sections;
-};
-
-const summarizeNoteSections = (
-  sections: Record<string, string | string[] | null>
-): string[] =>
-  NOTE_SECTION_ORDER.map(key => {
-    const value = sections[key] ?? null;
-    return `${NOTE_SECTION_LABELS[key]}: ${describeNoteSectionValue(value)}`;
-  });
 
 const gatherNamedIssuerFields = async (): Promise<NamedFieldConfig[]> => {
   const fields: NamedFieldConfig[] = [];
@@ -841,8 +710,8 @@ export async function runConnectorManifestWizard(
   );
 
   logSectionHeading('📝', 'Note Sections');
-  logInfo('Choose how Dragon Copilot should map generated sections.');
-  const noteSections = await collectWithReview('Note sections', gatherNoteSections, summarizeNoteSections);
+  logInfo('Note sections are no longer used by Dragon backend services but remain required by the Dragon Admin Center, so a default mapping is included automatically.');
+  const noteSections = getDefaultManifestNoteSections();
 
   logSectionHeading('⚙️', 'Instance Configuration');
   console.log('');
