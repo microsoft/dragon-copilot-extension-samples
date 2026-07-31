@@ -12,7 +12,11 @@
     "build": "npm run build --workspaces --if-present",
     "start": "npm run start --workspace=server",
     "dev": "concurrently \"npm run dev --workspace=server\" \"npm run dev --workspace=client\"",
+    "test": "npm run test --workspaces --if-present",
     "clean": "npm run clean --workspaces --if-present"
+  },
+  "engines": {
+    "node": "^20.19.0 || >=22.12.0"
   },
   "devDependencies": {
     "concurrently": "^9.1.2"

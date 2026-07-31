@@ -10,7 +10,7 @@ A local development environment for testing and validating Microsoft Dragon Copi
 
 ## Prerequisites
 
-- [Node.js](https://nodejs.org/) >= 18.x
+- [Node.js](https://nodejs.org/) `^20.19.0 || >=22.12.0` — required by Vite 8 (client) and Vitest 4 (server); their Rolldown native binding will not load on Node 18
 - npm >= 9.x
 
 ## Quick Start
@@ -85,6 +85,12 @@ extensions-sandbox/
 │   ├── index.html        # HTML template
 │   ├── vite.config.ts    # Vite configuration with API proxy
 │   └── tsconfig.json     # TypeScript configuration
+├── shared/               # Logic shared by client and server
+│   ├── src/
+│   │   ├── index.ts      # Public entry point
+│   │   ├── input-parsing.ts  # Parses/groups flat form inputs into nested objects
+│   │   └── __tests__/    # Unit tests
+│   └── tsconfig.json     # TypeScript configuration
 └── server/               # Express backend
     ├── scripts/
     │   ├── generate-output-schemas.ts  # Generates JSON Schemas from OpenAPI spec
@@ -92,9 +98,9 @@ extensions-sandbox/
     ├── src/
     │   ├── index.ts      # Server entry point
     │   ├── schemas/
-    │   │   ├── radiologists/           # Source-of-truth schemas (see note below)
-    │   │   │   ├── radiologists-extension-manifest-schema.json
-    │   │   │   └── radiologists-extensibility-api.yaml
+    │   │   ├── radiologists/
+    │   │   │   ├── radiologists-extension-manifest-schema.json  # Synced from the CLI (git-ignored)
+    │   │   │   └── radiologists-extensibility-api.yaml          # Local copy of the OpenAPI spec
     │   │   ├── generated-schemas/      # Auto-generated (do not edit by hand)
     │   │   │   └── quality-check-result.json
     │   │   └── manifest.schema.ts      # TypeScript types for manifests
@@ -128,19 +134,79 @@ The generation script (`scripts/generate-output-schemas.ts`) extracts schema def
 
 ## API Endpoints
 
-| Method | Path          | Description          |
-|--------|---------------|----------------------|
-| GET    | /api/health   | Server health check  |
-| GET    | /api/auth/config | Get auth config (secret redacted) |
-| POST   | /api/auth/config | Update auth config (secret write-only) |
+All routes are served under `http://localhost:4000`.
+
+### Health
+
+| Method | Path        | Description         |
+|--------|-------------|---------------------|
+| GET    | /api/health | Server health check |
+
+### Manifest
+
+| Method | Path                                              | Description                                                             |
+|--------|---------------------------------------------------|-------------------------------------------------------------------------|
+| POST   | /api/manifest/upload                              | Upload a manifest file (JSON or YAML), validate it, and store it in session |
+| POST   | /api/manifest/validate                            | Validate raw manifest text supplied in the request body                 |
+| GET    | /api/manifest                                     | Get the currently loaded manifest metadata (404 if none)                |
+| GET    | /api/manifest/raw                                 | Get the raw manifest text exactly as uploaded                           |
+| DELETE | /api/manifest                                     | Clear the session manifest                                              |
+| GET    | /api/manifest/capabilities                        | List capabilities, grouped by each tool's `capability` field            |
+| GET    | /api/manifest/capabilities/:capabilityName/tools  | List the tools defined under a given capability                         |
+| POST   | /api/manifest/execute                             | Execute a tool: parse inputs, call the endpoint the manifest declares, validate the response |
+
+### Validation
+
+| Method | Path                              | Description                                                        |
+|--------|-----------------------------------|--------------------------------------------------------------------|
+| POST   | /api/validate/inputs/:toolName    | Validate tool inputs against the schemas for their declared content-types |
+| POST   | /api/validate/:toolName           | Validate a tool response payload against the expected output schema |
+| GET    | /api/validate/results             | List all validation results stored for the session                 |
+| DELETE | /api/validate/results             | Clear stored validation results                                    |
+
+Input and response validation return `200` when valid and `422` when the payload fails schema validation.
+
+### Authentication
+
+| Method | Path             | Description                                             |
+|--------|------------------|---------------------------------------------------------|
+| GET    | /api/auth/config | Get auth config (secret redacted)                       |
+| POST   | /api/auth/config | Update auth config (secret write-only)                  |
 | POST   | /api/auth/test   | Acquire a token and validate claims (no extension call) |
 
 ## Architecture
 
-- **Frontend**: React 19 with Vite for fast HMR during development
-- **Backend**: Express 5 with TypeScript
-- **Communication**: Frontend proxies `/api/*` requests to the backend server
-- **Build**: npm workspaces for unified dependency management
+The sandbox reproduces, locally, the path a request takes through the Dragon Copilot Extension
+Runtime — so that a manifest which works here works when deployed.
+
+1. **Load the manifest.** A manifest is uploaded (`POST /api/manifest/upload`) or pasted
+   (`POST /api/manifest/validate`). YAML and JSON are both accepted and normalized to the same
+   object.
+2. **Validate against the contract.** The manifest is checked against the JSON Schema owned by
+   `tools/dragon-copilot-cli` — the same schema the CLI enforces — so the sandbox cannot accept a
+   manifest the platform would reject. Errors are mapped back to line/column positions in the
+   original text for display in the editor.
+3. **Parse capabilities and tools.** Tools are grouped by their `capability` field to drive the UI,
+   exposing which tools exist and what inputs each declares.
+4. **Parse and validate inputs.** Form values arrive as flat dot-delimited paths
+   (`report.reportText`) and are grouped into the nested objects the extension expects. Each input
+   is then validated against the JSON Schema for its declared content-type
+   (e.g. `application/vnd.ms-dragon.rad.report+json`), generated from the Extensibility API
+   OpenAPI spec.
+5. **Call the extension.** The validated inputs are wrapped in a `ProcessRequest` envelope and
+   POSTed to the endpoint the manifest declares. When authentication is enabled, the server
+   acquires an Entra token via client credentials and attaches it as a `Bearer` token; the secret
+   stays in server memory only.
+6. **Validate the response.** The returned `ProcessResponse` payload is validated against the
+   output schema for the tool's declared output content-type. Results are stored in the session so
+   they can be reviewed in the **Results** and **Outputs** tabs.
+
+The client never talks to your extension directly — every call is proxied through the server, which
+is where schema loading, validation, and token acquisition live.
+
+**Stack**: React 19 + Vite (client, port 3000), Express 5 + TypeScript (server, port 4000), a
+`shared` workspace for logic used by both, and npm workspaces tying them together. The Vite dev
+server proxies `/api/*` to the backend.
 
 ## Testing against a sample extension
 

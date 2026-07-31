@@ -25,7 +25,8 @@ export function parseInputValues(inputs: Record<string, string>): Record<string,
 /**
  * Groups flat dot-delimited field paths (e.g. "report.reportText") into nested
  * objects keyed by the input name. Non-dotted keys are kept as-is.
- * Empty/null/undefined values are omitted from the result.
+ * Empty/null/undefined values are omitted from the result, and a group whose
+ * fields are all empty is omitted entirely rather than left as an empty object.
  */
 export function groupInputsByName(parsedInputs: Record<string, unknown>): Record<string, unknown> {
   const grouped: Record<string, unknown> = {};
@@ -34,10 +35,10 @@ export function groupInputsByName(parsedInputs: Record<string, unknown>): Record
     if (dotIndex > 0) {
       const inputName = path.slice(0, dotIndex);
       const fieldName = path.slice(dotIndex + 1);
-      if (!grouped[inputName] || typeof grouped[inputName] !== 'object') {
-        grouped[inputName] = {};
-      }
       if (value !== '' && value !== null && value !== undefined) {
+        if (!grouped[inputName] || typeof grouped[inputName] !== 'object') {
+          grouped[inputName] = {};
+        }
         (grouped[inputName] as Record<string, unknown>)[fieldName] = value;
       }
     } else {
