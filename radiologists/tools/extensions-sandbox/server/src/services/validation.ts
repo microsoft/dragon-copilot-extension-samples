@@ -93,6 +93,38 @@ function getValidator(schemaFile: string): ValidateFunction {
   return compiled;
 }
 
+const inputSchemaCache = new Map<string, Record<string, unknown> | null>();
+
+/**
+ * Returns the JSON Schema that describes a tool input with the given
+ * content-type, or `null` when the content-type has no registered schema
+ * (e.g. a plain `text/plain` input).
+ *
+ * Used to attach schemas to tool metadata so the client can render a typed
+ * form instead of a free-text box. Failures are non-fatal: a missing or
+ * malformed schema file degrades to `null` rather than breaking tool listing.
+ */
+export function getInputSchemaForContentType(contentType: string): Record<string, unknown> | null {
+  const schemaFile = INPUT_CONTENT_TYPE_SCHEMA_MAP[contentType];
+  if (!schemaFile) return null;
+
+  const cached = inputSchemaCache.get(schemaFile);
+  if (cached !== undefined) return cached;
+
+  let schema: Record<string, unknown> | null = null;
+  try {
+    schema = JSON.parse(readFileSync(join(OUTPUT_SCHEMAS_DIR, schemaFile), 'utf-8')) as Record<string, unknown>;
+  } catch (err) {
+    log.warn(
+      `Could not load input schema '${schemaFile}' for content-type '${contentType}': ` +
+      `${err instanceof Error ? err.message : String(err)}. Falling back to an untyped input.`,
+    );
+  }
+
+  inputSchemaCache.set(schemaFile, schema);
+  return schema;
+}
+
 // ---------------------------------------------------------------------------
 // Public API
 // ---------------------------------------------------------------------------

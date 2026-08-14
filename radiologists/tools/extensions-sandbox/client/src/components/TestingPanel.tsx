@@ -22,7 +22,7 @@ interface ToolInput {
   required: boolean;
   type?: string;
   placeholder?: string;
-  schema?: SchemaProperty;
+  schema?: SchemaProperty | null;
 }
 
 interface ToolOutput {
@@ -445,23 +445,6 @@ export function TestingPanel({ manifestInfo, manifestRevision }: TestingPanelPro
             </div>
 
             <div className="form-field">
-              <label className="field-label">Sample Scenario (Optional)</label>
-              <div className="sample-scenario-row">
-                <Dropdown
-                  value="No sample loaded"
-                  selectedOptions={['none']}
-                  disabled
-                >
-                  <Option value="none">No sample loaded</Option>
-                </Dropdown>
-                <Link className="browse-link">Browse sample data packs</Link>
-              </div>
-              <p className="field-description">
-                No sample loaded. You can fill fields manually or choose one of 3 sample scenarios.
-              </p>
-            </div>
-
-            <div className="form-field">
               <label className="field-label">Authentication</label>
               <AuthSettings />
             </div>
@@ -558,6 +541,14 @@ export function TestingPanel({ manifestInfo, manifestRevision }: TestingPanelPro
                       <div className="tool-context-label">Execution Time</div>
                       <div className="tool-context-value">{executionTimeMs} ms</div>
                     </div>
+                    {result && (
+                      <div>
+                        <div className="tool-context-label">HTTP Status</div>
+                        <div className="tool-context-value">
+                          {result.status}{result.statusText ? ` ${result.statusText}` : ''}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
 

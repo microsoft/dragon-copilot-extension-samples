@@ -304,17 +304,6 @@ body {
   margin-top: 0.25rem;
 }
 
-.sample-scenario-row {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
-.browse-link {
-  font-size: 0.85rem;
-  white-space: nowrap;
-}
-
 /* Action bar */
 .action-bar {
   display: flex;

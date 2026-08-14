@@ -173,7 +173,11 @@ export function ManifestEditor({ onManifestLoaded, onManifestEditing, onReset }:
       const data = await response.json();
 
       if (!response.ok) {
-        // Upload failed — show raw content if available
+        // Upload rejected (parse failure or schema validation failure) — surface
+        // the server's diagnosis instead of silently swapping in the raw text.
+        setIsValid(false);
+        setErrors(data.errors ?? [{ path: null, message: 'Upload failed', severity: 'error' }]);
+        setValidationMessage(data.message ?? 'Manifest upload failed.');
         if (data.rawContent) {
           setManifestText(data.rawContent);
           setEditorContent(data.rawContent);
@@ -181,7 +185,16 @@ export function ManifestEditor({ onManifestLoaded, onManifestEditing, onReset }:
         return;
       }
 
-      // Load content into editor without validating
+      // The server already validated and stored the manifest, so publish the
+      // result rather than making the user press Validate again.
+      setIsValid(true);
+      setErrors([]);
+      setValidationMessage(data.message ?? 'Manifest is valid.');
+      if (data.manifest) {
+        onManifestLoaded(data.manifest);
+      }
+
+      // Pull the canonical stored text back into the editor
       const rawRes = await fetch('/api/manifest/raw');
       if (rawRes.ok) {
         const rawData = await rawRes.json();
@@ -198,7 +211,7 @@ export function ManifestEditor({ onManifestLoaded, onManifestEditing, onReset }:
     } finally {
       setIsUploading(false);
     }
-  }, [setEditorContent]);
+  }, [setEditorContent, onManifestLoaded]);
 
   const handleFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];

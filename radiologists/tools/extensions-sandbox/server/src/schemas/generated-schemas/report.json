@@ -2,13 +2,16 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "Report",
   "description": "Radiology report input.",
-  "x-ms-schema-version": "1.0",
   "type": "object",
-  "required": ["reportText"],
+  "x-ms-schema-version": "1.0",
+  "required": [
+    "reportText"
+  ],
   "properties": {
     "reportText": {
       "type": "string",
-      "description": "The radiology report text."
+      "description": "The radiology report text.",
+      "example": "No acute cardiopulmonary abnormality."
     }
   }
 }

@@ -461,32 +461,58 @@ manifestRouter.post('/execute', async (req, res) => {
     const message = err instanceof Error ? err.message : 'Unknown error';
     log.error(`Tool '${toolName}' call to ${tool.endpoint} failed: ${message}`);
 
-    // Categorize the failure to provide actionable troubleshooting hints
+    // Categorize the failure to provide actionable troubleshooting hints.
+    // Undici surfaces the real syscall code on `err.cause.code` rather than in
+    // the message, so check that first and fall back to message matching for
+    // errors that carry no cause (e.g. AbortError).
+    const causeCode = (err as { cause?: { code?: string } })?.cause?.code ?? '';
     let cause: string;
     let troubleshooting: string[];
 
-    if (message.includes('ECONNREFUSED')) {
+    if (causeCode === 'ECONNREFUSED' || message.includes('ECONNREFUSED')) {
       cause = 'Connection refused';
       troubleshooting = [
         'Ensure the extension service is running and listening on the configured port.',
         'Verify the endpoint URL in your manifest matches the running service address.',
         'Check firewall or network rules that may block the connection.',
       ];
-    } else if (message.includes('ENOTFOUND') || message.includes('getaddrinfo')) {
+    } else if (
+      causeCode === 'ENOTFOUND' ||
+      causeCode === 'EAI_AGAIN' ||
+      message.includes('ENOTFOUND') ||
+      message.includes('getaddrinfo')
+    ) {
       cause = 'DNS resolution failed';
       troubleshooting = [
         'The hostname in the endpoint URL could not be resolved.',
         'Check for typos in the endpoint URL.',
         'Ensure DNS is reachable from the sandbox environment.',
       ];
-    } else if (message.includes('abort') || message.includes('timeout')) {
+    } else if (
+      causeCode === 'UND_ERR_CONNECT_TIMEOUT' ||
+      causeCode === 'UND_ERR_HEADERS_TIMEOUT' ||
+      causeCode === 'UND_ERR_BODY_TIMEOUT' ||
+      causeCode === 'ETIMEDOUT' ||
+      (err instanceof Error && err.name === 'AbortError') ||
+      message.includes('abort') ||
+      message.includes('timeout')
+    ) {
       cause = 'Request timed out';
       troubleshooting = [
         'The extension did not respond within the 30-second timeout.',
         'Verify the service is healthy and not overloaded.',
         'Consider increasing processing efficiency or timeout configuration.',
       ];
-    } else if (message.includes('CERT') || message.includes('certificate') || message.includes('SSL')) {
+    } else if (
+      causeCode.startsWith('ERR_TLS') ||
+      causeCode.startsWith('CERT_') ||
+      causeCode === 'DEPTH_ZERO_SELF_SIGNED_CERT' ||
+      causeCode === 'SELF_SIGNED_CERT_IN_CHAIN' ||
+      causeCode === 'UNABLE_TO_VERIFY_LEAF_SIGNATURE' ||
+      message.includes('CERT') ||
+      message.includes('certificate') ||
+      message.includes('SSL')
+    ) {
       cause = 'TLS/SSL error';
       troubleshooting = [
         'The endpoint uses HTTPS but has an invalid or self-signed certificate.',

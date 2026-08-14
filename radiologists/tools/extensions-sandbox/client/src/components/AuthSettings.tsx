@@ -141,7 +141,7 @@ export function AuthSettings() {
             <label className="field-label">Client ID</label>
             <Input
               value={config.clientId}
-              placeholder="Radiance client id"
+              placeholder="d9350f5d-71c2-46b9-b41d-3c5d51ffe6e8"
               onChange={(_, data) => update({ clientId: data.value })}
             />
           </div>

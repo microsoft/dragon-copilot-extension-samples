@@ -68,11 +68,23 @@ describe('Tool Metadata - getToolsForCapability', () => {
     expect(tools).toHaveLength(1);
     const tool = tools![0];
     expect(tool.inputs).toHaveLength(1);
-    expect(tool.inputs[0]).toEqual({
+    expect(tool.inputs[0]).toMatchObject({
       name: 'report',
       description: 'The report to check',
       contentType: 'application/vnd.ms-dragon.rad.report+json',
       required: true,
+    });
+  });
+
+  it('should resolve the generated JSON Schema for a known input content type', () => {
+    const tools = getToolsForCapability(sampleManifest, 'reportGeneration');
+    const schema = tools![0].inputs[0].schema;
+
+    expect(schema).not.toBeNull();
+    expect(schema).toMatchObject({
+      title: 'Report',
+      type: 'object',
+      required: ['reportText'],
     });
   });
 

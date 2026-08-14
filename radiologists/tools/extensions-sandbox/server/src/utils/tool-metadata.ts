@@ -1,4 +1,5 @@
 import type { ExtensionManifest } from '../schemas/manifest.schema.js';
+import { getInputSchemaForContentType } from '../services/validation.js';
 
 export interface ToolMetadata {
   name: string;
@@ -9,6 +10,12 @@ export interface ToolMetadata {
     description: string;
     contentType: string;
     required: boolean;
+    /**
+     * JSON Schema for the input payload, when the content-type has one
+     * registered. `null` for untyped inputs, which the client renders as a
+     * free-text field.
+     */
+    schema: Record<string, unknown> | null;
   }[];
   outputs: {
     name: string;
@@ -38,6 +45,7 @@ export function getToolsForCapability(manifest: ExtensionManifest, capabilityNam
         description: input.description,
         contentType: input['content-type'],
         required: input.required ?? false,
+        schema: getInputSchemaForContentType(input['content-type']),
       })),
       outputs: t.outputs.map((output) => ({
         name: output.name,

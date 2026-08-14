@@ -22,26 +22,28 @@ cd radiologists/tools/extensions-sandbox
 # 2. Install dependencies
 npm install
 
-# 3. Build both client and server
-npm run build
-
-# 4. Start the production server
-npm start
-```
-
-The server will be available at `http://localhost:4000`.
-
-## Development
-
-For local development with hot-reload:
-
-```bash
+# 3. Start the sandbox
 npm run dev
 ```
 
-This starts both the frontend (Vite dev server on port 3000) and backend (Express on port 4000) concurrently. The frontend proxies API calls to the backend automatically.
-
 Open `http://localhost:3000` in your browser.
+
+`npm run dev` starts both the frontend (Vite dev server on port 3000) and the backend (Express on port 4000) concurrently, with hot-reload. The frontend proxies API calls to the backend automatically, so port 3000 is the only URL you need.
+
+> The Express server binds to `127.0.0.1` and is reachable only from the local machine.
+
+### Production build
+
+To build and run the compiled output instead:
+
+```bash
+npm run build
+npm start
+```
+
+`npm start` runs the API server only, on `http://localhost:4000` — it does not serve the UI. Use `npm run dev` if you want the sandbox UI.
+
+## Development
 
 ### Server logging
 
@@ -123,7 +125,7 @@ The `server/src/schemas/generated-schemas/` folder contains JSON Schema files th
 npm run generate-schemas
 ```
 
-The generation script (`scripts/generate-output-schemas.ts`) extracts schema definitions (e.g., `QualityCheckResult`, `Recommendation`, `Provenance`) from the OpenAPI YAML and produces standalone JSON Schema files used for response validation.
+The generation script (`scripts/generate-output-schemas.ts`) extracts the `PatientInformation`, `Report`, and `QualityCheckResult` schema definitions (and everything they reference, e.g. `Recommendation`, `Provenance`) from the OpenAPI YAML and produces standalone JSON Schema files. `patient-information.json` and `report.json` are used to validate and describe tool *inputs*; `quality-check-result.json` is used to validate extension *responses*.
 
 > **Note:** The manifest schema (`radiologists-extension-manifest-schema.json`) is owned by the
 > `tools/dragon-copilot-cli` package and synced into `src/schemas/radiologists/` at dev/build/test

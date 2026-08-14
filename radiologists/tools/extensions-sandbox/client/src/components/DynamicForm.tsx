@@ -28,7 +28,7 @@ interface ToolInputSchema {
   description: string;
   contentType: string;
   required: boolean;
-  schema?: SchemaProperty;
+  schema?: SchemaProperty | null;
 }
 
 interface FieldDefinition {

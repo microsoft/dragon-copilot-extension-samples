@@ -1,9 +1,13 @@
 /**
  * Extracts JSON Schema definitions from the radiologists OpenAPI YAML spec.
  *
- * Reads the OpenAPI document, resolves internal $refs for the target schema
- * (QualityCheckResult) and its transitive dependencies, then writes a
- * standalone JSON Schema file to src/schemas/generated-schemas/.
+ * Reads the OpenAPI document, resolves internal $refs for each target schema
+ * and its transitive dependencies, then writes standalone JSON Schema files to
+ * src/schemas/generated-schemas/.
+ *
+ * Every file in that folder is produced here, so the input schemas the sandbox
+ * validates against (Report, PatientInformation) cannot drift from the OpenAPI
+ * contract the way hand-maintained copies silently would.
  *
  * Usage:  node --loader tsx scripts/generate-output-schemas.ts
  *    or:  npx tsx scripts/generate-output-schemas.ts
@@ -21,6 +25,25 @@ const OPENAPI_PATH = resolve(
   __dirname, '..', 'src', 'schemas', 'radiologists', 'radiologists-extensibility-api.yaml',
 );
 const OUTPUT_DIR = resolve(__dirname, '..', 'src', 'schemas', 'generated-schemas');
+
+interface SchemaTarget {
+  /** Schema name under `components.schemas` in the OpenAPI document. */
+  rootName: string;
+  /** File written to OUTPUT_DIR. */
+  outputFile: string;
+  /**
+   * Used only when the OpenAPI schema carries no `description` of its own.
+   * `Report` has none upstream, so without this the generated file would
+   * regress to the generic "Schema for Report" fallback.
+   */
+  descriptionFallback?: string;
+}
+
+const SCHEMA_TARGETS: SchemaTarget[] = [
+  { rootName: 'QualityCheckResult', outputFile: 'quality-check-result.json' },
+  { rootName: 'Report', outputFile: 'report.json', descriptionFallback: 'Radiology report input.' },
+  { rootName: 'PatientInformation', outputFile: 'patient-information.json' },
+];
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -61,6 +84,7 @@ function collectRefs(node: unknown, refs: Set<string>): void {
 function resolveSchema(
   rootName: string,
   allSchemas: Record<string, Record<string, unknown>>,
+  descriptionFallback?: string,
 ): Record<string, unknown> {
   const needed = new Set<string>();
   const visited = new Set<string>();
@@ -119,7 +143,8 @@ function resolveSchema(
   return {
     $schema: 'http://json-schema.org/draft-07/schema#',
     title: rootName,
-    description: (root['description'] as string) ?? `Schema for ${rootName}`,
+    description:
+      (root['description'] as string) ?? descriptionFallback ?? `Schema for ${rootName}`,
     ...rewritten,
   };
 }
@@ -132,11 +157,11 @@ const specRaw = readFileSync(OPENAPI_PATH, 'utf-8');
 const spec = yaml.load(specRaw) as OpenAPISpec;
 const allSchemas = spec.components.schemas;
 
-// Generate QualityCheckResult schema
-const qualityCheckSchema = resolveSchema('QualityCheckResult', allSchemas);
-
 mkdirSync(OUTPUT_DIR, { recursive: true });
-const outputPath = resolve(OUTPUT_DIR, 'quality-check-result.json');
-writeFileSync(outputPath, JSON.stringify(qualityCheckSchema, null, 2) + '\n', 'utf-8');
 
-console.log(`✓ Generated ${outputPath}`);
+for (const { rootName, outputFile, descriptionFallback } of SCHEMA_TARGETS) {
+  const schema = resolveSchema(rootName, allSchemas, descriptionFallback);
+  const outputPath = resolve(OUTPUT_DIR, outputFile);
+  writeFileSync(outputPath, JSON.stringify(schema, null, 2) + '\n', 'utf-8');
+  console.log(`✓ Generated ${outputPath}`);
+}
