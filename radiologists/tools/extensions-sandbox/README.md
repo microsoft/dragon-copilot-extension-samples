@@ -229,8 +229,9 @@ The service listens on `http://localhost:5080` (https `https://localhost:7080`) 
 1. Start the sample extension (port `5080`, above).
 2. Start the sandbox (`npm run dev` from `extensions-sandbox/`).
 3. Load the shared manifest [`extension.yaml`](../../src/samples/Workflow/extension.yaml) — its `sampleQualityCheckTool` already targets `http://localhost:5080/v1/process`, so there is nothing to edit.
-4. Switch to the **Setup** tab, fill in the report inputs, and click **Run**.
-5. View results in the **Results** and **Outputs** tabs.
+4. Click **Validate**. The Testing panel stays closed until the manifest validates, so this step is required (uploading alone does not open it).
+5. Switch to the **Setup** tab, fill in the report inputs, and click **Run**.
+6. View results in the **Results** and **Outputs** tabs.
 
 ### Example Response
 

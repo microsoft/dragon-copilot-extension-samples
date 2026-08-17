@@ -102,6 +102,11 @@ export function ManifestEditor({ onManifestLoaded, onManifestEditing, onReset }:
   const onManifestEditingRef = useRef(onManifestEditing);
   onManifestEditingRef.current = onManifestEditing;
 
+  // Set while upload/reset writes into the editor, so those programmatic
+  // transactions are not treated as user edits (which would wipe the validation
+  // state the upload handler just set).
+  const isProgrammaticUpdate = useRef(false);
+
   // Initialize CodeMirror
   useEffect(() => {
     if (!editorContainerRef.current) return;
@@ -115,14 +120,15 @@ export function ManifestEditor({ onManifestLoaded, onManifestEditing, onReset }:
         editorTheme,
         cmPlaceholder('No manifest loaded. Upload a file or paste content here.'),
         EditorView.updateListener.of((update) => {
-          if (update.docChanged) {
-            const newText = update.state.doc.toString();
-            setManifestText(newText);
-            setIsValid(null);
-            setValidationMessage('');
-            setErrors([]);
-            onManifestEditingRef.current();
-          }
+          if (!update.docChanged) return;
+
+          setManifestText(update.state.doc.toString());
+          if (isProgrammaticUpdate.current) return;
+
+          setIsValid(null);
+          setValidationMessage('');
+          setErrors([]);
+          onManifestEditingRef.current();
         }),
         EditorView.lineWrapping,
       ],
@@ -146,14 +152,19 @@ export function ManifestEditor({ onManifestLoaded, onManifestEditing, onReset }:
     if (currentText === text) return;
 
     // Replace content and switch language in one transaction
-    view.dispatch({
-      changes: { from: 0, to: currentText.length, insert: text },
-    });
+    isProgrammaticUpdate.current = true;
+    try {
+      view.dispatch({
+        changes: { from: 0, to: currentText.length, insert: text },
+      });
 
-    // Reconfigure language based on content
-    view.dispatch({
-      effects: langCompartment.current.reconfigure(detectLanguage(text)),
-    });
+      // Reconfigure language based on content
+      view.dispatch({
+        effects: langCompartment.current.reconfigure(detectLanguage(text)),
+      });
+    } finally {
+      isProgrammaticUpdate.current = false;
+    }
   }, []);
 
   const uploadFile = useCallback(async (file: File) => {
@@ -161,6 +172,9 @@ export function ManifestEditor({ onManifestLoaded, onManifestEditing, onReset }:
     setErrors([]);
     setIsValid(null);
     setValidationMessage('');
+    // A new manifest invalidates whatever was validated before, so close the
+    // Testing panel until the user validates this one.
+    onReset();
 
     const formData = new FormData();
     formData.append('manifest', file);
@@ -185,16 +199,9 @@ export function ManifestEditor({ onManifestLoaded, onManifestEditing, onReset }:
         return;
       }
 
-      // The server already validated and stored the manifest, so publish the
-      // result rather than making the user press Validate again.
-      setIsValid(true);
-      setErrors([]);
-      setValidationMessage(data.message ?? 'Manifest is valid.');
-      if (data.manifest) {
-        onManifestLoaded(data.manifest);
-      }
-
-      // Pull the canonical stored text back into the editor
+      // Upload succeeded, but the Testing panel stays gated behind an explicit
+      // Validate click, so no validation state is published here. Only the
+      // canonical stored text is pulled back into the editor.
       const rawRes = await fetch('/api/manifest/raw');
       if (rawRes.ok) {
         const rawData = await rawRes.json();
@@ -211,7 +218,7 @@ export function ManifestEditor({ onManifestLoaded, onManifestEditing, onReset }:
     } finally {
       setIsUploading(false);
     }
-  }, [setEditorContent, onManifestLoaded]);
+  }, [setEditorContent, onReset]);
 
   const handleFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];

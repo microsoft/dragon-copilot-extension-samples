@@ -504,7 +504,24 @@ body {
 .dynamic-form {
   display: flex;
   flex-direction: column;
+  gap: 1.5rem;
+}
+
+.dynamic-form-group {
+  display: flex;
+  flex-direction: column;
   gap: 1rem;
+}
+
+.dynamic-form-group-title {
+  margin: 0;
+  padding-bottom: 0.35rem;
+  border-bottom: 1px solid var(--color-border-subtle);
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
 }
 
 .dynamic-form-field {

@@ -34,6 +34,8 @@ interface ToolInputSchema {
 interface FieldDefinition {
   path: string;
   label: string;
+  /** Display name of the input this field belongs to, used as a section heading. */
+  group?: string;
   description: string;
   fieldType: 'text' | 'textarea' | 'number' | 'boolean' | 'dropdown' | 'date' | 'json';
   required: boolean;
@@ -51,6 +53,12 @@ export interface DynamicFormHandle {
   validate: () => boolean;
 }
 
+interface FieldGroup {
+  key: string;
+  title: string | null;
+  fields: FieldDefinition[];
+}
+
 interface DynamicFormProps {
   inputs: ToolInputSchema[];
   values: Record<string, string>;
@@ -66,6 +74,7 @@ export const DynamicForm = forwardRef<DynamicFormHandle, DynamicFormProps>(funct
   const [touched, setTouched] = useState<Record<string, boolean>>({});
 
   const fields = useMemo(() => flattenInputsToFields(inputs), [inputs]);
+  const fieldGroups = useMemo(() => groupFields(fields), [fields]);
 
   const validateField = useCallback((field: FieldDefinition, value: string): string | null => {
     if (field.required && !value.trim()) {
@@ -181,27 +190,33 @@ export const DynamicForm = forwardRef<DynamicFormHandle, DynamicFormProps>(funct
 
   return (
     <div className="dynamic-form">
-      {fields.map((field) => (
-        <div key={field.path} className="dynamic-form-field">
-          <Label className="field-label" required={field.required}>
-            {field.label}
-            {field.fieldType !== 'text' && field.fieldType !== 'textarea' && (
-              <Badge appearance="outline" size="small" className="field-type-badge">
-                {field.fieldType}
-              </Badge>
-            )}
-          </Label>
+      {fieldGroups.map((group) => (
+        <section key={group.key} className="dynamic-form-group">
+          {group.title && <h4 className="dynamic-form-group-title">{group.title}</h4>}
 
-          {renderFieldInput(field, values[field.path] || '', handleChange, handleBlur)}
+          {group.fields.map((field) => (
+            <div key={field.path} className="dynamic-form-field">
+              <Label className="field-label" required={field.required}>
+                {field.label}
+                {field.fieldType !== 'text' && field.fieldType !== 'textarea' && (
+                  <Badge appearance="outline" size="small" className="field-type-badge">
+                    {field.fieldType}
+                  </Badge>
+                )}
+              </Label>
 
-          {field.description && (
-            <p className="field-description">{field.description}</p>
-          )}
+              {renderFieldInput(field, values[field.path] || '', handleChange, handleBlur)}
 
-          {touched[field.path] && errors[field.path] && (
-            <p className="field-error">{errors[field.path]}</p>
-          )}
-        </div>
+              {field.description && (
+                <p className="field-description">{field.description}</p>
+              )}
+
+              {touched[field.path] && errors[field.path] && (
+                <p className="field-error">{errors[field.path]}</p>
+              )}
+            </div>
+          ))}
+        </section>
       ))}
 
       {fields.length === 0 && (
@@ -238,7 +253,7 @@ function renderFieldInput(
         <Checkbox
           checked={value === 'true'}
           onChange={(_, data) => onChange(field, data.checked ? 'true' : 'false')}
-          label={field.description || field.label}
+          aria-label={field.label}
         />
       );
 
@@ -249,7 +264,7 @@ function renderFieldInput(
           value={value}
           onChange={(_, data) => onChange(field, data.value)}
           onBlur={() => onBlur(field)}
-          placeholder={field.description || `Enter ${field.label}`}
+          placeholder={inputPlaceholder(field)}
           min={field.constraints?.minimum}
           max={field.constraints?.maximum}
         />
@@ -284,7 +299,7 @@ function renderFieldInput(
           value={value}
           onChange={(_, data) => onChange(field, data.value)}
           onBlur={() => onBlur(field)}
-          placeholder={field.description || `Enter ${field.label}`}
+          placeholder={inputPlaceholder(field)}
           resize="vertical"
           rows={3}
         />
@@ -297,11 +312,16 @@ function renderFieldInput(
           value={value}
           onChange={(_, data) => onChange(field, data.value)}
           onBlur={() => onBlur(field)}
-          placeholder={field.description || `Enter ${field.label}`}
+          placeholder={inputPlaceholder(field)}
           maxLength={field.constraints?.maxLength}
         />
       );
   }
+}
+
+/** The description renders under the field, so it is not repeated as placeholder text. */
+function inputPlaceholder(field: FieldDefinition): string | undefined {
+  return field.description ? undefined : `Enter ${field.label}`;
 }
 
 /**
@@ -319,7 +339,8 @@ function flattenInputsToFields(inputs: ToolInputSchema[]): FieldDefinition[] {
       for (const [propName, propSchema] of Object.entries(input.schema.properties)) {
         fields.push({
           path: `${input.name}.${propName}`,
-          label: formatLabel(`${input.name} - ${propName}`),
+          label: formatLabel(propName),
+          group: formatLabel(input.name),
           description: propSchema.description || '',
           fieldType: resolveFieldType(propSchema),
           required: input.required && requiredProps.includes(propName),
@@ -394,13 +415,55 @@ function resolveFieldTypeFromInput(input: ToolInputSchema): FieldDefinition['fie
   return 'textarea';
 }
 
+/** Lowercased inside a label unless they lead it, so 'dateOfBirth' reads 'Date of Birth'. */
+const MINOR_WORDS = new Set([
+  'a', 'an', 'and', 'as', 'at', 'by', 'for', 'in', 'of', 'on', 'or', 'the', 'to', 'with',
+]);
+
+/**
+ * Turns an identifier into a human-readable label.
+ * 'reportText' -> 'Report Text', 'dateOfBirth' -> 'Date of Birth', 'patientID' -> 'Patient ID'.
+ */
 function formatLabel(name: string): string {
-  return name
-    .replace(/([A-Z])/g, ' $1')
-    .replace(/[._-]/g, ' ')
-    .replace(/\s+/g, ' ')
-    .replace(/^./, (s) => s.toUpperCase())
-    .trim();
+  const words = name
+    .replace(/[._\-\s]+/g, ' ')
+    // Split camelCase/PascalCase boundaries while keeping acronym runs together:
+    // 'dateOfBirth' -> 'date Of Birth', 'patientID' -> 'patient ID', 'idcURL' -> 'idc URL'
+    .replace(/([a-z0-9])([A-Z])/g, '$1 $2')
+    .replace(/([A-Z]+)([A-Z][a-z])/g, '$1 $2')
+    .replace(/([a-zA-Z])(\d)/g, '$1 $2')
+    .split(' ')
+    .filter(Boolean);
+
+  return words
+    .map((word, index) => {
+      // Preserve acronyms as authored (ID, URL, FHIR)
+      if (word.length > 1 && word === word.toUpperCase()) return word;
+
+      const lower = word.toLowerCase();
+      if (index > 0 && MINOR_WORDS.has(lower)) return lower;
+      return lower.charAt(0).toUpperCase() + lower.slice(1);
+    })
+    .join(' ');
+}
+
+/** Groups fields by their originating input, preserving first-appearance order. */
+function groupFields(fields: FieldDefinition[]): FieldGroup[] {
+  const groups: FieldGroup[] = [];
+  const byKey = new Map<string, FieldGroup>();
+
+  for (const field of fields) {
+    const key = field.group ?? '';
+    let group = byKey.get(key);
+    if (!group) {
+      group = { key: key || '__ungrouped__', title: field.group ?? null, fields: [] };
+      byKey.set(key, group);
+      groups.push(group);
+    }
+    group.fields.push(field);
+  }
+
+  return groups;
 }
 
 /** Returns all field paths that this set of inputs will generate. */
