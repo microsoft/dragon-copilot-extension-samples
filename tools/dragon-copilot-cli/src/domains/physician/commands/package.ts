@@ -1,7 +1,6 @@
 import fs from 'fs-extra';
 const { readFileSync, createWriteStream, pathExists } = fs;
-import yaml from 'js-yaml';
-const { load } = yaml;
+import { load } from 'js-yaml';
 import archiver from 'archiver';
 import path from 'path';
 import chalk from 'chalk';

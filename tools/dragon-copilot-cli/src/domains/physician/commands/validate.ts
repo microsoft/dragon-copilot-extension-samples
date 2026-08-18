@@ -1,7 +1,6 @@
 import fs from 'fs-extra';
 const { readFileSync } = fs;
-import yaml from 'js-yaml';
-const { load } = yaml;
+import { load } from 'js-yaml';
 import chalk from 'chalk';
 import type { DragonExtensionManifest } from '../types.js';
 import { validateExtensionManifest } from '../shared/schema-validator.js';

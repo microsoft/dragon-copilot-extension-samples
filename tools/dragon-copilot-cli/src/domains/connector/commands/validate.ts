@@ -1,7 +1,6 @@
 import fs from 'fs-extra';
 const { readFileSync, existsSync, statSync } = fs;
-import yaml from 'js-yaml';
-const { load } = yaml;
+import { load } from 'js-yaml';
 import path from 'path';
 import chalk from 'chalk';
 import { input, select } from '@inquirer/prompts';
