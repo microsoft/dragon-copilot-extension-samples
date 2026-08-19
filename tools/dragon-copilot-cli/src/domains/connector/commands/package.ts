@@ -55,6 +55,9 @@ export async function packageIntegration(options: PackageOptions): Promise<void>
 
     logMessage(chalk.blue(`\n📦 Creating package: ${outputPath}`), isQuiet);
     logMessage(chalk.gray(`📄 Integration: ${manifest.name} v${manifest.version}`), isQuiet);
+    if (manifest['publisher-name']) {
+      logMessage(chalk.gray(`🏢 Publisher: ${manifest['publisher-name']}`), isQuiet);
+    }
     logMessage(chalk.gray(`🩺 Clinical application: ${manifest['clinical-application-name']}`), isQuiet);
     logMessage(chalk.gray(`🔑 Partner ID: ${manifest['partner-id']}`), isQuiet);
     logMessage(chalk.gray(`🔐 Server authentication issuers: ${manifest['server-authentication'].length}`), isQuiet);

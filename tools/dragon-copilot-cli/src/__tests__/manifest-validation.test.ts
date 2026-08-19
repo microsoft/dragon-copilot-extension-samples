@@ -48,6 +48,7 @@ function buildValidPartnerManifest(): ConnectorIntegrationManifest {
     name: 'sample-partner',
     description: 'Connector Manifest used for validation tests',
     version: '0.9.9',
+    'publisher-name': 'Sample Partner, Inc.',
     'partner-id': '00000000-0000-0000-0000-000000000001',
     'clinical-application-name': 'Test EHR System',
     'server-authentication': [
@@ -57,10 +58,6 @@ function buildValidPartnerManifest(): ConnectorIntegrationManifest {
         'identity-value': ['a0bb517c-d6de-449f-bfe4-f0bc3f912c66'],
       },
     ],
-    'note-sections': {
-      hpi: ['hpi'],
-      assessment: ['assessment', 'plan'],
-    },
     instance: {
       'client-authentication': {
         'allow-multiple-issuers': 'yes',
@@ -227,6 +224,26 @@ describe('validateConnectorManifest', () => {
 
     expect(result.isValid).toBe(true);
     expect(result.errors).toHaveLength(0);
+  });
+
+  it('allows publisher-name to be omitted', () => {
+    const manifest = buildValidPartnerManifest();
+    delete manifest['publisher-name'];
+
+    const result = validateConnectorManifest(manifest);
+
+    expect(result.isValid).toBe(true);
+    expect(result.errors).toHaveLength(0);
+  });
+
+  it('rejects obsolete note-sections when present', () => {
+    const manifest = buildValidPartnerManifest();
+    (manifest as any)['note-sections'] = { assessment: ['assessment', 'plan'] };
+
+    const result = validateConnectorManifest(manifest);
+
+    expect(result.isValid).toBe(false);
+    expect(result.errors.some(error => error.keyword === 'additionalProperties')).toBe(true);
   });
 
   it('provides schema errors when partner-id is not a valid GUID', () => {

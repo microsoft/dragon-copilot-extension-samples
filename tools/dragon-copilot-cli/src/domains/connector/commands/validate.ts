@@ -276,6 +276,9 @@ export async function validateManifest(filePath: string): Promise<void> {
   const partnerId = requireString(manifest['partner-id'], 'partner-id');
     requireString(manifest.name, 'name');
     requireString(manifest.description, 'description');
+    if (manifest['publisher-name'] !== undefined) {
+      requireString(manifest['publisher-name'], 'publisher-name');
+    }
 
     if (manifest.name && !/^[a-z0-9][a-z0-9-]*[a-z0-9]$/.test(manifest.name)) {
       errors.push('name: Must be lowercase with hyphens only (e.g., my-integration), starting and ending with a letter or number');
@@ -317,29 +320,6 @@ export async function validateManifest(filePath: string): Promise<void> {
           });
         }
       });
-    }
-
-    if (manifest['note-sections']) {
-      Object.entries(manifest['note-sections'] as Record<string, unknown>).forEach(([key, value]) => {
-        if (value === null) {
-          return;
-        }
-        if (Array.isArray(value)) {
-          value.forEach((item, itemIndex) => {
-            if (typeof item !== 'string' || !item.trim()) {
-              errors.push(`note-sections['${key}'][${itemIndex}]: Must be a non-empty string`);
-            }
-          });
-        } else if (typeof value === 'string') {
-          if (!value.trim()) {
-            errors.push(`note-sections['${key}']: Must be a non-empty string or array of strings`);
-          }
-        } else {
-          errors.push(`note-sections['${key}']: Must be null, a string, or an array of strings`);
-        }
-      });
-    } else {
-      warnings.push('note-sections: Not defined; Dragon Copilot default sections will be used');
     }
 
     const instance = manifest.instance as ConnectorIntegrationManifest['instance'] | undefined;
@@ -425,9 +405,11 @@ export async function validateManifest(filePath: string): Promise<void> {
       console.log(chalk.gray(`  Name: ${manifest.name}`));
       console.log(chalk.gray(`  Description: ${manifest.description}`));
       console.log(chalk.gray(`  Version: ${manifest.version}`));
+  if (manifest['publisher-name']) {
+    console.log(chalk.gray(`  Publisher: ${manifest['publisher-name']}`));
+  }
   console.log(chalk.gray(`  Partner ID: ${manifest['partner-id']}`));
   console.log(chalk.gray(`  Server authentication issuers: ${manifest['server-authentication']?.length || 0}`));
-  console.log(chalk.gray(`  Note sections configured: ${Object.keys(manifest['note-sections'] ?? {}).length}`));
   console.log(chalk.gray(`  Context retrieval items: ${manifest.instance?.['context-retrieval']?.instance?.length || 0}`));
     }
 

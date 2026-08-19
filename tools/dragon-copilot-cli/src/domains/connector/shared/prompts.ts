@@ -11,9 +11,10 @@ import type {
   ServerAuthenticationEntry,
   YesNo
 } from '../types.js';
-import { getDefaultManifestNoteSections } from './note-sections.js';
 import { buildIntegrationDescription } from './integration-description.js';
 import { CONTEXT_ITEM_CATALOG } from './context-items.js';
+
+const DEFAULT_PUBLISHER_NAME = 'Sample Partner, Inc.';
 
 const WEB_LAUNCH_FIELD_TYPE_CHOICES = [
   { name: 'URL', value: 'url' },
@@ -191,6 +192,12 @@ const gatherIntegrationDetails = async (
     validate: validateVersion
   });
 
+  const publisherName = await input({
+    message: 'Publisher display name:',
+    default: defaults?.publisherName || DEFAULT_PUBLISHER_NAME,
+    validate: validateRequiredText('Publisher display name')
+  });
+
   logInfo('Partner ID should match the identifier from your app source (e.g., Microsoft Partner Center).');
   logInfo('If you have not received a Partner ID yet, you can generate a GUID now and use it in the manifest.');
 
@@ -232,6 +239,7 @@ const gatherIntegrationDetails = async (
     rawName: trimmedName,
     description,
     version,
+    publisherName: publisherName.trim(),
     partnerId,
     clinicalApplicationName
   };
@@ -248,6 +256,7 @@ const summarizeIntegrationDetails = (details: IntegrationDetails): string[] => {
   summary.push(
     `Description: ${details.description}`,
     `Version: ${details.version}`,
+    `Publisher: ${details.publisherName}`,
     `Partner ID: ${details.partnerId}`,
     `Clinical application: ${details.clinicalApplicationName}`
   );
@@ -709,10 +718,6 @@ export async function runConnectorManifestWizard(
     summarizeServerAuthentication
   );
 
-  logSectionHeading('📝', 'Note Sections');
-  logInfo('Note sections are no longer used by Dragon backend services but remain required by the Dragon Admin Center, so a default mapping is included automatically.');
-  const noteSections = getDefaultManifestNoteSections();
-
   logSectionHeading('⚙️', 'Instance Configuration');
   console.log('');
   const { clientAuth, webLaunchSof, webLaunchToken } = await collectWithReview(
@@ -747,10 +752,10 @@ export async function runConnectorManifestWizard(
     name: integration.name,
     description: integration.description,
     version: integration.version,
+    'publisher-name': integration.publisherName,
     'partner-id': integration.partnerId,
     'clinical-application-name': integration.clinicalApplicationName,
     'server-authentication': serverAuthentication,
-    'note-sections': noteSections,
     instance
   };
 }
