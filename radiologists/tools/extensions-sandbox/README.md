@@ -96,15 +96,17 @@ extensions-sandbox/
 └── server/               # Express backend
     ├── scripts/
     │   ├── generate-output-schemas.ts  # Generates JSON Schemas from OpenAPI spec
-    │   └── sync-cli-schemas.ts         # Syncs the manifest schema from the CLI source
+    │   └── sync-schemas.ts             # Syncs the manifest schema and OpenAPI spec from their owners
     ├── src/
     │   ├── index.ts      # Server entry point
     │   ├── schemas/
     │   │   ├── radiologists/
     │   │   │   ├── radiologists-extension-manifest-schema.json  # Synced from the CLI (git-ignored)
-    │   │   │   └── radiologists-extensibility-api.yaml          # Local copy of the OpenAPI spec
+    │   │   │   └── radiologists-extensibility-api.yaml          # Synced from radiologists/ (git-ignored)
     │   │   ├── generated-schemas/      # Auto-generated (do not edit by hand)
-    │   │   │   └── quality-check-result.json
+    │   │   │   ├── patient-information.json
+    │   │   │   ├── quality-check-result.json
+    │   │   │   └── report.json
     │   │   └── manifest.schema.ts      # TypeScript types for manifests
     │   ├── routes/
     │   │   └── manifest.ts
@@ -127,12 +129,14 @@ npm run generate-schemas
 
 The generation script (`scripts/generate-output-schemas.ts`) extracts the `PatientInformation`, `Report`, and `QualityCheckResult` schema definitions (and everything they reference, e.g. `Recommendation`, `Provenance`) from the OpenAPI YAML and produces standalone JSON Schema files. `patient-information.json` and `report.json` are used to validate and describe tool *inputs*; `quality-check-result.json` is used to validate extension *responses*.
 
-> **Note:** The manifest schema (`radiologists-extension-manifest-schema.json`) is owned by the
-> `tools/dragon-copilot-cli` package and synced into `src/schemas/radiologists/` at dev/build/test
-> time by `scripts/sync-cli-schemas.ts` (the local copy is git-ignored — the CLI is the single
-> source of truth). The OpenAPI spec (`radiologists-extensibility-api.yaml`) is still a local copy
-> from `diag-radex-extension-service` and will be replaced with an internal package reference once
-> the service publishes its authoritative version.
+> **Note:** The sandbox owns neither contract it validates against. Both are synced into
+> `src/schemas/radiologists/` at dev/build/test time by `scripts/sync-schemas.ts`, and both local
+> copies are git-ignored so the upstream copy stays the single source of truth:
+> the manifest schema (`radiologists-extension-manifest-schema.json`) is owned by the
+> `tools/dragon-copilot-cli` package, and the OpenAPI spec (`radiologists-extensibility-api.yaml`)
+> is owned by `radiologists/`. `src/__tests__/schema-sync.test.ts` fails if either copy drifts from
+> its source. The OpenAPI spec will be replaced with an internal package reference once
+> `diag-radex-extension-service` publishes its authoritative version.
 
 ## API Endpoints
 

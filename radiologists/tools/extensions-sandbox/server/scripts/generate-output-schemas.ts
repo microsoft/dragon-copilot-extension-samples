@@ -9,11 +9,14 @@
  * validates against (Report, PatientInformation) cannot drift from the OpenAPI
  * contract the way hand-maintained copies silently would.
  *
+ * The spec itself is synced in by scripts/sync-schemas.ts and is git-ignored,
+ * so `npm run generate-schemas` runs that first.
+ *
  * Usage:  node --loader tsx scripts/generate-output-schemas.ts
  *    or:  npx tsx scripts/generate-output-schemas.ts
  */
 
-import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
+import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import yaml from 'js-yaml';
@@ -152,6 +155,14 @@ function resolveSchema(
 // ---------------------------------------------------------------------------
 // Main
 // ---------------------------------------------------------------------------
+
+if (!existsSync(OPENAPI_PATH)) {
+  console.error(
+    `[generate-output-schemas] OpenAPI spec not found at:\n  ${OPENAPI_PATH}\n` +
+      'It is synced in from radiologists/ and git-ignored. Run `npm run sync-schemas` first.',
+  );
+  process.exit(1);
+}
 
 const specRaw = readFileSync(OPENAPI_PATH, 'utf-8');
 const spec = yaml.load(specRaw) as OpenAPISpec;

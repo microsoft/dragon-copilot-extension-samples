@@ -4,12 +4,12 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
-    "sync-schemas": "tsx scripts/sync-cli-schemas.ts",
-    "generate-schemas": "tsx scripts/generate-output-schemas.ts",
+    "sync-schemas": "tsx scripts/sync-schemas.ts",
+    "generate-schemas": "npm run sync-schemas && tsx scripts/generate-output-schemas.ts",
     "dev": "npm run sync-schemas && tsx watch --conditions=development src/index.ts",
-    "build": "npm run sync-schemas && npm run generate-schemas && tsc -p tsconfig.json && cpy \"src/schemas/**/*.json\" dist/schemas",
+    "build": "npm run generate-schemas && tsc -p tsconfig.json && cpy \"src/schemas/**/*.json\" dist/schemas",
     "start": "node dist/index.js",
-    "test": "npm run sync-schemas && npm run generate-schemas && vitest run",
+    "test": "npm run generate-schemas && vitest run",
     "clean": "rimraf dist"
   },
   "engines": {

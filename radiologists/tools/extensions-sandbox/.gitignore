@@ -2,5 +2,7 @@ node_modules/
 dist/
 *.tsbuildinfo
 
-# Synced from tools/dragon-copilot-cli at build time — do not commit (single source of truth is the CLI).
+# Synced from their owning locations at build time — do not commit (see server/scripts/sync-schemas.ts).
+# Source of truth for the manifest schema is tools/dragon-copilot-cli; for the OpenAPI spec it is radiologists/.
 server/src/schemas/radiologists/radiologists-extension-manifest-schema.json
+server/src/schemas/radiologists/radiologists-extensibility-api.yaml
