@@ -1,4 +1,9 @@
-import type { NoteSectionValue } from '../types.js';
+/**
+ * Dormant note-section helpers retained for a possible future manifest reintroduction.
+ * Current connector generation, validation, and schema code must not import this module.
+ */
+
+export type NoteSectionValue = string | string[] | null;
 
 export const NOTE_SECTION_ORDER = [
   'hpi',
@@ -94,13 +99,6 @@ export const normalizeNoteSections = (
 export const getDefaultNoteSections = (): Record<NoteSectionKey, NoteSectionValue> =>
   normalizeNoteSections(DEFAULT_NOTE_SECTION_VALUES);
 
-/**
- * Static default note-sections mapping written to generated connector manifests.
- *
- * Note sections are no longer used by Dragon backend services, but the Dragon Admin
- * Center still requires the `note-sections` block to be present when uploading a
- * connector. This 1:1 mapping satisfies that requirement without prompting the user.
- */
 const MANIFEST_NOTE_SECTION_KEYS = [...NOTE_SECTION_ORDER, 'plan'] as const;
 type ManifestNoteSectionKey = (typeof MANIFEST_NOTE_SECTION_KEYS)[number];
 
