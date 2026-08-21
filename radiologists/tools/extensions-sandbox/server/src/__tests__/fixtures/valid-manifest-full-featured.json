@@ -1,0 +1,52 @@
+{
+  "name": "fullFeaturedExtension",
+  "description": "Extension using all optional fields",
+  "version": "2.1.0",
+  "radiologistsExtensibilityApiVersion": "0.0.1",
+  "auth": {
+    "tenantId": "aabbccdd-1122-3344-5566-778899aabbcc"
+  },
+  "tools": [
+    {
+      "name": "brainMriQuality",
+      "toolType": "contractBased",
+      "capability": "qualityCheck",
+      "description": "Quality check for brain MRI reports",
+      "endpoint": "https://api.example.com/v1/process",
+      "inputs": [
+        {
+          "name": "report",
+          "description": "Current radiology report",
+          "content-type": "application/vnd.ms-dragon.rad.report+json",
+          "schemaVersion": "0.0",
+          "required": true
+        },
+        {
+          "name": "patient-info",
+          "description": "Patient demographics",
+          "content-type": "application/vnd.ms-dragon.rad.patient-information+json",
+          "schemaVersion": "0.0",
+          "required": false
+        }
+      ],
+      "outputs": [
+        {
+          "name": "quality-result",
+          "description": "Report quality findings",
+          "content-type": "application/vnd.ms-dragon.rad.quality-check-result+json",
+          "schemaVersion": "0.0"
+        }
+      ],
+      "relevanceFilteringCriteria": {
+        "relevantBodyParts": ["BRAIN"],
+        "relevantModalities": ["MR"]
+      },
+      "configurationTemplate": {
+        "type": "object",
+        "properties": {
+          "language": { "type": "string", "default": "en" }
+        }
+      }
+    }
+  ]
+}
