@@ -12,7 +12,6 @@ import { ArrowCounterclockwiseRegular, CodeRegular, CopyRegular } from '@fluentu
 import { DynamicForm, getFieldPaths, SchemaProperty } from './DynamicForm';
 import type { DynamicFormHandle } from './DynamicForm';
 import { AuthSettings } from './AuthSettings';
-import { parseAndGroupInputs } from 'extensions-sandbox-shared';
 import './ValidationResults.css';
 
 interface ToolInput {
@@ -240,32 +239,12 @@ export function TestingPanel({ manifestInfo, manifestRevision }: TestingPanelPro
     setExpandedChecks(new Set());
     setInputValidationErrors(null);
 
-    // --- Input schema validation ---
-    const groupedInputs = parseAndGroupInputs(inputValues);
-
-    try {
-      const inputValRes = await fetch(`/api/validate/inputs/${encodeURIComponent(selectedTool)}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ inputs: groupedInputs }),
-      });
-
-      if (inputValRes.status === 422) {
-        const inputValData = await inputValRes.json();
-        const failedResults = (inputValData.results || []).filter((r: InputValidationError) => !r.valid);
-        if (failedResults.length > 0) {
-          setInputValidationErrors(failedResults);
-          setIsExecuting(false);
-          return;
-        }
-      }
-    } catch (err) {
-      console.warn('[InputValidation] Validation endpoint unavailable, proceeding without input validation:', err);
-    }
-
     const startTime = performance.now();
 
     try {
+      // The server validates the inputs before calling the extension and the
+      // response after, returning both results here. Doing it in one call
+      // means a failure of the validation step cannot be skipped past.
       const response = await fetch('/api/manifest/execute', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -281,34 +260,38 @@ export function TestingPanel({ manifestInfo, manifestRevision }: TestingPanelPro
 
       const data = await response.json();
 
+      // 422 – inputs did not match their declared schema, so no call was made.
+      if (response.status === 422) {
+        const failedResults = (data.inputValidation || []).filter(
+          (r: InputValidationError) => !r.valid,
+        );
+        setInputValidationErrors(
+          failedResults.length > 0
+            ? failedResults
+            : [{
+                valid: false,
+                inputName: '*',
+                inputContentType: 'unknown',
+                checks: [{ check: 'Input validation', passed: false, error: data.error }],
+                summary: { passed: 0, failed: 1 },
+              }],
+        );
+        setActiveTab('setup');
+        return;
+      }
+
       if (response.ok) {
         setResult(data);
 
-        // Run validation on the response
-        // payload is a map keyed by output name (e.g. {"qualityCheckResult": {...}}) –
-        // extract the first output's value for schema validation.
-        const payloadMap = data.processResponse?.payload;
-        const responsePayload = payloadMap
-          ? Object.values(payloadMap)[0] ?? {}
-          : data.rawBody ?? {};
-        try {
-          const valRes = await fetch(`/api/validate/${encodeURIComponent(selectedTool)}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ response: responsePayload }),
+        if (data.validation) {
+          const valData: ValidationResult = data.validation;
+          setValidationResult(valData);
+          // Auto-expand failed checks
+          const failedIndices = new Set<number>();
+          valData.checks.forEach((c, i) => {
+            if (!c.passed && c.error) failedIndices.add(i);
           });
-          if (valRes.ok || valRes.status === 422) {
-            const valData: ValidationResult = await valRes.json();
-            setValidationResult(valData);
-            // Auto-expand failed checks
-            const failedIndices = new Set<number>();
-            valData.checks.forEach((c, i) => {
-              if (!c.passed && c.error) failedIndices.add(i);
-            });
-            setExpandedChecks(failedIndices);
-          }
-        } catch {
-          // Validation call failed silently – results tab will show execution result only
+          setExpandedChecks(failedIndices);
         }
       } else {
         setExecuteError({

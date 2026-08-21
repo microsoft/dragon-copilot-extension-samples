@@ -1,6 +1,5 @@
 import { randomUUID } from 'node:crypto';
 import type { ManifestTool } from '../schemas/manifest.schema.js';
-import { parseAndGroupInputs } from 'extensions-sandbox-shared';
 import { createLogger } from '../utils/logger.js';
 
 const log = createLogger('extension-call');
@@ -47,7 +46,12 @@ export interface ProcessResponse {
  */
 export interface ExecuteToolOptions {
   tool: ManifestTool;
-  inputs: Record<string, string>;
+  /**
+   * Tool inputs, already parsed and grouped into the nested objects the
+   * extension expects (see `parseAndGroupInputs`). The caller parses so that
+   * it can validate the same payload that is sent on the wire.
+   */
+  inputs: Record<string, unknown>;
   customerTenantId: string;
   /** Extensibility API version from the manifest, echoed into the ProcessRequest. */
   extensibilityApiVersion?: string;
@@ -117,20 +121,19 @@ export function buildProcessRequest(
  *    EntraAuth client-credentials flow)
  * 4. POSTs JSON to tool.endpoint
  * 5. Expects a ProcessResponse envelope back
+ *
+ * Inputs must already be parsed and grouped by the caller — the route parses
+ * once, validates that payload, then hands the same object here, so what is
+ * validated is exactly what is sent.
  */
 export async function callExtensionAsync(
   options: ExecuteToolOptions,
 ): Promise<ExecuteToolResult> {
-  const { tool, inputs, customerTenantId, extensibilityApiVersion, bearerToken, timeoutMs = 30000 } = options;
+  const { tool, inputs: parsedInputs, customerTenantId, extensibilityApiVersion, bearerToken, timeoutMs = 30000 } = options;
 
   if (!tool.endpoint) {
     throw new Error('Tool endpoint is not configured.');
   }
-
-  // Parse input values from strings to objects and group dot-delimited field
-  // paths (e.g. "report.reportText") into nested objects keyed by input name,
-  // so they map onto the ProcessRequest's named-input properties.
-  const parsedInputs = parseAndGroupInputs(inputs);
 
   const processRequest = buildProcessRequest(tool, parsedInputs, {
     customerTenantId,

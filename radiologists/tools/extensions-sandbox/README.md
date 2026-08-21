@@ -159,7 +159,13 @@ All routes are served under `http://localhost:4000`.
 | DELETE | /api/manifest                                     | Clear the session manifest                                              |
 | GET    | /api/manifest/capabilities                        | List capabilities, grouped by each tool's `capability` field            |
 | GET    | /api/manifest/capabilities/:capabilityName/tools  | List the tools defined under a given capability                         |
-| POST   | /api/manifest/execute                             | Execute a tool: parse inputs, call the endpoint the manifest declares, validate the response |
+| POST   | /api/manifest/execute                             | Execute a tool: validate the inputs, POST a `ProcessRequest` to the endpoint the manifest declares, then validate the response |
+
+`/api/manifest/execute` validates on both sides of the call. Inputs are checked against the schemas
+for their declared content-types before the extension is reached — a failure returns `422` and no
+call is made — and the returned payload is checked against the tool's output schema. Both results
+come back in the response body, as `inputValidation` and `validation`. The `/api/validate/*` routes
+below expose the same checks individually, for validating a payload without executing anything.
 
 ### Validation
 
@@ -198,7 +204,7 @@ Runtime — so that a manifest which works here works when deployed.
    (`report.reportText`) and are grouped into the nested objects the extension expects. Each input
    is then validated against the JSON Schema for its declared content-type
    (e.g. `application/vnd.ms-dragon.rad.report+json`), generated from the Extensibility API
-   OpenAPI spec.
+   OpenAPI spec. Inputs that fail are reported and the call is not made.
 5. **Call the extension.** The validated inputs are wrapped in a `ProcessRequest` envelope and
    POSTed to the endpoint the manifest declares. When authentication is enabled, the server
    acquires an Entra token via client credentials and attaches it as a `Bearer` token; the secret
@@ -206,6 +212,9 @@ Runtime — so that a manifest which works here works when deployed.
 6. **Validate the response.** The returned `ProcessResponse` payload is validated against the
    output schema for the tool's declared output content-type. Results are stored in the session so
    they can be reviewed in the **Results** and **Outputs** tabs.
+
+Steps 4–6 all happen inside `POST /api/manifest/execute`, so the validation cannot be skipped by
+calling the API directly — the UI renders what that one call returns.
 
 The client never talks to your extension directly — every call is proxied through the server, which
 is where schema loading, validation, and token acquisition live.

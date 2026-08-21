@@ -13,6 +13,7 @@ import { parseCapabilities } from '../utils/capabilities-parser.js';
 import { MANIFEST_SCHEMA_PATH } from '../utils/schema-path.js';
 import { callExtensionAsync, buildProcessRequest } from '../services/extension-client.js';
 import { acquireToken, buildClaimChecks, AuthError } from '../services/auth.js';
+import { validateToolInputs, validateToolResponse } from '../services/validation.js';
 import { parseAndGroupInputs } from 'extensions-sandbox-shared';
 import { createLogger } from '../utils/logger.js';
 
@@ -346,6 +347,13 @@ manifestRouter.get('/raw', (_req, res) => {
  * Dragon Copilot (radiologists) Extensibility API contract — a ProcessRequest
  * envelope in, a ProcessResponse envelope out (see radiologists-extensibility-api.yaml).
  *
+ * Schema validation is performed here rather than being left to the caller:
+ * inputs are validated against the schemas for their declared content-types
+ * before the extension is called (a failure returns 422 and no call is made),
+ * and the response payload is validated against the tool's output schema
+ * before returning. Both results are included in the response body, so a
+ * partner driving this endpoint directly gets the same guarantees as the UI.
+ *
  * Body:
  *   - capability: string (required)
  *   - tool: string (required)
@@ -399,6 +407,31 @@ manifestRouter.post('/execute', async (req, res) => {
   // invalidates prior results (the endpoint or manifest may have changed).
   sessionStore.clearValidationResults();
 
+  // Parse input values from strings to objects and group dot-delimited field
+  // paths (e.g. "report.reportText") into nested objects keyed by input name,
+  // so they map onto the ProcessRequest's named-input properties. Parsed once
+  // here so the payload that is validated is the payload that is sent.
+  const parsedInputs = parseAndGroupInputs(inputs ?? {});
+
+  // Validate the inputs against the schemas for their declared content-types
+  // before making the call. Forwarding a payload the platform would reject
+  // makes the sandbox report success on something that cannot ship, so this
+  // fails closed rather than warning and continuing.
+  const inputValidation = validateToolInputs(toolName, parsedInputs);
+  if (inputValidation.some((r) => !r.valid)) {
+    const failed = inputValidation.filter((r) => !r.valid).length;
+    log.warn(
+      `Execute rejected: input validation failed for tool '${toolName}' — ` +
+      `${failed} of ${inputValidation.length} input(s) do not match their declared schema (422).`,
+    );
+    res.status(422).json({
+      error: 'Input validation failed. The extension was not called.',
+      cause: 'One or more inputs do not match the schema for their declared content-type.',
+      inputValidation,
+    });
+    return;
+  }
+
   // When service-to-service authentication is enabled, acquire an Entra ID
   // access token (client credentials flow) and forward it as a Bearer token.
   // When disabled, fall back to any bearerToken supplied directly in the body
@@ -436,7 +469,7 @@ manifestRouter.post('/execute', async (req, res) => {
   try {
     const result = await callExtensionAsync({
       tool,
-      inputs: inputs ?? {},
+      inputs: parsedInputs,
       customerTenantId: customerTenantId || '00000000-0000-0000-0000-000000000000',
       extensibilityApiVersion: manifest.radiologistsExtensibilityApiVersion,
       bearerToken: resolvedToken,
@@ -447,6 +480,16 @@ manifestRouter.post('/execute', async (req, res) => {
       `Recognized ProcessResponse envelope: ${result.processResponse ? 'yes' : 'no'}.`,
     );
 
+    // Validate the returned payload against the tool's declared output schema.
+    // A ProcessResponse carries named outputs under `payload`; take the first
+    // one, falling back to the raw body when the envelope was not recognized.
+    const payloadMap = result.processResponse?.payload;
+    const responsePayload = payloadMap
+      ? Object.values(payloadMap)[0] ?? {}
+      : result.rawBody ?? {};
+    const validation = validateToolResponse(toolName, responsePayload);
+    sessionStore.addValidationResult(validation);
+
     res.json({
       status: result.status,
       statusText: result.statusText,
@@ -456,6 +499,8 @@ manifestRouter.post('/execute', async (req, res) => {
       sentRequest: result.sentRequest,
       authenticated: authConfig.enabled,
       claimChecks: claimChecks ?? null,
+      inputValidation,
+      validation,
     });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : 'Unknown error';
@@ -529,7 +574,6 @@ manifestRouter.post('/execute', async (req, res) => {
     // Build the request that was attempted so the Outputs tab can display it
     let sentRequest: unknown;
     try {
-      const parsedInputs = parseAndGroupInputs(inputs ?? {});
       sentRequest = buildProcessRequest(tool, parsedInputs, {
         customerTenantId: customerTenantId || '00000000-0000-0000-0000-000000000000',
         extensibilityApiVersion: manifest.radiologistsExtensibilityApiVersion,
