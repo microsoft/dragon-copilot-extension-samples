@@ -57,7 +57,7 @@ Start the sample and use the instructions in your selected README to:
 After local verification, use the extensions sandbox to run the manifest-configured request and review validated outputs before packaging.
 
 1. Keep your extension running.
-2. Start the sandbox and open it in your browser. For setup details, see the [sandbox README](https://github.com/microsoft/dragon-copilot-extension-samples/blob/main/tools/extensions-sandbox/README.md).
+2. Start the sandbox and open it in your browser. For setup details, see the [sandbox README](https://github.com/microsoft/dragon-copilot-extension-samples/tree/main/radiologists/tools/extensions-sandbox).
 3. For your first run, upload the [sample manifest](https://github.com/microsoft/dragon-copilot-extension-samples/blob/main/radiologists/src/samples/Workflow/extension.yaml).
 4. Set the tool endpoint to your running service (for example, `http://localhost:5080/v1/process`).
 5. Fill in the inputs and click **Run**.
@@ -127,11 +127,11 @@ devtunnel host radiologists-quickstart
 For production authentication setup, follow the [Authentication guide](https://github.com/microsoft/dragon-copilot-extension-samples/blob/main/doc/Authentication.md) and complete these onboarding steps:
 
 1. Register the `Microsoft.HealthPlatform` resource provider in your Azure subscription (one-time per tenant).
-2. Create an Entra app registration for your extension (see [One-time setup in partner tenant](https://github.com/microsoft/dragon-copilot-extension-samples/blob/main/tools/extensions-sandbox/README.md#one-time-setup-in-the-partner-tenant) for the App ID URI format and PowerShell commands).
+2. Create an Entra app registration for your extension (see [One-time setup in partner tenant](https://github.com/microsoft/dragon-copilot-extension-samples/tree/main/radiologists/tools/extensions-sandbox#one-time-setup-in-the-partner-tenant) for the App ID URI format and PowerShell commands).
 3. Configure token settings (`idtyp` optional claim and `requestedAccessTokenVersion = 2`).
 4. Enable authentication in sample config and set `TenantId`, `ClientId`, and `RequiredClaims.azp`.
 
 ## Next steps
 
-- [Enable and test authentication in the extensions sandbox](https://github.com/microsoft/dragon-copilot-extension-samples/blob/main/tools/extensions-sandbox/README.md#testing-the-authentication-feature).
+- [Enable and test authentication in the extensions sandbox](https://github.com/microsoft/dragon-copilot-extension-samples/tree/main/radiologists/tools/extensions-sandbox#testing-the-authentication-feature).
 - Update your manifest with your deployed endpoint and production tenant settings.
