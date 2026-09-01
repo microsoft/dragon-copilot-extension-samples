@@ -69,4 +69,3 @@ dragon-copilot radiologists package
 - `generate` requires either `--template <name>` (currently only `quality-check`) or `--interactive`. Use `--interactive` to add more tools to an existing manifest.
 - A manifest must declare at least one tool to pass `validate`.
 - Run `dragon-copilot radiologists --help` (or `dragon-copilot radiologists <command> --help`) for all options.
-- The scaffold commands prompt for a **tenant ID** (your Microsoft Entra/Azure AD directory GUID). For local testing, you can use `00000000-0000-0000-0000-000000000000` (the sample value) and set your real value later (see [Configure production security and tenant setup](./QUICKSTART.md#configure-production-security-and-tenant-setup)).
