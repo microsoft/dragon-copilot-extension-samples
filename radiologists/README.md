@@ -1,4 +1,4 @@
-﻿in l# Dragon Copilot (radiologists) Extension Samples
+﻿Dragon Copilot (radiologists) Extension Samples
 
 Welcome! This section contains sample code and documentation for building **Dragon Copilot (radiologists)** extensions. You can read, play with, or adapt from these samples to create your own extensions.
 
