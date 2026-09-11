@@ -1,7 +1,6 @@
 import fs from 'fs-extra';
 const { readFileSync, createWriteStream, pathExists } = fs;
-import yaml from 'js-yaml';
-const { load } = yaml;
+import { load } from 'js-yaml';
 import archiver from 'archiver';
 import chalk from 'chalk';
 import { logMessage } from '../../../common/index.js';

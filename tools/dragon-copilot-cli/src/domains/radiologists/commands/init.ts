@@ -1,8 +1,7 @@
 import { confirm } from '@inquirer/prompts';
 import fs from 'fs-extra';
 const { writeFileSync } = fs;
-import yaml from 'js-yaml';
-const { dump } = yaml;
+import { dump } from 'js-yaml';
 import path from 'path';
 import chalk from 'chalk';
 import type {
