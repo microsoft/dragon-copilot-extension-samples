@@ -6,6 +6,8 @@ import archiver from 'archiver';
 import chalk from 'chalk';
 import { logMessage } from '../../../common/index.js';
 import type { PackageOptions, ConnectorIntegrationManifest } from '../types.js';
+import { validateConnectorManifest } from '../shared/schema-validator.js';
+import type { SchemaError } from '../shared/schema-validator.js';
 
 export async function packageIntegration(options: PackageOptions): Promise<void> {
   const isQuiet = options.silent || process.env.NODE_ENV === 'test';
@@ -31,20 +33,16 @@ export async function packageIntegration(options: PackageOptions): Promise<void>
     const manifestContent = readFileSync(manifestPath, 'utf8');
     const manifest = load(manifestContent) as ConnectorIntegrationManifest;
 
-    // Basic validation
-    if (
-      !manifest.name ||
-      !manifest.description ||
-      !manifest.version ||
-      !manifest['partner-id'] ||
-      !manifest['clinical-application-name']
-    ) {
-      logMessage(chalk.red('❌ Integration manifest validation failed: Missing required fields'), isQuiet);
-      throw new Error('Integration manifest validation failed');
-    }
-
-    if (!Array.isArray(manifest['server-authentication']) || manifest['server-authentication'].length === 0) {
-      logMessage(chalk.red('❌ Integration manifest validation failed: server-authentication requires at least one issuer entry'), isQuiet);
+     // Run schema validation
+    const schemaResult = validateConnectorManifest(manifest);
+    if (schemaResult.errors.length > 0) {
+      logMessage(chalk.red('❌ Integration manifest validation failed:'), isQuiet);
+      schemaResult.errors.forEach((error: SchemaError) => {
+        const fieldPath = error.instancePath.replace(/^\//, '').replace(/\//g, '.');
+        const fieldName = fieldPath || 'manifest';
+        const extra = error.keyword === 'additionalProperties' ? ` (${error.params.additionalProperty})` : '';
+        logMessage(chalk.red(`  • ${fieldName}: ${error.message}${extra}`), isQuiet);
+      });
       throw new Error('Integration manifest validation failed');
     }
 
