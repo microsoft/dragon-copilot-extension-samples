@@ -27,18 +27,9 @@ export async function runValidateCommand(filePath?: string): Promise<void> {
     const nextStep = await select({
       message: 'How would you like to continue?',
       choices: [
-        {
-          name: `Validate the default manifest in this directory (${DEFAULT_MANIFEST_PATH})`,
-          value: 'default'
-        },
-        {
-          name: 'Enter a different manifest path',
-          value: 'custom'
-        },
-        {
-          name: 'Cancel validation',
-          value: 'cancel'
-        }
+        { name: `Validate the default manifest in this directory (${DEFAULT_MANIFEST_PATH})`, value: 'default' },
+        { name: 'Enter a different manifest path', value: 'custom' },
+        { name: 'Cancel validation', value: 'cancel' }
       ]
     });
 
@@ -98,19 +89,18 @@ export async function validateManifest(filePath: string): Promise<void> {
   let hasErrors = false;
   let hasWarnings = false;
 
-  // Validate manifest file
   try {
     const fileContent = readFileSync(filePath, 'utf8');
     const manifest = load(fileContent) as ConnectorIntegrationManifest;
 
     console.log(chalk.blue('📋 Validating Integration Manifest...'));
-    
+
     const errors: string[] = [];
     const warnings: string[] = [];
 
     // Step 1: JSON Schema validation (matches Dragon Admin Center schema check)
     console.log(chalk.blue('🔍 Running schema validation...'));
-     const schemaResult = validateConnectorManifestSchema(manifest);
+    const schemaResult = validateConnectorManifestSchema(manifest);
     if (schemaResult.errors.length > 0) {
       schemaResult.errors.forEach((error: SchemaError) => {
         const fieldPath = error.instancePath.replace(/^\//, '').replace(/\//g, '.');
@@ -119,8 +109,6 @@ export async function validateManifest(filePath: string): Promise<void> {
         errors.push(`${fieldName}: ${error.message}${extra}`);
       });
     }
-
-    // Step 2: Additional business rule validation
 
     const validateUrl = (url: string, field: string): void => {
       try {
@@ -264,16 +252,14 @@ export async function validateManifest(filePath: string): Promise<void> {
         }
 
         if (Object.prototype.hasOwnProperty.call(item, 'default-value')) {
-          contextErrors.push(
-            `${prefix}.default-value: Default values are not supported for context items`
-          );
+          contextErrors.push(`${prefix}.default-value: Default values are not supported for context items`);
         }
       });
 
       return contextErrors;
     };
 
- const version = requireString(manifest.version, 'version');
+    const version = requireString(manifest.version, 'version');
     const partnerId = requireString(manifest['partner-id'], 'partner-id');
     requireString(manifest.name, 'name');
     requireString(manifest.description, 'description');
@@ -333,7 +319,7 @@ export async function validateManifest(filePath: string): Promise<void> {
       } else {
         checkYesNo(clientAuthentication['allow-multiple-issuers'], 'instance.client-authentication.allow-multiple-issuers');
 
-  const issuerFields = clientAuthentication.issuer;
+        const issuerFields = clientAuthentication.issuer;
         if (!issuerFields) {
           errors.push('instance.client-authentication.issuer: Field is required');
         } else {
@@ -349,7 +335,6 @@ export async function validateManifest(filePath: string): Promise<void> {
 
       const webLaunchSofConfig = instance['web-launch-sof'];
       const tokenConfig = instance['web-launch-token'];
-
       const hasWebLaunchSof = webLaunchSofConfig !== undefined && webLaunchSofConfig !== null;
       const hasWebLaunchToken = tokenConfig !== undefined && tokenConfig !== null;
 
@@ -376,7 +361,7 @@ export async function validateManifest(filePath: string): Promise<void> {
         }
       }
 
-  const contextErrors = validateContextItems(instance['context-retrieval']);
+      const contextErrors = validateContextItems(instance['context-retrieval']);
       if (contextErrors.length) {
         contextErrors.forEach(error => errors.push(error));
       }
@@ -385,35 +370,28 @@ export async function validateManifest(filePath: string): Promise<void> {
     if (errors.length > 0) {
       hasErrors = true;
       console.log(chalk.red('❌ Manifest validation failed with errors:'));
-      errors.forEach(error => {
-        console.log(chalk.red(`  • ${error}`));
-      });
+      errors.forEach(error => console.log(chalk.red(`  • ${error}`)));
     }
 
     if (warnings.length > 0) {
       hasWarnings = true;
       console.log(chalk.yellow('\n⚠️  Validation warnings:'));
-      warnings.forEach(warning => {
-        console.log(chalk.yellow(`  • ${warning}`));
-      });
+      warnings.forEach(warning => console.log(chalk.yellow(`  • ${warning}`)));
     }
 
     if (errors.length === 0) {
       console.log(chalk.green('✅ Integration manifest is valid'));
-      
-      // Display manifest summary
       console.log(chalk.blue('\n📊 Manifest Summary:'));
       console.log(chalk.gray(`  Name: ${manifest.name}`));
       console.log(chalk.gray(`  Description: ${manifest.description}`));
       console.log(chalk.gray(`  Version: ${manifest.version}`));
-       if (manifest['publisher-name']) {
-         console.log(chalk.gray(`  Publisher: ${manifest['publisher-name']}`));
-       }
-       console.log(chalk.gray(`  Partner ID: ${manifest['partner-id']}`));
-  console.log(chalk.gray(`  Server authentication issuers: ${manifest['server-authentication']?.length || 0}`));
-  console.log(chalk.gray(`  Context retrieval items: ${manifest.instance?.['context-retrieval']?.instance?.length || 0}`));
+      if (manifest['publisher-name']) {
+        console.log(chalk.gray(`  Publisher: ${manifest['publisher-name']}`));
+      }
+      console.log(chalk.gray(`  Partner ID: ${manifest['partner-id']}`));
+      console.log(chalk.gray(`  Server authentication issuers: ${manifest['server-authentication']?.length || 0}`));
+      console.log(chalk.gray(`  Context retrieval items: ${manifest.instance?.['context-retrieval']?.instance?.length || 0}`));
     }
-
   } catch (parseError) {
     hasErrors = true;
     console.log(chalk.red('❌ Failed to parse manifest file:'));
@@ -424,7 +402,6 @@ export async function validateManifest(filePath: string): Promise<void> {
     }
   }
 
-  // Final summary
   console.log('\n' + '='.repeat(50));
   if (hasErrors) {
     console.log(chalk.red('❌ Validation failed with errors'));
