@@ -110,12 +110,13 @@ export async function validateManifest(filePath: string): Promise<void> {
 
     // Step 1: JSON Schema validation (matches Dragon Admin Center schema check)
     console.log(chalk.blue('🔍 Running schema validation...'));
-    const schemaResult = validateConnectorManifestSchema(manifest);
+     const schemaResult = validateConnectorManifestSchema(manifest);
     if (schemaResult.errors.length > 0) {
       schemaResult.errors.forEach((error: SchemaError) => {
         const fieldPath = error.instancePath.replace(/^\//, '').replace(/\//g, '.');
         const fieldName = fieldPath || 'manifest';
-        errors.push(`${fieldName}: ${error.message}`);
+        const extra = error.keyword === 'additionalProperties' ? ` (${error.params.additionalProperty})` : '';
+        errors.push(`${fieldName}: ${error.message}${extra}`);
       });
     }
 
@@ -272,8 +273,8 @@ export async function validateManifest(filePath: string): Promise<void> {
       return contextErrors;
     };
 
-  const version = requireString(manifest.version, 'version');
-  const partnerId = requireString(manifest['partner-id'], 'partner-id');
+ const version = requireString(manifest.version, 'version');
+    const partnerId = requireString(manifest['partner-id'], 'partner-id');
     requireString(manifest.name, 'name');
     requireString(manifest.description, 'description');
     if (manifest['publisher-name'] !== undefined) {
@@ -405,10 +406,10 @@ export async function validateManifest(filePath: string): Promise<void> {
       console.log(chalk.gray(`  Name: ${manifest.name}`));
       console.log(chalk.gray(`  Description: ${manifest.description}`));
       console.log(chalk.gray(`  Version: ${manifest.version}`));
-  if (manifest['publisher-name']) {
-    console.log(chalk.gray(`  Publisher: ${manifest['publisher-name']}`));
-  }
-  console.log(chalk.gray(`  Partner ID: ${manifest['partner-id']}`));
+       if (manifest['publisher-name']) {
+         console.log(chalk.gray(`  Publisher: ${manifest['publisher-name']}`));
+       }
+       console.log(chalk.gray(`  Partner ID: ${manifest['partner-id']}`));
   console.log(chalk.gray(`  Server authentication issuers: ${manifest['server-authentication']?.length || 0}`));
   console.log(chalk.gray(`  Context retrieval items: ${manifest.instance?.['context-retrieval']?.instance?.length || 0}`));
     }
