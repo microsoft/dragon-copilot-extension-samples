@@ -121,7 +121,7 @@
         },
         "relevanceFilteringCriteria": {
           "$ref": "#/definitions/RelevanceFilteringCriteria",
-          "description": "Tool-level filtering criteria. If specified, the tool is only considered for invocation when the current context matches these criteria. Declarative for partnerInitiated tools: submitted results are not filtered on it."
+          "description": "Tool-level filtering criteria. If specified, the tool is only considered for invocation when the current context matches these criteria. Declarative: not currently enforced."
         },
         "configurationTemplate": {
           "$ref": "#/definitions/ConfigurationTemplate",
