@@ -54,3 +54,9 @@ end_of_line = lf
 [*.{cmd,bat}]
 charset     = utf-8
 end_of_line = crlf
+
+# Model types are grouped into ContractBased/ and PartnerInitiated/ folders for readability
+# only; all of them share one namespace so partners need a single using. Folders here are not
+# namespace boundaries, so suppress the "namespace does not match folder" suggestion.
+[radiologists/src/models/**/*.cs]
+dotnet_diagnostic.IDE0130.severity = none

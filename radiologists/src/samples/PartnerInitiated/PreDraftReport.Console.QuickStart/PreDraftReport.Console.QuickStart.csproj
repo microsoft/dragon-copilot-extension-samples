@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+        <TargetFramework>net10.0</TargetFramework>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <RootNamespace>PreDraftReport.Console.QuickStart</RootNamespace>
+        <AssemblyName>PreDraftReport.Console.QuickStart</AssemblyName>
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
+        <!--
+      CA1303/CA1861: Console output and inline arrays are fine for a sample.
+      CA1812: False positive for types instantiated via JSON deserialization.
+      CA1848: High-performance logging is unnecessary for a simple sample project.
+      CS1591: XML doc comments on every public member is excessive for a sample.
+    -->
+        <NoWarn>CA1303;CA1515;CA1812;CA1848;CA1861;CS1591</NoWarn>
+    </PropertyGroup>
+    <ItemGroup>
+        <ProjectReference Include="..\..\..\models\Dragon.Copilot.Radiologists.Models\Dragon.Copilot.Radiologists.Models.csproj" />
+    </ItemGroup>
+    <ItemGroup>
+        <!-- Include, not Update: plain Microsoft.NET.Sdk has no default JSON items to update. -->
+        <Content Include="MockData\**\*.json" CopyToOutputDirectory="PreserveNewest" />
+    </ItemGroup>
+</Project>

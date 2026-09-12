@@ -68,8 +68,6 @@
         "toolType",
         "capability",
         "description",
-        "endpoint",
-        "inputs",
         "outputs"
       ],
       "properties": {
@@ -77,22 +75,23 @@
           "type": "string",
           "pattern": "^[a-z][a-zA-Z0-9]*$",
           "minLength": 1,
-          "description": "Tool name (camelCase: must start with a lowercase letter, followed by letters and numbers)"
+          "description": "Tool name (camelCase: must start with a lowercase letter, followed by letters and numbers). Must be unique within this manifest."
         },
         "toolType": {
           "type": "string",
           "enum": [
-            "contractBased"
+            "contractBased",
+            "partnerInitiated"
           ],
-          "default": "contractBased",
-          "description": "The integration pattern for this tool. contractBased: Dragon Copilot (radiologists) calls a partner API with typed payloads."
+          "description": "The interaction pattern for this tool. contractBased: Dragon Copilot (radiologists) calls the partner's endpoint with typed payloads and receives the outputs in the response. partnerInitiated: the partner calls Dragon Copilot (radiologists) to submit results, so no endpoint is called and no inputs are sent."
         },
         "capability": {
           "type": "string",
           "enum": [
-            "qualityCheck"
+            "qualityCheck",
+            "preDraftReportGeneration"
           ],
-          "description": "The capability / function this tool provides"
+          "description": "The capability / function this tool provides. Each capability is delivered by exactly one tool type: qualityCheck is contractBased, preDraftReportGeneration is partnerInitiated."
         },
         "description": {
           "type": "string",
@@ -102,7 +101,7 @@
         "endpoint": {
           "type": "string",
           "format": "uri",
-          "description": "API endpoint URL"
+          "description": "API endpoint URL. Required for contractBased tools, omit for partnerInitiated tools, which are never called."
         },
         "inputs": {
           "type": "array",
@@ -110,7 +109,7 @@
           "items": {
             "$ref": "#/definitions/DragonInput"
           },
-          "description": "Array of input definitions"
+          "description": "Array of input definitions. Required for contractBased tools, omit for partnerInitiated tools, which receive no inputs."
         },
         "outputs": {
           "type": "array",
@@ -122,14 +121,60 @@
         },
         "relevanceFilteringCriteria": {
           "$ref": "#/definitions/RelevanceFilteringCriteria",
-          "description": "Tool-level filtering criteria. If specified, the tool is only considered for invocation when the current context matches these criteria."
+          "description": "Tool-level filtering criteria. If specified, the tool is only considered for invocation when the current context matches these criteria. Declarative for partnerInitiated tools: submitted results are not filtered on it."
         },
         "configurationTemplate": {
           "$ref": "#/definitions/ConfigurationTemplate",
           "description": "Optional configuration surface the partner exposes to customers. Customers provide values matching this schema at installation time to customize tool behavior."
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "$comment": "contractBased means Dragon Copilot calls the tool, so it must declare where to call and what to send. qualityCheck is the only capability delivered that way.",
+          "if": {
+            "required": [
+              "toolType"
+            ],
+            "properties": {
+              "toolType": {
+                "const": "contractBased"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "endpoint",
+              "inputs"
+            ],
+            "properties": {
+              "capability": {
+                "const": "qualityCheck"
+              }
+            }
+          }
+        },
+        {
+          "$comment": "partnerInitiated means the partner submits results instead of being called. preDraftReportGeneration is the only capability delivered that way.",
+          "if": {
+            "required": [
+              "toolType"
+            ],
+            "properties": {
+              "toolType": {
+                "const": "partnerInitiated"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "capability": {
+                "const": "preDraftReportGeneration"
+              }
+            }
+          }
+        }
+      ]
     },
     "DragonInput": {
       "type": "object",
@@ -203,9 +248,10 @@
     "OutputContentType": {
       "type": "string",
       "enum": [
-        "application/vnd.ms-dragon.rad.quality-check-result+json"
+        "application/vnd.ms-dragon.rad.quality-check-result+json",
+        "application/vnd.ms-dragon.rad.pre-draft-report+json"
       ],
-      "description": "Media type for a tool output. The '+json' subtype is the kebab-case form of the payload's schema object name in radiologists-extensibility-api.yaml (e.g. 'application/vnd.ms-dragon.rad.quality-check-result+json' maps to the QualityCheckResult schema)."
+      "description": "Media type for a tool output. The '+json' subtype is the kebab-case form of the payload's schema object name (e.g. 'application/vnd.ms-dragon.rad.quality-check-result+json' maps to the QualityCheckResult schema). contractBased payload schemas are defined in radiologists-extensibility-api.yaml; partnerInitiated payload schemas are defined alongside the submission contract for that tool type."
     },
     "PayloadSchemaVersion": {
       "type": "string",

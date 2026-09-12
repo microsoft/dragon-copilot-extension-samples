@@ -1,0 +1,84 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "PreDraftReportIngestRequest",
+  "description": "Request body a partnerInitiated tool posts to submit a pre-draft report. The customer tenant and environment are taken from the route, not from this body, and the submitting Partner is identified from the access token rather than declared here.",
+  "type": "object",
+  "required": [
+    "manifestName",
+    "toolName",
+    "draftReport"
+  ],
+  "properties": {
+    "publisherId": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Marketplace publisher identifier. Part of the (publisherId, offerId, planId) triple that uniquely identifies a marketplace extension. Supply all three or none; side-loaded extensions have no triple and omit all three.",
+      "examples": [
+        "101"
+      ]
+    },
+    "offerId": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Marketplace offer identifier. Part of the (publisherId, offerId, planId) triple.",
+      "examples": [
+        "202"
+      ]
+    },
+    "planId": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Marketplace plan identifier. Part of the (publisherId, offerId, planId) triple.",
+      "examples": [
+        "303"
+      ]
+    },
+    "manifestName": {
+      "type": "string",
+      "pattern": "^[a-z][a-zA-Z0-9]*$",
+      "description": "The extension manifest's top-level 'name'. Always required, including for marketplace extensions.",
+      "examples": [
+        "sampleRadiologyExtension"
+      ]
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$",
+      "description": "The extension manifest's top-level 'version'. Optional, and recorded rather than used to select the extension: the installed version is whatever the Customer has deployed, which the Partner does not control.",
+      "examples": [
+        "1.0.0"
+      ]
+    },
+    "toolName": {
+      "type": "string",
+      "pattern": "^[a-z][a-zA-Z0-9]*$",
+      "description": "Name of the tool within the manifest that produced this result. Must match a tool declared in the installed manifest.",
+      "examples": [
+        "preDraftReportGeneratorTool"
+      ]
+    },
+    "draftReport": {
+      "allOf": [
+        {
+          "$ref": "pre-draft-report-schema.json"
+        }
+      ],
+      "description": "The pre-draft report payload."
+    }
+  },
+  "dependencies": {
+    "publisherId": [
+      "offerId",
+      "planId"
+    ],
+    "offerId": [
+      "publisherId",
+      "planId"
+    ],
+    "planId": [
+      "publisherId",
+      "offerId"
+    ]
+  },
+  "additionalProperties": false
+}

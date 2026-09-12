@@ -73,13 +73,16 @@ dragon-copilot physician package    # Package for distribution
 
 #### Radiologists Extension Commands
 
-For creating **Radiologists Workflows** that analyze radiology reports and return quality-check recommendations:
+For creating **Radiologists Workflows**. A tool either responds to Dragon Copilot, such as returning
+quality-check recommendations for a report, or submits results to Dragon Copilot on its own
+schedule, such as an AI generated pre-draft report:
 
 ```bash
-dragon-copilot radiologists init                              # Initialize a new extension project (interactive)
-dragon-copilot radiologists generate --template quality-check # Generate a manifest from a template (or use --interactive)
-dragon-copilot radiologists validate ./extension.yaml         # Validate extension manifest
-dragon-copilot radiologists package                           # Package for distribution
+dragon-copilot radiologists init                                  # Initialize a new extension project (interactive)
+dragon-copilot radiologists generate --template quality-check     # Generate a quality check manifest
+dragon-copilot radiologists generate --template pre-draft-report  # Generate a pre-draft report manifest
+dragon-copilot radiologists validate ./extension.yaml             # Validate extension manifest
+dragon-copilot radiologists package                               # Package for distribution
 ```
 
 #### Connector Commands

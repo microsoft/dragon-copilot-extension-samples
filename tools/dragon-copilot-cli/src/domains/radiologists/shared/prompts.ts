@@ -1,7 +1,9 @@
 import { input, select, checkbox, confirm } from '@inquirer/prompts';
 import type {
+  DcrCapability,
   DcrExtensionManifest,
   DcrOutput,
+  DcrToolType,
   RelevanceFilteringCriteria
 } from '../types.js';
 import { validateFieldValue } from './schema-validator.js';
@@ -16,9 +18,9 @@ export interface ExtensionDetails {
 export interface ToolDetails {
   toolName: string;
   toolDescription: string;
-  toolType: 'contractBased';
-  capability: 'qualityCheck';
-  endpoint: string;
+  toolType: DcrToolType;
+  capability: DcrCapability;
+  endpoint?: string | undefined;
   inputTypes: string[];
   outputs: DcrOutput[];
   relevanceFilteringCriteria?: RelevanceFilteringCriteria | undefined;
@@ -30,12 +32,38 @@ export const INPUT_TYPE_CHOICES = [
 ];
 
 export const TOOL_TYPE_CHOICES = [
-  { name: 'Contract Based', value: 'contractBased' as const },
+  { name: 'Contract Based (Dragon Copilot calls your endpoint)', value: 'contractBased' as const },
+  { name: 'Partner Initiated (you submit results to Dragon Copilot)', value: 'partnerInitiated' as const },
 ];
 
 export const CAPABILITY_CHOICES = [
   { name: 'Quality Check', value: 'qualityCheck' as const },
+  { name: 'Pre-Draft Report Generation', value: 'preDraftReportGeneration' as const },
 ];
+
+/**
+ * The capabilities each tool type can implement. qualityCheck needs an endpoint for Dragon Copilot
+ * to call, and preDraftReportGeneration is submitted by the partner and read back from storage, so
+ * neither capability works under the other tool type.
+ */
+export const TOOL_TYPE_CAPABILITIES: Record<DcrToolType, readonly DcrCapability[]> = {
+  contractBased: ['qualityCheck'],
+  partnerInitiated: ['preDraftReportGeneration']
+};
+
+/** The output content type each capability produces. */
+export const CAPABILITY_OUTPUT: Record<DcrCapability, { contentType: string; name: string; description: string }> = {
+  qualityCheck: {
+    contentType: 'application/vnd.ms-dragon.rad.quality-check-result+json',
+    name: 'qualityCheckResult',
+    description: 'Quality check result'
+  },
+  preDraftReportGeneration: {
+    contentType: 'application/vnd.ms-dragon.rad.pre-draft-report+json',
+    name: 'preDraftReportResult',
+    description: 'Pre-draft radiology report'
+  }
+};
 
 /**
  * Validates tool name input
@@ -179,28 +207,34 @@ export async function promptToolDetails(
 
   const capability = await select({
     message: 'Capability:',
-    choices: CAPABILITY_CHOICES
+    choices: CAPABILITY_CHOICES.filter(choice => TOOL_TYPE_CAPABILITIES[toolType].includes(choice.value))
   });
 
-  const endpoint = await input({
-    message: 'API endpoint:',
-    ...(defaults.endpoint ? { default: defaults.endpoint } : {}),
-    validate: validateUrl
-  });
+  // A partnerInitiated tool is never called by Dragon Copilot, so it declares neither.
+  let endpoint: string | undefined;
+  let inputTypes: string[] = [];
 
-  const inputTypes = await checkbox({
-    message: allowMultipleInputs ? 'Select input data types:' : 'Select primary input data type:',
-    choices: INPUT_TYPE_CHOICES,
-    validate: (choices) => {
-      if (choices.length === 0) return 'Please select at least one input type';
-      if (!allowMultipleInputs && choices.length > 1) {
-        return 'Please select only one input type';
+  if (toolType === 'contractBased') {
+    endpoint = await input({
+      message: 'API endpoint:',
+      ...(defaults.endpoint ? { default: defaults.endpoint } : {}),
+      validate: validateUrl
+    });
+
+    inputTypes = await checkbox({
+      message: allowMultipleInputs ? 'Select input data types:' : 'Select primary input data type:',
+      choices: INPUT_TYPE_CHOICES,
+      validate: (choices) => {
+        if (choices.length === 0) return 'Please select at least one input type';
+        if (!allowMultipleInputs && choices.length > 1) {
+          return 'Please select only one input type';
+        }
+        return true;
       }
-      return true;
-    }
-  });
+    });
+  }
 
-  const outputs = await promptOutputs();
+  const outputs = await promptOutputs(capability);
 
   // Optionally prompt for relevance filtering criteria
   const addFiltering = await confirm({
@@ -247,15 +281,17 @@ export function getInputName(contentType: string, index: number): string {
 /**
  * Prompts for output details
  */
-export async function promptOutputDetails(defaults?: { name?: string; description?: string; schemaVersion?: string }): Promise<DcrOutput> {
+export async function promptOutputDetails(capability: DcrCapability, defaults?: { name?: string; description?: string; schemaVersion?: string }): Promise<DcrOutput> {
+  const expected = CAPABILITY_OUTPUT[capability];
+
   const name = await input({
     message: 'Output name:',
-    default: defaults?.name || 'qualityCheckResult'
+    default: defaults?.name || expected.name
   });
 
   const description = await input({
     message: 'Output description:',
-    default: defaults?.description || 'Quality check result'
+    default: defaults?.description || expected.description
   });
 
   const schemaVersion = await input({
@@ -266,7 +302,7 @@ export async function promptOutputDetails(defaults?: { name?: string; descriptio
   return {
     name,
     description,
-    'content-type': 'application/vnd.ms-dragon.rad.quality-check-result+json',
+    'content-type': expected.contentType,
     schemaVersion
   };
 }
@@ -347,12 +383,12 @@ export async function promptRelevanceFilteringCriteria(): Promise<RelevanceFilte
 /**
  * Prompts for multiple outputs
  */
-export async function promptOutputs(): Promise<DcrOutput[]> {
+export async function promptOutputs(capability: DcrCapability): Promise<DcrOutput[]> {
   const outputs: DcrOutput[] = [];
 
   console.log('\n Configuring outputs for your tool...');
 
-  const firstOutput = await promptOutputDetails();
+  const firstOutput = await promptOutputDetails(capability);
   outputs.push(firstOutput);
 
   let addMoreOutputs = await confirm({
@@ -361,7 +397,7 @@ export async function promptOutputs(): Promise<DcrOutput[]> {
   });
 
   while (addMoreOutputs) {
-    const additionalOutput = await promptOutputDetails();
+    const additionalOutput = await promptOutputDetails(capability);
     outputs.push(additionalOutput);
 
     addMoreOutputs = await confirm({

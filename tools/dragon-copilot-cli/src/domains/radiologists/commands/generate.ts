@@ -45,13 +45,16 @@ async function generateInteractive(options: GenerateOptions): Promise<void> {
     toolType: answers.toolType,
     capability: answers.capability,
     description: answers.toolDescription,
-    endpoint: answers.endpoint,
-    inputs: answers.inputTypes.map((contentType: string, index: number) => ({
-      name: getInputName(contentType, index),
-      description: getInputDescription(contentType),
-      'content-type': contentType,
-      schemaVersion: '1.0'
-    })),
+    // A partnerInitiated tool is never called, so neither key belongs in its manifest entry.
+    ...(answers.toolType === 'contractBased' ? {
+      endpoint: answers.endpoint,
+      inputs: answers.inputTypes.map((contentType: string, index: number) => ({
+        name: getInputName(contentType, index),
+        description: getInputDescription(contentType),
+        'content-type': contentType,
+        schemaVersion: '1.0'
+      }))
+    } : {}),
     outputs: answers.outputs
   };
 

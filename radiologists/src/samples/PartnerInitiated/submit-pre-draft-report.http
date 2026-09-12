@@ -1,0 +1,146 @@
+@dragonCopilot = https://localhost:7156
+@tenantId = 00000000-0000-0000-0000-000000000000
+@environmentId = 00000000-0000-0000-0000-000000000000
+
+# Paste an access token. How you obtain one is out of scope for this sample.
+@token = replace-me
+
+### Submit a pre-draft report
+# Returns 200 when the report is stored against the order.
+# 404 means no order matched the accession number, or no installed tool matched manifestName and toolName.
+# 409 means either this identifier was already submitted, or the accession number matched more than one order.
+POST {{dragonCopilot}}/api/v1/tenants/{{tenantId}}/environments/{{environmentId}}/draft-report-ai-results
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "publisherId": "101",
+  "offerId": "202",
+  "planId": "303",
+  "manifestName": "sampleRadiologyExtension",
+  "version": "1.0.0",
+  "toolName": "preDraftReportGeneratorTool",
+  "draftReport": {
+    "identifier": "a25c4954-a7f7-49f0-a4a2-98d354d60705",
+    "category": "RAD",
+    "code": "68604-8",
+    "aiSystemInfo": {
+      "version": "1.2.0"
+    },
+    "imagingStudy": {
+      "studyUid": "2.25.329391862910276348519548604004805820309",
+      "accessionNumber": "ACC-0000001",
+      "patientMrn": "99999",
+      "modality": "CT",
+      "bodyParts": [ "Lung", "Chest" ],
+      "procedureCode": "77734",
+      "studyDateTime": "2020-04-07T12:34:56Z",
+      "series": [
+        {
+          "seriesUid": "2.25.329391862910276348519548604004805820310",
+          "instanceUids": [ "2.25.329391862910276348519548604004805820309" ]
+        }
+      ]
+    },
+    "reportContent": {
+      "format": "structured_report",
+      "structuredReport": {
+        "format": "plain_text",
+        "sections": [
+          {
+            "name": "impression",
+            "content": "No acute cardiopulmonary abnormality.",
+            "aiGenerated": true,
+            "aiConfidence": 1,
+            "sectionOrder": 1
+          }
+        ]
+      }
+    }
+  }
+}
+
+### Replay the same identifier
+# Expect 409. The first submission is already stored, so a retry does not create a second result.
+POST {{dragonCopilot}}/api/v1/tenants/{{tenantId}}/environments/{{environmentId}}/draft-report-ai-results
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "manifestName": "sampleRadiologyExtension",
+  "toolName": "preDraftReportGeneratorTool",
+  "draftReport": {
+    "identifier": "a25c4954-a7f7-49f0-a4a2-98d354d60705",
+    "aiSystemInfo": { "version": "1.2.0" },
+    "imagingStudy": {
+      "studyUid": "2.25.329391862910276348519548604004805820309",
+      "accessionNumber": "ACC-0000001"
+    },
+    "reportContent": {
+      "format": "structured_report",
+      "structuredReport": {
+        "format": "plain_text",
+        "sections": [
+          { "name": "impression", "content": "No acute cardiopulmonary abnormality.", "sectionOrder": 1 }
+        ]
+      }
+    }
+  }
+}
+
+### Submit against an unknown accession number
+# Expect 404. There is no order to attach the report to.
+POST {{dragonCopilot}}/api/v1/tenants/{{tenantId}}/environments/{{environmentId}}/draft-report-ai-results
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "manifestName": "sampleRadiologyExtension",
+  "toolName": "preDraftReportGeneratorTool",
+  "draftReport": {
+    "identifier": "3f1b0d1e-6a4c-4f2b-9a77-0d2c5f6e8a11",
+    "aiSystemInfo": { "version": "1.2.0" },
+    "imagingStudy": {
+      "studyUid": "2.25.329391862910276348519548604004805820309",
+      "accessionNumber": "ACC-DOES-NOT-EXIST"
+    },
+    "reportContent": {
+      "format": "structured_report",
+      "structuredReport": {
+        "format": "plain_text",
+        "sections": [
+          { "name": "impression", "content": "No acute cardiopulmonary abnormality.", "sectionOrder": 1 }
+        ]
+      }
+    }
+  }
+}
+
+### Submit naming a tool that is not installed
+# Expect 404. The manifest name and tool name must match an installed partnerInitiated tool
+# whose capability is preDraftReportGeneration.
+POST {{dragonCopilot}}/api/v1/tenants/{{tenantId}}/environments/{{environmentId}}/draft-report-ai-results
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "manifestName": "sampleRadiologyExtension",
+  "toolName": "toolThatIsNotInstalled",
+  "draftReport": {
+    "identifier": "7c9e2a44-1b3d-4e55-8f60-2a1c9d4e7b22",
+    "aiSystemInfo": { "version": "1.2.0" },
+    "imagingStudy": {
+      "studyUid": "2.25.329391862910276348519548604004805820309",
+      "accessionNumber": "ACC-0000001"
+    },
+    "reportContent": {
+      "format": "structured_report",
+      "structuredReport": {
+        "format": "plain_text",
+        "sections": [
+          { "name": "impression", "content": "No acute cardiopulmonary abnormality.", "sectionOrder": 1 }
+        ]
+      }
+    }
+  }
+}

@@ -41,6 +41,33 @@ const templates: Record<string, TemplateConfig> = {
         }
       }
     ]
+  },
+  'pre-draft-report': {
+    name: 'samplePreDraftReportExtension',
+    description: 'Extension to provide pre-draft radiology report generation',
+    version: '0.0.1',
+    radiologistsExtensibilityApiVersion: '1.0.0',
+    tools: [
+      {
+        name: 'preDraftReportGeneratorTool',
+        toolType: 'partnerInitiated',
+        capability: 'preDraftReportGeneration',
+        description: 'Tool to generate a pre-draft radiology report',
+        outputs: [
+          {
+            name: 'preDraftReportResult',
+            description: 'Pre-draft radiology report',
+            'content-type': 'application/vnd.ms-dragon.rad.pre-draft-report+json',
+            schemaVersion: '1.0'
+          }
+        ],
+        // Declarative for partnerInitiated tools; not currently enforced.
+        relevanceFilteringCriteria: {
+          relevantBodyParts: ['CHEST'],
+          relevantModalities: ['CT']
+        }
+      }
+    ]
   }
 };
 

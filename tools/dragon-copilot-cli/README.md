@@ -8,8 +8,8 @@ The `dragon-copilot` CLI allows you to generate, validate, and package manifests
 
 Download the latest release for your platform from the [Releases page](../../releases). The binary is a self-contained executable—no Node.js installation required.
 
-| Platform | Binary                  |
-|----------|-------------------------|
+| Platform | Binary                   |
+| -------- | ------------------------ |
 | Windows  | `dragon-copilot-win.exe` |
 | macOS    | `dragon-copilot-macos`   |
 | Linux    | `dragon-copilot-linux`   |
@@ -17,6 +17,7 @@ Download the latest release for your platform from the [Releases page](../../rel
 After downloading, rename the binary to `dragon-copilot` (or `dragon-copilot.exe` on Windows) and add it to your system PATH:
 
 **Windows (PowerShell)**
+
 ```powershell
 # Move the binary to a directory already on your PATH, or create one and add it:
 New-Item -ItemType Directory -Force "$env:USERPROFILE\.dragon-copilot"
@@ -25,6 +26,7 @@ Move-Item dragon-copilot-win.exe "$env:USERPROFILE\.dragon-copilot\dragon-copilo
 ```
 
 **macOS / Linux**
+
 ```bash
 # Move the binary to a directory on your PATH:
 chmod +x dragon-copilot-*
@@ -69,7 +71,9 @@ Run `npm unlink -g dragon-copilot` only once per workstation; subsequent rebuild
 | Physician  | `dragon-copilot physician validate ./extension.yaml`   | Validates the manifest against JSON schema + business rules |
 | Physician  | `dragon-copilot physician package`                     | Produces a zip containing the manifest and any included files |
 | Radiologists | `dragon-copilot radiologists init`                     | Interactive wizard that scaffolds a radiologists extension manifest |
-| Radiologists | `dragon-copilot radiologists generate --template quality-check -o extension.yaml` | Generate a manifest from a built-in template (currently `quality-check`) or interactively with `--interactive` |
+| Radiologists | `dragon-copilot radiologists generate --template quality-check -o extension.yaml` | Generate a quality check manifest from the built-in template |
+| Radiologists | `dragon-copilot radiologists generate --template pre-draft-report -o extension.yaml` | Generate a pre-draft report manifest from the built-in template |
+| Radiologists | `dragon-copilot radiologists generate --interactive` | Add a tool to an existing manifest, or scaffold a new one, by answering prompts |
 | Radiologists | `dragon-copilot radiologists validate ./extension.yaml` | Validates the radiologists manifest against JSON schema + business rules |
 | Radiologists | `dragon-copilot radiologists package`                  | Produces a zip containing the radiologists manifest and any included files |
 | Connector  | `dragon-copilot connector init`                          | Clinical Application Connector manifest wizard (publisher metadata, authentication, web launch, and context retrieval) |
@@ -97,15 +101,15 @@ The git tag is the single source of truth for the CLI version. The `version` fie
 
 1. **Merge** your changes to `main`.
 2. **Tag the commit** you want to release with a `cli/v` prefix following [semver](https://semver.org/):
-   ```bash
-   git tag cli/v0.1.0 main
-   git push origin cli/v0.1.0
-   ```
+    ```bash
+    git tag cli/v0.1.0 main
+    git push origin cli/v0.1.0
+    ```
 3. CI automatically:
-   - Sets the version in `package.json` from the tag
-   - Builds and bundles the CLI
-   - Produces standalone binaries for Windows, macOS, and Linux
-   - Publishes them to [GitHub Releases](../../releases)
+    - Sets the version in `package.json` from the tag
+    - Builds and bundles the CLI
+    - Produces standalone binaries for Windows, macOS, and Linux
+    - Publishes them to [GitHub Releases](../../releases)
 
 ### Local dev builds
 

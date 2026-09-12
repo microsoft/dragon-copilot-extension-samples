@@ -1,0 +1,306 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "PreDraftReport",
+  "description": "An AI-generated pre-draft radiology report, submitted by a partnerInitiated tool implementing the preDraftReportGeneration capability. Carried as the 'draftReport' member of a submission and referenced from a manifest as 'application/vnd.ms-dragon.rad.pre-draft-report+json'.",
+  "x-ms-schema-version": "1.0",
+  "type": "object",
+  "required": [
+    "identifier",
+    "aiSystemInfo",
+    "imagingStudy",
+    "reportContent"
+  ],
+  "properties": {
+    "identifier": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Partner-generated identifier for this result. Must be unique per run: resubmitting a stored identifier is rejected with 409 Conflict, so retrying a run cannot create a second stored result."
+    },
+    "category": {
+      "type": "string",
+      "description": "Report category. See https://terminology.hl7.org/6.5.0/CodeSystem-v2-0074.html.",
+      "examples": ["RAD"]
+    },
+    "code": {
+      "type": "string",
+      "description": "LOINC code for the report.",
+      "examples": ["68604-8"]
+    },
+    "aiSystemInfo": {
+      "$ref": "#/definitions/AISystemInfo"
+    },
+    "imagingStudy": {
+      "$ref": "#/definitions/ImagingStudy"
+    },
+    "imagingStudyPriors": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/ImagingStudyPrior"
+      },
+      "description": "Prior studies used to generate the draft report."
+    },
+    "reportContent": {
+      "$ref": "#/definitions/ReportContent"
+    },
+    "qualityMetrics": {
+      "$ref": "#/definitions/QualityMetrics"
+    }
+  },
+  "definitions": {
+    "AISystemInfo": {
+      "type": "object",
+      "description": "The AI system that generated this draft report.",
+      "required": [
+        "version"
+      ],
+      "properties": {
+        "version": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Partner's AI system version, semantic major.minor.patch.",
+          "examples": ["1.2.0"]
+        }
+      }
+    },
+    "ImagingStudy": {
+      "type": "object",
+      "description": "The imaging study the draft report was generated from.",
+      "required": [
+        "studyUid",
+        "accessionNumber"
+      ],
+      "properties": {
+        "studyUid": {
+          "type": "string",
+          "minLength": 1,
+          "description": "DICOM Study Instance UID."
+        },
+        "series": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Series"
+          }
+        },
+        "accessionNumber": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Accession number of the study. This is what the result is matched to an order by, so it must match exactly one order in the environment: no match is rejected with 404 Not Found and more than one with 409 Conflict, rather than being stored against a guess."
+        },
+        "patientMrn": {
+          "type": "string",
+          "description": "Patient medical record number. Contains PHI."
+        },
+        "modality": {
+          "type": "string",
+          "description": "DICOM modality code (Tag 0008,0060).",
+          "examples": ["CT"]
+        },
+        "bodyParts": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Body parts examined."
+        },
+        "procedureCode": {
+          "type": "string",
+          "description": "CPT/HCPCS code for the procedure performed."
+        },
+        "studyDateTime": {
+          "type": "string",
+          "description": "Study date and time as an ISO 8601 UTC timestamp (yyyy-MM-ddTHH:mm:ssZ).",
+          "examples": ["2025-11-20T14:47:14Z"]
+        }
+      }
+    },
+    "Series": {
+      "type": "object",
+      "description": "A DICOM series the AI model read.",
+      "properties": {
+        "seriesUid": {
+          "type": "string",
+          "description": "DICOM Series Instance UID."
+        },
+        "instanceUids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "DICOM SOP Instance UIDs used by the AI model."
+        }
+      }
+    },
+    "ImagingStudyPrior": {
+      "type": "object",
+      "description": "A prior study used to generate the draft report.",
+      "required": [
+        "studyUid"
+      ],
+      "properties": {
+        "studyUid": {
+          "type": "string",
+          "minLength": 1,
+          "description": "DICOM Study Instance UID of the prior study."
+        },
+        "studyDateTime": {
+          "type": "string",
+          "description": "Prior study date and time as an ISO 8601 UTC timestamp."
+        },
+        "modality": {
+          "type": "string",
+          "description": "DICOM modality code for the prior study."
+        }
+      }
+    },
+    "ReportContent": {
+      "type": "object",
+      "description": "The report body.",
+      "required": [
+        "format",
+        "structuredReport"
+      ],
+      "properties": {
+        "format": {
+          "type": "string",
+          "enum": [
+            "structured_report"
+          ],
+          "description": "Content format. Only structured_report is accepted today."
+        },
+        "structuredReport": {
+          "$ref": "#/definitions/StructuredReport"
+        }
+      }
+    },
+    "StructuredReport": {
+      "type": "object",
+      "description": "A structured report made up of named sections.",
+      "required": [
+        "format",
+        "sections"
+      ],
+      "properties": {
+        "format": {
+          "type": "string",
+          "enum": [
+            "plain_text",
+            "markdown"
+          ],
+          "description": "How section content is encoded."
+        },
+        "sections": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Section"
+          }
+        }
+      }
+    },
+    "Section": {
+      "type": "object",
+      "description": "A single named section of the report.",
+      "required": [
+        "name",
+        "content",
+        "aiGenerated",
+        "aiConfidence",
+        "sectionOrder"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "pattern": "^[a-z][a-z_]*$",
+          "description": "Section name in lower snake_case.",
+          "examples": ["impression"]
+        },
+        "content": {
+          "type": "string",
+          "description": "Section text, encoded per the parent structuredReport.format."
+        },
+        "aiGenerated": {
+          "type": "boolean",
+          "description": "Whether this section was generated by AI."
+        },
+        "aiConfidence": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "AI confidence for this section."
+        },
+        "sectionOrder": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Display order of this section within the report."
+        },
+        "codes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Code"
+          },
+          "description": "Medical codes referenced in this section."
+        }
+      }
+    },
+    "Code": {
+      "type": "object",
+      "description": "A coded reference within a section.",
+      "required": [
+        "system",
+        "code",
+        "display"
+      ],
+      "properties": {
+        "system": {
+          "type": "string",
+          "enum": [
+            "SNOMED-CT",
+            "ICD-10",
+            "ICD-11",
+            "RadLex",
+            "LOINC",
+            "CPT"
+          ],
+          "description": "Coding system the code belongs to."
+        },
+        "code": {
+          "type": "string",
+          "minLength": 1,
+          "description": "The code within the coding system."
+        },
+        "display": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Human-readable display text for the code."
+        }
+      }
+    },
+    "QualityMetrics": {
+      "type": "object",
+      "description": "Quality scores for the generated report. Optional as a whole, but imageQualityScore is required when present.",
+      "required": [
+        "imageQualityScore"
+      ],
+      "properties": {
+        "overallConfidenceScore": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Overall confidence for the whole report."
+        },
+        "imageQualityScore": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Quality of the input images."
+        },
+        "diagnosticCertaintyScore": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Diagnostic certainty of the findings."
+        }
+      }
+    }
+  }
+}
+

@@ -1,5 +1,5 @@
-﻿---
-description: "Scaffold a Radiologists extension sample in the language of your choice, mirroring the C# Quickstart."
+---
+description: "Scaffold a Radiologists contractBased extension sample in the language of your choice, mirroring the C# Quickstart."
 agent: agent
 ---
 
@@ -7,12 +7,14 @@ agent: agent
 
 Generate a new Radiologists extension sample, in the language the user provides, that implements the **same wire contract** as the C# Quickstart and can be checked into this repository once reviewed. Treat the rest of this file as your working instructions and reference material.
 
+> **Scope:** this prompt scaffolds `contractBased` samples, which expose a `POST /v1/process` endpoint that Dragon Copilot calls. It does **not** cover `partnerInitiated` tools, where the partner pushes results to Dragon Copilot instead. If the user asks for a `partnerInitiated` sample, say so and point them at `radiologists/src/samples/PartnerInitiated/`.
+
 ## Start here — establish the target language and destination
 
 Your first step is to confirm two things — which language to scaffold, and where to generate the sample:
 
 1. **Language.** If the user has already named a language (in their message or via the `${input:language}` variable below), use it. Otherwise, ask the user to choose one of `python`, `go`, `java`, `nodejs`, `typescript`, `rust`, or another language they specify.
-2. **Destination folder.** If the user has already given one (in their message or via the `${input:targetFolder}` variable below), use it. Otherwise, ask where to generate the sample and make clear it **defaults to this repository** at `radiologists/src/samples/Workflow/`. If the user accepts the default (or gives no answer), generate in-repo exactly as described under **Folder and naming conventions**. If the user supplies a different folder, generate there and follow the **Generating outside the repository** notes.
+2. **Destination folder.** If the user has already given one (in their message or via the `${input:targetFolder}` variable below), use it. Otherwise, ask where to generate the sample and make clear it **defaults to this repository** at `radiologists/src/samples/ContractBased/`. If the user accepts the default (or gives no answer), generate in-repo exactly as described under **Folder and naming conventions**. If the user supplies a different folder, generate there and follow the **Generating outside the repository** notes.
 
 Ask for whatever is still unknown in a single short reply — combine the language and destination questions if both are missing — then wait for the answer. Begin reading the source material and scaffolding only once both are known.
 
@@ -21,19 +23,19 @@ Ask for whatever is still unknown in a single short reply — combine the langua
 1. Open the repo in an editor with GitHub Copilot Chat enabled (for example Visual Studio or VS Code).
 2. In Copilot Chat, type `/` and select `radiologists-scaffold-language-sample`.
 3. Provide the target language when asked (for example `python`, `go`, `java`, `nodejs`, `typescript`, `rust`).
-4. Choose where to generate it, or accept the default (this repository, under `radiologists/src/samples/Workflow/`).
+4. Choose where to generate it, or accept the default (this repository, under `radiologists/src/samples/ContractBased/`).
 5. Review, run, and adjust before committing.
 
 ## Input
 
 - `${input:language:Target language for the new sample (e.g. python, go, java, nodejs, typescript, rust)}`
-- `${input:targetFolder:Destination folder for the sample — press Enter to default to radiologists/src/samples/Workflow/ in this repo}`
+- `${input:targetFolder:Destination folder for the sample — press Enter to default to radiologists/src/samples/ContractBased/ in this repo}`
 
 ## Source material to read first
 
-1. **`radiologists/radiologists-extensibility-api.yaml` is the canonical wire contract** for Radiologists. It defines `POST /v1/process` with `ProcessRequest` as the request envelope and `ProcessResponse` as the response envelope, and contains the full schema definitions for all Radiologists domain types. Read it first.
+1. **`radiologists/extensibility-api/radiologists-extensibility-api.yaml` is the canonical wire contract** for Radiologists. It defines `POST /v1/process` with `ProcessRequest` as the request envelope and `ProcessResponse` as the response envelope, and contains the full schema definitions for all Radiologists domain types. Read it first.
 2. **The C# Quickstart shows the canonical implementation** of that contract. Read it end-to-end:
-    - `radiologists/src/samples/Workflow/SampleExtension.Radiologists.Web.Quickstart/Controllers/QualityCheckController.cs`
+    - `radiologists/src/samples/ContractBased/SampleExtension.Radiologists.Web.Quickstart/Controllers/QualityCheckController.cs`
     - `.../Services/IQualityCheckService.cs`, `.../Services/QualityCheckService.cs`
     - `.../MockData/qualitycheck-response.json` — canned response to reuse verbatim
     - `.../appsettings.json` — `Authentication` configuration shape
@@ -45,7 +47,7 @@ Ask for whatever is still unknown in a single short reply — combine the langua
 
 ## Wire contract (lock this down — non-negotiable)
 
-This section reflects `radiologists/radiologists-extensibility-api.yaml` and the canonical `.http` payload exactly. **Do not rename fields, do not change casing.**
+This section reflects `radiologists/extensibility-api/radiologists-extensibility-api.yaml` and the canonical `.http` payload exactly. **Do not rename fields, do not change casing.**
 
 **`POST /v1/process`** request body (`ProcessRequest`):
 
@@ -92,16 +94,16 @@ Only `sessionData` is required on the request per the OpenAPI spec. `Recommendat
 
 ## Folder and naming conventions
 
-By default the sample is generated in this repository at `radiologists/src/samples/Workflow/<folder-name>/`. If the user chose a different destination (see **Start here**), create `<folder-name>/` under that destination instead. The folder name **reads as** "sample extension radiologists `<language>` quickstart" using the **language's idiomatic package-naming convention** (snake_case for Python/Rust, kebab-case for Node/TypeScript/Go/Java, dotted PascalCase for C#).
+By default the sample is generated in this repository at `radiologists/src/samples/ContractBased/<folder-name>/`. If the user chose a different destination (see **Start here**), create `<folder-name>/` under that destination instead. The folder name **reads as** "sample extension radiologists `<language>` quickstart" using the **language's idiomatic package-naming convention** (snake_case for Python/Rust, kebab-case for Node/TypeScript/Go/Java, dotted PascalCase for C#).
 
 Use the same lowercase language token (`python`, `nodejs`, `typescript`, `go`, `java`, `rust`) consistently in code (namespaces, packages, module names) and README headings. Do not introduce a separate PascalCase variant.
 
 ### Generating outside the repository
 
-The in-repo default relies on files that sit next to the sample — the shared manifest (`radiologists/src/samples/Workflow/extension.yaml`), the canonical request payloads (`radiologists/src/samples/requests/`), and the API spec (`radiologists/radiologists-extensibility-api.yaml`). Always read that source material from **this repo** (that's where the prompt runs), but when the destination is **outside** the repo, keep the generated sample self-contained:
+The in-repo default relies on files that sit next to the sample — the shared manifest (`radiologists/src/samples/ContractBased/extension.yaml`), the canonical request payloads (`radiologists/src/samples/ContractBased/requests/`), and the API spec (`radiologists/extensibility-api/radiologists-extensibility-api.yaml`). Always read that source material from **this repo** (that's where the prompt runs), but when the destination is **outside** the repo, keep the generated sample self-contained:
 
 - Instead of referencing the shared `../extension.yaml`, generate a per-sample `extension.yaml` in the sample folder using the manifest structure in item 12, and point the README at it. (This is the one case where a per-sample manifest is expected.)
-- Copy any request payloads the sample's tests or docs rely on into the sample folder rather than linking to `radiologists/src/samples/requests/`.
+- Copy any request payloads the sample's tests or docs rely on into the sample folder rather than linking to `radiologists/src/samples/ContractBased/requests/`.
 - Replace the README's repo-relative links (API spec, requests, C# Quickstart) with short descriptions or absolute URLs, since those targets won't exist at the destination.
 - Everything else — wire contract, endpoints, auth, tests — is unchanged.
 
@@ -116,7 +118,7 @@ The in-repo default relies on files that sit next to the sample — the shared m
 ### Implementation
 
 4. **Service layer:** A single `QualityCheckService` (or language equivalent) with one method that takes `ProcessRequest` and returns `ProcessResponse`. Use the language's idiomatic async pattern if the framework is async-first (the C# samples expose `ProcessAsync` with a cancellation token). The only logic is loading the canned mock data. Partners replace this method with their real implementation.
-5. **Mock data:** Copy `radiologists/src/samples/Workflow/SampleExtension.Radiologists.Web.Quickstart/MockData/qualitycheck-response.json` **verbatim** to a top-level `MockData/` folder inside the new sample (match the C# layout — do not nest it under a source/package directory). Filename uses the language's idiomatic casing for resource files:
+5. **Mock data:** Copy `radiologists/src/samples/ContractBased/SampleExtension.Radiologists.Web.Quickstart/MockData/qualitycheck-response.json` **verbatim** to a top-level `MockData/` folder inside the new sample (match the C# layout — do not nest it under a source/package directory). Filename uses the language's idiomatic casing for resource files:
     - Python / Rust → `qualitycheck_response.json`
     - C# / Node / TypeScript → `qualitycheck-response.json`
     - Java → `qualityCheckResponse.json`
@@ -143,7 +145,7 @@ The in-repo default relies on files that sit next to the sample — the shared m
 
 ### Files & docs
 
-12. **`extension.yaml`:** The Radiologists Workflow samples **share one manifest** at the Workflow root (`radiologists/src/samples/Workflow/extension.yaml`) — do **not** create a per-sample manifest. Instead, reference it from the sample README (see item 13). **Radiologists manifests differ from Physicians manifests**; for reference, the shared manifest uses this structure:
+12. **`extension.yaml`:** The Radiologists Workflow samples **share one manifest** at the Workflow root (`radiologists/src/samples/ContractBased/extension.yaml`) — do **not** create a per-sample manifest. Instead, reference it from the sample README (see item 13). **Radiologists manifests differ from Physicians manifests**; for reference, the shared manifest uses this structure:
 
         name: sampleQualityCheckExtension          # camelCase, starts lowercase
         description: Sample radiology quality check extension
@@ -183,7 +185,7 @@ The in-repo default relies on files that sit next to the sample — the shared m
 
     See `tools/dragon-copilot-cli/src/schemas/radiologists/radiologists-extension-manifest-schema.json` for the full JSON Schema.
 
-13. **README:** Mirror the structure of `radiologists/src/samples/Workflow/SampleExtension.Radiologists.Web.Quickstart/README.md`. Required sections: What's included, Extension manifest (a short section pointing to the shared `../extension.yaml`), API endpoints (table), Run locally (separate Linux/macOS and Windows PowerShell blocks), Testing the API (with both `curl` and `Invoke-RestMethod` examples for `/v1/process` and both health probes), Security (with explicit Entra ID enable steps), Quality-check provider, Request/response contract. Add a Running the tests section as well (the C# samples ship no tests, but other-language samples do — see item 14).
+13. **README:** Mirror the structure of `radiologists/src/samples/ContractBased/SampleExtension.Radiologists.Web.Quickstart/README.md`. Required sections: What's included, Extension manifest (a short section pointing to the shared `../extension.yaml`), API endpoints (table), Run locally (separate Linux/macOS and Windows PowerShell blocks), Testing the API (with both `curl` and `Invoke-RestMethod` examples for `/v1/process` and both health probes), Security (with explicit Entra ID enable steps), Quality-check provider, Request/response contract. Add a Running the tests section as well (the C# samples ship no tests, but other-language samples do — see item 14).
 
 ### Validation
 
@@ -193,7 +195,7 @@ The in-repo default relies on files that sit next to the sample — the shared m
     - `/v1/process` happy path against the canonical sample payload returns the canned response (assert 3 recommendations, the `Clinical` + `Billing` types present, `severityScorePercent` 85 on the "paddock steatosis" recommendation)
     - `/v1/process` returns the framework's default validation error (typically 4xx) when required fields are missing
     - Auth toggle: enabled ⇒ unauthenticated request returns 401; enabled + valid bearer token ⇒ 200 (mock the JWKS / signing key in tests so this can run hermetically)
-15. **Sample payload:** Use `radiologists/src/samples/requests/FullRequest-Example.json` as the canonical complete request, or compose from fragments (`PatientInformationRequest-Example.json`, `ReportRequest-Example.json`). The body in `SampleExtension.Radiologists.Web.Quickstart.http` is the canonical reference. All patient data must remain fictional.
+15. **Sample payload:** Use `radiologists/src/samples/ContractBased/requests/FullRequest-Example.json` as the canonical complete request, or compose from fragments (`PatientInformationRequest-Example.json`, `ReportRequest-Example.json`). The body in `SampleExtension.Radiologists.Web.Quickstart.http` is the canonical reference. All patient data must remain fictional.
 
 ## Hard rules
 

@@ -4,12 +4,18 @@ applyTo: "radiologists/**"
 
 # Radiologists Extension Samples — Copilot Instructions
 
-Radiologists extensions analyze radiology reports and return quality-check recommendations.
+Radiologists extensions come in two directions, and every tool declares which one it is via `toolType`:
+
+- **`contractBased`** — Dragon Copilot calls the partner's `POST /v1/process` endpoint and waits. Used for quality checks on a radiology report.
+- **`partnerInitiated`** — the partner generates a result on their own schedule and posts it to the Dragon Copilot Radiologists API. Used for pre-draft report generation. Nothing calls the partner, so these tools declare no `endpoint` and no `inputs`.
+
+A single manifest may declare tools of both types. Most of this file describes `contractBased`; sections that only apply to one type say so.
 
 ## Authoritative contract
 
-- **OpenAPI spec:** `radiologists/radiologists-extensibility-api.yaml` is the canonical wire contract for `POST /v1/process`. It defines the envelope as `ProcessRequest` (request) and `ProcessResponse` (response), and contains the full schema definitions for all Radiologists domain types (`SessionData`, `PatientInformation`, `Report`, `QualityCheckResult`, `Recommendation`, `Provenance`, `ReferenceResource`).
-- **Models project:** `radiologists/src/models/Dragon.Copilot.Radiologists.Models/` — C# classes that mirror the OpenAPI spec (`ProcessRequest`, `ProcessResponse`, `SessionData`, `PatientInformation`, `Report`, `QualityCheckResult`, …). The wire envelope lives **here**, not in each sample.
+- **OpenAPI spec (`contractBased`):** `radiologists/extensibility-api/radiologists-extensibility-api.yaml` is the canonical wire contract for `POST /v1/process`. It defines the envelope as `ProcessRequest` (request) and `ProcessResponse` (response), and contains the full schema definitions for all Radiologists domain types (`SessionData`, `PatientInformation`, `Report`, `QualityCheckResult`, `Recommendation`, `Provenance`, `ReferenceResource`).
+- **JSON Schemas (`partnerInitiated`):** `radiologists/partner-initiated/` holds `pre-draft-report-ingest-request-schema.json` (the request body) and `pre-draft-report-schema.json` (the report itself, carried as `draftReport`), plus a worked example of each under `samples/`.
+- **Models project:** `radiologists/src/models/Dragon.Copilot.Radiologists.Models/` — C# classes mirroring both contracts, split into `ContractBased/` and `PartnerInitiated/` subfolders. Both share the namespace `Dragon.Copilot.Radiologists.Models`. The wire types live **here**, not in each sample.
 - **Wire shape (from the spec):**
     - Request `ProcessRequest`: required `sessionData`; optional `extensibilityApiVersion` (string, e.g. `"1.1.1"`, informational metadata from Dragon Copilot), `patientInformation`, and `report`. Additional named inputs flow through `additionalProperties`. The Radiologists C# model declares `patientInformation` and `report` as explicit properties for convenience.
     - Response `ProcessResponse`: optional `success`, `message`, and `payload` — a **map** of output name → `QualityCheckResult` (the output name comes from the extension's manifest, e.g. `qualityCheckResult`).
@@ -17,13 +23,21 @@ Radiologists extensions analyze radiology reports and return quality-check recom
 
 ## Sample variants
 
-Three C# sample variants live under `radiologists/src/samples/Workflow/`:
+Three C# `contractBased` variants live under `radiologists/src/samples/ContractBased/`:
 
 | Variant       | Folder                                         | Purpose                                                                                                                           | Target                      | Platform       |
 | ------------- | ---------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- | --------------------------- | -------------- |
 | Quickstart    | `SampleExtension.Radiologists.Web.Quickstart/` | Returns a canned response from `MockData/qualitycheck-response.json`. The fastest way to get a working extension running locally. | `net10.0`                   | Cross-platform |
 | Ai            | `SampleExtension.Radiologists.Web.Ai/`         | Calls **Azure OpenAI** when the `OpenAI` config is populated; otherwise returns a `503` "not configured" error.                   | `net10.0`                   | Cross-platform |
 | Foundry Local | `SampleExtension.Radiologists.Web.Local/`      | Runs an on-device model via **Foundry Local** (`Microsoft.AI.Foundry.Local.WinML`); no cloud account or API key needed.           | `net10.0-windows10.0.26100` | Windows-only   |
+
+One `partnerInitiated` variant lives under `radiologists/src/samples/PartnerInitiated/`:
+
+| Variant    | Folder                                             | Purpose                                                                                                                        | Target    | Platform       |
+| ---------- | -------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ | --------- | -------------- |
+| Quickstart | `PreDraftReport.Console.QuickStart/` | Console app that checks a pre-draft report payload offline and prints the JSON body that would be posted. The call itself is in `submit-pre-draft-report.http`. | `net10.0` | Cross-platform |
+
+Each samples folder has its own `extension.yaml` declaring only the tools that folder implements. `radiologists/manifest/extension.yaml` is the reference manifest showing every field and both tool types; it is not wired to a sample.
 
 ## Stack facts
 
@@ -35,7 +49,9 @@ Three C# sample variants live under `radiologists/src/samples/Workflow/`:
 
 ## Domain types
 
-Defined in `Dragon.Copilot.Radiologists.Models`:
+Defined in `Dragon.Copilot.Radiologists.Models`.
+
+`ContractBased/`:
 
 - `Report` — the radiology report text and metadata
 - `PatientInformation` — patient demographics relevant to the report
@@ -46,7 +62,18 @@ Defined in `Dragon.Copilot.Radiologists.Models`:
 - `BiologicalSex` — the patient's biological sex enum (`Male`, `Female`, `Unknown`, `Other`)
 - `QualityCheckType` — the quality-check category enum (`Billing`, `Clinical`)
 
-## Quality-check service
+`PartnerInitiated/`:
+
+- `PreDraftReportIngestRequest` — the request body; identifies the extension and carries `draftReport`
+- `PreDraftReport` — the report itself
+- `AISystemInfo` — the AI system that generated the report
+- `ImagingStudy`, `Series`, `ImagingStudyPrior` — the study the report was generated from, and its priors
+- `ReportContent`, `StructuredReport`, `Section`, `Code` — the report body
+- `QualityMetrics` — confidence scores for the generated report
+
+Collection properties on the `PartnerInitiated/` types use `Collection<T>` with a `CA2227` suppression, because `AnalysisLevel` is `latest-All` with `CodeAnalysisTreatWarningsAsErrors`. Follow that pattern when adding new ones.
+
+## Quality-check service (`contractBased`)
 
 All sample variants use `IQualityCheckService.ProcessAsync` (async with `CancellationToken`) as the single integration point. Replace its implementation to wire in your own logic.
 
@@ -58,9 +85,9 @@ All sample variants use `IQualityCheckService.ProcessAsync` (async with `Cancell
 
     The full AI system prompt lives in code as the private `SystemPrompt` const in the Ai and Foundry Local samples' `Services/QualityCheckService.cs`, so it stays in sync with the running code.
 
-## Endpoint shape
+## Endpoint shape (`contractBased`)
 
-All three samples use an async controller action with `CancellationToken`:
+All three `contractBased` samples use an async controller action with `CancellationToken`:
 
 ```csharp
 [ApiController]
@@ -75,6 +102,24 @@ public sealed class QualityCheckController : ControllerBase
         CancellationToken cancellationToken) { ... }
 }
 ```
+
+## Submission shape (`partnerInitiated`)
+
+The partner posts to the Dragon Copilot Radiologists API. The route carries the **customer's** tenant and environment; the partner's own identity comes from the access token, so it never appears in the body.
+
+```http
+POST api/v1/tenants/{tenantId}/environments/{environmentId}/draft-report-ai-results
+Authorization: Bearer {token}
+```
+
+The token needs the `AiFindingsWriter` app permission; without it the call returns `403` even though the token is valid.
+
+Two response codes need care:
+
+- **`404`** — either no order matches `draftReport.imagingStudy.accessionNumber`, or no installed tool matches `manifestName` plus `toolName`.
+- **`409`** — either `draftReport.identifier` was already submitted, which means the report is **already stored** and a retry should be treated as success, or the accession number matched more than one order, which is unresolvable.
+
+So `identifier` must be stable across retries of one run and unique across runs. `publisherId`, `offerId` and `planId` are all-or-nothing; side-loaded extensions omit all three. `manifestName` is always required.
 
 ## Manifest format (Radiologists)
 
@@ -109,8 +154,28 @@ tools:
             schemaVersion: "1.0" # Required: version of QualityCheckResult schema produced
 ```
 
+A `partnerInitiated` tool declares no `endpoint` and no `inputs`, only what it produces:
+
+```yaml
+tools:
+    - name: preDraftReportGeneratorTool
+      toolType: partnerInitiated
+      capability: preDraftReportGeneration
+      description: Tool to generate a pre-draft radiology report
+      outputs:
+          - name: preDraftReportResult
+            description: Pre-draft radiology report
+            content-type: application/vnd.ms-dragon.rad.pre-draft-report+json
+            schemaVersion: "1.0"
+      relevanceFilteringCriteria: # Declarative only; not currently enforced
+          relevantBodyParts:
+              - CHEST
+          relevantModalities:
+              - CT
+```
+
 See `tools/dragon-copilot-cli/src/schemas/radiologists/radiologists-extension-manifest-schema.json` for the full JSON Schema.
 
 ## Scaffolding a sample in another language
 
-A Python sample already ships at `radiologists/src/samples/Workflow/sample_extension_radiologists_python_quickstart/`. When a partner wants a Radiologists sample in another language (for example Go, Java, or Node.js), invoke the reusable Copilot prompt at `.github/prompts/radiologists-scaffold-language-sample.prompt.md`. Its usage instructions live inside the prompt file itself.
+A Python sample already ships at `radiologists/src/samples/ContractBased/sample_extension_radiologists_python_quickstart/`. When a partner wants a Radiologists sample in another language (for example Go, Java, or Node.js), invoke the reusable Copilot prompt at `.github/prompts/radiologists-scaffold-language-sample.prompt.md`. Its usage instructions live inside the prompt file itself. It currently scaffolds `contractBased` samples only.

@@ -1,0 +1,24 @@
+name: samplePreDraftReportExtension
+description: Sample extension providing pre-draft radiology report generation
+version: 0.0.1
+radiologistsExtensibilityApiVersion: 1.0.0
+auth:
+  tenantId: 00000000-0000-0000-0000-000000000000
+tools:
+  - name: preDraftReportGeneratorTool
+    toolType: partnerInitiated
+    capability: preDraftReportGeneration
+    description: Tool to generate a pre-draft radiology report
+    # A partnerInitiated tool is never called by Dragon Copilot, so it declares no
+    # endpoint and no inputs. It only declares what it produces.
+    outputs:
+      - name: preDraftReportResult
+        description: Pre-draft radiology report
+        content-type: application/vnd.ms-dragon.rad.pre-draft-report+json
+        schemaVersion: "1.0"
+    # Declarative for partnerInitiated tools; not currently enforced.
+    relevanceFilteringCriteria:
+      relevantBodyParts:
+        - CHEST
+      relevantModalities:
+        - CT
