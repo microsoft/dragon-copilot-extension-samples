@@ -18,13 +18,13 @@ In `extension.yaml`, a `partnerInitiated` tool omits `endpoint` and `inputs`, si
   capability: preDraftReportGeneration
   description: Tool to generate a pre-draft radiology report
   outputs:
-    - name: preDraftReportResult
-      description: Pre-draft radiology report
-      content-type: application/vnd.ms-dragon.rad.pre-draft-report+json
-      schemaVersion: "1.0"
+      - name: preDraftReportResult
+        description: Pre-draft radiology report
+        content-type: application/vnd.ms-dragon.rad.pre-draft-report+json
+        schemaVersion: "1.0"
 ```
 
-The manifest schema enforces this: `endpoint` and `inputs` are required only when `toolType` is `contractBased`.
+The manifest schema requires `endpoint` and `inputs` only when `toolType` is `contractBased`, so a `partnerInitiated` tool can leave them out.
 
 ## Schemas
 
