@@ -481,15 +481,16 @@ client/src/preview/
 ```
 
 A provider turns a source-specific payload into the renderer-neutral `PreviewModel` the pane draws.
-`extension-api` is implemented today. Two further sources are declared but not yet available, and
-are listed in the pane so the roadmap is visible:
+`extension-api` is implemented today. Two further sources are declared in the registry but are not
+yet available, so the pane does not offer them as selectable sources:
 
 - **Pixel AI app** — image and overlay results returned by pixel-based imaging AI applications.
 - **PowerScribe** — results surfaced from PowerScribe, for side-by-side comparison with extension
   output.
 
 Adding either one means implementing a `ResultProvider` and calling `registerResultProvider` — no
-change to `DragonCopilotPreview.tsx` or `TestingPanel.tsx`.
+change to `DragonCopilotPreview.tsx` or `TestingPanel.tsx`. Once a provider reports
+`available: true`, the pane shows a selector so the clinician view can be switched between sources.
 
 ## Upcoming Features
 

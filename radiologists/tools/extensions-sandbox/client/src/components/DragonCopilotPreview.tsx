@@ -149,6 +149,10 @@ export function DragonCopilotPreview({
   // Deliberately not memoized: the registry is mutable, so a memo keyed on `[]`
   // would pin whatever was registered at first render. The list is three entries.
   const providers = listResultProviders();
+  // Declared-but-unimplemented sources stay out of the selector — a button that
+  // can only ever reach an empty state is noise. They remain in the registry so
+  // implementing one is still a provider change, not a UI change.
+  const selectableProviders = providers.filter((provider) => provider.available);
 
   useEffect(() => {
     setActiveSource(source);
@@ -161,19 +165,18 @@ export function DragonCopilotPreview({
     [activeSource, result, toolName],
   );
 
-  const sourceSelector = providers.length > 1 && (
+  const sourceSelector = selectableProviders.length > 1 && (
     <div className="dc-preview-sources" role="group" aria-label="Result source">
-      {providers.map((provider) => (
+      {selectableProviders.map((provider) => (
         <button
           key={provider.source}
           type="button"
           className={`dc-preview-source-button${provider.source === activeSource ? ' active' : ''}`}
           aria-pressed={provider.source === activeSource}
-          title={provider.available ? provider.description : `${provider.description} (coming soon)`}
+          title={provider.description}
           onClick={() => setActiveSource(provider.source)}
         >
           {provider.label}
-          {!provider.available && <span className="dc-preview-source-soon"> · soon</span>}
         </button>
       ))}
     </div>

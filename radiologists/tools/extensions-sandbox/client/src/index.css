@@ -571,11 +571,6 @@ body {
   background: #eff6fc;
 }
 
-.dc-preview-source-soon {
-  font-weight: 400;
-  font-style: italic;
-}
-
 .dc-preview-frame {
   border: 1px solid var(--color-border);
   border-radius: 8px;

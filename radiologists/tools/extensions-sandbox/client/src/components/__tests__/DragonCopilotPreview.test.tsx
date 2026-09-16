@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { fireEvent, render, screen, within } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import { DragonCopilotPreview } from '../DragonCopilotPreview';
 
 const recommendationResult = {
@@ -151,14 +151,17 @@ describe('DragonCopilotPreview', () => {
     ).toBeInTheDocument();
   });
 
-  it('offers the planned result sources without rendering them', () => {
+  it('keeps the not-yet-available result sources out of the selector', () => {
     render(<DragonCopilotPreview result={recommendationResult} />);
 
-    const extensionApi = screen.getByRole('button', { name: /Extension API/ });
-    expect(extensionApi).toHaveAttribute('aria-pressed', 'true');
-    expect(screen.getByRole('button', { name: /PowerScribe/ })).toHaveAttribute('aria-pressed', 'false');
+    expect(screen.queryByRole('button', { name: /Pixel AI app/ })).toBeNull();
+    expect(screen.queryByRole('button', { name: /PowerScribe/ })).toBeNull();
+    expect(screen.queryByRole('group', { name: 'Result source' })).toBeNull();
+  });
 
-    fireEvent.click(screen.getByRole('button', { name: /Pixel AI app/ }));
+  it('explains the empty state when a not-yet-available source is requested', () => {
+    render(<DragonCopilotPreview result={recommendationResult} source="pixel-ai" />);
+
     expect(screen.getByText('Pixel AI app results are not available in the sandbox yet.')).toBeInTheDocument();
   });
 });
