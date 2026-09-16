@@ -1,5 +1,5 @@
 import { extensionApiProvider } from './extension-api-provider';
-import type { PreviewModel, ResultProvider, ResultSource } from './types';
+import type { PreviewContext, PreviewModel, ResultProvider, ResultSource } from './types';
 
 /**
  * Placeholder provider for a source that is part of the preview's design but not
@@ -77,8 +77,12 @@ export function listResultProviders(): ResultProvider[] {
  * yet available, or has nothing to show — all of which the pane renders as its
  * empty state.
  */
-export function buildPreview(source: ResultSource, input: unknown): PreviewModel | null {
+export function buildPreview(
+  source: ResultSource,
+  input: unknown,
+  context: PreviewContext = {},
+): PreviewModel | null {
   const provider = providers.get(source);
   if (!provider || !provider.available) return null;
-  return provider.buildPreview(input);
+  return provider.buildPreview(input, context);
 }

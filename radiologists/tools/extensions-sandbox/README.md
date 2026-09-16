@@ -474,7 +474,7 @@ than one place. Rendering therefore goes through a small provider abstraction in
 
 ```
 client/src/preview/
-├── types.ts                   # ResultSource, PreviewModel, PreviewBlock, ResultProvider
+├── types.ts                   # ResultSource, PreviewModel, PreviewBlock, PreviewContext, ResultProvider
 ├── extension-api-provider.ts  # Translates a sandbox ExecuteResult into a PreviewModel
 ├── registry.ts                # Source registry + the planned pixel-ai / powerscribe sources
 └── index.ts
@@ -489,8 +489,11 @@ yet available, so the pane does not offer them as selectable sources:
   output.
 
 Adding either one means implementing a `ResultProvider` and calling `registerResultProvider` — no
-change to `DragonCopilotPreview.tsx` or `TestingPanel.tsx`. Once a provider reports
-`available: true`, the pane shows a selector so the clinician view can be switched between sources.
+change to `DragonCopilotPreview.tsx` or `TestingPanel.tsx`. A provider receives
+`buildPreview(input, context)`: `input` is the untyped source payload it is responsible for
+narrowing, and `context` carries what the pane knows but the payload does not, such as the selected
+`toolName`. Once a provider reports `available: true`, the pane shows a selector so the clinician
+view can be switched between sources.
 
 ## Upcoming Features
 

@@ -3,6 +3,7 @@ export type {
   JsonBlock,
   MessageBlock,
   PreviewBlock,
+  PreviewContext,
   PreviewModel,
   PreviewRecommendation,
   RecommendationsBlock,

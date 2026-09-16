@@ -61,6 +61,41 @@ describe('DragonCopilotPreview', () => {
     expect(screen.getByText('summaryTool')).toBeInTheDocument();
   });
 
+  it('renders partner card text literally instead of as markup', async () => {
+    render(
+      <DragonCopilotPreview
+        result={{
+          status: 200,
+          processResponse: {
+            success: true,
+            payload: {
+              summaryCard: {
+                type: 'AdaptiveCard',
+                version: '1.5',
+                body: [
+                  {
+                    type: 'TextBlock',
+                    text: '<img src=x onerror="alert(1)"> **not bold**',
+                    wrap: true,
+                  },
+                ],
+              },
+            },
+          },
+        }}
+      />,
+    );
+
+    // Markdown processing is declined in AdaptiveCardBlockView, so the renderer
+    // sets TextBlock content through innerText. A payload therefore reaches the
+    // DOM as characters and has no path to inject elements.
+    const host = await screen.findByTestId('adaptive-card-host');
+    expect(host.querySelector('img')).toBeNull();
+    expect(host.querySelector('strong')).toBeNull();
+    expect(host.textContent).toContain('<img src=x onerror="alert(1)">');
+    expect(host.textContent).toContain('**not bold**');
+  });
+
   it('renders recommendations as a clinician-friendly summary, not raw JSON', () => {
     render(<DragonCopilotPreview result={recommendationResult} />);
 

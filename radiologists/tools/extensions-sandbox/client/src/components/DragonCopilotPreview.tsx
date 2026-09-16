@@ -106,7 +106,10 @@ function RecommendationsBlockView({ block }: { block: RecommendationsBlock }) {
       ) : (
         <ul className="dc-recommendation-list">
           {block.recommendations.map((recommendation, index) => (
-            <RecommendationView key={index} recommendation={recommendation} />
+            <RecommendationView
+              key={`${index}-${recommendation.description}`}
+              recommendation={recommendation}
+            />
           ))}
         </ul>
       )}
@@ -158,10 +161,11 @@ export function DragonCopilotPreview({
     setActiveSource(source);
   }, [source]);
 
+  // The result is passed through untouched. Merging `toolName` into it would
+  // both overwrite a `toolName` the source did send and hand every future
+  // provider a field that only means something to the extension API.
   const model = useMemo(
-    () => buildPreview(activeSource, result === null || result === undefined
-      ? result
-      : { ...(result as Record<string, unknown>), toolName }),
+    () => buildPreview(activeSource, result, { toolName }),
     [activeSource, result, toolName],
   );
 
@@ -211,7 +215,7 @@ export function DragonCopilotPreview({
         </div>
         <div className="dc-preview-body">
           {model.blocks.map((block, index) => (
-            <PreviewBlockView key={index} block={block} />
+            <PreviewBlockView key={`${block.kind}-${index}`} block={block} />
           ))}
         </div>
       </div>

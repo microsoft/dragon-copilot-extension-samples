@@ -52,6 +52,11 @@ describe('humanizeKey', () => {
     expect(humanizeKey('quality-result')).toBe('Quality Result');
     expect(humanizeKey('qualityCheckResult')).toBe('Quality Check Result');
   });
+
+  it('keeps acronym runs intact', () => {
+    expect(humanizeKey('HTTPStatus')).toBe('HTTP Status');
+    expect(humanizeKey('reportURLList')).toBe('Report URL List');
+  });
 });
 
 describe('isAdaptiveCard', () => {
@@ -182,6 +187,43 @@ describe('buildExtensionApiPreview', () => {
     const model = buildExtensionApiPreview({ rawBody: 'Internal Server Error' });
 
     expect(model?.blocks[0]).toMatchObject({ kind: 'json', json: 'Internal Server Error' });
+  });
+
+  it('never pairs an HTTP failure with a success-toned message', () => {
+    const model = buildExtensionApiPreview({
+      status: 502,
+      statusText: 'Bad Gateway',
+      processResponse: { message: 'Payload processed successfully.', payload: {} },
+    });
+
+    const messages = (model?.blocks ?? []).flatMap((block) =>
+      block.kind === 'message' ? [block] : [],
+    );
+    expect(messages).toHaveLength(2);
+    expect(messages.map((block) => block.tone)).toEqual(['error', 'error']);
+    expect(messages[1].text).toBe('Payload processed successfully.');
+  });
+
+  it('reports a failure once when the status and the body agree', () => {
+    const model = buildExtensionApiPreview({
+      status: 500,
+      processResponse: { success: false, payload: {} },
+    });
+
+    const messages = (model?.blocks ?? []).flatMap((block) =>
+      block.kind === 'message' ? [block] : [],
+    );
+    expect(messages).toHaveLength(1);
+    expect(messages[0].text).toContain('HTTP 500');
+  });
+
+  it("prefers the caller's tool name and keeps the payload's when there is none", () => {
+    const payload = { ...recommendationResult, toolName: 'payloadTool' };
+
+    expect(buildExtensionApiPreview(payload, { toolName: 'selectedTool' })?.producedBy).toBe(
+      'selectedTool',
+    );
+    expect(buildExtensionApiPreview(payload)?.producedBy).toBe('payloadTool');
   });
 });
 

@@ -1,5 +1,6 @@
 import type {
   PreviewBlock,
+  PreviewContext,
   PreviewModel,
   PreviewRecommendation,
   ResultProvider,
@@ -34,6 +35,9 @@ function isRecord(value: unknown): value is Record<string, unknown> {
  */
 export function humanizeKey(key: string): string {
   const spaced = key
+    // Acronym runs first: `HTTPStatus` splits after the run, not inside it, so
+    // the rule below cannot turn it into "H T T P Status".
+    .replace(/([A-Z]+)([A-Z][a-z])/g, '$1 $2')
     .replace(/([a-z0-9])([A-Z])/g, '$1 $2')
     .replace(/[-_.]+/g, ' ')
     .trim();
@@ -162,7 +166,10 @@ function isExtensionApiResult(input: unknown): input is ExtensionApiResult {
  * Builds the preview for a result returned by a partner extension over the
  * Extensibility API — the only source wired up today.
  */
-export function buildExtensionApiPreview(input: unknown): PreviewModel | null {
+export function buildExtensionApiPreview(
+  input: unknown,
+  context: PreviewContext = {},
+): PreviewModel | null {
   if (!isExtensionApiResult(input)) return null;
 
   const { processResponse, rawBody, toolName, status, statusText } = input;
@@ -181,14 +188,27 @@ export function buildExtensionApiPreview(input: unknown): PreviewModel | null {
   }
 
   if (processResponse) {
+    // The transport status is the last word on whether the clinician sees
+    // anything, so a body message on a failed call is detail about that failure
+    // and must never carry the success tone. When both the status and the body
+    // report failure, the HTTP block above has already said so — only a specific
+    // message adds anything, and the generic fallback would just repeat it.
     if (processResponse.success === false) {
+      if (!failed) {
+        blocks.push({
+          kind: 'message',
+          tone: 'error',
+          text: processResponse.message || 'The extension reported that processing did not succeed.',
+        });
+      } else if (processResponse.message) {
+        blocks.push({ kind: 'message', tone: 'error', text: processResponse.message });
+      }
+    } else if (processResponse.message) {
       blocks.push({
         kind: 'message',
-        tone: 'error',
-        text: processResponse.message || 'The extension reported that processing did not succeed.',
+        tone: failed ? 'error' : 'success',
+        text: processResponse.message,
       });
-    } else if (processResponse.message) {
-      blocks.push({ kind: 'message', tone: 'success', text: processResponse.message });
     }
 
     const payload = processResponse.payload;
@@ -222,7 +242,9 @@ export function buildExtensionApiPreview(input: unknown): PreviewModel | null {
   return {
     source: 'extension-api',
     sourceLabel: 'Extension API',
-    producedBy: toolName,
+    // The pane knows which tool it ran; the payload only sometimes says. Prefer
+    // the caller's answer, but never discard the payload's when there is none.
+    producedBy: context.toolName ?? toolName,
     blocks,
   };
 }

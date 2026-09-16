@@ -31,10 +31,11 @@ const dragonCopilotHostConfig = {
   },
 };
 
-// Without a registered Markdown engine the renderer warns on every card. The
-// preview deliberately renders TextBlock content as plain text — no Markdown
-// engine means a partner payload has no path to inject HTML — so register a
-// processor that declines, which keeps the escaping and drops the warning.
+// SECURITY: declining Markdown is what keeps partner text out of the HTML path.
+// The renderer falls back to `innerText` when nothing processes the Markdown, so
+// a payload cannot inject markup. Registering a Markdown engine here (as the
+// Adaptive Cards docs suggest, to silence the per-card warning) would reopen
+// that path — do not do so without routing the output through a sanitizer.
 AdaptiveCardsLib.AdaptiveCard.onProcessMarkdown = (_text, result) => {
   result.didProcess = false;
 };

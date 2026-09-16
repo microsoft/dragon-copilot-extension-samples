@@ -67,12 +67,24 @@ export interface PreviewModel {
 }
 
 /**
+ * What the pane knows about a run that the payload itself does not carry.
+ *
+ * Passed alongside the result rather than merged into it: splicing fields into an
+ * opaque payload would both destroy same-named fields the source did send and
+ * push one source's vocabulary onto every other provider.
+ */
+export interface PreviewContext {
+  /** Tool the sandbox ran to produce this result, when known. */
+  toolName?: string;
+}
+
+/**
  * Translates a source-specific result into a `PreviewModel`.
  *
  * `buildPreview` takes `unknown` so the registry can hold providers for sources
  * whose payload shapes are unrelated; each provider narrows its own input and
  * returns `null` when it has nothing to show (which the pane renders as the
- * empty state).
+ * empty state). `context` carries run metadata the payload does not include.
  */
 export interface ResultProvider {
   source: ResultSource;
@@ -80,5 +92,5 @@ export interface ResultProvider {
   description: string;
   /** False for sources that are declared but not yet wired up. */
   available: boolean;
-  buildPreview(input: unknown): PreviewModel | null;
+  buildPreview(input: unknown, context: PreviewContext): PreviewModel | null;
 }
