@@ -89,6 +89,23 @@ LOG_FORMAT=json npm run dev
 
 **Secrets are never logged.** Bearer tokens / `Authorization` headers are redacted, and client secrets never reach the logs; only non-sensitive metadata (tenant id, client id, scope, expiry) may appear.
 
+## Running the tests
+
+```bash
+npm test          # every workspace
+npm test --workspace=client
+```
+
+`jsdom` is declared in the **root** `package.json` rather than only in `client`, and it must stay
+there. Both `client` and `server` depend on Vitest, so npm hoists Vitest to the workspace root, and
+Node resolves a package's imports from the importer's own location upward — a `jsdom` installed only
+under `client/node_modules` is invisible to the hoisted Vitest, which fails with
+`Cannot find package 'jsdom'`. Declaring it at the root keeps exactly one copy where Vitest can
+resolve it, and lets `client`'s own `jsdom` dependency dedupe onto it.
+
+Keep it pinned to `^26.x`. jsdom 30 requires Node `^22.22.2 || ^24.15.0 || >=26.0.0`, which would
+drop the Node 20 support declared in `engines` and used by CI.
+
 ## Project Structure
 
 ```
