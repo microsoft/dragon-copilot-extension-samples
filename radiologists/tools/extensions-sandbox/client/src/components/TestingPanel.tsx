@@ -12,6 +12,7 @@ import { ArrowCounterclockwiseRegular, CodeRegular, CopyRegular } from '@fluentu
 import { DynamicForm, getFieldPaths, SchemaProperty } from './DynamicForm';
 import type { DynamicFormHandle } from './DynamicForm';
 import { AuthSettings } from './AuthSettings';
+import { DragonCopilotPreview } from './DragonCopilotPreview';
 import './ValidationResults.css';
 
 interface ToolInput {
@@ -379,6 +380,7 @@ export function TestingPanel({ manifestInfo, manifestRevision }: TestingPanelPro
         <Tab value="setup">Setup</Tab>
         <Tab value="results">Results</Tab>
         <Tab value="outputs">Outputs</Tab>
+        <Tab value="preview">Dragon Copilot Preview</Tab>
       </TabList>
 
       <div className="tab-content">
@@ -707,6 +709,12 @@ export function TestingPanel({ manifestInfo, manifestRevision }: TestingPanelPro
             ) : (
               <p className="results-empty">No outputs yet. Run a test from the Setup tab.</p>
             )}
+          </div>
+        )}
+
+        {activeTab === 'preview' && (
+          <div className="preview-tab">
+            <DragonCopilotPreview result={result} toolName={selectedTool || undefined} />
           </div>
         )}
       </div>
