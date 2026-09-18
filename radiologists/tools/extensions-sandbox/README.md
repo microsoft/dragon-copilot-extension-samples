@@ -89,6 +89,23 @@ LOG_FORMAT=json npm run dev
 
 **Secrets are never logged.** Bearer tokens / `Authorization` headers are redacted, and client secrets never reach the logs; only non-sensitive metadata (tenant id, client id, scope, expiry) may appear.
 
+## Running the tests
+
+```bash
+npm test          # every workspace
+npm test --workspace=client
+```
+
+`jsdom` is declared in the **root** `package.json` rather than only in `client`, and it must stay
+there. Both `client` and `server` depend on Vitest, so npm hoists Vitest to the workspace root, and
+Node resolves a package's imports from the importer's own location upward — a `jsdom` installed only
+under `client/node_modules` is invisible to the hoisted Vitest, which fails with
+`Cannot find package 'jsdom'`. Declaring it at the root keeps exactly one copy where Vitest can
+resolve it, and lets `client`'s own `jsdom` dependency dedupe onto it.
+
+Keep it pinned to `^26.x`. jsdom 30 requires Node `^22.22.2 || ^24.15.0 || >=26.0.0`, which would
+drop the Node 20 support declared in `engines` and used by CI.
+
 ## Project Structure
 
 ```
@@ -428,7 +445,56 @@ npm run dev
 ```
 Then enable authentication in the UI with **Tenant ID** `11111111-1111-1111-1111-111111111111` (the GUID baked into the fake token), click **Test connection** (all three claim checks green, no Azure), and run a tool test against the echo listener above to confirm the full enabled-auth path end-to-end. Leave `ENTRA_TOKEN_ENDPOINT` unset in any real environment.
 
+## Dragon Copilot Preview pane
+
+The **Results** and **Outputs** tabs answer "is my response schema-valid?". The
+**Dragon Copilot Preview** tab answers the other half: *how will a clinician actually see this?*
+After a tool run it renders the most recent result the way Dragon Copilot would surface it, so the
+end-user experience can be checked before deploying.
+
+What it renders, in order of preference:
+
+| Output shape | Rendered as |
+| --- | --- |
+| An Adaptive Card (`type: "AdaptiveCard"`, optionally wrapped in a `{ contentType, content }` envelope) | The real Adaptive Cards renderer, themed to the Dragon Copilot surface |
+| A recommendation list (`{ recommendations: [...] }`, or a bare array of recommendations) | A clinician-friendly summary — severity chip and bar, quality check type, description, and reason |
+| Anything else | The formatted-JSON viewer, with a note explaining why the richer renderers were skipped |
+
+Cards are detected structurally rather than by content-type, because the radiologists Extensibility
+API does not declare a card content-type today. Recommendation output is matched the same way, so
+both `payload["quality-result"]` and the Quickstart's `payload.qualityCheckResult` preview
+identically. If a card fails to render, the pane falls back to the JSON viewer instead of erroring,
+and when nothing has been run yet it shows an empty state. The raw JSON tabs are unaffected.
+
+### Result sources
+
+The pane previews a *result*, not a transport payload, and results will eventually come from more
+than one place. Rendering therefore goes through a small provider abstraction in
+`client/src/preview/`:
+
+```
+client/src/preview/
+├── types.ts                   # ResultSource, PreviewModel, PreviewBlock, PreviewContext, ResultProvider
+├── extension-api-provider.ts  # Translates a sandbox ExecuteResult into a PreviewModel
+├── registry.ts                # Source registry + the planned pixel-ai / powerscribe sources
+└── index.ts
+```
+
+A provider turns a source-specific payload into the renderer-neutral `PreviewModel` the pane draws.
+`extension-api` is implemented today. Two further sources are declared in the registry but are not
+yet available, so the pane does not offer them as selectable sources:
+
+- **Pixel AI app** — image and overlay results returned by pixel-based imaging AI applications.
+- **PowerScribe** — results surfaced from PowerScribe, for side-by-side comparison with extension
+  output.
+
+Adding either one means implementing a `ResultProvider` and calling `registerResultProvider` — no
+change to `DragonCopilotPreview.tsx` or `TestingPanel.tsx`. A provider receives
+`buildPreview(input, context)`: `input` is the untyped source payload it is responsible for
+narrowing, and `context` carries what the pane knows but the payload does not, such as the selected
+`toolName`. Once a provider reports `available: true`, the pane shows a selector so the clinician
+view can be switched between sources.
+
 ## Upcoming Features
 
-- Dragon Copilot preview pane for extension results
 - Sample scenario picker & sample data packs
