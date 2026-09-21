@@ -45,7 +45,7 @@ The production configuration in [appsettings.json](../physician/src/samples/Drag
 - `Instance` — the Entra ID authority URL (typically `https://login.microsoftonline.com/`)
 - `RequiredClaims` — claims required for authorization (e.g. `idtyp`, `azp`)
 
-> **CLI Note:** When you generate Clinical App Connector or Physician Workflow manifests with the `dragon-copilot` CLI, the `auth.tenantId` field captured in `extension.yaml` must match the `TenantId` configured here. The CLI wizard prompts for the same tenant information to keep runtime and manifest settings aligned.
+> **CLI Note:** Physician Workflow manifests capture `auth.tenantId`, which must match the `TenantId` configured here. Clinical Application Connector manifests do not use `auth.tenantId`; their wizard configures `server-authentication` and instance-level client authentication issuer and claim fields instead. See the [Connector Quickstart](../connector/QUICKSTART.md).
 
 ## Microsoft Entra ID (JWT) Authentication
 

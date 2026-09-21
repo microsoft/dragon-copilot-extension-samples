@@ -2,10 +2,8 @@ import type {
   ContextRetrievalItem,
   ConnectorIntegrationManifest,
   TemplateConfig,
-  YesNo,
-  NoteSectionValue
+  YesNo
 } from '../types.js';
-import { getDefaultNoteSections, normalizeNoteSections } from '../shared/note-sections.js';
 import { buildIntegrationDescription } from '../shared/integration-description.js';
 import { cloneContextItem } from '../shared/context-items.js';
 
@@ -25,10 +23,6 @@ const adjustContextRequired = (
     }
     return item;
   });
-
-type NoteSections = NonNullable<ConnectorIntegrationManifest['note-sections']>;
-
-const defaultNoteSections: NoteSections = getDefaultNoteSections() as NoteSections;
 
 const defaultInstance: ConnectorIntegrationManifest['instance'] = {
   'client-authentication': {
@@ -72,8 +66,6 @@ const cloneInstance = (): ConnectorIntegrationManifest['instance'] =>
   JSON.parse(JSON.stringify(defaultInstance)) as ConnectorIntegrationManifest['instance'];
 
 const createBaseManifest = (overrides: Partial<ConnectorIntegrationManifest> = {}): ConnectorIntegrationManifest => {
-  const noteSections = normalizeNoteSections(overrides['note-sections'] ?? defaultNoteSections) as NoteSections;
-
   const manifestName = overrides.name ?? 'partner-integration';
   const manifestDescription = buildIntegrationDescription(manifestName);
 
@@ -81,6 +73,7 @@ const createBaseManifest = (overrides: Partial<ConnectorIntegrationManifest> = {
     name: manifestName,
     description: manifestDescription,
     version: overrides.version ?? '0.0.1',
+    'publisher-name': overrides['publisher-name'] ?? 'Sample Partner, Inc.',
     'partner-id': overrides['partner-id'] ?? '11111111-2222-3333-4444-555555555555',
     'clinical-application-name': overrides['clinical-application-name'] ?? 'Contoso HealthWorks EHR',
     'server-authentication': overrides['server-authentication'] ?? [
@@ -90,7 +83,6 @@ const createBaseManifest = (overrides: Partial<ConnectorIntegrationManifest> = {
         'identity-value': ['a0bb517c-d6de-449f-bfe4-f0bc3f912c66']
       }
     ],
-  'note-sections': JSON.parse(JSON.stringify(noteSections)) as NoteSections,
     instance: overrides.instance ? overrides.instance : cloneInstance()
   };
 
@@ -273,13 +265,6 @@ const templates: Record<string, TemplateConfig> = {
           'identity-value': ['f9853c9a-25de-4564-a2fa-1a601c913a45']
         }
       ],
-      ['note-sections']: normalizeNoteSections({
-        hpi: ['hpi', 'chief-complaint'],
-        assessment: ['assessment', 'plan'],
-        results: ['results'],
-        medications: ['medications'],
-        allergies: null
-      }),
       instance: ehrInstance
     })
   },
@@ -295,11 +280,6 @@ const templates: Record<string, TemplateConfig> = {
           'identity-value': ['ebe62346-179a-44b0-8cf2-880b4b2871cc']
         }
       ],
-      ['note-sections']: normalizeNoteSections({
-        assessment: ['assessment'],
-        results: null,
-        procedures: null
-      }),
       instance: apiInstance
     })
   },
@@ -320,13 +300,6 @@ const templates: Record<string, TemplateConfig> = {
           'identity-value': ['bd864f73-1130-452f-98c8-4d63d1c6a001']
         }
       ],
-      ['note-sections']: normalizeNoteSections({
-        hpi: ['hpi'],
-        assessment: ['assessment', 'plan'],
-        results: ['results'],
-        procedures: ['procedures'],
-        'review-of-systems': null
-      }),
       instance: dataSyncInstance
     })
   },
@@ -342,11 +315,6 @@ const templates: Record<string, TemplateConfig> = {
           'identity-value': ['9c4ebfd9-0407-47a2-902f-3e0f2a5a9620']
         }
       ],
-      ['note-sections']: normalizeNoteSections({
-        assessment: null,
-        results: null,
-        procedures: null
-      }),
       instance: customInstance
     })
   }

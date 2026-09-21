@@ -72,13 +72,16 @@ Run `npm unlink -g dragon-copilot` only once per workstation; subsequent rebuild
 | Radiologists | `dragon-copilot radiologists generate --template quality-check -o extension.yaml` | Generate a manifest from a built-in template (currently `quality-check`) or interactively with `--interactive` |
 | Radiologists | `dragon-copilot radiologists validate ./extension.yaml` | Validates the radiologists manifest against JSON schema + business rules |
 | Radiologists | `dragon-copilot radiologists package`                  | Produces a zip containing the radiologists manifest and any included files |
-| Connector  | `dragon-copilot connector init`                          | Clinical Application Connector manifest wizard (note sections, context retrieval, authentication) |
+| Connector  | `dragon-copilot connector init`                          | Clinical Application Connector manifest wizard (publisher metadata, authentication, web launch, and context retrieval) |
+| Connector  | `dragon-copilot connector generate --template custom`    | Generates a connector manifest from `ehr-integration`, `api-connector`, `data-sync`, or `custom` |
 | Connector  | `dragon-copilot connector validate ./extension.yaml`   | Validates Clinical Application Connector manifests |
 | Connector  | `dragon-copilot connector package`                     | Produces a zip containing the manifest and any included files |
 
 Use `dragon-copilot --help` or `dragon-copilot <domain> --help` for additional options.
 
-During the connector wizard you will be asked to confirm a **clinical application name**—typically the embedded EHR or workflow integration that issues user identities to Dragon Copilot—so the manifest captures that metadata consistently.
+## Clinical Application Connector
+
+See the root-level [Connector documentation](../../connector/README.md) for connector concepts and the [Connector Quickstart](../../connector/QUICKSTART.md) for every interactive question, default, validation rule, conditional branch, review step, and manifest field mapping.
 
 ## Development Notes
 

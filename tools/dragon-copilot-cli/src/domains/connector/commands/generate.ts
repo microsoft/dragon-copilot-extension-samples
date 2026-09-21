@@ -6,7 +6,6 @@ import chalk from 'chalk';
 import type { GenerateOptions, IntegrationDetails, ConnectorIntegrationManifest } from '../types.js';
 import { getTemplate } from '../templates/index.js';
 import { runConnectorManifestWizard } from '../shared/prompts.js';
-import { normalizeNoteSections } from '../shared/note-sections.js';
 import { dumpManifestYaml } from '../shared/yaml.js';
 
 export async function generateManifest(options: GenerateOptions): Promise<void> {
@@ -36,6 +35,7 @@ async function generateInteractive(options: GenerateOptions): Promise<void> {
       name: parsed.name,
       description: parsed.description,
       version: parsed.version,
+      ...(parsed['publisher-name'] ? { publisherName: parsed['publisher-name'] } : {}),
       partnerId: parsed['partner-id'] ?? (parsed as unknown as Record<string, string>)['connector-id'],
       clinicalApplicationName: parsed['clinical-application-name']
     };
@@ -44,7 +44,6 @@ async function generateInteractive(options: GenerateOptions): Promise<void> {
   }
 
   const manifest = await runConnectorManifestWizard(defaults);
-  manifest['note-sections'] = normalizeNoteSections(manifest['note-sections']);
   const yamlContent = dumpManifestYaml(manifest);
   writeFileSync(manifestPath, yamlContent);
 
@@ -53,7 +52,7 @@ async function generateInteractive(options: GenerateOptions): Promise<void> {
 
   console.log(chalk.blue('\n🎯 What\'s Next?'));
   console.log(chalk.gray('   • Review server authentication issuers and identity claims'));
-  console.log(chalk.gray('   • Align your integration services with the generated note sections and context requirements'));
+  console.log(chalk.gray('   • Align your integration services with the generated launch and context requirements'));
   console.log(chalk.gray('   • Validate the manifest: dragon-copilot connector validate'));
   console.log(chalk.gray('   • Package for deployment: dragon-copilot connector package'));
 }
@@ -69,7 +68,6 @@ async function generateFromTemplate(options: GenerateOptions): Promise<void> {
   }
 
   const manifestPath = options.output || 'extension.yaml';
-  template.manifest['note-sections'] = normalizeNoteSections(template.manifest['note-sections']);
   const yamlContent = dumpManifestYaml(template.manifest);
   writeFileSync(manifestPath, yamlContent);
 
@@ -77,7 +75,6 @@ async function generateFromTemplate(options: GenerateOptions): Promise<void> {
   console.log(chalk.gray(`📁 Manifest saved to: ${manifestPath}`));
   console.log(chalk.gray(`🛠️  Template: ${options.template}`));
   console.log(chalk.gray(`🔐 Server authentication issuers: ${template.manifest['server-authentication']?.length || 0}`));
-  console.log(chalk.gray(`🗂️  Note sections configured: ${Object.keys(template.manifest['note-sections'] ?? {}).length}`));
 
   console.log(chalk.blue('\n🎯 What\'s Next?'));
   console.log(chalk.yellow('⚠️  Required Updates:'));
