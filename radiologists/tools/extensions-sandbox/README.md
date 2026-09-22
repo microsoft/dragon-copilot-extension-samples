@@ -6,7 +6,7 @@ A local development environment for testing and validating Microsoft Dragon Copi
 
 **Who it's for**: partners building radiology extensions.
 
-**Where it fits**: author your manifest with `tools/dragon-copilot-cli` — or generate one without leaving the sandbox via the **Dragon Copilot CLI** button in the Manifest Editor — run your extension (or one of the samples in `radiologists/src/samples/Workflow`), then load the manifest here to test.
+**Where it fits**: author your manifest with `tools/dragon-copilot-cli` — or generate one without leaving the sandbox via the **Generate Manifest** button in the Manifest Editor — run your extension (or one of the samples in `radiologists/src/samples/Workflow`), then load the manifest here to test.
 
 ## Prerequisites
 
@@ -34,7 +34,7 @@ Open `http://localhost:3000` in your browser.
 
 ### Creating a manifest with the CLI wizard
 
-If you don't have a manifest yet, click **Dragon Copilot CLI** in the Manifest Editor toolbar. The
+If you don't have a manifest yet, click **Generate Manifest** in the Manifest Editor toolbar. The
 dialog asks the same questions as `dragon-copilot radiologists init`, either starting from a built-in
 template (`quality-check`) or from your own values — extension name, tenant, tool endpoint, input data
 types, output, and optional relevance filtering by body part and modality.

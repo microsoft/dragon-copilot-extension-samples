@@ -7,7 +7,7 @@ import { cliRouter } from '../routes/cli.js';
 import type { ExtensionManifest } from '../schemas/manifest.schema.js';
 
 /**
- * Covers the Manifest Editor's "Dragon Copilot CLI" button: the sandbox runs the
+ * Covers the Manifest Editor's "Generate Manifest" button: the sandbox runs the
  * CLI's manifest generation in-process (the synced core under `src/cli/radiologists`)
  * and hands back YAML the editor can load and validate.
  *

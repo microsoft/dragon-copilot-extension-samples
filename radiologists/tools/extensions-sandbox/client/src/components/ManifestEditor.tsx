@@ -301,7 +301,7 @@ export function ManifestEditor({ onManifestLoaded, onManifestEditing, onReset }:
     <div className="manifest-editor">
       <h2 className="panel-title">Manifest Editor</h2>
       <p className="panel-description">
-        Upload your extension manifest file (.json, .yaml, .yml) to begin testing, or use the CLI tool to create a manifest.
+        Upload your extension manifest file (.json, .yaml, .yml) to begin testing, or click Generate Manifest to create one with the CLI wizard.
       </p>
 
       <div className="editor-toolbar">
@@ -318,7 +318,7 @@ export function ManifestEditor({ onManifestLoaded, onManifestEditing, onReset }:
           icon={<CodeRegular />}
           onClick={() => setIsCliWizardOpen(true)}
         >
-          Dragon Copilot CLI
+          Generate Manifest
         </Button>
         <Button
           appearance="subtle"
