@@ -17,6 +17,7 @@ This repo includes:
 
 - [Shared Platform Documentation](doc/) for authentication guides and resources common across all products
 - Sample [`Physician Workflow`](physician/) with best practices
+- [Clinical Application Connector documentation](connector/) for EHR and enterprise API integrations
 - CLI [`tools`](tools/dragon-copilot-cli/README.md) to initialize & package both **Extensions** and **Clinical Application Connectors**
 
 ### Extensions vs. Clinical Application Connectors
@@ -42,6 +43,7 @@ Pick the product you are building an extension for and follow its dedicated quic
 | Product       | README                                     | Quick Start Guide                                  |
 | ------------- | ------------------------------------------ | -------------------------------------------------- |
 | **Physician** | [physician/README.md](physician/README.md) | [physician/QUICKSTART.md](physician/QUICKSTART.md) |
+| **Connector** | [connector/README.md](connector/README.md) | [connector/QUICKSTART.md](connector/QUICKSTART.md) |
 
 > **Tip:** Each product's `QUICKSTART.md` is a self-contained, end-to-end walkthrough from setting up your dev environment to testing your extension inside Dragon Copilot.
 
@@ -83,12 +85,12 @@ For creating **Clinical Application Connectors** (EHR integrations, API connecto
 
 ```bash
 dragon-copilot connector init       # Initialize a new connector project
-dragon-copilot connector generate   # Generate or update connector manifest
+dragon-copilot connector generate --interactive # Generate or update connector manifest
 dragon-copilot connector validate   # Validate connector manifest
 dragon-copilot connector package    # Package for distribution
 ```
 
-See the [CLI README](tools/dragon-copilot-cli/README.md) for detailed options, advanced usage, and release instructions.
+See the [CLI README](tools/dragon-copilot-cli/README.md) for detailed options, advanced usage, and release instructions. Connector partners can use the [Connector documentation](connector/README.md) and [Quickstart](connector/QUICKSTART.md) to prepare answers for every wizard question.
 
 ## 🤝 Contributing
 
