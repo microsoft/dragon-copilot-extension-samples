@@ -6,7 +6,7 @@ Welcome! This section contains sample code and documentation for building **Drag
 
 ## 📚 Contents
 
-- [Dragon Copilot (radiologists) Extension Samples](#dragon-copilot-radiologists-extension-samples)
+- [Dragon Copilot Extension Samples](#dragon-copilot-radiologists-extension-samples)
     - [📝 Overview](#-overview)
     - [🚀 Getting Started](#-getting-started)
     - [🛠️ Tools](#️-tools)
