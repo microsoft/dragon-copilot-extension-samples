@@ -4,6 +4,7 @@ import { healthRouter } from './routes/health.js';
 import { manifestRouter, multerErrorHandler } from './routes/manifest.js';
 import { validateRouter } from './routes/validate.js';
 import { authRouter } from './routes/auth.js';
+import { cliRouter } from './routes/cli.js';
 import { createLogger } from './utils/logger.js';
 
 const app = express();
@@ -33,8 +34,9 @@ app.use('/api/health', healthRouter);
 app.use('/api/manifest', manifestRouter);
 app.use('/api/validate', validateRouter);
 app.use('/api/auth', authRouter);
+app.use('/api/cli', cliRouter);
 
-const ROUTES = ['/api/health', '/api/manifest', '/api/validate', '/api/auth'];
+const ROUTES = ['/api/health', '/api/manifest', '/api/validate', '/api/auth', '/api/cli'];
 
 // Handle multer-specific errors with user-friendly messages
 app.use('/api/manifest', multerErrorHandler);
