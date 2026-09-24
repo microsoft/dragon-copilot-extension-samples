@@ -26,14 +26,7 @@ This repo includes:
 | ---------------------------------- | -------------------------------------------------------------------------------------- | ---------------------------------------------------------- |
 | **Physician Workflow**             | Custom AI-powered extensions with automation scripts, event triggers, and dependencies | Extend Dragon Copilot with custom clinical data processing |
 | **Clinical Application Connector** | EHR integrations and API connectors that interface with clinical applications          | Connect Dragon Copilot to external clinical systems        |
-
-### Radiologists Extensions
-
-| Type                               | Description                                                                            | Use Case                                                   |
-| ---------------------------------- | -------------------------------------------------------------------------------------- | ---------------------------------------------------------- |
-| **Radiologists Workflow**          | Custom AI-powered extensions that analyze radiology reports and return quality-check recommendations | Extend Dragon Copilot with radiology report quality checking |
-
-See [radiologists/README.md](radiologists/README.md) for the available sample variants.
+| **Radiologists Workflow**          | Custom AI-powered extensions that analyze radiology reports and return quality-check recommendations | Extend Dragon Copilot with Report Optimization |
 
 ## 🚀 Getting Started
 

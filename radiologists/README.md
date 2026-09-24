@@ -1,4 +1,4 @@
-﻿Dragon Copilot (radiologists) Extension Samples
+﻿# Dragon Copilot (radiologists) Extension Samples
 
 Welcome! This section contains sample code and documentation for building **Dragon Copilot (radiologists)** extensions. You can read, play with, or adapt from these samples to create your own extensions.
 
@@ -6,7 +6,7 @@ Welcome! This section contains sample code and documentation for building **Drag
 
 ## 📚 Contents
 
-- [Dragon Copilot Extension Samples](#dragon-copilot-extension-samples)
+- [Dragon Copilot (radiologists) Extension Samples](#dragon-copilot-radiologists-extension-samples)
     - [📝 Overview](#-overview)
     - [🚀 Getting Started](#-getting-started)
     - [🛠️ Tools](#️-tools)

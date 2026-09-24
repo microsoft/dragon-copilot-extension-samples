@@ -20,25 +20,26 @@ In this quickstart, you run a sample extension locally, test it in the sandbox, 
 - Git
 - Visual Studio Code
 - GitHub Copilot enabled in Visual Studio Code (recommended for customization)
-- Dragon Copilot CLI. See the [CLI installation instructions](https://github.com/microsoft/dragon-copilot-extension-samples/blob/main/tools/dragon-copilot-cli/README.md). This quickstart uses the `radiologists` commands.
+- The runtime for your chosen path — see the sample README.
+- Dragon Copilot CLI. See the [CLI installation instructions](../tools/dragon-copilot-cli/README.md). This quickstart uses the `radiologists` commands.
 
 ## Set up the sample
 
-1. Read the [Radiologists product overview](https://github.com/microsoft/dragon-copilot-extension-samples/blob/main/radiologists/README.md).
-2. Clone the repository to get the code on your machine (see [repo setup](https://github.com/microsoft/dragon-copilot-extension-samples/blob/main/README.md#1-clone-the-repository)).
+1. Read the [Radiologists product overview](README.md).
+2. Clone the repository to get the code on your machine (see [repo setup](../README.md#1-clone-the-repository)).
 3. Choose one path:
 
    | Path | Use this when | Read this |
    | --- | --- | --- |
-   | **C# (Quickstart, AI, Local)** | You want the main built-in sample set | [Workflow README](https://github.com/microsoft/dragon-copilot-extension-samples/blob/main/radiologists/src/samples/Workflow/README.md) |
-   | **Python Quickstart** | You want a Python implementation | [Python README](https://github.com/microsoft/dragon-copilot-extension-samples/blob/main/radiologists/src/samples/Workflow/sample_extension_radiologists_python_quickstart/README.md) |
-   | **Other languages** | You want Go, Java, Node.js, TypeScript, Rust, or another language | [Scaffold prompt](https://github.com/microsoft/dragon-copilot-extension-samples/blob/main/.github/prompts/radiologists-scaffold-language-sample.prompt.md) |
+   | **C# (Quickstart, AI, Local)** | You want the main built-in sample set | [Workflow README](src/samples/Workflow/README.md) |
+   | **Python Quickstart** | You want a Python implementation | [Python README](src/samples/Workflow/sample_extension_radiologists_python_quickstart/README.md) |
+   | **Other languages** | You want Go, Java, Node.js, TypeScript, Rust, or another language | [Scaffold prompt](../.github/prompts/radiologists-scaffold-language-sample.prompt.md) |
 
 4. Follow the README for your selected path to complete setup.
 
 > **Done when:** The sample is running locally and the health endpoint returns a successful response.
 
-If you are using GitHub Copilot, enable custom instructions. This helps Copilot apply the repo's [radiologists custom instructions](https://github.com/microsoft/dragon-copilot-extension-samples/blob/main/.github/instructions/radiologists.instructions.md) while you edit.
+If you are using GitHub Copilot, enable custom instructions. This helps Copilot apply the repo's [radiologists custom instructions](../.github/instructions/radiologists.instructions.md) while you edit.
 
 > **Tip:** This helps prevent API contract and formatting mistakes in Copilot suggestions. If you're new to custom instructions, see the VS Code docs on [custom instructions](https://code.visualstudio.com/docs/copilot/copilot-customization).
 
@@ -57,8 +58,8 @@ Start the sample and use the instructions in your selected README to:
 After local verification, use the extensions sandbox to run the manifest-configured request and review validated outputs before packaging.
 
 1. Keep your extension running.
-2. Start the sandbox and open it in your browser. For setup details, see the [sandbox README](https://github.com/microsoft/dragon-copilot-extension-samples/tree/main/radiologists/tools/extensions-sandbox).
-3. For your first run, upload the [sample manifest](https://github.com/microsoft/dragon-copilot-extension-samples/blob/main/radiologists/src/samples/Workflow/extension.yaml).
+2. Start the sandbox and open it in your browser. For setup details, see the [sandbox README](tools/extensions-sandbox/README.md).
+3. For your first run, upload the [sample manifest](src/samples/Workflow/extension.yaml).
 4. Set the tool endpoint to your running service (for example, `http://localhost:5080/v1/process`).
 5. Fill in the inputs and click **Run**.
 6. Review the validated response in **Results** and **Outputs**.
@@ -69,7 +70,7 @@ After your first sandbox run succeeds, generate your own manifest for the remain
 
 Install the CLI (see [Prerequisites](#prerequisites)) and verify it with `dragon-copilot --help`.
 
-Then follow the [Typical workflow](https://github.com/microsoft/dragon-copilot-extension-samples/blob/main/radiologists/README.md#typical-workflow) (`init`/`generate` → edit) to create your manifest (`extension.yaml`). Set the tool endpoint and tool metadata now. Configure authentication later in [Authentication setup](#authentication-setup).
+Then follow the [Typical workflow](README.md#typical-workflow) (`init`/`generate` → edit) to create your manifest (`extension.yaml`). Set the tool endpoint and tool metadata now. Configure authentication later in [Authentication setup](#authentication-setup).
 
 Re-run the sandbox using your generated `extension.yaml` to confirm end-to-end behavior with your own settings before continuing.
 
@@ -78,7 +79,7 @@ Re-run the sandbox using your generated `extension.yaml` to confirm end-to-end b
 After the sample is running, replace the quality-check logic with your own.
 
 1. Make changes in the quality-check service file for your selected sample. See the selected sample README for the exact service file location.
-2. Keep the wire contract aligned with the [OpenAPI contract](https://github.com/microsoft/dragon-copilot-extension-samples/blob/main/radiologists/radiologists-extensibility-api.yaml).
+2. Keep the wire contract aligned with the [OpenAPI contract](radiologists-extensibility-api.yaml).
 3. Re-run [Verify the sample locally](#verify-the-sample-locally).
 4. Re-run [Test with the extensions sandbox](#test-with-the-extensions-sandbox) after significant API or manifest changes.
 
@@ -124,14 +125,14 @@ devtunnel host radiologists-quickstart
 
 ## Authentication setup
 
-For production authentication setup, follow the [Authentication guide](https://github.com/microsoft/dragon-copilot-extension-samples/blob/main/doc/Authentication.md) and complete these onboarding steps:
+For production authentication setup, follow the [Authentication guide](../doc/Authentication.md) and complete these onboarding steps:
 
 1. Register the `Microsoft.HealthPlatform` resource provider in your Azure subscription (one-time per tenant).
-2. Create an Entra app registration for your extension (see [One-time setup in partner tenant](https://github.com/microsoft/dragon-copilot-extension-samples/tree/main/radiologists/tools/extensions-sandbox#one-time-setup-in-the-partner-tenant) for the App ID URI format and PowerShell commands).
+2. Create an Entra app registration for your extension (see [One-time setup in partner tenant](tools/extensions-sandbox/README.md#one-time-setup-in-the-partner-tenant) for the App ID URI format and PowerShell commands).
 3. Configure token settings (`idtyp` optional claim and `requestedAccessTokenVersion = 2`).
 4. Enable authentication in sample config and set `TenantId`, `ClientId`, and `RequiredClaims.azp`.
 
 ## Next steps
 
-- [Enable and test authentication in the extensions sandbox](https://github.com/microsoft/dragon-copilot-extension-samples/tree/main/radiologists/tools/extensions-sandbox#testing-the-authentication-feature).
+- [Enable and test authentication in the extensions sandbox](tools/extensions-sandbox/README.md#testing-the-authentication-feature).
 - Update your manifest with your deployed endpoint and production tenant settings.
