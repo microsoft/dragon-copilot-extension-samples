@@ -79,14 +79,14 @@ describe('toRecommendations', () => {
     expect(toRecommendations({ recommendations: [] })).toEqual([]);
   });
 
-  it('drops unknown numeric and object fields instead of passing them through', () => {
+  it('drops fields the Report optimization card does not show', () => {
     const result = toRecommendations({
       recommendations: [
         {
           qualityCheckType: 'Clinical',
           description: 'Check',
           reason: 'Reason',
-          severityScorePercent: Number.NaN,
+          severityScorePercent: 40,
           additionalInfo: { note: 'keep', dropped: 5 },
           provenance: [{ text: 'section' }],
         },
@@ -98,9 +98,21 @@ describe('toRecommendations', () => {
         qualityCheckType: 'Clinical',
         description: 'Check',
         reason: 'Reason',
-        additionalInfo: { note: 'keep' },
       },
     ]);
+  });
+
+  it('accepts a bare array only when every item looks like a quality check', () => {
+    expect(toRecommendations([{ description: 'Check', severityScorePercent: 10 }])).toEqual([
+      { description: 'Check' },
+    ]);
+    expect(
+      toRecommendations([
+        { qualityCheckType: 'Billing', description: 'Add modifier' },
+        { description: 'chest x-ray' },
+      ]),
+    ).toBeNull();
+    expect(toRecommendations([{ description: 'Check', severityScorePercent: Number.NaN }])).toBeNull();
   });
 
   it('rejects shapes that are not recommendations', () => {
@@ -129,36 +141,53 @@ describe('buildExtensionApiPreview', () => {
       tone: 'success',
       text: 'Payload processed successfully.',
     });
-    expect(model?.blocks[1]).toMatchObject({
+    expect(model?.blocks[1]).toEqual({
       kind: 'recommendations',
-      title: 'Quality Result',
-      recommendations: [{ description: 'Consider adding comparison with prior studies', severityScorePercent: 40 }],
+      recommendations: [
+        {
+          qualityCheckType: 'Clinical',
+          description: 'Consider adding comparison with prior studies',
+          reason: 'No comparison section found in report',
+        },
+      ],
     });
   });
 
-  it('builds an adaptive-card block for card payloads', () => {
+  it('credits the humanized manifest name as the partner', () => {
+    expect(
+      buildExtensionApiPreview(recommendationResult, {
+        extensionName: 'sampleQualityCheckExtension',
+      })?.attribution,
+    ).toBe('Sample Quality Check Extension');
+    expect(buildExtensionApiPreview(recommendationResult)?.attribution).toBeUndefined();
+  });
+
+  it('flags a card payload as unsupported and shows it as JSON', () => {
     const model = buildExtensionApiPreview(cardResult);
 
     expect(model?.blocks).toHaveLength(1);
-    expect(model?.blocks[0]).toMatchObject({ kind: 'adaptive-card', title: 'Summary Card' });
-  });
-
-  it('unwraps a card carried in a content-type envelope', () => {
-    const model = buildExtensionApiPreview({
-      processResponse: {
-        payload: {
-          card: {
-            contentType: 'application/vnd.microsoft.card.adaptive',
-            content: { type: 'AdaptiveCard', version: '1.5', body: [] },
-          },
-        },
-      },
+    expect(model?.blocks[0]).toMatchObject({
+      kind: 'json',
+      title: 'Summary Card',
+      reasonTone: 'warning',
+      json: cardResult.processResponse.payload.summaryCard,
     });
-
-    expect(model?.blocks[0]).toMatchObject({ kind: 'adaptive-card' });
+    expect((model?.blocks[0] as { reason: string }).reason).toContain(
+      'does not support Adaptive Cards',
+    );
   });
 
-  it('falls back to JSON for payloads that are neither cards nor recommendations', () => {
+  it('flags a card carried in a content-type envelope too', () => {
+    const envelope = {
+      contentType: 'application/vnd.microsoft.card.adaptive',
+      content: { type: 'AdaptiveCard', version: '1.5', body: [] },
+    };
+    const model = buildExtensionApiPreview({ processResponse: { payload: { card: envelope } } });
+
+    expect(model?.blocks[0]).toMatchObject({ kind: 'json', reasonTone: 'warning', json: envelope });
+  });
+
+  it('falls back to JSON for payloads that are not recommendations', () => {
     const model = buildExtensionApiPreview({
       processResponse: { payload: { measurements: { lesionCount: 3 } } },
     });
@@ -168,6 +197,7 @@ describe('buildExtensionApiPreview', () => {
       title: 'Measurements',
       json: { lesionCount: 3 },
     });
+    expect(model?.blocks[0]).not.toHaveProperty('reasonTone');
     expect((model?.blocks[0] as { reason: string }).reason).toContain('formatted JSON');
   });
 

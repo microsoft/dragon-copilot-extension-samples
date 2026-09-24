@@ -1,16 +1,19 @@
-import { lazy, Suspense, useEffect, useMemo, useState } from 'react';
+import { useEffect, useId, useMemo, useState, type ReactNode } from 'react';
+import {
+  ChevronDownRegular,
+  ChevronUpRegular,
+  DocumentSparkleRegular,
+  ShieldFilled,
+} from '@fluentui/react-icons';
 import { buildPreview, listResultProviders } from '../preview';
 import { JsonBlockView } from './JsonBlockView';
 import type {
+  MessageBlock,
   PreviewBlock,
   PreviewRecommendation,
   RecommendationsBlock,
   ResultSource,
 } from '../preview';
-
-// Loaded on demand: the Adaptive Cards renderer is the single largest dependency
-// in the bundle, and this tab renders nothing until a tool has been run.
-const AdaptiveCardBlockView = lazy(() => import('./AdaptiveCardBlockView'));
 
 export interface DragonCopilotPreviewProps {
   /**
@@ -22,120 +25,157 @@ export interface DragonCopilotPreviewProps {
   source?: ResultSource;
   /** Tool that produced the result, shown in the preview header. */
   toolName?: string;
+  /** Manifest `name` of the extension, credited after each recommendation. */
+  extensionName?: string;
 }
 
-function severityLabel(percent: number | undefined): string {
-  if (percent === undefined) return 'Unspecified';
-  if (percent >= 70) return 'High';
-  if (percent >= 40) return 'Medium';
-  if (percent > 0) return 'Low';
-  return 'Informational';
+type ContentBlock = Exclude<PreviewBlock, MessageBlock>;
+
+interface RecommendationGroup {
+  category?: string;
+  recommendations: PreviewRecommendation[];
 }
 
-function severityClass(percent: number | undefined): string {
-  if (percent === undefined) return 'dc-severity-unspecified';
-  if (percent >= 70) return 'dc-severity-high';
-  if (percent >= 40) return 'dc-severity-medium';
-  if (percent > 0) return 'dc-severity-low';
-  return 'dc-severity-info';
+/** Groups recommendations under their quality check type, in order of first appearance. */
+function groupByCategory(recommendations: PreviewRecommendation[]): RecommendationGroup[] {
+  const groups = new Map<string | undefined, RecommendationGroup>();
+  for (const recommendation of recommendations) {
+    const category = recommendation.qualityCheckType;
+    let group = groups.get(category);
+    if (!group) {
+      group = { category, recommendations: [] };
+      groups.set(category, group);
+    }
+    group.recommendations.push(recommendation);
+  }
+  return [...groups.values()];
 }
 
-function RecommendationView({ recommendation }: { recommendation: PreviewRecommendation }) {
-  // Clamped once, then used for the chip, the bar and the ARIA values alike. The
-  // schema caps severity at 0-100 but nothing enforces that on the wire, and an
-  // out-of-range aria-valuenow is invalid against the min/max declared below. The
-  // unclamped value stays visible in the Results tab.
-  const raw = recommendation.severityScorePercent;
-  const severity = raw === undefined ? undefined : Math.min(100, Math.max(0, raw));
+/** The Report optimization card shell. DCR opens it by default and lets the user collapse it. */
+function ReportOptimizationCard({ title, children }: { title: string; children: ReactNode }) {
+  const [expanded, setExpanded] = useState(true);
+  const bodyId = useId();
+  const Chevron = expanded ? ChevronUpRegular : ChevronDownRegular;
 
   return (
-    <li className="dc-recommendation">
-      <div className="dc-recommendation-header">
-        <span className={`dc-severity-chip ${severityClass(severity)}`}>
-          {severityLabel(severity)}
-          {severity !== undefined && <span className="dc-severity-score"> · {severity}%</span>}
-        </span>
-        {recommendation.qualityCheckType && (
-          <span className="dc-recommendation-type">{recommendation.qualityCheckType}</span>
-        )}
-      </div>
-      <p className="dc-recommendation-description">{recommendation.description}</p>
-      {recommendation.reason && (
-        <p className="dc-recommendation-reason">
-          <span className="dc-recommendation-reason-label">Why: </span>
-          {recommendation.reason}
-        </p>
-      )}
-      {severity !== undefined && (
-        <div
-          className="dc-severity-bar"
-          role="meter"
-          aria-valuenow={severity}
-          aria-valuemin={0}
-          aria-valuemax={100}
-          aria-label={`Severity ${severity} percent`}
+    <section className="dc-preview-block dc-report-optimization">
+      <h4 className="dc-report-optimization-title">
+        <button
+          type="button"
+          className="dc-report-optimization-toggle"
+          aria-expanded={expanded}
+          aria-controls={bodyId}
+          onClick={() => setExpanded((value) => !value)}
         >
-          <div
-            className={`dc-severity-bar-fill ${severityClass(severity)}`}
-            style={{ width: `${severity}%` }}
-          />
-        </div>
-      )}
-      {recommendation.additionalInfo && (
-        <dl className="dc-recommendation-info">
-          {Object.entries(recommendation.additionalInfo).map(([key, value]) => (
-            <div key={key} className="dc-recommendation-info-row">
-              <dt>{key}</dt>
-              <dd>{value}</dd>
-            </div>
-          ))}
-        </dl>
-      )}
-    </li>
-  );
-}
-
-function RecommendationsBlockView({ block }: { block: RecommendationsBlock }) {
-  return (
-    <section className="dc-preview-block dc-preview-recommendations">
-      {block.title && <h4 className="dc-preview-block-title">{block.title}</h4>}
-      {block.recommendations.length === 0 ? (
-        <p className="dc-preview-no-recommendations">
-          No recommendations — the extension found nothing to flag for this report.
-        </p>
-      ) : (
-        <ul className="dc-recommendation-list">
-          {block.recommendations.map((recommendation, index) => (
-            <RecommendationView
-              key={`${index}-${recommendation.description}`}
-              recommendation={recommendation}
-            />
-          ))}
-        </ul>
-      )}
+          <span>{title}</span>
+          <Chevron className="dc-report-optimization-chevron" aria-hidden />
+        </button>
+      </h4>
+      <div id={bodyId} className="dc-report-optimization-body" hidden={!expanded}>
+        {children}
+      </div>
     </section>
   );
 }
 
-function PreviewBlockView({ block }: { block: PreviewBlock }) {
+/**
+ * Mirrors the populated Report optimization card in the DCR design: a counted
+ * title, recommendations grouped under a category heading, each bullet reading
+ * as one paragraph that ends with the partner's name, and the AI / third-party
+ * disclaimers underneath.
+ */
+function RecommendationsBlockView({
+  block,
+  attribution,
+}: {
+  block: RecommendationsBlock;
+  attribution?: string;
+}) {
+  const count = block.recommendations.length;
+
+  return (
+    <ReportOptimizationCard title={`Report optimization (${count})`}>
+      {count === 0 ? (
+        <p className="dc-report-optimization-message">
+          No recommendations — the extension found nothing to flag for this report.
+        </p>
+      ) : (
+        <>
+          {groupByCategory(block.recommendations).map((group, groupIndex) => (
+            <div key={`${groupIndex}-${group.category ?? ''}`} className="dc-recommendation-group">
+              {group.category && (
+                <div className="dc-recommendation-category">
+                  <DocumentSparkleRegular className="dc-recommendation-category-icon" aria-hidden />
+                  <span>{group.category}</span>
+                </div>
+              )}
+              <ul className="dc-recommendation-list">
+                {group.recommendations.map((recommendation, index) => (
+                  <li key={`${index}-${recommendation.description}`} className="dc-recommendation">
+                    <p className="dc-recommendation-text">
+                      <span className="dc-recommendation-description">{recommendation.description}</span>
+                      {recommendation.reason && (
+                        <span className="dc-recommendation-reason"> {recommendation.reason}</span>
+                      )}
+                      {attribution && (
+                        <span className="dc-recommendation-attribution"> ({attribution})</span>
+                      )}
+                    </p>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+          <div className="dc-disclaimers">
+            <span className="dc-disclaimer">
+              <ShieldFilled className="dc-disclaimer-icon dc-disclaimer-icon-ai" aria-hidden />
+              <span>AI-generated content may be incorrect</span>
+            </span>
+            <span className="dc-disclaimer">
+              <ShieldFilled className="dc-disclaimer-icon dc-disclaimer-icon-third-party" aria-hidden />
+              <span>Third-party generated content</span>
+            </span>
+          </div>
+        </>
+      )}
+    </ReportOptimizationCard>
+  );
+}
+
+/** The Dragon Copilot window chrome around what the clinician would see. */
+function DragonCopilotFrame({
+  sourceLabel,
+  producedBy,
+  children,
+}: {
+  sourceLabel: string;
+  producedBy?: string;
+  children: ReactNode;
+}) {
+  return (
+    <div className="dc-preview-frame">
+      <div className="dc-preview-titlebar">
+        <img src="/dragon-copilot-logo.png" alt="" className="dc-preview-logo" />
+        <span className="dc-preview-product">Dragon Copilot</span>
+        <span className="dc-preview-source-badge">{sourceLabel}</span>
+        {producedBy && <span className="dc-preview-tool">{producedBy}</span>}
+      </div>
+      <div className="dc-preview-body">{children}</div>
+    </div>
+  );
+}
+
+function ContentBlockView({ block, attribution }: { block: ContentBlock; attribution?: string }) {
   switch (block.kind) {
-    case 'adaptive-card':
-      return (
-        <Suspense fallback={<p className="dc-preview-card-loading">Loading card renderer…</p>}>
-          <AdaptiveCardBlockView block={block} />
-        </Suspense>
-      );
     case 'recommendations':
-      return <RecommendationsBlockView block={block} />;
+      return <RecommendationsBlockView block={block} attribution={attribution} />;
     case 'json':
       return <JsonBlockView block={block} />;
-    case 'message':
-      return (
-        <p className={`dc-preview-message dc-preview-message-${block.tone}`} role="status">
-          {block.text}
-        </p>
-      );
   }
+}
+
+function isMessage(block: PreviewBlock): block is MessageBlock {
+  return block.kind === 'message';
 }
 
 /**
@@ -147,6 +187,7 @@ export function DragonCopilotPreview({
   result,
   source = 'extension-api',
   toolName,
+  extensionName,
 }: DragonCopilotPreviewProps) {
   const [activeSource, setActiveSource] = useState<ResultSource>(source);
   // Deliberately not memoized: the registry is mutable, so a memo keyed on `[]`
@@ -161,12 +202,12 @@ export function DragonCopilotPreview({
     setActiveSource(source);
   }, [source]);
 
-  // The result is passed through untouched. Merging `toolName` into it would
-  // both overwrite a `toolName` the source did send and hand every future
-  // provider a field that only means something to the extension API.
+  // The result is passed through untouched. Merging run context into it would
+  // both overwrite same-named fields the source did send and hand every future
+  // provider fields that only mean something to the extension API.
   const model = useMemo(
-    () => buildPreview(activeSource, result, { toolName }),
-    [activeSource, result, toolName],
+    () => buildPreview(activeSource, result, { toolName, extensionName }),
+    [activeSource, result, toolName, extensionName],
   );
 
   const sourceSelector = selectableProviders.length > 1 && (
@@ -186,41 +227,81 @@ export function DragonCopilotPreview({
     </div>
   );
 
+  const footnote = 'Preview only — the live Dragon Copilot surface may apply additional styling.';
+
   if (!model) {
     const activeProvider = providers.find((provider) => provider.source === activeSource);
+    if (!activeProvider?.available) {
+      return (
+        <div className="dc-preview">
+          {sourceSelector}
+          <div className="dc-preview-empty">
+            <h3>No preview yet</h3>
+            <p>{`${activeProvider?.label ?? 'These'} results are not available in the sandbox yet.`}</p>
+          </div>
+        </div>
+      );
+    }
+
+    // Before a run, DCR still shows the card, telling the radiologist how to
+    // trigger it. The sandbox equivalent of Smart Impression is running a tool.
     return (
       <div className="dc-preview">
         {sourceSelector}
-        <div className="dc-preview-empty">
-          <h3>No preview yet</h3>
-          <p>
-            {activeProvider && !activeProvider.available
-              ? `${activeProvider.label} results are not available in the sandbox yet.`
-              : 'Run a tool from the Setup tab to see how its result appears in Dragon Copilot.'}
+        <div className="dc-preview-run-status">
+          <p className="dc-preview-message dc-preview-message-info">
+            No tool has run yet. In Dragon Copilot, Smart Impression triggers the extension; here,
+            run a tool from the Setup tab.
           </p>
         </div>
+        <DragonCopilotFrame sourceLabel={activeProvider.label} producedBy={toolName}>
+          <ReportOptimizationCard title="Report optimization">
+            <p className="dc-report-optimization-message">Run smart impression to view suggestions.</p>
+          </ReportOptimizationCard>
+        </DragonCopilotFrame>
+        <p className="dc-preview-footnote">{footnote}</p>
       </div>
     );
   }
 
+  // Status lines describe the run for the partner; the frame holds only what the
+  // clinician would see. A run with nothing to show (e.g. an HTTP error with an
+  // empty body) therefore gets no frame at all.
+  const messages = model.blocks.filter(isMessage);
+  const content = model.blocks.filter((block): block is ContentBlock => !isMessage(block));
+  const showsRecommendations = content.some((block) => block.kind === 'recommendations');
+
   return (
     <div className="dc-preview">
       {sourceSelector}
-      <div className="dc-preview-frame">
-        <div className="dc-preview-titlebar">
-          <img src="/dragon-copilot-logo.png" alt="" className="dc-preview-logo" />
-          <span className="dc-preview-product">Dragon Copilot</span>
-          <span className="dc-preview-source-badge">{model.sourceLabel}</span>
-          {model.producedBy && <span className="dc-preview-tool">{model.producedBy}</span>}
-        </div>
-        <div className="dc-preview-body">
-          {model.blocks.map((block, index) => (
-            <PreviewBlockView key={`${block.kind}-${index}`} block={block} />
+      {messages.length > 0 && (
+        <div className="dc-preview-run-status">
+          {messages.map((message, index) => (
+            <p
+              key={`${message.tone}-${index}`}
+              className={`dc-preview-message dc-preview-message-${message.tone}`}
+              role="status"
+            >
+              {message.text}
+            </p>
           ))}
         </div>
-      </div>
+      )}
+      {content.length > 0 && (
+        <DragonCopilotFrame sourceLabel={model.sourceLabel} producedBy={model.producedBy}>
+          {content.map((block, index) => (
+            <ContentBlockView
+              key={`${block.kind}-${index}`}
+              block={block}
+              attribution={model.attribution}
+            />
+          ))}
+        </DragonCopilotFrame>
+      )}
       <p className="dc-preview-footnote">
-        Preview only — the live Dragon Copilot surface may apply additional styling.
+        {footnote}
+        {showsRecommendations &&
+          ' The Report optimization card does not show severityScorePercent or additionalInfo, so they are omitted here; the full response is in the Outputs tab.'}
       </p>
     </div>
   );

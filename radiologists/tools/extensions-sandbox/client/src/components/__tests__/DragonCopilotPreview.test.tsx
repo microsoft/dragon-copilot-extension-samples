@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { render, screen, within } from '@testing-library/react';
+import { fireEvent, render, screen, within } from '@testing-library/react';
 import { DragonCopilotPreview } from '../DragonCopilotPreview';
 
 const recommendationResult = {
@@ -41,43 +41,103 @@ const cardResult = {
 };
 
 describe('DragonCopilotPreview', () => {
-  it('shows an empty state when there is no result yet', () => {
-    render(<DragonCopilotPreview result={null} />);
+  it('shows the Report optimization card in its not-run state before a tool has run', () => {
+    render(<DragonCopilotPreview result={null} toolName="sampleQualityCheckTool" />);
 
-    expect(screen.getByText('No preview yet')).toBeInTheDocument();
-    expect(
-      screen.getByText('Run a tool from the Setup tab to see how its result appears in Dragon Copilot.'),
-    ).toBeInTheDocument();
+    const frame = document.querySelector('.dc-preview-frame') as HTMLElement;
+    expect(frame).not.toBeNull();
+    expect(within(frame).getByRole('heading', { name: 'Report optimization' })).toBeInTheDocument();
+    expect(within(frame).getByText('Run smart impression to view suggestions.')).toBeInTheDocument();
+    expect(within(frame).getByText('sampleQualityCheckTool')).toBeInTheDocument();
+    expect(within(frame).queryByText('AI-generated content may be incorrect')).toBeNull();
+
+    const hint = screen.getByText(/run a tool from the Setup tab/);
+    expect(hint.closest('.dc-preview-frame')).toBeNull();
+    expect(screen.queryByText('No preview yet')).toBeNull();
   });
 
-  it('renders an Adaptive Card output with the Adaptive Cards renderer', async () => {
+  it('flags an Adaptive Card as unsupported and shows it as JSON', () => {
     render(<DragonCopilotPreview result={cardResult} toolName="summaryTool" />);
 
-    // Awaited: the card view is code-split, so it mounts a tick after render.
-    const host = await screen.findByTestId('adaptive-card-host');
-    expect(within(host).getByText('Follow-up imaging recommended')).toBeInTheDocument();
-    expect(within(host).getByText('Repeat CT in 3 months.')).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        'This output is an Adaptive Card. Dragon Copilot for radiologists does not support Adaptive Cards, so the clinician would not see it. It is shown here as formatted JSON.',
+      ),
+    ).toHaveClass('dc-preview-fallback-reason-warning');
+    const fallback = document.querySelector('.dc-preview-json');
+    expect(fallback?.querySelector('pre')?.textContent).toContain('Follow-up imaging recommended');
     expect(screen.getByText('Summary Card')).toBeInTheDocument();
     expect(screen.getByText('summaryTool')).toBeInTheDocument();
+    expect(screen.queryByTestId('adaptive-card-host')).toBeNull();
   });
 
-  it('renders partner card text literally instead of as markup', async () => {
+  it('renders recommendations as a Report optimization card, not raw JSON', () => {
+    render(
+      <DragonCopilotPreview
+        result={recommendationResult}
+        extensionName="sampleQualityCheckExtension"
+      />,
+    );
+
+    const card = document.querySelector('.dc-report-optimization') as HTMLElement;
+    expect(card).not.toBeNull();
+    expect(within(card).getByRole('heading', { name: 'Report optimization (1)' })).toBeInTheDocument();
+    expect(within(card).getByText('Clinical')).toBeInTheDocument();
+    expect(card.querySelector('.dc-recommendation-text')?.textContent).toBe(
+      'Consider adding comparison with prior studies No comparison section found in report (Sample Quality Check Extension)',
+    );
+    expect(within(card).getByText('AI-generated content may be incorrect')).toBeInTheDocument();
+    expect(within(card).getByText('Third-party generated content')).toBeInTheDocument();
+    expect(document.querySelector('.dc-preview-json')).toBeNull();
+  });
+
+  it('collapses and re-opens the card from its header, open by default', () => {
+    render(<DragonCopilotPreview result={recommendationResult} />);
+
+    const toggle = screen.getByRole('button', { name: 'Report optimization (1)' });
+    const description = screen.getByText('Consider adding comparison with prior studies');
+    expect(toggle).toHaveAttribute('aria-expanded', 'true');
+    expect(description).toBeVisible();
+
+    fireEvent.click(toggle);
+    expect(toggle).toHaveAttribute('aria-expanded', 'false');
+    expect(description).not.toBeVisible();
+    expect(screen.getByText('AI-generated content may be incorrect')).not.toBeVisible();
+
+    fireEvent.click(toggle);
+    expect(toggle).toHaveAttribute('aria-expanded', 'true');
+    expect(description).toBeVisible();
+  });
+
+  it('does not show severity, which the Report optimization card omits', () => {
+    render(<DragonCopilotPreview result={recommendationResult} />);
+
+    expect(screen.queryByText('Medium')).toBeNull();
+    expect(screen.queryByText(/40\s*%/)).toBeNull();
+    expect(screen.queryByRole('meter')).toBeNull();
+    expect(screen.getByText(/does not show severityScorePercent or additionalInfo/)).toBeInTheDocument();
+  });
+
+  it('omits the partner credit when the extension name is unknown', () => {
+    render(<DragonCopilotPreview result={recommendationResult} />);
+
+    expect(document.querySelector('.dc-recommendation-text')?.textContent).toBe(
+      'Consider adding comparison with prior studies No comparison section found in report',
+    );
+    expect(document.querySelector('.dc-recommendation-attribution')).toBeNull();
+  });
+
+  it('groups recommendations by category in order of first appearance', () => {
     render(
       <DragonCopilotPreview
         result={{
-          status: 200,
           processResponse: {
-            success: true,
             payload: {
-              summaryCard: {
-                type: 'AdaptiveCard',
-                version: '1.5',
-                body: [
-                  {
-                    type: 'TextBlock',
-                    text: '<img src=x onerror="alert(1)"> **not bold**',
-                    wrap: true,
-                  },
+              qualityCheckResult: {
+                recommendations: [
+                  { qualityCheckType: 'Billing', description: 'Add modifier 50', reason: 'Bilateral exam' },
+                  { qualityCheckType: 'Clinical', description: 'Add comparison', reason: 'No priors cited' },
+                  { qualityCheckType: 'Billing', description: 'Document contrast', reason: 'Contrast billed' },
                 ],
               },
             },
@@ -86,26 +146,25 @@ describe('DragonCopilotPreview', () => {
       />,
     );
 
-    // Markdown processing is declined in AdaptiveCardBlockView, so the renderer
-    // sets TextBlock content through innerText. A payload therefore reaches the
-    // DOM as characters and has no path to inject elements.
-    const host = await screen.findByTestId('adaptive-card-host');
-    expect(host.querySelector('img')).toBeNull();
-    expect(host.querySelector('strong')).toBeNull();
-    expect(host.textContent).toContain('<img src=x onerror="alert(1)">');
-    expect(host.textContent).toContain('**not bold**');
+    expect(screen.getByRole('heading', { name: 'Report optimization (3)' })).toBeInTheDocument();
+    const groups = [...document.querySelectorAll<HTMLElement>('.dc-recommendation-group')];
+    const categories = groups.map(
+      (group) => group.querySelector('.dc-recommendation-category')?.textContent,
+    );
+    expect(categories).toEqual(['Billing', 'Clinical']);
+    const firstGroupItems = within(groups[0])
+      .getAllByRole('listitem')
+      .map((item) => item.querySelector('.dc-recommendation-description')?.textContent);
+    expect(firstGroupItems).toEqual(['Add modifier 50', 'Document contrast']);
   });
 
-  it('renders recommendations as a clinician-friendly summary, not raw JSON', () => {
+  it('shows the run status above the Dragon Copilot frame, not inside it', () => {
     render(<DragonCopilotPreview result={recommendationResult} />);
 
-    expect(screen.getByText('Consider adding comparison with prior studies')).toBeInTheDocument();
-    expect(screen.getByText('No comparison section found in report')).toBeInTheDocument();
-    expect(screen.getByText('Clinical')).toBeInTheDocument();
-    expect(screen.getByText('Medium')).toBeInTheDocument();
-    expect(screen.getByLabelText('Severity 40 percent')).toHaveAttribute('aria-valuenow', '40');
-    expect(screen.getByText('Payload processed successfully.')).toBeInTheDocument();
-    expect(document.querySelector('.dc-preview-json')).toBeNull();
+    const status = screen.getByText('Payload processed successfully.');
+    expect(status).toHaveAttribute('role', 'status');
+    expect(status.closest('.dc-preview-frame')).toBeNull();
+    expect(document.querySelector('.dc-preview-frame')).not.toBeNull();
   });
 
   it('tells the clinician when there is nothing to flag', () => {
@@ -115,9 +174,11 @@ describe('DragonCopilotPreview', () => {
       />,
     );
 
+    expect(screen.getByRole('heading', { name: 'Report optimization (0)' })).toBeInTheDocument();
     expect(
       screen.getByText('No recommendations — the extension found nothing to flag for this report.'),
     ).toBeInTheDocument();
+    expect(document.querySelector('.dc-disclaimers')).toBeNull();
   });
 
   it('falls back to the formatted-JSON view for output it cannot render as a card', () => {
@@ -130,11 +191,10 @@ describe('DragonCopilotPreview', () => {
     const fallback = document.querySelector('.dc-preview-json');
     expect(fallback).not.toBeNull();
     expect(fallback?.querySelector('pre')?.textContent).toContain('"lesionCount": 3');
-    expect(
-      screen.getByText(
-        'This output is not an Adaptive Card or a recognized recommendation list, so it is shown as formatted JSON.',
-      ),
-    ).toBeInTheDocument();
+    const reason = screen.getByText(
+      'This output is not a recognized recommendation list, so it is shown as formatted JSON.',
+    );
+    expect(reason).not.toHaveClass('dc-preview-fallback-reason-warning');
   });
 
   it('does not claim "nothing to flag" for an unrelated empty array', () => {
@@ -153,7 +213,7 @@ describe('DragonCopilotPreview', () => {
       />,
     );
 
-    expect(document.querySelector('.dc-preview-recommendations')).toBeNull();
+    expect(document.querySelector('.dc-report-optimization')).toBeNull();
     const fallback = document.querySelector('.dc-preview-json');
     expect(fallback?.querySelector('pre')?.textContent).toContain('chest x-ray');
   });
@@ -178,7 +238,8 @@ describe('DragonCopilotPreview', () => {
   it('still reports an HTTP failure when the error body is empty', () => {
     render(<DragonCopilotPreview result={{ status: 502, statusText: 'Bad Gateway' }} />);
 
-    expect(screen.queryByText('No preview yet')).toBeNull();
+    expect(screen.queryByText('Run smart impression to view suggestions.')).toBeNull();
+    expect(document.querySelector('.dc-preview-frame')).toBeNull();
     expect(
       screen.getByText(
         'The extension returned HTTP 502 Bad Gateway. Dragon Copilot would show nothing to the clinician for this result.',
@@ -198,5 +259,6 @@ describe('DragonCopilotPreview', () => {
     render(<DragonCopilotPreview result={recommendationResult} source="pixel-ai" />);
 
     expect(screen.getByText('Pixel AI app results are not available in the sandbox yet.')).toBeInTheDocument();
+    expect(screen.queryByText('Run smart impression to view suggestions.')).toBeNull();
   });
 });

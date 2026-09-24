@@ -714,7 +714,11 @@ export function TestingPanel({ manifestInfo, manifestRevision }: TestingPanelPro
 
         {activeTab === 'preview' && (
           <div className="preview-tab">
-            <DragonCopilotPreview result={result} toolName={selectedTool || undefined} />
+            <DragonCopilotPreview
+              result={result}
+              toolName={selectedTool || undefined}
+              extensionName={manifestInfo.name}
+            />
           </div>
         )}
       </div>

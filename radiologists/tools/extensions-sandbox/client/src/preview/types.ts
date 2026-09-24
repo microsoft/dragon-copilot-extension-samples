@@ -11,48 +11,46 @@
 /** Where a previewed result came from. */
 export type ResultSource = 'extension-api' | 'pixel-ai' | 'powerscribe';
 
-/** A single quality-check style recommendation, normalized for display. */
+/**
+ * A single quality-check recommendation, narrowed to the fields the Dragon Copilot
+ * Report optimization card shows. `severityScorePercent`, `additionalInfo`,
+ * `provenance` and `referenceResources` are deliberately absent: the card does not
+ * display them, so previewing them would misrepresent what the clinician sees.
+ */
 export interface PreviewRecommendation {
   qualityCheckType?: string;
   description: string;
   reason?: string;
-  severityScorePercent?: number;
-  additionalInfo?: Record<string, string>;
 }
 
-/** An Adaptive Card payload rendered with the Adaptive Cards renderer. */
-export interface AdaptiveCardBlock {
-  kind: 'adaptive-card';
-  /** Payload key or output name this block was built from. */
-  title?: string;
-  card: Record<string, unknown>;
-}
-
-/** A clinician-friendly summary of structured recommendation output. */
+/** Structured recommendation output, rendered as the Report optimization card. */
 export interface RecommendationsBlock {
   kind: 'recommendations';
-  title?: string;
   recommendations: PreviewRecommendation[];
 }
 
-/** A short status line shown above the result body. */
+/**
+ * A status line about the run, shown above the Dragon Copilot frame. It is never
+ * part of what the clinician sees.
+ */
 export interface MessageBlock {
   kind: 'message';
   text: string;
   tone: 'success' | 'error';
 }
 
-/** Fallback for anything that cannot be rendered as a card or a summary. */
+/** Fallback for anything that cannot be rendered as the Report optimization card. */
 export interface JsonBlock {
   kind: 'json';
   title?: string;
-  /** Why the richer renderers were not used — surfaced to the partner. */
+  /** Why the richer renderer was not used — surfaced to the partner. */
   reason?: string;
+  /** `warning` when the clinician would not see this output at all. */
+  reasonTone?: 'note' | 'warning';
   json: unknown;
 }
 
 export type PreviewBlock =
-  | AdaptiveCardBlock
   | RecommendationsBlock
   | MessageBlock
   | JsonBlock;
@@ -63,6 +61,11 @@ export interface PreviewModel {
   sourceLabel: string;
   /** Tool (or app) that produced the result, when known. */
   producedBy?: string;
+  /**
+   * Name credited after each recommendation, where Dragon Copilot credits the
+   * partner, e.g. "(Zotec Partners)".
+   */
+  attribution?: string;
   blocks: PreviewBlock[];
 }
 
@@ -76,6 +79,8 @@ export interface PreviewModel {
 export interface PreviewContext {
   /** Tool the sandbox ran to produce this result, when known. */
   toolName?: string;
+  /** Manifest `name` of the extension that owns the tool, when known. */
+  extensionName?: string;
 }
 
 /**

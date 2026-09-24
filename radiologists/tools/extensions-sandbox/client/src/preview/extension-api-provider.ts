@@ -57,13 +57,9 @@ export function isAdaptiveCard(value: unknown): value is Record<string, unknown>
   return isRecord(value) && value.type === 'AdaptiveCard';
 }
 
-/** Unwraps `{ contentType: 'application/vnd.microsoft.card.adaptive', content }` envelopes. */
-function unwrapCard(value: unknown): Record<string, unknown> | null {
-  if (isAdaptiveCard(value)) return value;
-  if (isRecord(value) && isAdaptiveCard(value.content)) {
-    return value.content as Record<string, unknown>;
-  }
-  return null;
+/** A bare card, or one inside a `{ contentType: 'application/vnd.microsoft.card.adaptive', content }` envelope. */
+function carriesAdaptiveCard(value: unknown): boolean {
+  return isAdaptiveCard(value) || (isRecord(value) && isAdaptiveCard(value.content));
 }
 
 function toRecommendation(value: unknown): PreviewRecommendation | null {
@@ -77,28 +73,19 @@ function toRecommendation(value: unknown): PreviewRecommendation | null {
   if (typeof value.reason === 'string') {
     recommendation.reason = value.reason;
   }
-  if (typeof value.severityScorePercent === 'number' && Number.isFinite(value.severityScorePercent)) {
-    recommendation.severityScorePercent = value.severityScorePercent;
-  }
-  if (isRecord(value.additionalInfo)) {
-    const info: Record<string, string> = {};
-    for (const [key, item] of Object.entries(value.additionalInfo)) {
-      if (typeof item === 'string') info[key] = item;
-    }
-    if (Object.keys(info).length > 0) recommendation.additionalInfo = info;
-  }
   return recommendation;
 }
 
 /**
  * Fields only a quality check carries. `description` on its own is too common to
- * infer intent from — attachments, findings and links all have one.
+ * infer intent from — attachments, findings and links all have one. Checked on
+ * the raw item because severity is not carried into the preview model.
  */
-function isQualityCheckShaped(recommendation: PreviewRecommendation): boolean {
+function isQualityCheckShaped(value: Record<string, unknown>): boolean {
   return (
-    recommendation.qualityCheckType !== undefined ||
-    recommendation.reason !== undefined ||
-    recommendation.severityScorePercent !== undefined
+    typeof value.qualityCheckType === 'string' ||
+    typeof value.reason === 'string' ||
+    (typeof value.severityScorePercent === 'number' && Number.isFinite(value.severityScorePercent))
   );
 }
 
@@ -110,10 +97,11 @@ function isQualityCheckShaped(recommendation: PreviewRecommendation): boolean {
  * A bare array has to prove itself, because the recommendations view makes
  * clinical claims about what it is given: every item must look like a quality
  * check, and an empty bare array is rejected outright. Otherwise `{"attachments":
- * [{"description": "chest x-ray"}]}` would be given severity chips, and
- * `{"measurements": []}` would tell the clinician there was "nothing to flag" for
- * a payload that was never a recommendation list. Only the explicit
- * `{ recommendations: [] }` wrapper states that intent, so only it may be empty.
+ * [{"description": "chest x-ray"}]}` would be listed as a Report optimization
+ * recommendation, and `{"measurements": []}` would tell the clinician there was
+ * "nothing to flag" for a payload that was never a recommendation list. Only the
+ * explicit `{ recommendations: [] }` wrapper states that intent, so only it may be
+ * empty.
  */
 export function toRecommendations(value: unknown): PreviewRecommendation[] | null {
   let items: unknown[] | null = null;
@@ -131,29 +119,34 @@ export function toRecommendations(value: unknown): PreviewRecommendation[] | nul
 
   const mapped = items.map(toRecommendation);
   if (mapped.some((item) => item === null)) return null;
-
-  const recommendations = mapped as PreviewRecommendation[];
-  if (!declared && !recommendations.every(isQualityCheckShaped)) return null;
-  return recommendations;
+  if (!declared && !items.every((item) => isRecord(item) && isQualityCheckShaped(item))) return null;
+  return mapped as PreviewRecommendation[];
 }
 
 function blockForPayloadEntry(key: string, value: unknown): PreviewBlock {
   const title = humanizeKey(key);
 
-  const card = unwrapCard(value);
-  if (card) {
-    return { kind: 'adaptive-card', title, card };
+  // Dragon Copilot for radiologists does not render Adaptive Cards (see the DCR
+  // extensions manifest spec), so a card is flagged rather than previewed.
+  if (carriesAdaptiveCard(value)) {
+    return {
+      kind: 'json',
+      title,
+      reason: 'This output is an Adaptive Card. Dragon Copilot for radiologists does not support Adaptive Cards, so the clinician would not see it. It is shown here as formatted JSON.',
+      reasonTone: 'warning',
+      json: value,
+    };
   }
 
   const recommendations = toRecommendations(value);
   if (recommendations) {
-    return { kind: 'recommendations', title, recommendations };
+    return { kind: 'recommendations', recommendations };
   }
 
   return {
     kind: 'json',
     title,
-    reason: 'This output is not an Adaptive Card or a recognized recommendation list, so it is shown as formatted JSON.',
+    reason: 'This output is not a recognized recommendation list, so it is shown as formatted JSON.',
     json: value,
   };
 }
@@ -245,6 +238,9 @@ export function buildExtensionApiPreview(
     // The pane knows which tool it ran; the payload only sometimes says. Prefer
     // the caller's answer, but never discard the payload's when there is none.
     producedBy: context.toolName ?? toolName,
+    // The manifest has no publisher display name, so its `name` is made readable
+    // to stand in for the partner name Dragon Copilot shows.
+    attribution: context.extensionName ? humanizeKey(context.extensionName) : undefined,
     blocks,
   };
 }

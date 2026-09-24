@@ -1,5 +1,4 @@
 export type {
-  AdaptiveCardBlock,
   JsonBlock,
   MessageBlock,
   PreviewBlock,

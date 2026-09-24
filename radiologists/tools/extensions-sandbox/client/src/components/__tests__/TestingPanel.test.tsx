@@ -61,12 +61,12 @@ describe('TestingPanel tabs', () => {
     expect(screen.getByRole('tab', { name: 'Dragon Copilot Preview' })).toBeInTheDocument();
   });
 
-  it('shows the preview empty state before a tool has been run', async () => {
+  it('shows the not-run Report optimization card before a tool has been run', async () => {
     await renderPanel();
 
     fireEvent.click(screen.getByRole('tab', { name: 'Dragon Copilot Preview' }));
 
-    expect(screen.getByText('No preview yet')).toBeInTheDocument();
+    expect(screen.getByText('Run smart impression to view suggestions.')).toBeInTheDocument();
   });
 
   it('leaves the raw JSON Results and Outputs tabs unchanged', async () => {

@@ -13,14 +13,6 @@ export default defineConfig({
     // because each file otherwise re-imports jsdom, React, and Fluent UI.
     pool: 'threads',
     fileParallelism: false,
-    // The Adaptive Cards renderer is ~1 MB of ESM and dominated the suite
-    // runtime when Vite transformed it module by module. Pre-bundling it with
-    // esbuild turns that into one cached step per run.
-    deps: {
-      optimizer: {
-        client: { enabled: true, include: ['adaptivecards'] },
-      },
-    },
     // Only the TypeScript sources; the default glob would also pick up anything
     // emitted into dist/.
     include: ['src/**/*.test.ts', 'src/**/*.test.tsx'],

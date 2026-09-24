@@ -456,15 +456,24 @@ What it renders, in order of preference:
 
 | Output shape | Rendered as |
 | --- | --- |
-| An Adaptive Card (`type: "AdaptiveCard"`, optionally wrapped in a `{ contentType, content }` envelope) | The real Adaptive Cards renderer, themed to the Dragon Copilot surface |
-| A recommendation list (`{ recommendations: [...] }`, or a bare array of recommendations) | A clinician-friendly summary — severity chip and bar, quality check type, description, and reason |
-| Anything else | The formatted-JSON viewer, with a note explaining why the richer renderers were skipped |
+| A recommendation list (`{ recommendations: [...] }`, or a bare array of recommendations) | The **Report optimization** card from the Dragon Copilot for radiologists design: a counted title ("Report optimization (N)"), recommendations grouped under their `qualityCheckType`, each bullet reading `description`, then `reason`, then the partner name in parentheses, and the "AI-generated content may be incorrect" / "Third-party generated content" disclaimers |
+| An Adaptive Card (`type: "AdaptiveCard"`, optionally wrapped in a `{ contentType, content }` envelope) | The formatted-JSON viewer with a warning: Dragon Copilot for radiologists does not support Adaptive Cards, so a clinician would not see this output |
+| Anything else | The formatted-JSON viewer, with a note explaining why it is not shown as a recommendation list |
 
-Cards are detected structurally rather than by content-type, because the radiologists Extensibility
-API does not declare a card content-type today. Recommendation output is matched the same way, so
-both `payload["quality-result"]` and the Quickstart's `payload.qualityCheckResult` preview
-identically. If a card fails to render, the pane falls back to the JSON viewer instead of erroring,
-and when nothing has been run yet it shows an empty state. The raw JSON tabs are unaffected.
+Recommendation output is detected structurally, so both `payload["quality-result"]` and the
+Quickstart's `payload.qualityCheckResult` preview identically. The card shows only what the
+Dragon Copilot surface shows: `severityScorePercent`, `additionalInfo`, `provenance`, and
+`referenceResources` are omitted, and the full response stays available on the **Outputs** tab.
+The manifest has no publisher display name, so the partner credit is the manifest `name` made
+readable (for example, `sampleQualityCheckExtension` becomes "Sample Quality Check Extension").
+
+The Dragon Copilot frame uses DCR's dark theme, and the Report optimization card is open by default
+and can be collapsed from its header, as in DCR. Run status — the `ProcessResponse` message and any
+HTTP failure — is shown above the frame rather than inside it, because it describes the run for the
+partner and is not part of what the clinician sees. Before any tool has run, the frame shows the
+card's not-run state ("Run smart impression to view suggestions."), which is what DCR shows until
+Smart Impression triggers the extension; in the sandbox, running a tool from the **Setup** tab plays
+that role. The raw JSON tabs are unaffected.
 
 ### Result sources
 
@@ -492,7 +501,8 @@ Adding either one means implementing a `ResultProvider` and calling `registerRes
 change to `DragonCopilotPreview.tsx` or `TestingPanel.tsx`. A provider receives
 `buildPreview(input, context)`: `input` is the untyped source payload it is responsible for
 narrowing, and `context` carries what the pane knows but the payload does not, such as the selected
-`toolName`. Once a provider reports `available: true`, the pane shows a selector so the clinician
+`toolName` and the manifest's `extensionName`. Once a provider reports `available: true`, the
+pane shows a selector so the clinician
 view can be switched between sources.
 
 ## Upcoming Features
