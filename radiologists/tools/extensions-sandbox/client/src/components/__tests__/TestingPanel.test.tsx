@@ -78,4 +78,34 @@ describe('TestingPanel tabs', () => {
     fireEvent.click(screen.getByRole('tab', { name: 'Outputs' }));
     expect(screen.getByText('No outputs yet. Run a test from the Setup tab.')).toBeInTheDocument();
   });
+
+  it('shows a failed run in the preview instead of the not-run state', async () => {
+    fetchMock.mockImplementation(async (input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url.endsWith('/api/manifest/capabilities')) {
+        return json([{ name: 'reportQuality', description: 'Quality checks', toolCount: 1 }]);
+      }
+      if (url.includes('/tools')) {
+        return json([{ name: 'sampleQualityCheckTool', description: '', inputs: [], outputs: [] }]);
+      }
+      if (url.endsWith('/api/manifest/execute')) {
+        return new Response(JSON.stringify({ error: 'Could not reach the extension endpoint.' }), {
+          status: 502,
+          headers: { 'Content-Type': 'application/json' },
+        });
+      }
+      return json({});
+    });
+    await renderPanel();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Run Test' }));
+    await waitFor(() =>
+      expect(screen.getByRole('tab', { name: 'Results' })).toHaveAttribute('aria-selected', 'true'),
+    );
+
+    fireEvent.click(screen.getByRole('tab', { name: 'Dragon Copilot Preview' }));
+
+    expect(screen.getByText(/The run failed: Could not reach the extension endpoint\./)).toBeInTheDocument();
+    expect(screen.queryByText('Run smart impression to view suggestions.')).toBeNull();
+  });
 });

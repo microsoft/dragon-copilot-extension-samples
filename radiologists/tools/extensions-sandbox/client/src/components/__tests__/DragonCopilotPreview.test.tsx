@@ -230,9 +230,43 @@ describe('DragonCopilotPreview', () => {
         'The extension returned HTTP 500 Internal Server Error. Dragon Copilot would show nothing to the clinician for this result.',
       ),
     ).toBeInTheDocument();
+    expect(document.querySelector('.dc-preview-frame')).toBeNull();
+    expect(document.querySelector('.dc-preview-json')).toBeNull();
+  });
+
+  it('does not render recommendations the extension sent with an HTTP failure', () => {
+    render(
+      <DragonCopilotPreview
+        result={{ ...recommendationResult, status: 500, statusText: 'Internal Server Error' }}
+        toolName="sampleQualityCheckTool"
+      />,
+    );
+
     expect(
-      screen.getByText('The error response body is shown as formatted JSON.'),
+      screen.getByText(
+        'The extension returned HTTP 500 Internal Server Error. Dragon Copilot would show nothing to the clinician for this result.',
+      ),
     ).toBeInTheDocument();
+    expect(document.querySelector('.dc-preview-frame')).toBeNull();
+    expect(document.querySelector('.dc-report-optimization')).toBeNull();
+    expect(screen.queryByText('Consider adding comparison with prior studies')).toBeNull();
+  });
+
+  it('shows an execution error instead of the not-run state', () => {
+    render(
+      <DragonCopilotPreview
+        result={null}
+        executionError={{ message: 'Network error: could not reach the sandbox server.' }}
+        toolName="sampleQualityCheckTool"
+      />,
+    );
+
+    expect(
+      screen.getByText(/The run failed: Network error: could not reach the sandbox server\./),
+    ).toBeInTheDocument();
+    expect(screen.queryByText(/No tool has run yet/)).toBeNull();
+    expect(screen.queryByText('Run smart impression to view suggestions.')).toBeNull();
+    expect(document.querySelector('.dc-preview-frame')).toBeNull();
   });
 
   it('still reports an HTTP failure when the error body is empty', () => {

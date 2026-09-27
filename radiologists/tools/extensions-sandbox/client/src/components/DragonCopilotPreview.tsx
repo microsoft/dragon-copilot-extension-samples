@@ -27,6 +27,11 @@ export interface DragonCopilotPreviewProps {
   toolName?: string;
   /** Manifest `name` of the extension, credited after each recommendation. */
   extensionName?: string;
+  /**
+   * A run that failed before producing a result (sandbox or network error).
+   * Shown instead of the not-run state so a failed run never reads as "no run".
+   */
+  executionError?: { message: string } | null;
 }
 
 type ContentBlock = Exclude<PreviewBlock, MessageBlock>;
@@ -188,6 +193,7 @@ export function DragonCopilotPreview({
   source = 'extension-api',
   toolName,
   extensionName,
+  executionError,
 }: DragonCopilotPreviewProps) {
   const [activeSource, setActiveSource] = useState<ResultSource>(source);
   // Deliberately not memoized: the registry is mutable, so a memo keyed on `[]`
@@ -239,6 +245,20 @@ export function DragonCopilotPreview({
             <h3>No preview yet</h3>
             <p>{`${activeProvider?.label ?? 'These'} results are not available in the sandbox yet.`}</p>
           </div>
+        </div>
+      );
+    }
+
+    if (executionError) {
+      return (
+        <div className="dc-preview">
+          {sourceSelector}
+          <div className="dc-preview-run-status">
+            <p className="dc-preview-message dc-preview-message-error" role="status">
+              {`The run failed: ${executionError.message} Dragon Copilot would show nothing to the clinician for this run. See the Results tab for details.`}
+            </p>
+          </div>
+          <p className="dc-preview-footnote">{footnote}</p>
         </div>
       );
     }

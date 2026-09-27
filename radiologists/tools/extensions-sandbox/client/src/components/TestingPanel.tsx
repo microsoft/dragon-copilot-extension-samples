@@ -398,6 +398,7 @@ export function TestingPanel({ manifestInfo, manifestRevision }: TestingPanelPro
                 onOptionSelect={(_, data) => {
                   setSelectedCapability(data.optionValue as string);
                   setResult(null);
+                  setExecuteError(null);
                 }}
               >
                 {capabilities.map((cap) => (
@@ -416,6 +417,7 @@ export function TestingPanel({ manifestInfo, manifestRevision }: TestingPanelPro
                 onOptionSelect={(_, data) => {
                   setSelectedTool(data.optionValue as string);
                   setResult(null);
+                  setExecuteError(null);
                 }}
               >
                 {tools.map((tool) => (
@@ -716,6 +718,7 @@ export function TestingPanel({ manifestInfo, manifestRevision }: TestingPanelPro
           <div className="preview-tab">
             <DragonCopilotPreview
               result={result}
+              executionError={executeError}
               toolName={selectedTool || undefined}
               extensionName={manifestInfo.name}
             />

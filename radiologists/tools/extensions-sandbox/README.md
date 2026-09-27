@@ -470,10 +470,14 @@ readable (for example, `sampleQualityCheckExtension` becomes "Sample Quality Che
 The Dragon Copilot frame uses DCR's dark theme, and the Report optimization card is open by default
 and can be collapsed from its header, as in DCR. Run status — the `ProcessResponse` message and any
 HTTP failure — is shown above the frame rather than inside it, because it describes the run for the
-partner and is not part of what the clinician sees. Before any tool has run, the frame shows the
-card's not-run state ("Run smart impression to view suggestions."), which is what DCR shows until
-Smart Impression triggers the extension; in the sandbox, running a tool from the **Setup** tab plays
-that role. The raw JSON tabs are unaffected.
+partner and is not part of what the clinician sees. A non-2xx extension response shows only the HTTP
+status and any `ProcessResponse` message — nothing from its payload is drawn in the frame, because
+Dragon Copilot would show the clinician nothing; the full body stays on the **Outputs** tab. If the
+run fails before the extension responds (sandbox authentication, unreachable endpoint, network
+error), the pane shows that error instead of the not-run state. Before any tool has run, the frame
+shows the card's not-run state ("Run smart impression to view suggestions."), which is what DCR
+shows until Smart Impression triggers the extension; in the sandbox, running a tool from the
+**Setup** tab plays that role. The raw JSON tabs are unaffected.
 
 ### Result sources
 

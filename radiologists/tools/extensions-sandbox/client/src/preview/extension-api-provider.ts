@@ -171,37 +171,28 @@ export function buildExtensionApiPreview(
   // A failed call is a result too. Without this the preview blames the schema for
   // what was really a transport failure, and an error with an empty body falls
   // through to the "run a tool" empty state for a tool that *was* run.
-  const failed = typeof status === 'number' && status >= 400;
+  const failed = typeof status === 'number' && (status < 200 || status >= 300);
   if (failed) {
     blocks.push({
       kind: 'message',
       tone: 'error',
       text: `The extension returned HTTP ${status}${statusText ? ` ${statusText}` : ''}. Dragon Copilot would show nothing to the clinician for this result.`,
     });
-  }
-
-  if (processResponse) {
-    // The transport status is the last word on whether the clinician sees
-    // anything, so a body message on a failed call is detail about that failure
-    // and must never carry the success tone. When both the status and the body
-    // report failure, the HTTP block above has already said so — only a specific
-    // message adds anything, and the generic fallback would just repeat it.
+    // Dragon Copilot shows nothing for a non-2xx result, so nothing from the body
+    // may reach the frame. A body message is still detail about the failure; the
+    // full body stays in the Outputs tab.
+    if (processResponse?.message) {
+      blocks.push({ kind: 'message', tone: 'error', text: processResponse.message });
+    }
+  } else if (processResponse) {
     if (processResponse.success === false) {
-      if (!failed) {
-        blocks.push({
-          kind: 'message',
-          tone: 'error',
-          text: processResponse.message || 'The extension reported that processing did not succeed.',
-        });
-      } else if (processResponse.message) {
-        blocks.push({ kind: 'message', tone: 'error', text: processResponse.message });
-      }
-    } else if (processResponse.message) {
       blocks.push({
         kind: 'message',
-        tone: failed ? 'error' : 'success',
-        text: processResponse.message,
+        tone: 'error',
+        text: processResponse.message || 'The extension reported that processing did not succeed.',
       });
+    } else if (processResponse.message) {
+      blocks.push({ kind: 'message', tone: 'success', text: processResponse.message });
     }
 
     const payload = processResponse.payload;
@@ -223,9 +214,7 @@ export function buildExtensionApiPreview(
     blocks.push({
       kind: 'json',
       title: 'Response',
-      reason: failed
-        ? 'The error response body is shown as formatted JSON.'
-        : 'The extension did not return a ProcessResponse envelope, so the raw response body is shown instead.',
+      reason: 'The extension did not return a ProcessResponse envelope, so the raw response body is shown instead.',
       json: rawBody,
     });
   }

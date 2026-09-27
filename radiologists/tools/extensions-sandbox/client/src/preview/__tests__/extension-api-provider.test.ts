@@ -247,6 +247,16 @@ describe('buildExtensionApiPreview', () => {
     expect(messages[0].text).toContain('HTTP 500');
   });
 
+  it.each([500, 404, 302])('previews no body content for an HTTP %i result', (status) => {
+    const model = buildExtensionApiPreview({ ...recommendationResult, status });
+
+    const blocks = model?.blocks ?? [];
+    expect(blocks.length).toBeGreaterThan(0);
+    expect(blocks.every((block) => block.kind === 'message')).toBe(true);
+    expect(blocks[0]).toMatchObject({ kind: 'message', tone: 'error' });
+    expect((blocks[0] as { text: string }).text).toContain(`HTTP ${status}`);
+  });
+
   it("prefers the caller's tool name and keeps the payload's when there is none", () => {
     const payload = { ...recommendationResult, toolName: 'payloadTool' };
 
