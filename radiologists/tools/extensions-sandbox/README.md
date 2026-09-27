@@ -232,10 +232,11 @@ Input and response validation return `200` when valid and `422` when the payload
 | POST   | /api/cli/generate | Generate a manifest from a template or wizard answers, returned as YAML |
 
 `POST /api/cli/generate` takes `mode: "template"` (with a `template` id) or `mode: "custom"` (with
-`extension` and `tool` objects), plus the `tenantId` in both cases. It returns `200` with the
-generated `yaml`, `400` when the request itself is unusable (no tenant, unknown template, no tool),
-and `422` when the generated manifest fails schema validation — in which case the `yaml` is still
-returned alongside the errors so the editor can show them in context.
+`extension` and `tool` objects), plus the `tenantId` in both cases. An omitted or blank `mode`
+defaults to `template`; any other value, including a non-string, is rejected. It returns `200` with
+the generated `yaml`, `400` when the request itself is unusable (unsupported `mode`, no tenant,
+unknown template, no tool), and `422` when the generated manifest fails schema validation — in
+which case the `yaml` is still returned alongside the errors so the editor can show them in context.
 
 Generation runs the manifest core owned by `tools/dragon-copilot-cli` in-process (synced into
 `src/cli/radiologists/`); the CLI binary is never spawned, and it does not need to be installed.

@@ -143,10 +143,15 @@ cliRouter.post('/generate', (req, res) => {
     return;
   }
 
+  // Omitted or blank means the default; anything else must name a real mode,
+  // or a typo would silently generate a template manifest.
   const mode = asString(body.mode, 'template');
 
   let manifest: DcrExtensionManifest;
   try {
+    if ((body.mode !== undefined && typeof body.mode !== 'string') || (mode !== 'template' && mode !== 'custom')) {
+      throw new BadRequestError('mode must be "template" or "custom".');
+    }
     manifest = mode === 'custom' ? buildCustomManifest(body) : buildTemplateManifest(body);
   } catch (err: unknown) {
     // Only a BadRequestError describes something the caller can fix, so only its

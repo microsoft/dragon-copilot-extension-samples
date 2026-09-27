@@ -300,3 +300,21 @@ describe('POST /api/cli/generate (unsupported domain)', () => {
     expect(body.message).toContain('radiologists');
   });
 });
+
+describe('POST /api/cli/generate (mode)', () => {
+  it('defaults to template mode when the mode is omitted', async () => {
+    const { status, body } = await generate({ template: 'quality-check', tenantId: TENANT_ID });
+
+    expect(status).toBe(200);
+    expect(body.valid).toBe(true);
+  });
+
+  it.each([['custon'], [99]])('rejects the unsupported mode %j', async (mode) => {
+    const { status, body } = await generate({ mode, template: 'quality-check', tenantId: TENANT_ID });
+
+    expect(status).toBe(400);
+    expect(body.generated).toBe(false);
+    expect(body.yaml).toBeUndefined();
+    expect(body.message).toBe('mode must be "template" or "custom".');
+  });
+});
