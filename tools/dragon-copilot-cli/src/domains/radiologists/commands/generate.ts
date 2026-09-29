@@ -1,11 +1,18 @@
 import fs from 'fs-extra';
 const { readFileSync, writeFileSync } = fs;
 import yaml from 'js-yaml';
-const { load, dump } = yaml;
+const { load } = yaml;
 import chalk from 'chalk';
-import type { GenerateOptions, DcrExtensionManifest, DcrTool } from '../types.js';
-import { getTemplate } from '../templates/index.js';
-import { promptToolDetails, promptAuthDetails, getInputDescription, getInputName } from '../shared/prompts.js';
+import type { GenerateOptions, DcrExtensionManifest } from '../types.js';
+import {
+  MANIFEST_DEFAULTS,
+  buildManifest,
+  buildManifestFromTemplate,
+  buildTool,
+  getTemplate,
+  renderManifestYaml
+} from '../manifest/index.js';
+import { promptToolDetails, promptAuthDetails } from '../shared/prompts.js';
 import { validateExtensionManifest } from '../shared/schema-validator.js';
 
 export async function generateManifest(options: GenerateOptions): Promise<void> {
@@ -41,24 +48,16 @@ async function generateInteractive(options: GenerateOptions): Promise<void> {
 
   const answers = await promptToolDetails(existingManifest);
 
-  const newTool: any = {
+  const newTool = buildTool({
     name: answers.toolName,
+    description: answers.toolDescription,
     toolType: answers.toolType,
     capability: answers.capability,
-    description: answers.toolDescription,
     endpoint: answers.endpoint,
-    inputs: answers.inputTypes.map((contentType: string, index: number) => ({
-      name: getInputName(contentType, index),
-      description: getInputDescription(contentType),
-      'content-type': contentType,
-      schemaVersion: '1.0'
-    })),
-    outputs: answers.outputs
-  };
-
-  if (answers.relevanceFilteringCriteria) {
-    newTool.relevanceFilteringCriteria = answers.relevanceFilteringCriteria;
-  }
+    inputTypes: answers.inputTypes,
+    outputs: answers.outputs,
+    relevanceFilteringCriteria: answers.relevanceFilteringCriteria
+  });
 
   let manifest: DcrExtensionManifest;
   if (existingManifest) {
@@ -69,19 +68,20 @@ async function generateInteractive(options: GenerateOptions): Promise<void> {
     console.log(chalk.gray('New manifest requires authentication configuration.\n'));
     const authDetails = await promptAuthDetails();
 
-    manifest = {
-      name: 'myRadiologistsExtension',
-      description: 'A Dragon Copilot radiologists extension',
-      version: '0.0.1',
-      radiologistsExtensibilityApiVersion: '1.0.0',
-      auth: {
-        tenantId: authDetails.tenantId
+    manifest = buildManifest({
+      extension: {
+        name: MANIFEST_DEFAULTS.extensionName,
+        description: MANIFEST_DEFAULTS.extensionDescription,
+        version: MANIFEST_DEFAULTS.version,
+        radiologistsExtensibilityApiVersion: MANIFEST_DEFAULTS.radiologistsExtensibilityApiVersion
       },
-      tools: [newTool]
-    };
+      auth: authDetails,
+      tools: []
+    });
+    manifest.tools.push(newTool);
   }
 
-  const yamlContent = dump(manifest, { lineWidth: -1 });
+  const yamlContent = renderManifestYaml(manifest);
   writeFileSync(options.output || 'extension.yaml', yamlContent);
 
   console.log(chalk.green('\n✅ Tool added to manifest successfully!'));
@@ -95,22 +95,15 @@ async function generateFromTemplate(options: GenerateOptions): Promise<void> {
   }
 
   try {
-    const template = getTemplate(options.template);
+    // Resolved before prompting: a mistyped --template should not cost the user
+    // a tenant ID they then have to re-enter.
+    getTemplate(options.template);
 
     console.log(chalk.blue('\n Authentication Configuration'));
     console.log(chalk.gray('Manifest requires authentication configuration.\n'));
     const authDetails = await promptAuthDetails();
 
-    const manifest: DcrExtensionManifest = {
-      name: template.name,
-      description: template.description,
-      version: template.version,
-      radiologistsExtensibilityApiVersion: template.radiologistsExtensibilityApiVersion,
-      auth: {
-        tenantId: authDetails.tenantId
-      },
-      tools: template.tools as DcrTool[]
-    };
+    const manifest = buildManifestFromTemplate(options.template, authDetails);
 
     const validation = validateExtensionManifest(manifest);
     if (!validation.isValid) {
@@ -121,7 +114,7 @@ async function generateFromTemplate(options: GenerateOptions): Promise<void> {
       process.exit(1);
     }
 
-    const yamlContent = dump(manifest, { lineWidth: -1 });
+    const yamlContent = renderManifestYaml(manifest);
     writeFileSync(options.output || 'extension.yaml', yamlContent);
 
     console.log(chalk.green(`✅ Manifest generated from template: ${options.template}`));

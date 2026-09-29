@@ -1,8 +1,6 @@
 import { confirm } from '@inquirer/prompts';
 import fs from 'fs-extra';
 const { writeFileSync } = fs;
-import yaml from 'js-yaml';
-const { dump } = yaml;
 import path from 'path';
 import chalk from 'chalk';
 import type {
@@ -10,11 +8,15 @@ import type {
   DcrExtensionManifest
 } from '../types.js';
 import {
+  MANIFEST_DEFAULTS,
+  buildManifest,
+  buildTool,
+  renderManifestYaml
+} from '../manifest/index.js';
+import {
   promptExtensionDetails,
   promptToolDetails,
-  promptAuthDetails,
-  getInputDescription,
-  getInputName
+  promptAuthDetails
 } from '../shared/prompts.js';
 
 export async function initProject(options: InitOptions): Promise<void> {
@@ -47,51 +49,36 @@ export async function initProject(options: InitOptions): Promise<void> {
     default: true
   });
 
-  const manifest: DcrExtensionManifest = {
-    name: extensionDetails.name,
-    description: extensionDetails.description,
-    version: extensionDetails.version,
-    radiologistsExtensibilityApiVersion: extensionDetails.radiologistsExtensibilityApiVersion,
-    auth: {
-      tenantId: authDetails.tenantId
-    },
+  const manifest: DcrExtensionManifest = buildManifest({
+    extension: extensionDetails,
+    auth: authDetails,
     tools: []
-  };
+  });
 
   if (addTool) {
     const toolDetails = await promptToolDetails(undefined, {
       allowMultipleInputs: true,
       defaults: {
-        toolName: 'myRadiologistsTool',
-        toolDescription: 'Processes radiology reports and imaging data',
-        endpoint: 'https://api.example.com/radiologists/v1/process'
+        toolName: MANIFEST_DEFAULTS.toolName,
+        toolDescription: MANIFEST_DEFAULTS.toolDescription,
+        endpoint: MANIFEST_DEFAULTS.endpoint
       }
     });
 
-    const tool: any = {
+    manifest.tools.push(buildTool({
       name: toolDetails.toolName,
+      description: toolDetails.toolDescription,
       toolType: toolDetails.toolType,
       capability: toolDetails.capability,
-      description: toolDetails.toolDescription,
       endpoint: toolDetails.endpoint,
-      inputs: toolDetails.inputTypes.map((contentType, index) => ({
-        name: getInputName(contentType, index),
-        description: getInputDescription(contentType),
-        'content-type': contentType,
-        schemaVersion: '1.0'
-      })),
-      outputs: toolDetails.outputs
-    };
-
-    if (toolDetails.relevanceFilteringCriteria) {
-      tool.relevanceFilteringCriteria = toolDetails.relevanceFilteringCriteria;
-    }
-
-    manifest.tools.push(tool);
+      inputTypes: toolDetails.inputTypes,
+      outputs: toolDetails.outputs,
+      relevanceFilteringCriteria: toolDetails.relevanceFilteringCriteria
+    }));
   }
 
   const outputPath = path.join(options.output || '.', 'extension.yaml');
-  const yamlContent = dump(manifest, { lineWidth: -1 });
+  const yamlContent = renderManifestYaml(manifest);
 
   writeFileSync(outputPath, yamlContent);
 

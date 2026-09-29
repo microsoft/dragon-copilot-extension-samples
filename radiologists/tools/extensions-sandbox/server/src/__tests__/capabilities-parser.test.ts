@@ -52,8 +52,18 @@ describe('Capabilities Parser', () => {
 
     expect(capabilities).toHaveLength(2);
     expect(capabilities).toEqual([
-      { name: 'reportGeneration', description: 'Report Generation capability', toolCount: 1 },
-      { name: 'qualityCheck', description: 'Quality Check capability', toolCount: 2 },
+      {
+        name: 'reportGeneration',
+        displayName: 'Report Generation',
+        description: 'Report Generation capability',
+        toolCount: 1,
+      },
+      {
+        name: 'qualityCheck',
+        displayName: 'Report Optimization',
+        description: 'Report Optimization capability',
+        toolCount: 2,
+      },
     ]);
   });
 
@@ -87,6 +97,7 @@ describe('Capabilities Parser', () => {
     expect(capabilities).toHaveLength(1);
     expect(capabilities[0]).toEqual({
       name: 'reportGeneration',
+      displayName: 'Report Generation',
       description: 'Report Generation capability',
       toolCount: 1,
     });

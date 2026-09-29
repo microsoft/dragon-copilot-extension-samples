@@ -12,6 +12,7 @@ import { ArrowCounterclockwiseRegular, CodeRegular, CopyRegular } from '@fluentu
 import { DynamicForm, getFieldPaths, SchemaProperty } from './DynamicForm';
 import type { DynamicFormHandle } from './DynamicForm';
 import { AuthSettings } from './AuthSettings';
+import { DragonCopilotPreview } from './DragonCopilotPreview';
 import './ValidationResults.css';
 
 interface ToolInput {
@@ -39,7 +40,10 @@ interface Tool {
 }
 
 interface Capability {
+  /** The manifest `capability` value, sent back to the server. */
   name: string;
+  /** Label shown in the UI; falls back to `name` when absent. */
+  displayName?: string;
   description: string;
   toolCount: number;
 }
@@ -368,6 +372,11 @@ export function TestingPanel({ manifestInfo, manifestRevision }: TestingPanelPro
     );
   }
 
+  const selectedCapabilityEntry = capabilities.find((c) => c.name === selectedCapability);
+  const selectedCapabilityLabel = selectedCapabilityEntry
+    ? selectedCapabilityEntry.displayName ?? selectedCapabilityEntry.name
+    : selectedCapability;
+
   return (
     <div className="testing-panel">
       <h2 className="panel-title">Testing</h2>
@@ -379,6 +388,7 @@ export function TestingPanel({ manifestInfo, manifestRevision }: TestingPanelPro
         <Tab value="setup">Setup</Tab>
         <Tab value="results">Results</Tab>
         <Tab value="outputs">Outputs</Tab>
+        <Tab value="preview">Dragon Copilot Preview</Tab>
       </TabList>
 
       <div className="tab-content">
@@ -391,16 +401,17 @@ export function TestingPanel({ manifestInfo, manifestRevision }: TestingPanelPro
             <div className="form-field">
               <label className="field-label">Capability</label>
               <Dropdown
-                value={capabilities.find(c => c.name === selectedCapability)?.name || ''}
+                value={selectedCapabilityEntry ? selectedCapabilityLabel : ''}
                 selectedOptions={[selectedCapability]}
                 onOptionSelect={(_, data) => {
                   setSelectedCapability(data.optionValue as string);
                   setResult(null);
+                  setExecuteError(null);
                 }}
               >
                 {capabilities.map((cap) => (
                   <Option key={cap.name} value={cap.name}>
-                    {cap.name}
+                    {cap.displayName ?? cap.name}
                   </Option>
                 ))}
               </Dropdown>
@@ -414,6 +425,7 @@ export function TestingPanel({ manifestInfo, manifestRevision }: TestingPanelPro
                 onOptionSelect={(_, data) => {
                   setSelectedTool(data.optionValue as string);
                   setResult(null);
+                  setExecuteError(null);
                 }}
               >
                 {tools.map((tool) => (
@@ -514,7 +526,7 @@ export function TestingPanel({ manifestInfo, manifestRevision }: TestingPanelPro
                   <div className="tool-context-row">
                     <div>
                       <div className="tool-context-label">Capability</div>
-                      <div className="tool-context-value">{selectedCapability}</div>
+                      <div className="tool-context-value">{selectedCapabilityLabel}</div>
                     </div>
                     <div>
                       <div className="tool-context-label">Tool</div>
@@ -707,6 +719,17 @@ export function TestingPanel({ manifestInfo, manifestRevision }: TestingPanelPro
             ) : (
               <p className="results-empty">No outputs yet. Run a test from the Setup tab.</p>
             )}
+          </div>
+        )}
+
+        {activeTab === 'preview' && (
+          <div className="preview-tab">
+            <DragonCopilotPreview
+              result={result}
+              executionError={executeError}
+              toolName={selectedTool || undefined}
+              extensionName={manifestInfo.name}
+            />
           </div>
         )}
       </div>
