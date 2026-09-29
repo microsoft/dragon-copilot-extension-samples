@@ -195,7 +195,7 @@ All routes are served under `http://localhost:4000`.
 | GET    | /api/manifest                                     | Get the currently loaded manifest metadata (404 if none)                |
 | GET    | /api/manifest/raw                                 | Get the raw manifest text exactly as uploaded                           |
 | DELETE | /api/manifest                                     | Clear the session manifest                                              |
-| GET    | /api/manifest/capabilities                        | List capabilities, grouped by each tool's `capability` field            |
+| GET    | /api/manifest/capabilities                        | List capabilities with their display names, grouped by each tool's `capability` field |
 | GET    | /api/manifest/capabilities/:capabilityName/tools  | List the tools defined under a given capability                         |
 | POST   | /api/manifest/execute                             | Execute a tool: validate the inputs, POST a `ProcessRequest` to the endpoint the manifest declares, then validate the response |
 

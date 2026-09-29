@@ -40,7 +40,10 @@ interface Tool {
 }
 
 interface Capability {
+  /** The manifest `capability` value, sent back to the server. */
   name: string;
+  /** Label shown in the UI; falls back to `name` when absent. */
+  displayName?: string;
   description: string;
   toolCount: number;
 }
@@ -369,6 +372,11 @@ export function TestingPanel({ manifestInfo, manifestRevision }: TestingPanelPro
     );
   }
 
+  const selectedCapabilityEntry = capabilities.find((c) => c.name === selectedCapability);
+  const selectedCapabilityLabel = selectedCapabilityEntry
+    ? selectedCapabilityEntry.displayName ?? selectedCapabilityEntry.name
+    : selectedCapability;
+
   return (
     <div className="testing-panel">
       <h2 className="panel-title">Testing</h2>
@@ -393,7 +401,7 @@ export function TestingPanel({ manifestInfo, manifestRevision }: TestingPanelPro
             <div className="form-field">
               <label className="field-label">Capability</label>
               <Dropdown
-                value={capabilities.find(c => c.name === selectedCapability)?.name || ''}
+                value={selectedCapabilityEntry ? selectedCapabilityLabel : ''}
                 selectedOptions={[selectedCapability]}
                 onOptionSelect={(_, data) => {
                   setSelectedCapability(data.optionValue as string);
@@ -403,7 +411,7 @@ export function TestingPanel({ manifestInfo, manifestRevision }: TestingPanelPro
               >
                 {capabilities.map((cap) => (
                   <Option key={cap.name} value={cap.name}>
-                    {cap.name}
+                    {cap.displayName ?? cap.name}
                   </Option>
                 ))}
               </Dropdown>
@@ -518,7 +526,7 @@ export function TestingPanel({ manifestInfo, manifestRevision }: TestingPanelPro
                   <div className="tool-context-row">
                     <div>
                       <div className="tool-context-label">Capability</div>
-                      <div className="tool-context-value">{selectedCapability}</div>
+                      <div className="tool-context-value">{selectedCapabilityLabel}</div>
                     </div>
                     <div>
                       <div className="tool-context-label">Tool</div>

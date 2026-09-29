@@ -20,7 +20,7 @@ import {
 const templates: Record<string, TemplateConfig> = {
   'quality-check': {
     name: 'sampleQualityCheckExtension',
-    description: 'Extension to provide radiology report quality checking',
+    description: 'Extension to provide radiology report optimization',
     version: '0.0.1',
     radiologistsExtensibilityApiVersion: '1.0.0',
     tools: [
@@ -28,7 +28,7 @@ const templates: Record<string, TemplateConfig> = {
         name: 'sampleQualityCheckTool',
         toolType: DEFAULT_TOOL_TYPE,
         capability: DEFAULT_CAPABILITY,
-        description: 'Tool to check quality of a radiology report',
+        description: 'Tool to optimize a radiology report',
         endpoint: 'https://publisher.example.com/quality-check',
         inputs: [
           {
@@ -47,7 +47,7 @@ const templates: Record<string, TemplateConfig> = {
         outputs: [
           {
             name: 'qualityCheckResult',
-            description: 'Quality check findings and score',
+            description: 'Report optimization findings and score',
             'content-type': DEFAULT_OUTPUT_CONTENT_TYPE,
             schemaVersion: DEFAULT_PAYLOAD_SCHEMA_VERSION
           }

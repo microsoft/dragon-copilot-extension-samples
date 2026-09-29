@@ -89,7 +89,7 @@ describe('GET /api/cli/options', () => {
       REPORT_CONTENT_TYPE,
       PATIENT_INFORMATION_CONTENT_TYPE,
     ]);
-    expect(options.capabilities).toEqual([{ name: 'Quality Check', value: 'qualityCheck' }]);
+    expect(options.capabilities).toEqual([{ name: 'Report Optimization', value: 'qualityCheck' }]);
     expect(options.bodyParts.length).toBeGreaterThan(0);
     expect(options.modalities.length).toBeGreaterThan(0);
     expect(options.defaults.extensionName).toBe('myRadiologistsExtension');

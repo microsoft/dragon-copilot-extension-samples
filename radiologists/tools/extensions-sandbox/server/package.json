@@ -23,7 +23,7 @@
     "express": "^5.1.0",
     "extensions-sandbox-shared": "*",
     "js-yaml": "^4.3.2",
-    "multer": "^2.3.0"
+    "multer": "^2.4.0"
   },
   "devDependencies": {
     "@types/cors": "^2.8.17",

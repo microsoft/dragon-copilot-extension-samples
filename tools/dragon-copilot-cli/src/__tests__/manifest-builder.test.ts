@@ -165,7 +165,7 @@ describe('radiologists manifest builder', () => {
       {
         id: 'quality-check',
         name: 'sampleQualityCheckExtension',
-        description: 'Extension to provide radiology report quality checking',
+        description: 'Extension to provide radiology report optimization',
         version: '0.0.1',
         toolCount: 1,
       },

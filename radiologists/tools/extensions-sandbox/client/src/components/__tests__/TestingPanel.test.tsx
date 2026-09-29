@@ -37,7 +37,7 @@ beforeEach(() => {
   fetchMock = vi.fn(async (input: RequestInfo | URL) => {
     const url = String(input);
     if (url.endsWith('/api/manifest/capabilities')) {
-      return json([{ name: 'reportQuality', description: 'Quality checks', toolCount: 1 }]);
+      return json([{ name: 'reportQuality', displayName: 'Report Quality', description: 'Quality checks', toolCount: 1 }]);
     }
     if (url.includes('/tools')) {
       return json([]);
@@ -83,7 +83,7 @@ describe('TestingPanel tabs', () => {
     fetchMock.mockImplementation(async (input: RequestInfo | URL) => {
       const url = String(input);
       if (url.endsWith('/api/manifest/capabilities')) {
-        return json([{ name: 'reportQuality', description: 'Quality checks', toolCount: 1 }]);
+        return json([{ name: 'reportQuality', displayName: 'Report Quality', description: 'Quality checks', toolCount: 1 }]);
       }
       if (url.includes('/tools')) {
         return json([{ name: 'sampleQualityCheckTool', description: '', inputs: [], outputs: [] }]);
@@ -107,5 +107,94 @@ describe('TestingPanel tabs', () => {
 
     expect(screen.getByText(/The run failed: Could not reach the extension endpoint\./)).toBeInTheDocument();
     expect(screen.queryByText('Run smart impression to view suggestions.')).toBeNull();
+  });
+});
+
+describe('TestingPanel capability label', () => {
+  it('shows the capability display name but sends the manifest value when running a tool', async () => {
+    fetchMock.mockImplementation(async (input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url.endsWith('/api/manifest/capabilities')) {
+        return json([
+          {
+            name: 'qualityCheck',
+            displayName: 'Report Optimization',
+            description: 'Report Optimization capability',
+            toolCount: 1,
+          },
+        ]);
+      }
+      if (url.includes('/tools')) {
+        return json([{ name: 'sampleQualityCheckTool', description: '', inputs: [], outputs: [] }]);
+      }
+      if (url.endsWith('/api/manifest/execute')) {
+        return new Response(JSON.stringify({ error: 'Could not reach the extension endpoint.' }), {
+          status: 502,
+          headers: { 'Content-Type': 'application/json' },
+        });
+      }
+      return json({});
+    });
+    await renderPanel();
+
+    expect(screen.getByText('Report Optimization')).toBeInTheDocument();
+    expect(screen.queryByText('qualityCheck')).toBeNull();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Run Test' }));
+    await waitFor(() =>
+      expect(screen.getByRole('tab', { name: 'Results' })).toHaveAttribute('aria-selected', 'true'),
+    );
+
+    const executeCall = fetchMock.mock.calls.find(([url]) => String(url).endsWith('/api/manifest/execute'));
+    expect(JSON.parse(String((executeCall?.[1] as RequestInit | undefined)?.body))).toMatchObject({
+      capability: 'qualityCheck',
+    });
+    expect(screen.getByText('Report Optimization')).toBeInTheDocument();
+  });
+
+  it('does not show the previous raw capability value when a new manifest has no capabilities', async () => {
+    let capabilitiesResponse: unknown[] = [
+      {
+        name: 'qualityCheck',
+        displayName: 'Report Optimization',
+        description: 'Report Optimization capability',
+        toolCount: 1,
+      },
+    ];
+    fetchMock.mockImplementation(async (input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url.endsWith('/api/manifest/capabilities')) {
+        return json(capabilitiesResponse);
+      }
+      return json([]);
+    });
+    const { rerender } = render(
+      <FluentProvider theme={webLightTheme}>
+        <TestingPanel manifestInfo={manifestInfo} manifestRevision={0} />
+      </FluentProvider>,
+    );
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2));
+    await act(async () => {});
+    expect(screen.getByText('Report Optimization')).toBeInTheDocument();
+
+    capabilitiesResponse = [];
+    rerender(
+      <FluentProvider theme={webLightTheme}>
+        <TestingPanel
+          manifestInfo={{ ...manifestInfo, name: 'other-extension', capabilities: [] }}
+          manifestRevision={1}
+        />
+      </FluentProvider>,
+    );
+    await waitFor(() =>
+      expect(
+        fetchMock.mock.calls.filter(([url]) => String(url).endsWith('/api/manifest/capabilities')),
+      ).toHaveLength(2),
+    );
+    await act(async () => {});
+
+    expect(screen.getByText('other-extension')).toBeInTheDocument();
+    expect(screen.queryByText('Report Optimization')).toBeNull();
+    expect(screen.queryByText('qualityCheck')).toBeNull();
   });
 });

@@ -25,7 +25,7 @@ export const INPUT_TYPE_CHOICES: ManifestChoice[] = [
 ];
 
 export const OUTPUT_TYPE_CHOICES: ManifestChoice[] = [
-  { name: 'Quality Check Result', value: DEFAULT_OUTPUT_CONTENT_TYPE },
+  { name: 'Report Optimization Result', value: DEFAULT_OUTPUT_CONTENT_TYPE },
 ];
 
 export const TOOL_TYPE_CHOICES: ManifestChoice<ToolType>[] = [
@@ -33,7 +33,7 @@ export const TOOL_TYPE_CHOICES: ManifestChoice<ToolType>[] = [
 ];
 
 export const CAPABILITY_CHOICES: ManifestChoice<Capability>[] = [
-  { name: 'Quality Check', value: DEFAULT_CAPABILITY },
+  { name: 'Report Optimization', value: DEFAULT_CAPABILITY },
 ];
 
 export const BODY_PART_CHOICES: ManifestChoice[] = [
@@ -83,7 +83,7 @@ export const MANIFEST_DEFAULTS = {
   toolDescription: 'Processes radiology reports and imaging data',
   endpoint: 'https://api.example.com/radiologists/v1/process',
   outputName: 'qualityCheckResult',
-  outputDescription: 'Quality check result',
+  outputDescription: 'Report optimization result',
   schemaVersion: DEFAULT_PAYLOAD_SCHEMA_VERSION,
 } as const;
 
