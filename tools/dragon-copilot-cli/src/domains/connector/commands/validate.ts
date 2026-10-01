@@ -27,18 +27,9 @@ export async function runValidateCommand(filePath?: string): Promise<void> {
     const nextStep = await select({
       message: 'How would you like to continue?',
       choices: [
-        {
-          name: `Validate the default manifest in this directory (${DEFAULT_MANIFEST_PATH})`,
-          value: 'default'
-        },
-        {
-          name: 'Enter a different manifest path',
-          value: 'custom'
-        },
-        {
-          name: 'Cancel validation',
-          value: 'cancel'
-        }
+        { name: `Validate the default manifest in this directory (${DEFAULT_MANIFEST_PATH})`, value: 'default' },
+        { name: 'Enter a different manifest path', value: 'custom' },
+        { name: 'Cancel validation', value: 'cancel' }
       ]
     });
 
@@ -98,13 +89,12 @@ export async function validateManifest(filePath: string): Promise<void> {
   let hasErrors = false;
   let hasWarnings = false;
 
-  // Validate manifest file
   try {
     const fileContent = readFileSync(filePath, 'utf8');
     const manifest = load(fileContent) as ConnectorIntegrationManifest;
 
     console.log(chalk.blue('📋 Validating Integration Manifest...'));
-    
+
     const errors: string[] = [];
     const warnings: string[] = [];
 
@@ -115,11 +105,10 @@ export async function validateManifest(filePath: string): Promise<void> {
       schemaResult.errors.forEach((error: SchemaError) => {
         const fieldPath = error.instancePath.replace(/^\//, '').replace(/\//g, '.');
         const fieldName = fieldPath || 'manifest';
-        errors.push(`${fieldName}: ${error.message}`);
+        const extra = error.keyword === 'additionalProperties' ? ` (${error.params.additionalProperty})` : '';
+        errors.push(`${fieldName}: ${error.message}${extra}`);
       });
     }
-
-    // Step 2: Additional business rule validation
 
     const validateUrl = (url: string, field: string): void => {
       try {
@@ -263,19 +252,20 @@ export async function validateManifest(filePath: string): Promise<void> {
         }
 
         if (Object.prototype.hasOwnProperty.call(item, 'default-value')) {
-          contextErrors.push(
-            `${prefix}.default-value: Default values are not supported for context items`
-          );
+          contextErrors.push(`${prefix}.default-value: Default values are not supported for context items`);
         }
       });
 
       return contextErrors;
     };
 
-  const version = requireString(manifest.version, 'version');
-  const partnerId = requireString(manifest['partner-id'], 'partner-id');
+    const version = requireString(manifest.version, 'version');
+    const partnerId = requireString(manifest['partner-id'], 'partner-id');
     requireString(manifest.name, 'name');
     requireString(manifest.description, 'description');
+    if (manifest['publisher-name'] !== undefined) {
+      requireString(manifest['publisher-name'], 'publisher-name');
+    }
 
     if (manifest.name && !/^[a-z0-9][a-z0-9-]*[a-z0-9]$/.test(manifest.name)) {
       errors.push('name: Must be lowercase with hyphens only (e.g., my-integration), starting and ending with a letter or number');
@@ -319,29 +309,6 @@ export async function validateManifest(filePath: string): Promise<void> {
       });
     }
 
-    if (manifest['note-sections']) {
-      Object.entries(manifest['note-sections'] as Record<string, unknown>).forEach(([key, value]) => {
-        if (value === null) {
-          return;
-        }
-        if (Array.isArray(value)) {
-          value.forEach((item, itemIndex) => {
-            if (typeof item !== 'string' || !item.trim()) {
-              errors.push(`note-sections['${key}'][${itemIndex}]: Must be a non-empty string`);
-            }
-          });
-        } else if (typeof value === 'string') {
-          if (!value.trim()) {
-            errors.push(`note-sections['${key}']: Must be a non-empty string or array of strings`);
-          }
-        } else {
-          errors.push(`note-sections['${key}']: Must be null, a string, or an array of strings`);
-        }
-      });
-    } else {
-      warnings.push('note-sections: Not defined; Dragon Copilot default sections will be used');
-    }
-
     const instance = manifest.instance as ConnectorIntegrationManifest['instance'] | undefined;
     if (!instance || typeof instance !== 'object') {
       errors.push('instance: Field is required');
@@ -352,7 +319,7 @@ export async function validateManifest(filePath: string): Promise<void> {
       } else {
         checkYesNo(clientAuthentication['allow-multiple-issuers'], 'instance.client-authentication.allow-multiple-issuers');
 
-  const issuerFields = clientAuthentication.issuer;
+        const issuerFields = clientAuthentication.issuer;
         if (!issuerFields) {
           errors.push('instance.client-authentication.issuer: Field is required');
         } else {
@@ -368,7 +335,6 @@ export async function validateManifest(filePath: string): Promise<void> {
 
       const webLaunchSofConfig = instance['web-launch-sof'];
       const tokenConfig = instance['web-launch-token'];
-
       const hasWebLaunchSof = webLaunchSofConfig !== undefined && webLaunchSofConfig !== null;
       const hasWebLaunchToken = tokenConfig !== undefined && tokenConfig !== null;
 
@@ -395,7 +361,7 @@ export async function validateManifest(filePath: string): Promise<void> {
         }
       }
 
-  const contextErrors = validateContextItems(instance['context-retrieval']);
+      const contextErrors = validateContextItems(instance['context-retrieval']);
       if (contextErrors.length) {
         contextErrors.forEach(error => errors.push(error));
       }
@@ -404,33 +370,28 @@ export async function validateManifest(filePath: string): Promise<void> {
     if (errors.length > 0) {
       hasErrors = true;
       console.log(chalk.red('❌ Manifest validation failed with errors:'));
-      errors.forEach(error => {
-        console.log(chalk.red(`  • ${error}`));
-      });
+      errors.forEach(error => console.log(chalk.red(`  • ${error}`)));
     }
 
     if (warnings.length > 0) {
       hasWarnings = true;
       console.log(chalk.yellow('\n⚠️  Validation warnings:'));
-      warnings.forEach(warning => {
-        console.log(chalk.yellow(`  • ${warning}`));
-      });
+      warnings.forEach(warning => console.log(chalk.yellow(`  • ${warning}`)));
     }
 
     if (errors.length === 0) {
       console.log(chalk.green('✅ Integration manifest is valid'));
-      
-      // Display manifest summary
       console.log(chalk.blue('\n📊 Manifest Summary:'));
       console.log(chalk.gray(`  Name: ${manifest.name}`));
       console.log(chalk.gray(`  Description: ${manifest.description}`));
       console.log(chalk.gray(`  Version: ${manifest.version}`));
-  console.log(chalk.gray(`  Partner ID: ${manifest['partner-id']}`));
-  console.log(chalk.gray(`  Server authentication issuers: ${manifest['server-authentication']?.length || 0}`));
-  console.log(chalk.gray(`  Note sections configured: ${Object.keys(manifest['note-sections'] ?? {}).length}`));
-  console.log(chalk.gray(`  Context retrieval items: ${manifest.instance?.['context-retrieval']?.instance?.length || 0}`));
+      if (manifest['publisher-name']) {
+        console.log(chalk.gray(`  Publisher: ${manifest['publisher-name']}`));
+      }
+      console.log(chalk.gray(`  Partner ID: ${manifest['partner-id']}`));
+      console.log(chalk.gray(`  Server authentication issuers: ${manifest['server-authentication']?.length || 0}`));
+      console.log(chalk.gray(`  Context retrieval items: ${manifest.instance?.['context-retrieval']?.instance?.length || 0}`));
     }
-
   } catch (parseError) {
     hasErrors = true;
     console.log(chalk.red('❌ Failed to parse manifest file:'));
@@ -441,7 +402,6 @@ export async function validateManifest(filePath: string): Promise<void> {
     }
   }
 
-  // Final summary
   console.log('\n' + '='.repeat(50));
   if (hasErrors) {
     console.log(chalk.red('❌ Validation failed with errors'));

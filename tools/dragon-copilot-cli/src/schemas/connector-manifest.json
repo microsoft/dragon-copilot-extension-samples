@@ -9,7 +9,6 @@
     "partner-id",
     "clinical-application-name",
     "server-authentication",
-    "note-sections",
     "instance"
   ],
   "properties": {
@@ -28,6 +27,11 @@
       "type": "string",
       "pattern": "^\\d+\\.\\d+\\.\\d+$",
       "description": "Version in x.y.z format"
+    },
+    "publisher-name": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Optional human-readable publisher display name"
     },
     "partner-id": {
       "type": "string",
@@ -68,10 +72,6 @@
         "additionalProperties": false
       },
       "description": "Server authentication configuration"
-    },
-    "note-sections": {
-      "type": "object",
-      "description": "Note sections mapping"
     },
     "instance": {
       "type": "object",
