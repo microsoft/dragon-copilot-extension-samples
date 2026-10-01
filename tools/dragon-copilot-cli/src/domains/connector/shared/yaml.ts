@@ -1,6 +1,4 @@
-import yaml from 'js-yaml';
-
-const { dump } = yaml;
+import { dump } from 'js-yaml';
 
 const YES_NO_COLON_REGEX = /(:\s*)(['\"])(yes|no)\2/g;
 const YES_NO_LIST_REGEX = /(-\s*)(['\"])(yes|no)\2/g;
@@ -66,4 +64,3 @@ export const dumpManifestYaml = (value: unknown): string => {
   const contents = dump(value, { lineWidth: -1 });
   return annotateClientAuth(annotateServerAuth(sanitizeYamlText(contents)));
 };
-
