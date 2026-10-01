@@ -80,5 +80,10 @@ updates:
     labels:
       - "dependencies"
       - "github-actions"
+    groups:
+      codeql-action:
+        patterns:
+          - "github/codeql-action/init"
+          - "github/codeql-action/analyze"
     cooldown:
       default-days: 7
