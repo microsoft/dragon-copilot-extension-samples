@@ -1,7 +1,6 @@
 import fs from 'fs-extra';
 const { readFileSync, writeFileSync } = fs;
-import yaml from 'js-yaml';
-const { load, dump } = yaml;
+import { load, dump } from 'js-yaml';
 import chalk from 'chalk';
 import type { GenerateOptions, DcrExtensionManifest, DcrTool } from '../types.js';
 import { getTemplate } from '../templates/index.js';
