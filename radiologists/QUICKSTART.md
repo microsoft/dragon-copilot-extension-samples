@@ -31,8 +31,8 @@ In this quickstart, you run a sample extension locally, test it in the sandbox, 
 
    | Path | Use this when | Read this |
    | --- | --- | --- |
-   | **C# (Quickstart, AI, Local)** | You want the main built-in sample set | [Workflow README](src/samples/Workflow/README.md) |
-   | **Python Quickstart** | You want a Python implementation | [Python README](src/samples/Workflow/sample_extension_radiologists_python_quickstart/README.md) |
+   | **C# (Quickstart, AI, Local)** | You want the main built-in sample set | [ContractBased README](src/samples/ContractBased/README.md) |
+   | **Python Quickstart** | You want a Python implementation | [Python README](src/samples/ContractBased/sample_extension_radiologists_python_quickstart/README.md) |
    | **Other languages** | You want Go, Java, Node.js, TypeScript, Rust, or another language | [Scaffold prompt](../.github/prompts/radiologists-scaffold-language-sample.prompt.md) |
 
 4. Follow the README for your selected path to complete setup.
@@ -59,7 +59,7 @@ After local verification, use the extensions sandbox to run the manifest-configu
 
 1. Keep your extension running.
 2. Start the sandbox and open it in your browser. For setup details, see the [sandbox README](tools/extensions-sandbox/README.md).
-3. For your first run, upload the [sample manifest](src/samples/Workflow/extension.yaml).
+3. For your first run, upload the [sample manifest](src/samples/ContractBased/extension.yaml).
 4. Set the tool endpoint to your running service (for example, `http://localhost:5080/v1/process`).
 5. Fill in the inputs and click **Run**.
 6. Review the validated response in **Results** and **Outputs**.
@@ -79,7 +79,7 @@ Re-run the sandbox using your generated `extension.yaml` to confirm end-to-end b
 After the sample is running, replace the quality-check logic with your own.
 
 1. Make changes in the quality-check service file for your selected sample. See the selected sample README for the exact service file location.
-2. Keep the wire contract aligned with the [OpenAPI contract](radiologists-extensibility-api.yaml).
+2. Keep the wire contract aligned with the [OpenAPI contract](extensibility-api/radiologists-extensibility-api.yaml).
 3. Re-run [Verify the sample locally](#verify-the-sample-locally).
 4. Re-run [Test with the extensions sandbox](#test-with-the-extensions-sandbox) after significant API or manifest changes.
 
@@ -90,7 +90,7 @@ After you customize your extension and confirm it in the sandbox, run CLI valida
 Run these commands from the directory that contains your `extension.yaml`:
 
 - If you generated a new manifest, run them from the folder that contains it.
-- If you are using the shared sample manifest, run them from `radiologists/src/samples/Workflow`.
+- If you are using the shared sample manifest, run them from `radiologists/src/samples/ContractBased`.
 
 ```bash
 dragon-copilot radiologists validate ./extension.yaml
