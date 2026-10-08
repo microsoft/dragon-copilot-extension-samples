@@ -206,11 +206,40 @@ describe('buildExtensionApiPreview', () => {
       processResponse: { success: false, message: 'Report text was empty.', payload: {} },
     });
 
-    expect(model?.blocks[0]).toEqual({
-      kind: 'message',
-      tone: 'error',
-      text: 'Report text was empty.',
+    expect(model?.blocks).toEqual([
+      {
+        kind: 'message',
+        tone: 'error',
+        text: 'Report text was empty.',
+      },
+    ]);
+  });
+
+  it('previews no payload for a failed ProcessResponse', () => {
+    const model = buildExtensionApiPreview({
+      ...recommendationResult,
+      processResponse: {
+        ...recommendationResult.processResponse,
+        success: false,
+        message: 'Quality check could not complete.',
+      },
     });
+
+    expect(model?.blocks).toEqual([
+      { kind: 'message', tone: 'error', text: 'Quality check could not complete.' },
+    ]);
+  });
+
+  it('uses a default error message for a failed ProcessResponse without one', () => {
+    const model = buildExtensionApiPreview({ processResponse: { success: false } });
+
+    expect(model?.blocks).toEqual([
+      {
+        kind: 'message',
+        tone: 'error',
+        text: 'The extension reported that processing did not succeed.',
+      },
+    ]);
   });
 
   it('falls back to the raw body when no envelope was returned', () => {
@@ -245,6 +274,41 @@ describe('buildExtensionApiPreview', () => {
     );
     expect(messages).toHaveLength(1);
     expect(messages[0].text).toContain('HTTP 500');
+  });
+
+  it.each([
+    ['a string error', { success: false, error: 'Database unavailable.' }, 'Database unavailable.'],
+    ['a nested error message', { error: { message: 'Token expired.' } }, 'Token expired.'],
+    ['a message', { message: 'Upstream timed out.' }, 'Upstream timed out.'],
+  ])('reports the error detail from a non-2xx body carrying %s', (_label, rawBody, detail) => {
+    const model = buildExtensionApiPreview({
+      status: 500,
+      statusText: 'Internal Server Error',
+      processResponse: null,
+      rawBody,
+    });
+
+    expect(model?.blocks).toEqual([
+      expect.objectContaining({ kind: 'message', tone: 'error' }),
+      { kind: 'message', tone: 'error', text: detail },
+    ]);
+    expect((model?.blocks[0] as { text: string }).text).toContain('HTTP 500');
+  });
+
+  it('prefers the ProcessResponse message over the raw body for a non-2xx result', () => {
+    const model = buildExtensionApiPreview({
+      status: 400,
+      processResponse: { success: false, message: 'Missing report text.' },
+      rawBody: { success: false, message: 'Missing report text.', error: 'Bad request' },
+    });
+
+    const messages = (model?.blocks ?? []).flatMap((block) =>
+      block.kind === 'message' ? [block] : [],
+    );
+    expect(messages.map((block) => block.text)).toEqual([
+      expect.stringContaining('HTTP 400'),
+      'Missing report text.',
+    ]);
   });
 
   it.each([500, 404, 302])('previews no body content for an HTTP %i result', (status) => {

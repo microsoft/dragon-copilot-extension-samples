@@ -155,6 +155,25 @@ function isExtensionApiResult(input: unknown): input is ExtensionApiResult {
   return isRecord(input);
 }
 
+function nonEmptyString(value: unknown): string | undefined {
+  return typeof value === 'string' && value.trim() ? value : undefined;
+}
+
+/**
+ * The failure detail an error body carries when it is not a ProcessResponse,
+ * e.g. `{ success: false, error: "..." }`, `{ error: { message: "..." } }` or
+ * `{ message: "..." }`.
+ */
+function errorDetailFromBody(body: unknown): string | undefined {
+  if (!isRecord(body)) return undefined;
+  const { error, message } = body;
+  return (
+    nonEmptyString(error) ??
+    (isRecord(error) ? nonEmptyString(error.message) : undefined) ??
+    nonEmptyString(message)
+  );
+}
+
 /**
  * Builds the preview for a result returned by a partner extension over the
  * Extensibility API — the only source wired up today.
@@ -181,34 +200,39 @@ export function buildExtensionApiPreview(
     // Dragon Copilot shows nothing for a non-2xx result, so nothing from the body
     // may reach the frame. A body message is still detail about the failure; the
     // full body stays in the Outputs tab.
-    if (processResponse?.message) {
-      blocks.push({ kind: 'message', tone: 'error', text: processResponse.message });
+    const detail = nonEmptyString(processResponse?.message) ?? errorDetailFromBody(rawBody);
+    if (detail) {
+      blocks.push({ kind: 'message', tone: 'error', text: detail });
     }
   } else if (processResponse) {
     if (processResponse.success === false) {
+      // Dragon Copilot does not surface the payload of an unsuccessful result,
+      // so the preview stops at the failure message.
       blocks.push({
         kind: 'message',
         tone: 'error',
         text: processResponse.message || 'The extension reported that processing did not succeed.',
       });
-    } else if (processResponse.message) {
-      blocks.push({ kind: 'message', tone: 'success', text: processResponse.message });
-    }
+    } else {
+      if (processResponse.message) {
+        blocks.push({ kind: 'message', tone: 'success', text: processResponse.message });
+      }
 
-    const payload = processResponse.payload;
-    const entries = isRecord(payload) ? Object.entries(payload) : [];
+      const payload = processResponse.payload;
+      const entries = isRecord(payload) ? Object.entries(payload) : [];
 
-    for (const [key, value] of entries) {
-      blocks.push(blockForPayloadEntry(key, value));
-    }
+      for (const [key, value] of entries) {
+        blocks.push(blockForPayloadEntry(key, value));
+      }
 
-    if (entries.length === 0) {
-      blocks.push({
-        kind: 'json',
-        title: 'Response',
-        reason: 'The response carried no payload to preview, so the raw response is shown instead.',
-        json: processResponse,
-      });
+      if (entries.length === 0) {
+        blocks.push({
+          kind: 'json',
+          title: 'Response',
+          reason: 'The response carried no payload to preview, so the raw response is shown instead.',
+          json: processResponse,
+        });
+      }
     }
   } else if (rawBody !== undefined && rawBody !== null && rawBody !== '') {
     blocks.push({

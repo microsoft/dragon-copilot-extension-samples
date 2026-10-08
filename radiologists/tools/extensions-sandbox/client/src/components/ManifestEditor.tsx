@@ -45,6 +45,9 @@ function detectLanguage(text: string) {
   return trimmed.startsWith('{') || trimmed.startsWith('[') ? json() : yaml();
 }
 
+const REPLACE_MANIFEST_PROMPT =
+  'Replace the manifest in the editor with the generated one? Your current manifest and any unsaved edits will be lost.';
+
 const editorTheme = EditorView.theme({
   '&': {
     fontSize: '12px',
@@ -289,13 +292,24 @@ export function ManifestEditor({ onManifestLoaded, onManifestEditing, onReset }:
 
   // Manifest produced by the CLI wizard: replace the editor contents and validate
   // it straight away, so the user lands on the same state as an uploaded manifest.
+  // Returns false when the user declines to replace a manifest already in the
+  // editor, so the wizard stays open with their answers.
   const handleCliGenerated = useCallback((generatedYaml: string) => {
+    if (
+      manifestText.trim() &&
+      manifestText !== generatedYaml &&
+      !window.confirm(REPLACE_MANIFEST_PROMPT)
+    ) {
+      return false;
+    }
+
     // A new manifest invalidates whatever was validated before.
     onReset();
     setManifestText(generatedYaml);
     setEditorContent(generatedYaml);
     void validateContent(generatedYaml);
-  }, [onReset, setEditorContent, validateContent]);
+    return true;
+  }, [manifestText, onReset, setEditorContent, validateContent]);
 
   return (
     <div className="manifest-editor">

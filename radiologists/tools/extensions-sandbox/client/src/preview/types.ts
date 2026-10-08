@@ -63,7 +63,7 @@ export interface PreviewModel {
   producedBy?: string;
   /**
    * Name credited after each recommendation, where Dragon Copilot credits the
-   * partner, e.g. "(Zotec Partners)".
+   * partner, e.g. "(Contoso Radiology)".
    */
   attribution?: string;
   blocks: PreviewBlock[];

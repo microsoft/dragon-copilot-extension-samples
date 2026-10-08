@@ -35,7 +35,7 @@ Open `http://localhost:3000` in your browser.
 ### Creating a manifest with the CLI wizard
 
 If you don't have a manifest yet, click **Generate Manifest** in the Manifest Editor toolbar. The
-dialog asks the same questions as `dragon-copilot radiologists init`, either starting from a built-in
+dialog asks the core questions from `dragon-copilot radiologists init`, either starting from a built-in
 template (`quality-check`) or from your own values — extension name, tenant, tool endpoint, input data
 types, output, and optional relevance filtering by body part and modality.
 

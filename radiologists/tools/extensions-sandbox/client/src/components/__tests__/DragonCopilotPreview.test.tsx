@@ -230,6 +230,7 @@ describe('DragonCopilotPreview', () => {
         'The extension returned HTTP 500 Internal Server Error. Dragon Copilot would show nothing to the clinician for this result.',
       ),
     ).toBeInTheDocument();
+    expect(screen.getByText('boom')).toBeInTheDocument();
     expect(document.querySelector('.dc-preview-frame')).toBeNull();
     expect(document.querySelector('.dc-preview-json')).toBeNull();
   });
