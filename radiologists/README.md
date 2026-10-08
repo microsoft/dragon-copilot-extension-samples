@@ -35,7 +35,8 @@ sends a request to your endpoint and waits for the response, so you implement an
 quality check run against a draft report.
 
 **`partnerInitiated`, where you call Dragon Copilot.** Your system produces a result on its own
-schedule and posts it in, so nothing calls you and there is no endpoint to host. Your manifest
+schedule and posts it to Dragon Copilot's [submission endpoint](partner-initiated/README.md#submitting-a-result),
+so nothing calls you and there is no endpoint to host. Your manifest
 declares neither `endpoint` nor `inputs`, because you are the one supplying the data. Used for an
 AI generated pre-draft report, ready before the radiologist opens the study.
 
@@ -61,9 +62,9 @@ You will find an `extension.yaml` in three places:
 
 Three independent version axes appear in these artifacts. They are **declarations recorded at manifest upload time** and are not part of each `POST /v1/process` payload (apart from the optional `extensibilityApiVersion` field on the request envelope, which is informational):
 
-- **API version** — `info.version` in [`radiologists-extensibility-api.yaml`](extensibility-api/radiologists-extensibility-api.yaml) (semantic `x.y.z`). The version of the extensibility API contract as a whole. A Partner records the version they built against in their manifest's `radiologistsExtensibilityApiVersion` field. The same API version may also appear on each request as the optional `extensibilityApiVersion` field on the `ProcessRequest` envelope (informational).
+- **API version** — `info.version` in [`radiologists-extensibility-api.yaml`](extensibility-api/radiologists-extensibility-api.yaml) (semantic `x.y.z`). The version of the extensibility API contract as a whole. A Partner records the version they built against in their manifest's `radiologistsExtensibilityApiVersion` field. Every manifest declares it, including manifests whose tools are all `partnerInitiated`. The same API version may also appear on each request as the optional `extensibilityApiVersion` field on the `ProcessRequest` envelope (informational).
 - **Extension version** — the manifest's top-level `version` field (`x.y.z`). The Partner's own product version for their extension, independent of the API version.
-- **Payload schema version** — each payload schema (`Report`, `PatientInformation`, `QualityCheckResult`) declares its own version via the `x-ms-schema-version` annotation in [`radiologists-extensibility-api.yaml`](extensibility-api/radiologists-extensibility-api.yaml) (`major.minor`). The Partner declares which version of each payload they accept (inputs) or produce (outputs) via the required `schemaVersion` field on every input and output in their manifest. This gives per-payload traceability — e.g. "this extension accepts `Report` v1.0" — without putting a version on the wire payloads themselves.
+- **Payload schema version** — each payload schema (`Report`, `PatientInformation`, `QualityCheckResult`) declares its own version via the `x-ms-schema-version` annotation in [`radiologists-extensibility-api.yaml`](extensibility-api/radiologists-extensibility-api.yaml) (`major.minor`). The Partner declares which version of each payload they accept (inputs) or produce (outputs) via the required `schemaVersion` field on every input and output in their manifest. This gives per-payload traceability — e.g. "this extension accepts `Report` v1.0" — without putting a version on the wire payloads themselves. The `partnerInitiated` draft report declares its version the same way, in [`draft-report-schema.json`](partner-initiated/draft-report-schema.json), and a `partnerInitiated` tool's output `schemaVersion` refers to it.
 
 ## 🚀 Getting Started
 
@@ -79,8 +80,8 @@ The [Dragon Copilot CLI](../tools/dragon-copilot-cli/README.md) scaffolds, valid
 
 ```bash
 # 1. Scaffold a new extension manifest. The wizard prompts for the extension
-#    name, description, version, and extensibility API version, then your Azure
-#    Entra ID tenant ID and an optional initial tool. Add a tool when prompted
+#    name, description, version, and extensibility API version, then your
+#    Microsoft Entra tenant ID and an optional initial tool. Add a tool when prompted
 #    so the manifest passes validation.
 dragon-copilot radiologists init
 

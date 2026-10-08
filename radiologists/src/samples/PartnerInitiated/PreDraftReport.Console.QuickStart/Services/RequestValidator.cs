@@ -3,7 +3,7 @@ using Dragon.Copilot.Radiologists.Models;
 namespace PreDraftReport.Console.QuickStart.Services;
 
 /// <summary>
-/// Checks a request against the rules in pre-draft-report-ingest-request-schema.json that a
+/// Checks a request against the rules in draft-report-ingest-request-schema.json that a
 /// partner can get wrong locally, so mistakes surface before a round trip.
 /// </summary>
 /// <remarks>
@@ -17,7 +17,7 @@ public static class RequestValidator
     /// </summary>
     /// <param name="request">The request to check.</param>
     /// <returns>A description of each problem found, empty when the request looks well formed.</returns>
-    public static IReadOnlyList<string> Validate(PreDraftReportIngestRequest request)
+    public static IReadOnlyList<string> Validate(DraftReportIngestRequest request)
     {
         ArgumentNullException.ThrowIfNull(request);
 
@@ -62,7 +62,7 @@ public static class RequestValidator
             Require(problems, "draftReport.imagingStudy.studyUid", report.ImagingStudy.StudyUid);
 
             // The accession number is how the service finds the order to attach the report to.
-            // Without it the submission cannot be resolved and comes back 404.
+            // Without it the service rejects the submission with 400.
             Require(problems, "draftReport.imagingStudy.accessionNumber", report.ImagingStudy.AccessionNumber);
         }
 

@@ -8,7 +8,7 @@ namespace Dragon.Copilot.Radiologists.Models;
 /// The imaging study a pre-draft report was generated from.
 /// </summary>
 /// <remarks>
-/// Corresponds to the ImagingStudy definition in pre-draft-report-schema.json.
+/// Corresponds to the ImagingStudy definition in draft-report-schema.json.
 /// </remarks>
 public class ImagingStudy
 {
@@ -30,7 +30,8 @@ public class ImagingStudy
     /// </summary>
     /// <remarks>
     /// This is what the result is matched to an order by, so it must match exactly one order in the
-    /// environment: no match is rejected with 404 Not Found and more than one with 409 Conflict.
+    /// environment: no match is rejected with 404 Not Found (reason <c>OrderNotFound</c>) and more than
+    /// one with 409 Conflict (reason <c>MultipleOrdersMatched</c>).
     /// Contains PHI.
     /// </remarks>
     [JsonPropertyName("accessionNumber")]

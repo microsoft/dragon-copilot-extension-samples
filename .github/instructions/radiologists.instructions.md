@@ -14,7 +14,7 @@ A single manifest may declare tools of both types. Most of this file describes `
 ## Authoritative contract
 
 - **OpenAPI spec (`contractBased`):** `radiologists/extensibility-api/radiologists-extensibility-api.yaml` is the canonical wire contract for `POST /v1/process`. It defines the envelope as `ProcessRequest` (request) and `ProcessResponse` (response), and contains the full schema definitions for all Radiologists domain types (`SessionData`, `PatientInformation`, `Report`, `QualityCheckResult`, `Recommendation`, `Provenance`, `ReferenceResource`).
-- **JSON Schemas (`partnerInitiated`):** `radiologists/partner-initiated/` holds `pre-draft-report-ingest-request-schema.json` (the request body) and `pre-draft-report-schema.json` (the report itself, carried as `draftReport`), plus a worked example of each under `samples/`.
+- **JSON Schemas (`partnerInitiated`):** `radiologists/partner-initiated/` holds `draft-report-ingest-request-schema.json` (the request body) and `draft-report-schema.json` (the report itself, carried as `draftReport`), plus a worked example of each under `samples/`.
 - **Models project:** `radiologists/src/models/Dragon.Copilot.Radiologists.Models/` — C# classes mirroring both contracts, split into `ContractBased/` and `PartnerInitiated/` subfolders. Both share the namespace `Dragon.Copilot.Radiologists.Models`. The wire types live **here**, not in each sample.
 - **Wire shape (from the spec):**
     - Request `ProcessRequest`: required `sessionData`; optional `extensibilityApiVersion` (string, e.g. `"1.1.1"`, informational metadata from Dragon Copilot), `patientInformation`, and `report`. Additional named inputs flow through `additionalProperties`. The Radiologists C# model declares `patientInformation` and `report` as explicit properties for convenience.
@@ -64,8 +64,8 @@ Defined in `Dragon.Copilot.Radiologists.Models`.
 
 `PartnerInitiated/`:
 
-- `PreDraftReportIngestRequest` — the request body; identifies the extension and carries `draftReport`
-- `PreDraftReport` — the report itself
+- `DraftReportIngestRequest` — the request body; identifies the extension and carries `draftReport`
+- `DraftReport` — the report itself
 - `AISystemInfo` — the AI system that generated the report
 - `ImagingStudy`, `Series`, `ImagingStudyPrior` — the study the report was generated from, and its priors
 - `ReportContent`, `StructuredReport`, `Section`, `Code` — the report body
@@ -108,18 +108,18 @@ public sealed class QualityCheckController : ControllerBase
 The partner posts to the Dragon Copilot Radiologists API. The route carries the **customer's** tenant and environment; the partner's own identity comes from the access token, so it never appears in the body.
 
 ```http
-POST api/v1/tenants/{tenantId}/environments/{environmentId}/draft-report-ai-results
+POST {baseUrl}/api/v1/tenants/{customerTenantId}/environments/{environmentId}/draft-report-ai-results
 Authorization: Bearer {token}
 ```
 
-The token needs the `AiFindingsWriter` app permission; without it the call returns `403` even though the token is valid.
+The token must be issued by the tenant in the manifest's `auth.tenantId`; a token from any other tenant does not match the extension.
 
-Two response codes need care:
+Two response codes need care. Both carry a machine-readable `reason`, and the `message` is the same for every response with that status, so branch on `reason`:
 
-- **`404`** — either no order matches `draftReport.imagingStudy.accessionNumber`, or no installed tool matches `manifestName` plus `toolName`.
-- **`409`** — either `draftReport.identifier` was already submitted, which means the report is **already stored** and a retry should be treated as success, or the accession number matched more than one order, which is unresolvable.
+- **`404`** — `OrderNotFound` (no order matches `draftReport.imagingStudy.accessionNumber`), `ToolNotFound` (the manifest declares no `partnerInitiated` tool named `toolName` with the `preDraftReportGeneration` capability), `ExtensionNotFound` or `EnvironmentNotFound`.
+- **`409`** — `ResultAlreadyStored` (`draftReport.identifier` was already submitted, which means the report is **already stored** and a retry should be treated as success), `MultipleOrdersMatched` (the accession number matched more than one order, which is unresolvable) or `MultipleExtensionsMatched`.
 
-So `identifier` must be stable across retries of one run and unique across runs. `publisherId`, `offerId` and `planId` are all-or-nothing; side-loaded extensions omit all three. `manifestName` is always required.
+So `identifier` must be stable across retries of one run and unique across runs. `publisherId`, `offerId` and `planId` are all-or-nothing and recommended for extensions offered through Microsoft Marketplace; an extension installed as a custom app has none, so omit them. `manifestName` is always required. The full contract, including every `reason`, is in `radiologists/partner-initiated/README.md`.
 
 ## Manifest format (Radiologists)
 
@@ -165,7 +165,7 @@ tools:
       outputs:
           - name: preDraftReportResult
             description: Pre-draft radiology report
-            content-type: application/vnd.ms-dragon.rad.pre-draft-report+json
+            content-type: application/vnd.ms-dragon.rad.draft-report+json
             schemaVersion: "1.0"
       relevanceFilteringCriteria: # Declarative only; not currently enforced
           relevantBodyParts:

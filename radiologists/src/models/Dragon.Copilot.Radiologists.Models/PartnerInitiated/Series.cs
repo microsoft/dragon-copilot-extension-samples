@@ -8,7 +8,7 @@ namespace Dragon.Copilot.Radiologists.Models;
 /// A DICOM series the AI model read.
 /// </summary>
 /// <remarks>
-/// Corresponds to the Series definition in pre-draft-report-schema.json.
+/// Corresponds to the Series definition in draft-report-schema.json.
 /// </remarks>
 public class Series
 {

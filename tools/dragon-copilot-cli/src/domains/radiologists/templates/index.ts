@@ -57,7 +57,7 @@ const templates: Record<string, TemplateConfig> = {
           {
             name: 'preDraftReportResult',
             description: 'Pre-draft radiology report',
-            'content-type': 'application/vnd.ms-dragon.rad.pre-draft-report+json',
+            'content-type': 'application/vnd.ms-dragon.rad.draft-report+json',
             schemaVersion: '1.0'
           }
         ],

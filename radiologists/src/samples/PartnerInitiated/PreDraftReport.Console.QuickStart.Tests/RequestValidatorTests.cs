@@ -111,9 +111,9 @@ public class RequestValidatorTests
     [Fact]
     public void ValidateReportsEveryMissingRequiredFieldAtOnce()
     {
-        var request = new PreDraftReportIngestRequest
+        var request = new DraftReportIngestRequest
         {
-            DraftReport = new Dragon.Copilot.Radiologists.Models.PreDraftReport(),
+            DraftReport = new Dragon.Copilot.Radiologists.Models.DraftReport(),
         };
 
         var problems = RequestValidator.Validate(request);
@@ -126,11 +126,11 @@ public class RequestValidatorTests
         Assert.Contains(problems, p => p.Contains("reportContent", StringComparison.Ordinal));
     }
 
-    private static PreDraftReportIngestRequest CreateValidRequest() => new()
+    private static DraftReportIngestRequest CreateValidRequest() => new()
     {
         ManifestName = "sampleRadiologyExtension",
         ToolName = "preDraftReportGeneratorTool",
-        DraftReport = new Dragon.Copilot.Radiologists.Models.PreDraftReport
+        DraftReport = new Dragon.Copilot.Radiologists.Models.DraftReport
         {
             Identifier = "a25c4954-a7f7-49f0-a4a2-98d354d60705",
             AISystemInfo = new AISystemInfo { Version = "1.2.0" },

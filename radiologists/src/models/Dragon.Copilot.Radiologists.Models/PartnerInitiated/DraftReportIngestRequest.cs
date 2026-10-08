@@ -6,11 +6,11 @@ namespace Dragon.Copilot.Radiologists.Models;
 /// The request body a partnerInitiated tool posts to submit a pre-draft report.
 /// </summary>
 /// <remarks>
-/// Corresponds to the PreDraftReportIngestRequest schema in
-/// pre-draft-report-ingest-request-schema.json. The customer tenant and environment come from the
+/// Corresponds to the DraftReportIngestRequest schema in
+/// draft-report-ingest-request-schema.json. The customer tenant and environment come from the
 /// route, and the submitting partner is identified from the access token, so neither appears here.
 /// </remarks>
-public class PreDraftReportIngestRequest
+public class DraftReportIngestRequest
 {
     /// <summary>
     /// Gets or sets the marketplace publisher identifier.
@@ -61,5 +61,5 @@ public class PreDraftReportIngestRequest
     /// Gets or sets the pre-draft report payload.
     /// </summary>
     [JsonPropertyName("draftReport")]
-    public PreDraftReport DraftReport { get; set; } = null!;
+    public DraftReport DraftReport { get; set; } = null!;
 }

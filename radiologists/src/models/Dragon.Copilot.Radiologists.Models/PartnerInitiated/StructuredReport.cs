@@ -8,7 +8,7 @@ namespace Dragon.Copilot.Radiologists.Models;
 /// A structured report made up of named sections.
 /// </summary>
 /// <remarks>
-/// Corresponds to the StructuredReport definition in pre-draft-report-schema.json.
+/// Corresponds to the StructuredReport definition in draft-report-schema.json.
 /// </remarks>
 public class StructuredReport
 {

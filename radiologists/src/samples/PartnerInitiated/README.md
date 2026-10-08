@@ -45,8 +45,9 @@ dotnet run
 `preDraftReportGeneration` capability. Unlike a `contractBased` tool it has no `endpoint`, because
 nothing calls you, and no `inputs`, because you are the one supplying the data.
 
-Update `auth.tenantId`, `name`, `description` and `version` for your deployment, or regenerate it
-with the CLI:
+Set `auth.tenantId` to your Microsoft Entra tenant ID, because submissions must use an access token
+issued by that tenant. Update `name`, `description` and `version` for your deployment, or regenerate
+the manifest with the CLI:
 
 ```bash
 dragon-copilot radiologists generate --template pre-draft-report
@@ -57,8 +58,11 @@ dragon-copilot radiologists generate --template pre-draft-report
 The schemas and examples that govern the payload are in
 [`radiologists/partner-initiated`](../../../partner-initiated/README.md):
 
-- `pre-draft-report-ingest-request-schema.json` is the request body
-- `pre-draft-report-schema.json` is the report itself, carried as `draftReport`
+- `draft-report-ingest-request-schema.json` is the request body
+- `draft-report-schema.json` is the report itself, carried as `draftReport`
 - `samples/` holds a worked example of each
 
 The C# types under `Dragon.Copilot.Radiologists.Models.PartnerInitiated` mirror those schemas.
+
+The endpoint, how a submission is matched, and every response are described in
+[Submitting a result](../../../partner-initiated/README.md#submitting-a-result).

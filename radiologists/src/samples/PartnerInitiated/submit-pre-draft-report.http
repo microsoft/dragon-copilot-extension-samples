@@ -1,15 +1,20 @@
-@dragonCopilot = https://localhost:7156
-@tenantId = 00000000-0000-0000-0000-000000000000
+# The Dragon Copilot (radiologists) API base URL that Microsoft provides for your environment.
+@dragonCopilot = https://replace-with-your-base-url
+# The customer's Microsoft Entra tenant ID, and the ID of the environment your extension is installed in.
+@customerTenantId = 00000000-0000-0000-0000-000000000000
 @environmentId = 00000000-0000-0000-0000-000000000000
 
-# Paste an access token. How you obtain one is out of scope for this sample.
+# Paste an access token issued by the tenant in your manifest's auth.tenantId.
+# How you obtain one is out of scope for this sample.
 @token = replace-me
 
 ### Submit a pre-draft report
 # Returns 200 when the report is stored against the order.
-# 404 means no order matched the accession number, or no installed tool matched manifestName and toolName.
-# 409 means either this identifier was already submitted, or the accession number matched more than one order.
-POST {{dragonCopilot}}/api/v1/tenants/{{tenantId}}/environments/{{environmentId}}/draft-report-ai-results
+# 404 and 409 responses carry a reason, for example OrderNotFound or ResultAlreadyStored.
+# See "Responses" in radiologists/partner-initiated/README.md for every reason.
+# publisherId, offerId and planId identify your Microsoft Marketplace offer and plan. Replace them
+# with your own, or remove all three if the customer installed your extension as a custom app.
+POST {{dragonCopilot}}/api/v1/tenants/{{customerTenantId}}/environments/{{environmentId}}/draft-report-ai-results
 Authorization: Bearer {{token}}
 Content-Type: application/json
 
@@ -61,8 +66,9 @@ Content-Type: application/json
 }
 
 ### Replay the same identifier
-# Expect 409. The first submission is already stored, so a retry does not create a second result.
-POST {{dragonCopilot}}/api/v1/tenants/{{tenantId}}/environments/{{environmentId}}/draft-report-ai-results
+# Expect 409 with reason ResultAlreadyStored. The first submission is already stored, so a retry
+# does not create a second result.
+POST {{dragonCopilot}}/api/v1/tenants/{{customerTenantId}}/environments/{{environmentId}}/draft-report-ai-results
 Authorization: Bearer {{token}}
 Content-Type: application/json
 
@@ -81,7 +87,7 @@ Content-Type: application/json
       "structuredReport": {
         "format": "plain_text",
         "sections": [
-          { "name": "impression", "content": "No acute cardiopulmonary abnormality.", "sectionOrder": 1 }
+          { "name": "impression", "content": "No acute cardiopulmonary abnormality.", "aiGenerated": true, "aiConfidence": 1, "sectionOrder": 1 }
         ]
       }
     }
@@ -89,8 +95,8 @@ Content-Type: application/json
 }
 
 ### Submit against an unknown accession number
-# Expect 404. There is no order to attach the report to.
-POST {{dragonCopilot}}/api/v1/tenants/{{tenantId}}/environments/{{environmentId}}/draft-report-ai-results
+# Expect 404 with reason OrderNotFound. There is no order to attach the report to.
+POST {{dragonCopilot}}/api/v1/tenants/{{customerTenantId}}/environments/{{environmentId}}/draft-report-ai-results
 Authorization: Bearer {{token}}
 Content-Type: application/json
 
@@ -109,7 +115,7 @@ Content-Type: application/json
       "structuredReport": {
         "format": "plain_text",
         "sections": [
-          { "name": "impression", "content": "No acute cardiopulmonary abnormality.", "sectionOrder": 1 }
+          { "name": "impression", "content": "No acute cardiopulmonary abnormality.", "aiGenerated": true, "aiConfidence": 1, "sectionOrder": 1 }
         ]
       }
     }
@@ -117,9 +123,9 @@ Content-Type: application/json
 }
 
 ### Submit naming a tool that is not installed
-# Expect 404. The manifest name and tool name must match an installed partnerInitiated tool
-# whose capability is preDraftReportGeneration.
-POST {{dragonCopilot}}/api/v1/tenants/{{tenantId}}/environments/{{environmentId}}/draft-report-ai-results
+# Expect 404 with reason ToolNotFound. The manifest must declare a partnerInitiated tool named
+# toolName whose capability is preDraftReportGeneration.
+POST {{dragonCopilot}}/api/v1/tenants/{{customerTenantId}}/environments/{{environmentId}}/draft-report-ai-results
 Authorization: Bearer {{token}}
 Content-Type: application/json
 
@@ -138,7 +144,7 @@ Content-Type: application/json
       "structuredReport": {
         "format": "plain_text",
         "sections": [
-          { "name": "impression", "content": "No acute cardiopulmonary abnormality.", "sectionOrder": 1 }
+          { "name": "impression", "content": "No acute cardiopulmonary abnormality.", "aiGenerated": true, "aiConfidence": 1, "sectionOrder": 1 }
         ]
       }
     }

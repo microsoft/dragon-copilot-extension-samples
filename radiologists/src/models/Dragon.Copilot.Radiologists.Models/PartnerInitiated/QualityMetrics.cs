@@ -6,7 +6,7 @@ namespace Dragon.Copilot.Radiologists.Models;
 /// Quality scores for a generated pre-draft report.
 /// </summary>
 /// <remarks>
-/// Corresponds to the QualityMetrics definition in pre-draft-report-schema.json. The object as a
+/// Corresponds to the QualityMetrics definition in draft-report-schema.json. The object as a
 /// whole is optional, but <see cref="ImageQualityScore"/> is required when it is present.
 /// </remarks>
 public class QualityMetrics

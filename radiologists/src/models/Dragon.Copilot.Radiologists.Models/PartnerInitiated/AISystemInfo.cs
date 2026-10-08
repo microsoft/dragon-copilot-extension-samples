@@ -6,7 +6,7 @@ namespace Dragon.Copilot.Radiologists.Models;
 /// The AI system that generated a pre-draft report.
 /// </summary>
 /// <remarks>
-/// Corresponds to the AISystemInfo definition in pre-draft-report-schema.json.
+/// Corresponds to the AISystemInfo definition in draft-report-schema.json.
 /// </remarks>
 public class AISystemInfo
 {

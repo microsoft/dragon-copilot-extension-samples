@@ -6,7 +6,7 @@ namespace Dragon.Copilot.Radiologists.Models;
 /// The body of a pre-draft report.
 /// </summary>
 /// <remarks>
-/// Corresponds to the ReportContent definition in pre-draft-report-schema.json.
+/// Corresponds to the ReportContent definition in draft-report-schema.json.
 /// </remarks>
 public class ReportContent
 {

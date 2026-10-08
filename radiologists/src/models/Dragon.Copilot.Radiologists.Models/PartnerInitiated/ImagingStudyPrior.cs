@@ -6,7 +6,7 @@ namespace Dragon.Copilot.Radiologists.Models;
 /// A prior study used to generate the draft report.
 /// </summary>
 /// <remarks>
-/// Corresponds to the ImagingStudyPrior definition in pre-draft-report-schema.json.
+/// Corresponds to the ImagingStudyPrior definition in draft-report-schema.json.
 /// </remarks>
 public class ImagingStudyPrior
 {

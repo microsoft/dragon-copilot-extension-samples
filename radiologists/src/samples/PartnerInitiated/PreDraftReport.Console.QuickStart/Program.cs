@@ -52,13 +52,13 @@ public static class Program
         Console.WriteLine($"{payloadPath} is structurally valid.");
         Console.WriteLine();
         Console.WriteLine("Post this body to");
-        Console.WriteLine("  POST api/v1/tenants/{tenantId}/environments/{environmentId}/draft-report-ai-results");
+        Console.WriteLine("  POST {baseUrl}/api/v1/tenants/{customerTenantId}/environments/{environmentId}/draft-report-ai-results");
         Console.WriteLine();
         Console.WriteLine(JsonSerializer.Serialize(request, PrintOptions));
         return 0;
     }
 
-    private static bool TryLoadRequest(string payloadPath, out PreDraftReportIngestRequest request)
+    private static bool TryLoadRequest(string payloadPath, out DraftReportIngestRequest request)
     {
         request = null!;
 
@@ -70,7 +70,7 @@ public static class Program
 
         try
         {
-            request = JsonSerializer.Deserialize<PreDraftReportIngestRequest>(File.ReadAllText(payloadPath))!;
+            request = JsonSerializer.Deserialize<DraftReportIngestRequest>(File.ReadAllText(payloadPath))!;
         }
         catch (JsonException ex)
         {

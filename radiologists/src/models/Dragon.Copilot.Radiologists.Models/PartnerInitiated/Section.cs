@@ -8,7 +8,7 @@ namespace Dragon.Copilot.Radiologists.Models;
 /// A single named section of a pre-draft report.
 /// </summary>
 /// <remarks>
-/// Corresponds to the Section definition in pre-draft-report-schema.json.
+/// Corresponds to the Section definition in draft-report-schema.json.
 /// </remarks>
 public class Section
 {

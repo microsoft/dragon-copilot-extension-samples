@@ -6,7 +6,7 @@ namespace Dragon.Copilot.Radiologists.Models;
 /// A coded reference within a report section.
 /// </summary>
 /// <remarks>
-/// Corresponds to the Code definition in pre-draft-report-schema.json. Accepted systems are
+/// Corresponds to the Code definition in draft-report-schema.json. Accepted systems are
 /// SNOMED-CT, ICD-10, ICD-11, RadLex, LOINC and CPT.
 /// </remarks>
 public class Code

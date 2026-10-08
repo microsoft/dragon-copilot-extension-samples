@@ -56,7 +56,7 @@
         "tenantId": {
           "type": "string",
           "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$",
-          "description": "Azure Entra ID tenant ID (GUID format)"
+          "description": "Microsoft Entra tenant ID (GUID format) of the partner that owns this extension. For partnerInitiated tools, results must be submitted with an access token issued by this tenant."
         }
       },
       "additionalProperties": false
@@ -249,7 +249,7 @@
       "type": "string",
       "enum": [
         "application/vnd.ms-dragon.rad.quality-check-result+json",
-        "application/vnd.ms-dragon.rad.pre-draft-report+json"
+        "application/vnd.ms-dragon.rad.draft-report+json"
       ],
       "description": "Media type for a tool output. The '+json' subtype is the kebab-case form of the payload's schema object name (e.g. 'application/vnd.ms-dragon.rad.quality-check-result+json' maps to the QualityCheckResult schema). contractBased payload schemas are defined in radiologists-extensibility-api.yaml; partnerInitiated payload schemas are defined alongside the submission contract for that tool type."
     },

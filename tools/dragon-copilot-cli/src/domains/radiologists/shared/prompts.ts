@@ -59,7 +59,7 @@ export const CAPABILITY_OUTPUT: Record<DcrCapability, { contentType: string; nam
     description: 'Quality check result'
   },
   preDraftReportGeneration: {
-    contentType: 'application/vnd.ms-dragon.rad.pre-draft-report+json',
+    contentType: 'application/vnd.ms-dragon.rad.draft-report+json',
     name: 'preDraftReportResult',
     description: 'Pre-draft radiology report'
   }
@@ -158,10 +158,10 @@ export async function promptExtensionDetails(defaults?: Partial<ExtensionDetails
  */
 export async function promptAuthDetails(defaults?: { tenantId?: string }): Promise<{ tenantId: string }> {
   console.log('Authentication configuration is required for Dragon Copilot extensions.');
-  console.log('This should be the Azure Entra ID tenant where your extension will be deployed.');
+  console.log('This is the Microsoft Entra tenant ID of your organization, the tenant that owns this extension, not a customer tenant.');
 
   const tenantId = await input({
-    message: 'Azure Entra ID Tenant ID:',
+    message: 'Microsoft Entra tenant ID:',
     default: defaults?.tenantId || '',
     validate: validateTenantId
   });

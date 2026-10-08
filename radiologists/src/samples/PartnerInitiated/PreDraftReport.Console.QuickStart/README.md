@@ -1,6 +1,6 @@
 # Pre-Draft Report Payload Checker
 
-Checks a `PreDraftReportIngestRequest` and prints the JSON body you would post to Dragon Copilot.
+Checks a `DraftReportIngestRequest` and prints the JSON body you would post to Dragon Copilot.
 
 It runs offline. No token, no environment, no network, so you can use it while you are still
 building the generator that produces the payload.
@@ -31,11 +31,14 @@ anything this misses with 400.
 `manifestName`, `toolName`, `draftReport.identifier`, `aiSystemInfo.version`,
 `imagingStudy.studyUid`, `imagingStudy.accessionNumber` and `reportContent` must be present. The
 accession number earns its place because it is how the service finds the order to attach the report
-to; omit it and you get a 404 that reads like the extension is misconfigured.
+to. The service rejects a submission without one with 400, and one whose accession number matches no
+order with 404 and reason `OrderNotFound`.
 
-`publisherId`, `offerId` and `planId` go together. Send all three or none. Side loaded extensions
-have no marketplace triple and omit all three, while `manifestName` is always required. A partial
-triple is rejected here so you do not spend a round trip on it.
+`publisherId`, `offerId` and `planId` go together: send all three or none. They're recommended for
+extensions offered through Microsoft Marketplace; an extension installed as a custom app has none,
+so omit them. `manifestName` is always required. A partial triple is rejected here so you do not
+spend a round trip on it. See
+[Marketplace IDs](../../../../partner-initiated/README.md#marketplace-ids).
 
 Every problem is reported at once rather than stopping at the first.
 

@@ -8,19 +8,19 @@ namespace Dragon.Copilot.Radiologists.Models;
 /// An AI-generated pre-draft radiology report.
 /// </summary>
 /// <remarks>
-/// Corresponds to the PreDraftReport schema in pre-draft-report-schema.json, at
+/// Corresponds to the DraftReport schema in draft-report-schema.json, at
 /// <c>x-ms-schema-version</c> 1.0. Referenced from a manifest as
-/// <c>application/vnd.ms-dragon.rad.pre-draft-report+json</c>, and carried as the
-/// <c>draftReport</c> member of a <see cref="PreDraftReportIngestRequest"/>.
+/// <c>application/vnd.ms-dragon.rad.draft-report+json</c>, and carried as the
+/// <c>draftReport</c> member of a <see cref="DraftReportIngestRequest"/>.
 /// </remarks>
-public class PreDraftReport
+public class DraftReport
 {
     /// <summary>
     /// Gets or sets the partner-generated identifier for this result.
     /// </summary>
     /// <remarks>
-    /// Must be unique per run. Resubmitting a stored identifier is rejected with 409 Conflict, so
-    /// retrying a run cannot create a second stored result.
+    /// Must be unique per run. Resubmitting a stored identifier is rejected with 409 Conflict (reason
+    /// <c>ResultAlreadyStored</c>), so retrying a run cannot create a second stored result.
     /// </remarks>
     [JsonPropertyName("identifier")]
     public string Identifier { get; set; } = null!;
