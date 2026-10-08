@@ -31,13 +31,7 @@ Three C# `contractBased` variants live under `radiologists/src/samples/ContractB
 | Ai            | `SampleExtension.Radiologists.Web.Ai/`         | Calls **Azure OpenAI** when the `OpenAI` config is populated; otherwise returns a `503` "not configured" error.                   | `net10.0`                   | Cross-platform |
 | Foundry Local | `SampleExtension.Radiologists.Web.Local/`      | Runs an on-device model via **Foundry Local** (`Microsoft.AI.Foundry.Local.WinML`); no cloud account or API key needed.           | `net10.0-windows10.0.26100` | Windows-only   |
 
-One `partnerInitiated` variant lives under `radiologists/src/samples/PartnerInitiated/`:
-
-| Variant    | Folder                                             | Purpose                                                                                                                        | Target    | Platform       |
-| ---------- | -------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ | --------- | -------------- |
-| Quickstart | `PreDraftReport.Console.QuickStart/` | Console app that checks a pre-draft report payload offline and prints the JSON body that would be posted. The call itself is in `submit-pre-draft-report.http`. | `net10.0` | Cross-platform |
-
-Each samples folder has its own `extension.yaml` declaring only the tools that folder implements. `radiologists/manifest/extension.yaml` is the reference manifest showing every field and both tool types; it is not wired to a sample.
+`radiologists/src/samples/ContractBased/extension.yaml` declares only the tools those samples implement. `radiologists/manifest/extension.yaml` is the reference manifest showing every field and both tool types; it is not wired to a sample.
 
 ## Stack facts
 

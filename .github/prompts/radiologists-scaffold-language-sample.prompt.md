@@ -7,7 +7,7 @@ agent: agent
 
 Generate a new Radiologists extension sample, in the language the user provides, that implements the **same wire contract** as the C# Quickstart and can be checked into this repository once reviewed. Treat the rest of this file as your working instructions and reference material.
 
-> **Scope:** this prompt scaffolds `contractBased` samples, which expose a `POST /v1/process` endpoint that Dragon Copilot calls. It does **not** cover `partnerInitiated` tools, where the partner pushes results to Dragon Copilot instead. If the user asks for a `partnerInitiated` sample, say so and point them at `radiologists/src/samples/PartnerInitiated/`.
+> **Scope:** this prompt scaffolds `contractBased` samples, which expose a `POST /v1/process` endpoint that Dragon Copilot calls. It does **not** cover `partnerInitiated` tools, where the partner pushes results to Dragon Copilot instead. If the user asks for a `partnerInitiated` sample, say so and point them at the contract in `radiologists/partner-initiated/`.
 
 ## Start here — establish the target language and destination
 

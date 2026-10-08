@@ -6,8 +6,8 @@ This folder contains ASP.NET Core sample projects that demonstrate the
 `contractBased` tool type, where Dragon Copilot calls your endpoint and waits for
 the response.
 
-If your system produces results on its own schedule and pushes them in, see
-[`../PartnerInitiated`](../PartnerInitiated/README.md) instead.
+If your system produces results on its own schedule and pushes them in, see the
+[`partnerInitiated` contract](../../../partner-initiated/README.md) instead.
 
 > **Note:** Run all commands in this README from the `radiologists/src/samples/ContractBased` directory (the folder containing this file).
 

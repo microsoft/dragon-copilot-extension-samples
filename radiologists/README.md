@@ -44,19 +44,18 @@ A single manifest can declare tools of both types.
 
 ### Repository layout
 
-| Path                                                                      | What is in it                                                                                                                                                                      |
-| ------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [`manifest/`](manifest/)                                                  | A reference `extension.yaml` showing every field and both tool types. The schema it validates against ships with the [CLI](../tools/dragon-copilot-cli/src/schemas/radiologists/). |
-| [`extensibility-api/`](extensibility-api/)                                | The `contractBased` contract, including the `POST /v1/process` envelope and its payload schemas                                                                                    |
-| [`partner-initiated/`](partner-initiated/)                                | The `partnerInitiated` contracts, schemas, and worked examples                                                                                                                     |
-| [`src/models/`](src/models/)                                              | Shared C# types for both directions                                                                                                                                                |
-| [`src/samples/ContractBased/`](src/samples/ContractBased/README.md)       | Runnable `contractBased` samples in C# and Python                                                                                                                                  |
-| [`src/samples/PartnerInitiated/`](src/samples/PartnerInitiated/README.md) | Runnable `partnerInitiated` sample                                                                                                                                                 |
+| Path                                                                | What is in it                                                                                                                                                                      |
+| ------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [`manifest/`](manifest/)                                            | A reference `extension.yaml` showing every field and both tool types. The schema it validates against ships with the [CLI](../tools/dragon-copilot-cli/src/schemas/radiologists/). |
+| [`extensibility-api/`](extensibility-api/)                          | The `contractBased` contract, including the `POST /v1/process` envelope and its payload schemas                                                                                    |
+| [`partner-initiated/`](partner-initiated/)                          | The `partnerInitiated` contracts, schemas, and worked examples                                                                                                                     |
+| [`src/models/`](src/models/)                                        | Shared C# types for both directions                                                                                                                                                |
+| [`src/samples/ContractBased/`](src/samples/ContractBased/README.md) | Runnable `contractBased` samples in C# and Python                                                                                                                                  |
 
-You will find an `extension.yaml` in three places:
+You will find an `extension.yaml` in two places:
 
 - [`manifest/extension.yaml`](manifest/extension.yaml) is a reference. It is not wired to any sample, and it exists to show every field and both tool types in one file.
-- [`src/samples/ContractBased/extension.yaml`](src/samples/ContractBased/extension.yaml) and [`src/samples/PartnerInitiated/extension.yaml`](src/samples/PartnerInitiated/extension.yaml) are the real manifests for those samples, so each declares only the tools its sample actually implements.
+- [`src/samples/ContractBased/extension.yaml`](src/samples/ContractBased/extension.yaml) is the real manifest for the `contractBased` samples, so it declares only the tools those samples actually implement.
 
 ### Versioning
 
