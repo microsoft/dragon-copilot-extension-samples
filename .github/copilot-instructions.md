@@ -12,6 +12,12 @@ This repository contains sample code and tools for developing **Dragon Copilot E
 - **Data Types**: Clinical notes, transcripts, audio, encounters, patient data
 - **Integration**: Extensions are called by Dragon Copilot platform via HTTP POST to `/v1/process`
 
+### Conversational Extensions (Private Preview, `conversational/`)
+- **Purpose**: Tools/agents the Dragon Copilot orchestrator calls during a conversation (`IntentDriven` trigger)
+- **Types covered here**: `MCP` (Model Context Protocol server), `OpenAPI` (REST + OpenAPI spec), `CopilotStudio` (published agent). Other types are Private Preview via the Microsoft representative — do not add samples for them.
+- **Manifest**: schema `0.4.0-preview.2` (`conversational/manifest/`), mirrored in `tools/dragon-copilot-cli/src/schemas/conversational/` — keep both copies identical
+- **Key fields**: `expose`, `customExtractors`, `runtimeParamBindings` (keyed by MCP tool / operationId; flat list for CopilotStudio), `isExclusive`, `timeout` (3–60s)
+
 ### Core Data Models (physician/src/models/Dragon.Copilot.Physician.Models/)
 - **DragonStandardPayload**: Main payload structure containing session data, clinical context
 - **Note**: Clinical notes and documentation
@@ -29,12 +35,18 @@ This repository contains sample code and tools for developing **Dragon Copilot E
    - Shows request/response handling, authentication, processing logic
    - Port 5181 (HTTP), 7156 (HTTPS)
 
-2. **CLI Tools** (`tools/dragon-copilot-cli/`)
+2. **Conversational Samples** (`conversational/src/samples/`)
+   - `Mcp/` — C# MCP server (ModelContextProtocol.AspNetCore), port 5190
+   - `OpenApi/` — C# REST API with Swashbuckle OpenAPI 3.0 doc, port 5191
+   - `CopilotStudio/` — manifest + setup guide (no server)
+   - Build/test: `dotnet test conversational/src/samples/SampleConversational.slnx`
+
+3. **CLI Tools** (`tools/dragon-copilot-cli/`)
    - TypeScript/Node.js CLI for extension development
-   - Commands: `connector init`, `connector validate`, `connector package`
+   - Domains: `physician`, `radiologists`, `connector`, `conversational` (each with `init`, `generate`, `validate`, `package`)
    - Creates extension manifests and publisher configurations
 
-3. **Documentation** (`doc/`)
+4. **Documentation** (`doc/`)
    - Authentication patterns (Microsoft Entra ID JWT)
    - API contracts and integration guides
 

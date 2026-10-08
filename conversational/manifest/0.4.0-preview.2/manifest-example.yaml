@@ -1,0 +1,145 @@
+# Dragon Copilot – Conversational Extension Manifest (0.4.0-preview.2, Private Preview)
+#
+# Conversational extensions add intent-driven tools to the Dragon Copilot
+# conversation. The orchestrator selects a tool from its `description` when a
+# user's request matches, calls it, and blends the response into its answer.
+#
+# Supported conversational tool types in this public sample:
+#   MCP            – a Model Context Protocol server (streamable HTTP)
+#   OpenAPI        – a REST API described by an OpenAPI document
+#   CopilotStudio  – a published Microsoft Copilot Studio agent
+#
+# Additions vs. 0.3.0 used below:
+#   specString            inline OpenAPI document (alternative to specUrl)
+#   customExtractors      map response fields (JSONPath) to Response Text,
+#                         Evidence Link, ... (MCP + OpenAPI)
+#   isExclusive           do not blend this tool with other tool responses
+#   runtimeParamBindings  platform-injected runtime values (transcript,
+#                         conversationId, ...) – the LLM never retypes them
+#   triggers              must be IntentDriven for every non-DragonAPI type
+#
+# All values below are placeholders. Replace contoso.com hosts and GUIDs with
+# your own.
+
+# yaml-language-server: $schema=./manifest-schema.json
+
+schemaVersion: 0.4.0-preview.2
+name: contoso-conversational-sample
+caption: Contoso Conversational Sample
+description: >-
+  Sample manifest showing MCP, OpenAPI and Copilot Studio conversational tools.
+version: 0.1.0
+
+auth:
+  tenantId: 00000000-0000-0000-0000-000000000000
+
+tools:
+
+  # ─── MCP (all tools) ─────────────────────────────────────────────────────────
+  # Omit `expose` to discover and surface every tool on the server.
+  - name: clinical-reference-mcp
+    caption: Clinical Reference
+    description: >-
+      Answers questions about clinical reference material. Use when the user
+      asks for guideline summaries or reference ranges.
+    type: MCP
+    endpoint: https://mcp.contoso.com/mcp
+    triggers:
+      - IntentDriven
+
+  # ─── MCP (single tool + extractors + bindings) ───────────────────────────────
+  - name: order-extraction
+    caption: Order Extraction
+    description: Extract clinical orders mentioned in the current encounter transcript.
+    type: MCP
+    endpoint: https://mcp.contoso.com/mcp
+    triggers:
+      - IntentDriven
+    expose:
+      - extract_orders
+    customExtractors:
+      extract_orders:
+        - propertyPath: $.summary
+          extractorType: Response Text
+    runtimeParamBindings:
+      extract_orders:
+        - source: transcript        # PHI – injected by the platform, never logged
+          target: argument          # JSON path in the MCP tool-call arguments
+          path: transcript
+          required: true
+        - source: conversationId
+          target: sideChannel       # MCP _meta, not visible to the model
+          path: dragon.conversationId
+    timeout: 10
+
+  # ─── OpenAPI (specUrl) ───────────────────────────────────────────────────────
+  - name: drug-interaction-check
+    caption: Drug Interaction Check
+    description: Check interactions between two medications.
+    type: OpenAPI
+    specUrl: https://api.contoso.com/openapi.json
+    triggers:
+      - IntentDriven
+    expose:
+      - checkDrugInteraction
+    customExtractors:
+      checkDrugInteraction:
+        - propertyPath: $.summary
+          extractorType: Response Text
+        - propertyPath: $.sources[*].url
+          extractorType: Evidence Link
+    runtimeParamBindings:
+      checkDrugInteraction:
+        - source: locale
+          path: locale              # target defaults to body
+        - source: correlationId
+          target: header
+          path: x-correlation-id
+
+  # ─── OpenAPI (inline specString) ─────────────────────────────────────────────
+  - name: formulary-lookup
+    caption: Formulary Lookup
+    description: Look up whether a medication is on the organization's formulary.
+    type: OpenAPI
+    triggers:
+      - IntentDriven
+    isExclusive: true
+    timeout: 10
+    specString: |-
+      openapi: 3.0.3
+      info:
+        title: Formulary API
+        version: 1.0.0
+      servers:
+        - url: https://api.contoso.com
+      paths:
+        /formulary:
+          get:
+            operationId: getFormularyStatus
+            parameters:
+              - name: medication
+                in: query
+                required: true
+                schema:
+                  type: string
+            responses:
+              "200":
+                description: Formulary status
+
+  # ─── CopilotStudio ───────────────────────────────────────────────────────────
+  # No endpoint: identity is environmentId + agentIdentifier (the agent's
+  # schema name from Copilot Studio > Settings > Advanced > Metadata).
+  - name: scheduling-agent
+    caption: Appointment Scheduling
+    description: Handles appointment scheduling and rescheduling questions.
+    type: CopilotStudio
+    environmentId: 11111111-2222-3333-4444-555555555555
+    agentIdentifier: cr123_schedulingAgent
+    cloud: Prod
+    agentType: Published
+    timeout: 45
+    triggers:
+      - IntentDriven
+    runtimeParamBindings:      # flat list for agent types
+      - source: locale
+        path: locale           # target defaults to intent (labelled block in the query)

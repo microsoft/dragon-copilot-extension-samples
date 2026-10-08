@@ -1,0 +1,750 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://dragon.microsoft.com/schemas/extension-manifest/0.4.0-preview.2",
+  "title": "Dragon Copilot Extension Manifest",
+  "description": "Private Preview manifest schema (0.4.0-preview.2) for Dragon Copilot extensions. Superset of the GA 0.3.0 schema with one intentional tightening: each tool's triggers must align with its type (DragonAPI: DataAvailable / ExplicitRequest; every other type: IntentDriven). Adds customExtractors, an inline OpenAPI specString as an alternative to specUrl, isExclusive and runtimeParamBindings (every tool type except DragonAPI). This public copy covers the DragonAPI (Workflow) and the MCP, OpenAPI and CopilotStudio (Conversational) tool types. Additional integration types are available in Private Preview through your Microsoft representative.",
+  "type": "object",
+  "required": [
+    "name",
+    "version",
+    "auth",
+    "tools",
+    "schemaVersion",
+    "caption",
+    "description"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "schemaVersion": {
+      "type": "string",
+      "const": "0.4.0-preview.2",
+      "description": "Schema version of the extension manifest. A manifest opts in to the Private Preview surface by declaring \"0.4.0-preview.2\"; manifests declaring \"0.3.0\" are validated by the unchanged 0.3.0 schema instead."
+    },
+    "name": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]*$",
+      "minLength": 1,
+      "description": "Extension name (lowercase letters, numbers, and hyphens only)"
+    },
+    "caption": {
+      "type": "string",
+      "description": "Human-readable caption of the extension."
+    },
+    "description": {
+      "type": "string",
+      "description": "Long-form description of the extension."
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$",
+      "description": "Semantic version of the extension (x.y.z)."
+    },
+    "auth": {
+      "$ref": "#/definitions/AuthConfig",
+      "description": "Extension-level authentication configuration."
+    },
+    "tools": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/definitions/Tool"
+      },
+      "description": "Array of tools (capabilities) provided by this extension."
+    }
+  },
+  "definitions": {
+    "AuthConfig": {
+      "type": "object",
+      "description": "Extension auth identity",
+      "required": [
+        "tenantId"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "tenantId": {
+          "type": "string",
+          "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$",
+          "description": "Entra ID tenant ID (GUID format) that hosts the extension's application registration. Ignored for manifests whose tools are only CopilotStudio, which use a different deployment model."
+        }
+      }
+    },
+    "CustomExtractors": {
+      "type": "object",
+      "description": "Response extractors keyed by MCP tool name or OpenAPI operationId.",
+      "additionalProperties": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "propertyPath",
+            "extractorType"
+          ],
+          "properties": {
+            "propertyPath": {
+              "type": "string",
+              "description": "JSONPath expression selecting the response property, evaluated against the tool's response document. Supports the usual JSONPath constructs including wildcards and array traversal, for example $.evidence[*].url or $.result.value."
+            },
+            "extractorType": {
+              "type": "string",
+              "enum": [
+                "Evidence Link",
+                "Plotly Chart",
+                "Evidence Title",
+                "Evidence Image",
+                "Evidence Author",
+                "Evidence Snippet",
+                "Response Text",
+                "Evidence Id",
+                "Document Source"
+              ],
+              "description": "How the selected response property is projected into the orchestrator response."
+            },
+            "description": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "IsExclusive": {
+      "type": "boolean",
+      "default": false,
+      "description": "When true, the tool is not blended with other tools in the same orchestrator response. Available on every intent-driven tool type; not valid on DragonAPI, which is not orchestrator-blended in the first place.",
+      "$comment": "Intentionally allowed on all tool types except DragonAPI."
+    },
+    "RuntimeParamSource": {
+      "type": "string",
+      "enum": [
+        "transcript",
+        "patientContext",
+        "conversationId",
+        "locale",
+        "tenantName",
+        "dataSourceParams",
+        "dcsSessionId",
+        "mrn",
+        "organizationId",
+        "sessionUniqueId",
+        "sessionStart",
+        "correlationId",
+        "requestId",
+        "practitionerId",
+        "practitionerSpecialty",
+        "encounterCsn"
+      ],
+      "description": "Named platform runtime value to bind. The platform resolves each source; the manifest only names it and says where to send it. 'transcript' = the encounter transcript. 'patientContext' = the current patient context. 'conversationId' = the platform conversation ID. 'locale' = the session locale. 'tenantName' = the platform tenant name. 'dataSourceParams' = caller-supplied data source parameters. 'dcsSessionId' = the Dragon Copilot context session ID. 'mrn' = the patient medical record number. 'organizationId' = the caller organization ID. 'sessionUniqueId' = the session unique ID. 'sessionStart' = the session start timestamp (ISO 8601). 'correlationId' = the cross-service correlation ID (the caller's when supplied, otherwise generated by the platform). 'requestId' = a platform-generated ID unique to this request. 'practitionerId' = the practitioner (clinician) ID. 'practitionerSpecialty' = the practitioner specialty. 'encounterCsn' = the encounter contact serial number. PHI/EUII sources (transcript, patientContext, dataSourceParams, mrn, encounterCsn, practitionerId) are never logged by the platform. A source with no value on a request is treated as absent ('required' decides whether the call proceeds). The orchestrator LLM never sees or retypes the value."
+    },
+    "RuntimeParamBinding": {
+      "type": "object",
+      "description": "Sends a named platform runtime value to a target in the outbound tool or agent call. Request-side counterpart of customExtractors: the platform injects the value itself, so the orchestrator LLM does not have to map it in the tool call. Only the destination is configured (target + path). Each tool type narrows the allowed targets.",
+      "additionalProperties": false,
+      "required": [
+        "source",
+        "path"
+      ],
+      "properties": {
+        "source": {
+          "$ref": "#/definitions/RuntimeParamSource"
+        },
+        "target": {
+          "type": "string",
+          "enum": [
+            "body",
+            "header",
+            "argument",
+            "sideChannel",
+            "intent"
+          ],
+          "description": "Where in the outbound call the value is sent. 'body' = JSON path in the HTTP request body (OpenAPI). 'header' = HTTP header name. 'argument' = JSON path in the MCP tool-call arguments. 'sideChannel' = JSON path in the protocol's out-of-band channel, not visible to the agent's model (MCP _meta, Copilot Studio activity value). 'intent' = appended to the query text sent to the agent as a delimited, labelled block (for agents with no structured parameter slot)."
+        },
+        "path": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256,
+          "description": "Destination within the target. body/argument/sideChannel: dotted path with optional [n] array indices, e.g. 'transcript', 'payload.transcript', 'items[0].text' (no wildcards). header: the header name. intent: the label the value is rendered under."
+        },
+        "required": {
+          "type": "boolean",
+          "default": false,
+          "description": "When true, the call is not made if the runtime value is unavailable. When false, the binding is skipped if the value is unavailable."
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "target": {
+                "const": "intent"
+              }
+            },
+            "required": [
+              "target"
+            ]
+          },
+          "then": {
+            "properties": {
+              "path": {
+                "pattern": "^[A-Za-z_][A-Za-z0-9_-]*$"
+              }
+            }
+          }
+        }
+      ],
+      "$comment": "Reserved/credential headers, header-name charset, body path grammar and index/depth limits are enforced by the platform at registration and call time, not by this schema."
+    },
+    "RuntimeParamBindingList": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/definitions/RuntimeParamBinding"
+      }
+    },
+    "RuntimeParamBindingsByOperation": {
+      "type": "object",
+      "minProperties": 1,
+      "propertyNames": {
+        "minLength": 1
+      },
+      "additionalProperties": {
+        "$ref": "#/definitions/RuntimeParamBindingList"
+      }
+    },
+    "Triggers": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "description": "Trigger types that activate the tool. 'DataAvailable' = automatically triggered when all required input data (e.g. note, transcript, EHR context) becomes available; retryable. 'ExplicitRequest' = triggered only by a deliberate user action via UI (e.g. button, card, or command); never automatic. 'IntentDriven' = triggered when the system determines from user intent or context that the tool should be invoked. Must align with the tool type: DragonAPI tools allow only DataAvailable / ExplicitRequest; every other type allows only IntentDriven.",
+      "default": [
+        "DataAvailable"
+      ],
+      "items": {
+        "type": "string",
+        "enum": [
+          "DataAvailable",
+          "IntentDriven",
+          "ExplicitRequest"
+        ]
+      }
+    },
+    "DragonInput": {
+      "type": "object",
+      "required": [
+        "name",
+        "description",
+        "content-type"
+      ],
+      "allOf": [
+        {
+          "description": "'include' is required when content-type is application/fhir.ehr-context+json, and not valid on any other content-type.",
+          "if": {
+            "properties": {
+              "content-type": {
+                "const": "application/fhir.ehr-context+json"
+              }
+            },
+            "required": [
+              "content-type"
+            ]
+          },
+          "then": {
+            "required": [
+              "include"
+            ]
+          },
+          "else": {
+            "not": {
+              "required": [
+                "include"
+              ]
+            }
+          }
+        }
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Input name"
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Input description"
+        },
+        "content-type": {
+          "type": "string",
+          "enum": [
+            "application/vnd.ms-dragon.dsp+json",
+            "application/vnd.ms-dragon.dsp.transcript+json",
+            "application/vnd.ms-dragon.dsp.note+json",
+            "application/vnd.ms-dragon.dsp.iterative-audio+json",
+            "application/vnd.ms-dragon.dsp.iterative-transcript+json",
+            "application/vnd.ms-dragon.adaptivecard-content+json",
+            "application/fhir.ehr-context+json"
+          ],
+          "description": "Content type identifier (IANA MIME type)"
+        },
+        "include": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "enum": [
+              "provider",
+              "patient",
+              "current-encounter",
+              "problem-list",
+              "current-encounter-diagnoses",
+              "reason-for-visit",
+              "conditions"
+            ]
+          },
+          "description": "Non-empty list of EHR concept selectors the platform resolves and projects into this input's FHIR Bundle. Only valid (and required) when content-type is application/fhir.ehr-context+json."
+        },
+        "required": {
+          "type": "boolean",
+          "default": true,
+          "description": "If false, this input is not mandatory for tool invocation and can be omitted, if not present in a system."
+        }
+      },
+      "additionalProperties": false
+    },
+    "DragonOutput": {
+      "type": "object",
+      "required": [
+        "name",
+        "description",
+        "content-type"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Output name"
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Output description"
+        },
+        "content-type": {
+          "type": "string",
+          "enum": [
+            "application/vnd.ms-dragon.dsp+json"
+          ],
+          "description": "Content type identifier (IANA MIME type)"
+        }
+      },
+      "additionalProperties": false
+    },
+    "Tool": {
+      "type": "object",
+      "description": "Tool definition. Common fields live at tool level; each type's allowed type-specific fields are defined and constrained within its own if/then block. Type-specific fields are not interchangeable across types (flat structure, no cross-type fields).",
+      "required": [
+        "name",
+        "caption",
+        "description",
+        "type",
+        "triggers"
+      ],
+      "additionalProperties": true,
+      "propertyNames": {
+        "enum": [
+          "name",
+          "caption",
+          "description",
+          "triggers",
+          "type",
+          "timeout",
+          "endpoint",
+          "inputs",
+          "outputs",
+          "specUrl",
+          "specString",
+          "expose",
+          "customExtractors",
+          "isExclusive",
+          "runtimeParamBindings",
+          "environmentId",
+          "agentIdentifier",
+          "cloud",
+          "agentType"
+        ]
+      },
+      "properties": {
+        "name": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9-]*$",
+          "minLength": 1,
+          "description": "Unique tool name within the extension (lowercase, must start with a letter, then letters/digits/hyphens)."
+        },
+        "caption": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Visual / display caption shown in UI."
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Orchestrator tool-selection prompt."
+        },
+        "triggers": {
+          "$ref": "#/definitions/Triggers"
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "DragonAPI",
+            "MCP",
+            "OpenAPI",
+            "CopilotStudio"
+          ],
+          "description": "Integration protocol / platform type. 'DragonAPI' = Dragon Extensibility API (Workflow extensions). 'MCP' = Model Context Protocol server (discovery + tool calls). 'OpenAPI' = REST API described by an OpenAPI spec. 'CopilotStudio' = Microsoft Copilot Studio hosted agent."
+        },
+        "timeout": {
+          "type": "integer",
+          "minimum": 3,
+          "maximum": 60,
+          "default": 5,
+          "description": "Hard timeout in seconds. Orchestrator aborts the tool call after this period. Allowed range: 3–60. Default: 5."
+        }
+      },
+      "allOf": [
+        {
+          "description": "DragonAPI tools are data- or request-driven; every other tool type is intent-driven.",
+          "$comment": "Trigger/type alignment. New in 0.4.0-preview.2 and the one intentional tightening vs. 0.3.0, which accepts any trigger on any type. 'triggers' and 'type' are both required at Tool level, so this block only constrains their combination.",
+          "if": {
+            "properties": {
+              "type": {
+                "const": "DragonAPI"
+              }
+            },
+            "required": [
+              "type"
+            ]
+          },
+          "then": {
+            "properties": {
+              "triggers": {
+                "items": {
+                  "enum": [
+                    "DataAvailable",
+                    "ExplicitRequest"
+                  ]
+                }
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "triggers": {
+                "items": {
+                  "enum": [
+                    "IntentDriven"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "DragonAPI"
+              }
+            },
+            "required": [
+              "type"
+            ]
+          },
+          "then": {
+            "required": [
+              "endpoint",
+              "inputs"
+            ],
+            "properties": {
+              "endpoint": {
+                "type": "string",
+                "format": "uri",
+                "description": "Dragon Extensibility API endpoint URL."
+              },
+              "inputs": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "$ref": "#/definitions/DragonInput"
+                },
+                "description": "Array of DragonAPI input definitions."
+              },
+              "outputs": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "$ref": "#/definitions/DragonOutput"
+                },
+                "description": "Array of DragonAPI output definitions. Optional — omit for fire-and-forget tools."
+              },
+              "specUrl": false,
+              "specString": false,
+              "expose": false,
+              "customExtractors": false,
+              "isExclusive": false,
+              "runtimeParamBindings": false,
+              "environmentId": false,
+              "agentIdentifier": false,
+              "cloud": false,
+              "agentType": false
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "MCP"
+              }
+            },
+            "required": [
+              "type"
+            ]
+          },
+          "then": {
+            "required": [
+              "endpoint"
+            ],
+            "properties": {
+              "endpoint": {
+                "type": "string",
+                "format": "uri",
+                "description": "MCP server endpoint URL."
+              },
+              "expose": {
+                "type": "array",
+                "minItems": 1,
+                "uniqueItems": true,
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "description": "MCP tool names to expose. Omit to discover and expose all tools on the server."
+              },
+              "customExtractors": {
+                "$ref": "#/definitions/CustomExtractors"
+              },
+              "isExclusive": {
+                "$ref": "#/definitions/IsExclusive"
+              },
+              "runtimeParamBindings": {
+                "description": "Runtime param bindings keyed by MCP tool name. Allowed targets: argument, header, sideChannel (target is required).",
+                "allOf": [
+                  {
+                    "$ref": "#/definitions/RuntimeParamBindingsByOperation"
+                  }
+                ],
+                "additionalProperties": {
+                  "items": {
+                    "properties": {
+                      "target": {
+                        "enum": [
+                          "argument",
+                          "header",
+                          "sideChannel"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "target"
+                    ]
+                  }
+                }
+              },
+              "inputs": false,
+              "outputs": false,
+              "specUrl": false,
+              "specString": false,
+              "environmentId": false,
+              "agentIdentifier": false,
+              "cloud": false,
+              "agentType": false
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "OpenAPI"
+              }
+            },
+            "required": [
+              "type"
+            ]
+          },
+          "then": {
+            "oneOf": [
+              {
+                "required": [
+                  "specUrl"
+                ],
+                "not": {
+                  "required": [
+                    "specString"
+                  ]
+                }
+              },
+              {
+                "required": [
+                  "specString"
+                ],
+                "not": {
+                  "required": [
+                    "specUrl"
+                  ]
+                }
+              }
+            ],
+            "properties": {
+              "specUrl": {
+                "type": "string",
+                "format": "uri",
+                "description": "URL to the OpenAPI spec document."
+              },
+              "specString": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Inline OpenAPI spec document."
+              },
+              "expose": {
+                "type": "array",
+                "minItems": 1,
+                "uniqueItems": true,
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "description": "OpenAPI operationIds to expose. Omit to discover and expose all operations."
+              },
+              "customExtractors": {
+                "$ref": "#/definitions/CustomExtractors"
+              },
+              "isExclusive": {
+                "$ref": "#/definitions/IsExclusive"
+              },
+              "runtimeParamBindings": {
+                "description": "Runtime param bindings keyed by OpenAPI operationId. Allowed targets: body (default), header.",
+                "allOf": [
+                  {
+                    "$ref": "#/definitions/RuntimeParamBindingsByOperation"
+                  }
+                ],
+                "additionalProperties": {
+                  "items": {
+                    "properties": {
+                      "target": {
+                        "enum": [
+                          "body",
+                          "header"
+                        ],
+                        "default": "body"
+                      }
+                    }
+                  }
+                }
+              },
+              "endpoint": false,
+              "inputs": false,
+              "outputs": false,
+              "environmentId": false,
+              "agentIdentifier": false,
+              "cloud": false,
+              "agentType": false
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "CopilotStudio"
+              }
+            },
+            "required": [
+              "type"
+            ]
+          },
+          "then": {
+            "required": [
+              "environmentId",
+              "agentIdentifier"
+            ],
+            "properties": {
+              "environmentId": {
+                "type": "string",
+                "format": "uuid",
+                "description": "Power Platform environment ID."
+              },
+              "agentIdentifier": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Copilot Studio agent identifier."
+              },
+              "cloud": {
+                "type": "string",
+                "enum": [
+                  "Prod",
+                  "Gov",
+                  "High",
+                  "DoD",
+                  "Mooncake"
+                ],
+                "default": "Prod",
+                "description": "Copilot Studio cloud environment."
+              },
+              "agentType": {
+                "type": "string",
+                "enum": [
+                  "Published",
+                  "Prebuilt"
+                ],
+                "default": "Published",
+                "description": "Copilot Studio agent type."
+              },
+              "endpoint": false,
+              "inputs": false,
+              "outputs": false,
+              "specUrl": false,
+              "specString": false,
+              "expose": false,
+              "customExtractors": false,
+              "isExclusive": {
+                "$ref": "#/definitions/IsExclusive"
+              },
+              "runtimeParamBindings": {
+                "description": "Runtime param bindings applied to every call to this agent. Allowed targets: intent (default), sideChannel.",
+                "allOf": [
+                  {
+                    "$ref": "#/definitions/RuntimeParamBindingList"
+                  }
+                ],
+                "items": {
+                  "properties": {
+                    "target": {
+                      "enum": [
+                        "intent",
+                        "sideChannel"
+                      ],
+                      "default": "intent"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

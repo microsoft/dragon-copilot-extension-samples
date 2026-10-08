@@ -1,0 +1,70 @@
+# Valid conversational manifest cases (openapi). Each case MUST pass schema validation.
+# A "tool" case is wrapped in a minimal manifest envelope before validation.
+
+- description: OpenAPI tool carrying an inline spec instead of a URL
+  tool:
+    name: openapi-inline-spec
+    caption: OpenAPI Inline Spec
+    description: OpenAPI tool whose spec is supplied inline.
+    type: OpenAPI
+    triggers:
+      - IntentDriven
+    specString: |-
+      openapi: 3.0.3
+      info:
+        title: Example API
+        version: 1.0.0
+      paths:
+        /patients/{id}:
+          get:
+            operationId: getPatientById
+            responses:
+              "200":
+                description: A patient record
+- description: OpenAPI tool with response extractors
+  tool:
+    name: openapi-extractors
+    caption: OpenAPI Extractors
+    description: OpenAPI tool projecting response fields into the answer.
+    type: OpenAPI
+    triggers:
+      - IntentDriven
+    specUrl: https://api.example.com/openapi.json
+    expose:
+      - getPatientById
+    customExtractors:
+      getPatientById:
+        - propertyPath: $.evidence[*].url
+          extractorType: Evidence Link
+          description: Link back to the source record.
+        - propertyPath: $.summary
+          extractorType: Response Text
+- description: baseline OpenAPI tool is still valid under the extension version
+  tool:
+    name: openapi-baseline-under-extension
+    caption: OpenAPI Baseline Under Extension
+    description: A tool using only baseline fields, validated as the extension version.
+    type: OpenAPI
+    triggers:
+      - IntentDriven
+    specUrl: https://api.example.com/openapi.json
+- description: OpenAPI tool marked exclusive (extension version)
+  tool:
+    name: openapi-exclusive
+    caption: OpenAPI Exclusive
+    description: OpenAPI tool that must not be blended with other tools.
+    type: OpenAPI
+    triggers:
+      - IntentDriven
+    specUrl: https://api.example.com/openapi.json
+    isExclusive: true
+- description: isExclusive may be set false explicitly (extension version)
+  tool:
+    name: openapi-not-exclusive
+    caption: OpenAPI Not Exclusive
+    description: OpenAPI tool that opts out of exclusivity explicitly.
+    type: OpenAPI
+    triggers:
+      - IntentDriven
+    specUrl: https://api.example.com/openapi.json
+    isExclusive: false

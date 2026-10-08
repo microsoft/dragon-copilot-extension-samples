@@ -1,0 +1,51 @@
+# Invalid conversational manifest cases (dragonapi). Each case MUST fail schema validation.
+# A "tool" case is wrapped in a minimal manifest envelope before validation.
+
+- description: leaks customExtractors (DragonAPI has no response extractors)
+  tool:
+    name: dragonapi-leak-extractors
+    caption: Leak Extractors
+    description: Carries a field owned by intent-driven tool types.
+    type: DragonAPI
+    triggers:
+      - DataAvailable
+    endpoint: https://api.example.com/dragon
+    inputs:
+      - name: note
+        description: The clinical note.
+        content-type: application/vnd.ms-dragon.dsp+json
+    customExtractors:
+      someOperation:
+        - propertyPath: $.summary
+          extractorType: Response Text
+- description: leaks isExclusive (allowed on every type EXCEPT DragonAPI)
+  tool:
+    name: dragonapi-leak-isexclusive
+    caption: Leak isExclusive
+    description: DragonAPI is never blended into an orchestrator response.
+    type: DragonAPI
+    triggers:
+      - DataAvailable
+    endpoint: https://api.example.com/dragon
+    inputs:
+      - name: note
+        description: The clinical note.
+        content-type: application/vnd.ms-dragon.dsp+json
+    isExclusive: true
+- description: leaks runtimeParamBindings (allowed on every type EXCEPT DragonAPI)
+  tool:
+    name: dragonapi-leak-bindings
+    caption: Leak Bindings
+    description: DragonAPI declares its inputs explicitly; nothing to bind.
+    type: DragonAPI
+    triggers:
+      - DataAvailable
+    endpoint: https://api.example.com/dragon
+    inputs:
+      - name: note
+        description: The clinical note.
+        content-type: application/vnd.ms-dragon.dsp+json
+    runtimeParamBindings:
+      - source: transcript
+        target: intent
+        path: transcript

@@ -1,0 +1,61 @@
+# Valid conversational manifest cases (triggers). Each case MUST pass schema validation.
+# A "tool" case is wrapped in a minimal manifest envelope before validation.
+
+- description: DragonAPI with DataAvailable
+  tool:
+    name: dragon-data-available
+    caption: Dragon DataAvailable
+    description: Runs automatically when its input data is available.
+    type: DragonAPI
+    triggers:
+      - DataAvailable
+    endpoint: https://api.example.com/dragon
+    inputs:
+      - name: note
+        description: The clinical note.
+        content-type: application/vnd.ms-dragon.dsp+json
+- description: DragonAPI with ExplicitRequest
+  tool:
+    name: dragon-explicit-request
+    caption: Dragon ExplicitRequest
+    description: Runs only on a deliberate user action.
+    type: DragonAPI
+    triggers:
+      - ExplicitRequest
+    endpoint: https://api.example.com/dragon
+    inputs:
+      - name: card-content
+        description: Adaptive card action payload.
+        content-type: application/vnd.ms-dragon.adaptivecard-content+json
+- description: DragonAPI with both DataAvailable and ExplicitRequest
+  tool:
+    name: dragon-both
+    caption: Dragon Both
+    description: Runs on data availability and on explicit request.
+    type: DragonAPI
+    triggers:
+      - DataAvailable
+      - ExplicitRequest
+    endpoint: https://api.example.com/dragon
+    inputs:
+      - name: note
+        description: The clinical note.
+        content-type: application/vnd.ms-dragon.dsp+json
+- description: MCP with IntentDriven
+  tool:
+    name: mcp-intent
+    caption: MCP Intent
+    description: Selected by the orchestrator from user intent.
+    type: MCP
+    triggers:
+      - IntentDriven
+    endpoint: https://mcp.example.com
+- description: OpenAPI with IntentDriven
+  tool:
+    name: openapi-intent
+    caption: OpenAPI Intent
+    description: Selected by the orchestrator from user intent.
+    type: OpenAPI
+    triggers:
+      - IntentDriven
+    specUrl: https://api.example.com/openapi.json

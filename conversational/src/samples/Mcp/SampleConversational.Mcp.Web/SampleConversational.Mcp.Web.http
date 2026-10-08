@@ -1,0 +1,49 @@
+@host = http://localhost:5190
+
+# Health check
+GET {{host}}/health
+Accept: application/json
+
+###
+
+# List tools (what Dragon Copilot discovers)
+POST {{host}}/mcp
+Content-Type: application/json
+Accept: application/json, text/event-stream
+
+{ "jsonrpc": "2.0", "id": 1, "method": "tools/list" }
+
+###
+
+# Call lookup_reference_range (arguments chosen by the orchestrator)
+POST {{host}}/mcp
+Content-Type: application/json
+Accept: application/json, text/event-stream
+
+{
+  "jsonrpc": "2.0",
+  "id": 2,
+  "method": "tools/call",
+  "params": { "name": "lookup_reference_range", "arguments": { "test": "HbA1c" } }
+}
+
+###
+
+# Call extract_orders the way Dragon Copilot does with runtimeParamBindings:
+# `transcript` is injected as an argument, conversationId arrives in _meta (sideChannel).
+POST {{host}}/mcp
+Content-Type: application/json
+Accept: application/json, text/event-stream
+
+{
+  "jsonrpc": "2.0",
+  "id": 3,
+  "method": "tools/call",
+  "params": {
+    "name": "extract_orders",
+    "arguments": {
+      "transcript": "Order a CBC. Get a chest x-ray. Start metformin 500 mg. Refer to cardiology."
+    },
+    "_meta": { "dragon": { "conversationId": "00000000-0000-0000-0000-000000000001" } }
+  }
+}

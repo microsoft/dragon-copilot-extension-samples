@@ -1,0 +1,58 @@
+# Invalid conversational manifest cases (triggers). Each case MUST fail schema validation.
+# A "tool" case is wrapped in a minimal manifest envelope before validation.
+
+- description: MCP with DataAvailable (non-DragonAPI tools are intent-driven only)
+  tool:
+    name: mcp-data-available
+    caption: MCP DataAvailable
+    description: MCP tools cannot run on data availability.
+    type: MCP
+    triggers:
+      - DataAvailable
+    endpoint: https://mcp.example.com
+- description: OpenAPI with ExplicitRequest (non-DragonAPI tools are intent-driven only)
+  tool:
+    name: openapi-explicit-request
+    caption: OpenAPI ExplicitRequest
+    description: OpenAPI tools cannot run on explicit request.
+    type: OpenAPI
+    triggers:
+      - ExplicitRequest
+    specUrl: https://api.example.com/openapi.json
+- description: MCP mixing IntentDriven with DataAvailable (every item must align)
+  tool:
+    name: mcp-mixed
+    caption: MCP Mixed
+    description: One misaligned trigger is enough to reject.
+    type: MCP
+    triggers:
+      - IntentDriven
+      - DataAvailable
+    endpoint: https://mcp.example.com
+- description: DragonAPI with IntentDriven (DragonAPI is data- or request-driven only)
+  tool:
+    name: dragon-intent
+    caption: Dragon IntentDriven
+    description: DragonAPI tools are not selected from user intent.
+    type: DragonAPI
+    triggers:
+      - IntentDriven
+    endpoint: https://api.example.com/dragon
+    inputs:
+      - name: note
+        description: The clinical note.
+        content-type: application/vnd.ms-dragon.dsp+json
+- description: DragonAPI mixing DataAvailable with IntentDriven (every item must align)
+  tool:
+    name: dragon-mixed
+    caption: Dragon Mixed
+    description: One misaligned trigger is enough to reject.
+    type: DragonAPI
+    triggers:
+      - DataAvailable
+      - IntentDriven
+    endpoint: https://api.example.com/dragon
+    inputs:
+      - name: note
+        description: The clinical note.
+        content-type: application/vnd.ms-dragon.dsp+json

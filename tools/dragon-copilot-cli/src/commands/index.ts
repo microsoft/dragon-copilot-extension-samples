@@ -2,9 +2,11 @@ import type { Command } from 'commander';
 import { registerExtensionCommands } from '../domains/physician/index.js';
 import { registerRadiologistsCommands } from '../domains/radiologists/index.js';
 import { registerConnectorCommands } from '../domains/connector/index.js';
+import { registerConversationalCommands } from '../domains/conversational/index.js';
 
 export function registerCommands(program: Command): void {
     registerExtensionCommands(program);
     registerRadiologistsCommands(program);
 	registerConnectorCommands(program);
+    registerConversationalCommands(program);
 }

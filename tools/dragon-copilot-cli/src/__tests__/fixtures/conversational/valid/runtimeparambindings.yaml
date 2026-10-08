@@ -1,0 +1,130 @@
+# Valid conversational manifest cases (runtimeparambindings). Each case MUST pass schema validation.
+# A "tool" case is wrapped in a minimal manifest envelope before validation.
+
+- description: OpenAPI binds transcript into the body (target defaults to body)
+  tool:
+    name: openapi-bind-default-body
+    caption: OpenAPI Default Body
+    description: Body binding with no explicit target.
+    type: OpenAPI
+    triggers:
+      - IntentDriven
+    specUrl: https://api.example.com/openapi.json
+    runtimeParamBindings:
+      summarizeEncounter:
+        - source: transcript
+          path: payload.transcript
+          required: true
+- description: OpenAPI binds body and header across two operations
+  tool:
+    name: openapi-bind-body-header
+    caption: OpenAPI Body And Header
+    description: Explicit body and header bindings, keyed per operationId.
+    type: OpenAPI
+    triggers:
+      - IntentDriven
+    specUrl: https://api.example.com/openapi.json
+    runtimeParamBindings:
+      summarizeEncounter:
+        - source: transcript
+          target: body
+          path: $.items[0].text
+        - source: conversationId
+          target: header
+          path: x-conversation-id
+      getPatient:
+        - source: patientContext
+          target: body
+          path: context
+        - source: locale
+          target: header
+          path: Accept-Language
+- description: OpenAPI combines bindings with customExtractors on the same operation
+  tool:
+    name: openapi-bind-with-extractors
+    caption: OpenAPI Bindings And Extractors
+    description: Request-side and response-side mapping together.
+    type: OpenAPI
+    triggers:
+      - IntentDriven
+    specUrl: https://api.example.com/openapi.json
+    customExtractors:
+      summarizeEncounter:
+        - propertyPath: $.summary
+          extractorType: Response Text
+    runtimeParamBindings:
+      summarizeEncounter:
+        - source: transcript
+          path: transcript
+- description: MCP binds argument, header and sideChannel
+  tool:
+    name: mcp-bind-all-targets
+    caption: MCP All Locations
+    description: Every target MCP supports.
+    type: MCP
+    triggers:
+      - IntentDriven
+    endpoint: https://mcp.example.com
+    expose:
+      - summarize
+    runtimeParamBindings:
+      summarize:
+        - source: transcript
+          target: argument
+          path: transcript
+          required: true
+        - source: conversationId
+          target: header
+          path: x-conversation-id
+        - source: patientContext
+          target: sideChannel
+          path: dragon.patientContext
+- description: CopilotStudio injects into the intent (target defaults to intent)
+  tool:
+    name: cs-bind-default-intent
+    caption: Copilot Studio Default Intent
+    description: No parameter slot, so the value is appended to the agent query.
+    type: CopilotStudio
+    triggers:
+      - IntentDriven
+    environmentId: 11111111-2222-3333-4444-555555555555
+    agentIdentifier: my-agent
+    runtimeParamBindings:
+      - source: patientContext
+        path: patientContext
+        required: true
+      - source: conversationId
+        target: sideChannel
+        path: conversationId
+- description: MCP binds every remaining source across argument, header and sideChannel
+  tool:
+    name: mcp-bind-all-sources
+    caption: MCP All Sources
+    description: Covers the full RuntimeParamSource enum.
+    type: MCP
+    triggers:
+      - IntentDriven
+    endpoint: https://mcp.example.com
+    runtimeParamBindings:
+      summarize:
+        - source: transcript
+          target: argument
+          path: transcript
+        - source: patientContext
+          target: argument
+          path: patient.context
+        - source: conversationId
+          target: header
+          path: x-conversation-id
+        - source: locale
+          target: sideChannel
+          path: locale
+        - source: tenantName
+          target: sideChannel
+          path: tenant.name
+        - source: dataSourceParams
+          target: argument
+          path: dataSourceParams
+        - source: dcsSessionId
+          target: sideChannel
+          path: dcs.sessionId

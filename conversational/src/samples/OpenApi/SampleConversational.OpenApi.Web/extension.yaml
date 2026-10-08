@@ -1,0 +1,39 @@
+# Dragon Copilot conversational extension manifest for the OpenAPI sample.
+# Replace the tenant ID and specUrl host with your own before packaging.
+# yaml-language-server: $schema=../../../../manifest/0.4.0-preview.2/manifest-schema.json
+
+schemaVersion: 0.4.0-preview.2
+name: contoso-drug-interactions
+caption: Contoso Drug Interactions
+description: Sample OpenAPI service that checks interactions between two medications.
+version: 0.1.0
+
+auth:
+  tenantId: 00000000-0000-0000-0000-000000000000
+
+tools:
+  - name: drug-interaction-check
+    caption: Drug Interaction Check
+    description: >-
+      Checks for interactions between two medications. Use when the user asks
+      whether two drugs can be taken together.
+    type: OpenAPI
+    specUrl: https://your-api-host.example.com/openapi/v1.json
+    triggers:
+      - IntentDriven
+    expose:
+      - checkDrugInteraction
+    customExtractors:
+      checkDrugInteraction:
+        - propertyPath: $.summary
+          extractorType: Response Text
+        - propertyPath: $.sources[*].url
+          extractorType: Evidence Link
+    runtimeParamBindings:
+      checkDrugInteraction:
+        - source: locale
+          path: locale
+        - source: correlationId
+          target: header
+          path: x-correlation-id
+    timeout: 10

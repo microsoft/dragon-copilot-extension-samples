@@ -1,0 +1,56 @@
+# Dragon Copilot conversational extension manifest for the MCP sample server.
+# Replace the tenant ID and endpoint host with your own before packaging.
+# yaml-language-server: $schema=../../../../manifest/0.4.0-preview.2/manifest-schema.json
+
+schemaVersion: 0.4.0-preview.2
+name: contoso-clinical-mcp
+caption: Contoso Clinical MCP
+description: Sample MCP server exposing clinical reference and order-extraction tools.
+version: 0.1.0
+
+auth:
+  tenantId: 00000000-0000-0000-0000-000000000000
+
+tools:
+  - name: clinical-reference
+    caption: Clinical Reference
+    description: >-
+      Returns typical adult lab reference ranges. Use when the user asks what
+      the normal range is for a lab test such as HbA1c, potassium or TSH.
+    type: MCP
+    endpoint: https://your-mcp-host.example.com/mcp
+    triggers:
+      - IntentDriven
+    expose:
+      - lookup_reference_range
+    customExtractors:
+      lookup_reference_range:
+        - propertyPath: $.summary
+          extractorType: Response Text
+    timeout: 10
+
+  - name: order-extraction
+    caption: Order Extraction
+    description: >-
+      Extracts lab, imaging, medication and referral orders mentioned in the
+      current encounter transcript.
+    type: MCP
+    endpoint: https://your-mcp-host.example.com/mcp
+    triggers:
+      - IntentDriven
+    expose:
+      - extract_orders
+    customExtractors:
+      extract_orders:
+        - propertyPath: $.summary
+          extractorType: Response Text
+    runtimeParamBindings:
+      extract_orders:
+        - source: transcript
+          target: argument
+          path: transcript
+          required: true
+        - source: conversationId
+          target: sideChannel
+          path: dragon.conversationId
+    timeout: 10

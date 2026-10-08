@@ -1,0 +1,31 @@
+# Dragon Copilot conversational extension manifest for a Copilot Studio agent.
+# Replace the tenant ID, environmentId and agentIdentifier with your own values.
+# yaml-language-server: $schema=../../../manifest/0.4.0-preview.2/manifest-schema.json
+
+schemaVersion: 0.4.0-preview.2
+name: contoso-scheduling-agent
+caption: Contoso Scheduling Agent
+description: Sample Copilot Studio agent that answers appointment scheduling questions.
+version: 0.1.0
+
+auth:
+  tenantId: 00000000-0000-0000-0000-000000000000
+
+tools:
+  - name: scheduling-agent
+    caption: Appointment Scheduling
+    description: >-
+      Answers questions about scheduling, rescheduling and preparing for
+      clinic appointments. Use when the user asks about appointment
+      availability or visit preparation.
+    type: CopilotStudio
+    environmentId: 00000000-0000-0000-0000-000000000000
+    agentIdentifier: cr123_schedulingAgent
+    cloud: Prod
+    agentType: Published
+    timeout: 45
+    triggers:
+      - IntentDriven
+    runtimeParamBindings:
+      - source: locale
+        path: locale

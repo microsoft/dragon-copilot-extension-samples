@@ -1,0 +1,19 @@
+# Valid conversational manifest cases (mcp). Each case MUST pass schema validation.
+# A "tool" case is wrapped in a minimal manifest envelope before validation.
+
+- description: MCP tool with response extractors
+  tool:
+    name: mcp-extractors
+    caption: MCP Extractors
+    description: MCP tool projecting response fields into the answer.
+    type: MCP
+    triggers:
+      - IntentDriven
+    endpoint: https://mcp.example.com
+    expose:
+      - search-patients
+    customExtractors:
+      search-patients:
+        - propertyPath: $.summary
+          extractorType: Response Text
+          description: Use the response summary as the tool response text.

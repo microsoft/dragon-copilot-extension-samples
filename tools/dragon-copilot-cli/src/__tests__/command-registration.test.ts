@@ -10,7 +10,19 @@ describe('registerCommands', () => {
     registerCommands(program);
 
     const commandNames = program.commands.map(command => command.name());
-    expect(commandNames).toEqual(expect.arrayContaining(['physician', 'connector', 'radiologists']));
+    expect(commandNames).toEqual(expect.arrayContaining(['physician', 'connector', 'radiologists', 'conversational']));
+  });
+
+  test('registers expected conversational subcommands', () => {
+    const program = new Command();
+    registerCommands(program);
+
+    const conversational = program.commands.find(command => command.name() === 'conversational');
+    expect(conversational).toBeDefined();
+    const subCommands = conversational?.commands.map(command => command.name()) ?? [];
+    expect(subCommands).toEqual(
+      expect.arrayContaining(['init', 'generate', 'validate', 'package']),
+    );
   });
 
   test('registers expected physician subcommands', () => {

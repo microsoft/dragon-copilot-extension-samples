@@ -1,6 +1,6 @@
 # Dragon Copilot CLI
 
-The `dragon-copilot` CLI allows you to generate, validate, and package manifests for Dragon Copilot Physician Workflows, Radiologists Workflows, and Clinical Application Connectors.
+The `dragon-copilot` CLI allows you to generate, validate, and package manifests for Dragon Copilot Physician Workflows, Radiologists Workflows, Conversational Extensions, and Clinical Application Connectors.
 
 ## Installation
 
@@ -76,8 +76,16 @@ Run `npm unlink -g dragon-copilot` only once per workstation; subsequent rebuild
 | Connector  | `dragon-copilot connector generate --template custom`    | Generates a connector manifest from `ehr-integration`, `api-connector`, `data-sync`, or `custom` |
 | Connector  | `dragon-copilot connector validate ./extension.yaml`   | Validates Clinical Application Connector manifests |
 | Connector  | `dragon-copilot connector package`                     | Produces a zip containing the manifest and any included files |
+| Conversational | `dragon-copilot conversational init --type MCP`       | Creates a new conversational extension manifest (schema `0.4.0-preview.2`) with a first `MCP`, `OpenAPI` or `CopilotStudio` tool |
+| Conversational | `dragon-copilot conversational generate --template openapi` | Adds a tool from a template (`mcp`, `openapi`, `copilot-studio`) or interactively with `--interactive` |
+| Conversational | `dragon-copilot conversational validate ./extension.yaml` | Validates against the `0.4.0-preview.2` schema + business rules (unique tool names) |
+| Conversational | `dragon-copilot conversational package`                | Validates and produces a zip containing the manifest and any included files |
 
 Use `dragon-copilot --help` or `dragon-copilot <domain> --help` for additional options.
+
+## Conversational Extensions
+
+See the root-level [Conversational documentation](../../conversational/README.md) and [Quickstart](../../conversational/QUICKSTART.md). The schema is bundled from [`src/schemas/conversational`](src/schemas/conversational/conversational-extension-manifest-schema.json) and mirrors [`conversational/manifest/0.4.0-preview.2`](../../conversational/manifest/0.4.0-preview.2/manifest-schema.json).
 
 ## Clinical Application Connector
 
@@ -87,7 +95,7 @@ See the root-level [Connector documentation](../../connector/README.md) for conn
 
 - Shared helpers now live under `src/common`, keeping the CLI self-contained without external workspaces.
 - `npm run build` emits compiled JS plus copies schemas/resources into `dist/`.
-- `npm test` covers physician, radiologists, and connector flows (command registration, schema validation, CLI integration).
+- `npm test` covers physician, radiologists, conversational, and connector flows (command registration, schema validation, CLI integration).
 
 ## Versioning & Releases
 

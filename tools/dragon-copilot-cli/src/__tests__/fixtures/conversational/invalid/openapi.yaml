@@ -1,0 +1,75 @@
+# Invalid conversational manifest cases (openapi). Each case MUST fail schema validation.
+# A "tool" case is wrapped in a minimal manifest envelope before validation.
+
+- description: provides neither specUrl nor specString
+  tool:
+    name: openapi-no-spec
+    caption: No Spec
+    description: Neither spec source supplied.
+    type: OpenAPI
+    triggers:
+      - IntentDriven
+- description: provides both specUrl and specString (exactly one is allowed)
+  tool:
+    name: openapi-both-sources
+    caption: Both Sources
+    description: Supplies two competing spec sources.
+    type: OpenAPI
+    triggers:
+      - IntentDriven
+    specUrl: https://api.example.com/openapi.json
+    specString: |-
+      openapi: 3.0.3
+      info:
+        title: Example API
+        version: 1.0.0
+      paths: {}
+- description: customExtractors entry missing required extractorType
+  tool:
+    name: openapi-extractor-incomplete
+    caption: Extractor Incomplete
+    description: Extractor entry omits a required key.
+    type: OpenAPI
+    triggers:
+      - IntentDriven
+    specUrl: https://api.example.com/openapi.json
+    customExtractors:
+      getPatientById:
+        - propertyPath: $.evidence[*].url
+- description: customExtractors uses an unknown extractorType
+  tool:
+    name: openapi-extractor-unknown-type
+    caption: Extractor Unknown Type
+    description: Extractor type outside the allowed set.
+    type: OpenAPI
+    triggers:
+      - IntentDriven
+    specUrl: https://api.example.com/openapi.json
+    customExtractors:
+      getPatientById:
+        - propertyPath: $.evidence[*].url
+          extractorType: Telepathy
+- description: customExtractors entry carries an unknown key
+  tool:
+    name: openapi-extractor-extra-key
+    caption: Extractor Extra Key
+    description: Extractor entry has a key the schema does not define.
+    type: OpenAPI
+    triggers:
+      - IntentDriven
+    specUrl: https://api.example.com/openapi.json
+    customExtractors:
+      getPatientById:
+        - propertyPath: $.evidence[*].url
+          extractorType: Evidence Link
+          unexpected: nope
+- description: isExclusive must be a boolean
+  tool:
+    name: openapi-exclusive-bad-type
+    caption: OpenAPI Exclusive Bad Type
+    description: isExclusive takes a boolean, not a string.
+    type: OpenAPI
+    triggers:
+      - IntentDriven
+    specUrl: https://api.example.com/openapi.json
+    isExclusive: 'yes'
