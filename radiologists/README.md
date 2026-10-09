@@ -6,10 +6,10 @@ Welcome! This section contains sample code and documentation for building **Drag
 
 ## 📚 Contents
 
-- [Dragon Copilot Extension Samples](#dragon-copilot-extension-samples)
+- [Dragon Copilot Extension Samples](#dragon-copilot-radiologists-extension-samples)
     - [📝 Overview](#-overview)
     - [🚀 Getting Started](#-getting-started)
-    - [️ Tools](#️-tools)
+    - [🛠️ Tools](#️-tools)
 
 ## 📝 Overview
 
@@ -36,6 +36,8 @@ Three independent version axes appear in these artifacts. They are **declaration
 ## 🚀 Getting Started
 
 For repo setup, cloning instructions, and contributing guidelines, see the [root README](../README.md).
+
+For a beginner-focused, step-by-step guide, see [QUICKSTART.md](./QUICKSTART.md).
 
 ## 🛠️ Tools
 

@@ -1,5 +1,5 @@
 import { describe, expect, it } from '@jest/globals';
-import yaml from 'js-yaml';
+import { load } from 'js-yaml';
 import {
   DEFAULT_OUTPUT_CONTENT_TYPE,
   DEFAULT_PAYLOAD_SCHEMA_VERSION,
@@ -178,7 +178,7 @@ describe('radiologists manifest builder', () => {
     const rendered = renderManifestYaml(manifest);
 
     expect(rendered).toContain('name: sampleQualityCheckExtension');
-    expect(yaml.load(rendered) as DcrExtensionManifest).toEqual(manifest);
+    expect(load(rendered) as DcrExtensionManifest).toEqual(manifest);
   });
 
   it('exposes the defaults the CLI prompts and the sandbox wizard pre-fill', () => {
