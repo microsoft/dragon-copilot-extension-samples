@@ -1,10 +1,36 @@
 import { input, select, checkbox, confirm } from '@inquirer/prompts';
 import type {
+  Capability,
   DcrExtensionManifest,
   DcrOutput,
-  RelevanceFilteringCriteria
+  RelevanceFilteringCriteria,
+  ToolType
 } from '../types.js';
+import {
+  BODY_PART_CHOICES,
+  CAPABILITY_CHOICES,
+  DEFAULT_OUTPUT_CONTENT_TYPE,
+  INPUT_TYPE_CHOICES,
+  MANIFEST_DEFAULTS,
+  MODALITY_CHOICES,
+  TOOL_TYPE_CHOICES,
+  getInputDescription,
+  getInputName
+} from '../manifest/index.js';
 import { validateFieldValue } from './schema-validator.js';
+
+// Selectable values and content-type derivations are owned by the pure manifest
+// core so the Extensions Sandbox wizard offers exactly the same options; they are
+// re-exported here for existing callers.
+export {
+  BODY_PART_CHOICES,
+  CAPABILITY_CHOICES,
+  INPUT_TYPE_CHOICES,
+  MODALITY_CHOICES,
+  TOOL_TYPE_CHOICES,
+  getInputDescription,
+  getInputName
+};
 
 export interface ExtensionDetails {
   name: string;
@@ -16,26 +42,13 @@ export interface ExtensionDetails {
 export interface ToolDetails {
   toolName: string;
   toolDescription: string;
-  toolType: 'contractBased';
-  capability: 'qualityCheck';
+  toolType: ToolType;
+  capability: Capability;
   endpoint: string;
   inputTypes: string[];
   outputs: DcrOutput[];
   relevanceFilteringCriteria?: RelevanceFilteringCriteria | undefined;
 }
-
-export const INPUT_TYPE_CHOICES = [
-  { name: 'Radiology Report', value: 'application/vnd.ms-dragon.rad.report+json' },
-  { name: 'Patient Information', value: 'application/vnd.ms-dragon.rad.patient-information+json' },
-];
-
-export const TOOL_TYPE_CHOICES = [
-  { name: 'Contract Based', value: 'contractBased' as const },
-];
-
-export const CAPABILITY_CHOICES = [
-  { name: 'Quality Check', value: 'qualityCheck' as const },
-];
 
 /**
  * Validates tool name input
@@ -101,24 +114,24 @@ export function validateTenantId(input: string): string | boolean {
 export async function promptExtensionDetails(defaults?: Partial<ExtensionDetails>): Promise<ExtensionDetails> {
   const name = await input({
     message: 'Extension name:',
-    default: defaults?.name || 'myRadiologistsExtension',
+    default: defaults?.name || MANIFEST_DEFAULTS.extensionName,
     validate: validateExtensionName
   });
 
   const description = await input({
     message: 'Extension description:',
-    default: defaults?.description || 'A Dragon Copilot radiologists extension'
+    default: defaults?.description || MANIFEST_DEFAULTS.extensionDescription
   });
 
   const version = await input({
     message: 'Version:',
-    default: defaults?.version || '0.0.1',
+    default: defaults?.version || MANIFEST_DEFAULTS.version,
     validate: validateVersion
   });
 
   const radiologistsExtensibilityApiVersion = await input({
     message: 'Radiologists Extensibility API version this manifest was authored against:',
-    default: defaults?.radiologistsExtensibilityApiVersion || '1.0.0',
+    default: defaults?.radiologistsExtensibilityApiVersion || MANIFEST_DEFAULTS.radiologistsExtensibilityApiVersion,
     validate: validateradiologistsExtensibilityApiVersion
   });
 
@@ -217,96 +230,31 @@ export async function promptToolDetails(
 }
 
 /**
- * Gets description for a given data type
- */
-export function getInputDescription(contentType: string): string {
-  switch (contentType) {
-    case 'application/vnd.ms-dragon.rad.report+json':
-      return 'Radiology report from Dragon Copilot';
-    case 'application/vnd.ms-dragon.rad.patient-information+json':
-      return 'Patient demographic information from Dragon Copilot';
-    default:
-      return 'Data from Dragon Copilot';
-  }
-}
-
-/**
- * Maps a content-type to a default input name
- */
-export function getInputName(contentType: string, index: number): string {
-  switch (contentType) {
-    case 'application/vnd.ms-dragon.rad.report+json':
-      return 'report';
-    case 'application/vnd.ms-dragon.rad.patient-information+json':
-      return 'patientInformation';
-    default:
-      return `input-${index + 1}`;
-  }
-}
-
-/**
  * Prompts for output details
  */
 export async function promptOutputDetails(defaults?: { name?: string; description?: string; schemaVersion?: string }): Promise<DcrOutput> {
   const name = await input({
     message: 'Output name:',
-    default: defaults?.name || 'qualityCheckResult'
+    default: defaults?.name || MANIFEST_DEFAULTS.outputName
   });
 
   const description = await input({
     message: 'Output description:',
-    default: defaults?.description || 'Quality check result'
+    default: defaults?.description || MANIFEST_DEFAULTS.outputDescription
   });
 
   const schemaVersion = await input({
     message: 'Output payload schemaVersion (major.minor):',
-    default: defaults?.schemaVersion || '1.0'
+    default: defaults?.schemaVersion || MANIFEST_DEFAULTS.schemaVersion
   });
 
   return {
     name,
     description,
-    'content-type': 'application/vnd.ms-dragon.rad.quality-check-result+json',
+    'content-type': DEFAULT_OUTPUT_CONTENT_TYPE,
     schemaVersion
   };
 }
-
-export const BODY_PART_CHOICES = [
-  { name: 'Head', value: 'HEAD' },
-  { name: 'Brain', value: 'BRAIN' },
-  { name: 'Skull', value: 'SKULL' },
-  { name: 'Sinus', value: 'SINUS' },
-  { name: 'Neck', value: 'NECK' },
-  { name: 'C-Spine', value: 'CSPINE' },
-  { name: 'T-Spine', value: 'TSPINE' },
-  { name: 'L-Spine', value: 'LSPINE' },
-  { name: 'Spine', value: 'SPINE' },
-  { name: 'Chest', value: 'CHEST' },
-  { name: 'Abdomen', value: 'ABDOMEN' },
-  { name: 'Pelvis', value: 'PELVIS' },
-  { name: 'Shoulder', value: 'SHOULDER' },
-  { name: 'Elbow', value: 'ELBOW' },
-  { name: 'Wrist', value: 'WRIST' },
-  { name: 'Hand', value: 'HAND' },
-  { name: 'Hip', value: 'HIP' },
-  { name: 'Knee', value: 'KNEE' },
-  { name: 'Ankle', value: 'ANKLE' },
-  { name: 'Foot', value: 'FOOT' },
-  { name: 'Whole Body', value: 'WHOLEBODY' },
-];
-
-export const MODALITY_CHOICES = [
-  { name: 'CR - Computed Radiography', value: 'CR' },
-  { name: 'CT - Computed Tomography', value: 'CT' },
-  { name: 'DX - Digital Radiography', value: 'DX' },
-  { name: 'MG - Mammography', value: 'MG' },
-  { name: 'MR - MRI', value: 'MR' },
-  { name: 'NM - Nuclear Medicine', value: 'NM' },
-  { name: 'PT - PET', value: 'PT' },
-  { name: 'RF - Fluoroscopy', value: 'RF' },
-  { name: 'US - Ultrasound', value: 'US' },
-  { name: 'XA - X-ray Angiography', value: 'XA' },
-];
 
 /**
  * Prompts for relevance filtering criteria
