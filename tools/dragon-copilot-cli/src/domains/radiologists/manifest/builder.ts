@@ -7,7 +7,7 @@
  * the Extensions Sandbox), which is what lets both surfaces emit identical
  * manifests. Part of the pure manifest core — see `./types.ts`.
  */
-import yaml from 'js-yaml';
+import { dump } from 'js-yaml';
 import type {
   Capability,
   DcrExtensionManifest,
@@ -27,7 +27,6 @@ import {
 } from './choices.js';
 import { getTemplate } from './templates.js';
 
-const { dump } = yaml;
 
 export interface ExtensionInput {
   name: string;
