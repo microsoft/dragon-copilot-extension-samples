@@ -106,7 +106,7 @@ POST {baseUrl}/api/v1/tenants/{customerTenantId}/environments/{environmentId}/dr
 Authorization: Bearer {token}
 ```
 
-The token must be issued by the tenant in the manifest's `auth.tenantId`; a token from any other tenant does not match the extension.
+The token must be issued by the tenant in the manifest's `auth.tenantId`; a token from any other tenant does not match the extension. The partner app registration, permission and token acquisition are covered in `radiologists/partner-initiated/authentication.md`. The shared `doc/` authentication guides cover requests Dragon Copilot sends to an extension endpoint and don't apply here.
 
 Two response codes need care. Both carry a machine-readable `reason`, and the `message` is the same for every response with that status, so branch on `reason`:
 

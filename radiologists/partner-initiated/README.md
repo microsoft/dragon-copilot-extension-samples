@@ -13,9 +13,10 @@ Because Dragon Copilot never calls you, there's no endpoint to host and no exten
 ## Integration steps
 
 1. Build a manifest that defines a `partnerInitiated` tool with the `preDraftReportGeneration` capability; `auth.tenantId` must be set to your Microsoft Entra tenant ID. See [Declaring the tool](#declaring-the-tool).
-2. A customer installs your extension in one of their environments.
-3. After processing the study, POST the draft report back to the customer's environment, with the study's accession number in the report. See [Submitting a result](#submitting-a-result).
-4. When the radiologist opens the order, Dragon Copilot shows the stored draft. Your service isn't called.
+2. Set up a Partner app registration in that tenant, so your service can get the access tokens it submits results with. See [Authentication](authentication.md).
+3. A customer installs your extension in one of their environments.
+4. After processing the study, POST the draft report back to the customer's environment, with the study's accession number in the report. See [Submitting a result](#submitting-a-result).
+5. When the radiologist opens the order, Dragon Copilot shows the stored draft. Your service isn't called.
 
 ## Declaring the tool
 
@@ -100,8 +101,8 @@ To replace a draft, submit it again with a new `draftReport.identifier`. Reusing
 | --- | --- |
 | `200 OK` | The result was stored. The response has no body. |
 | `400 Bad Request` | The request failed validation, for example a body that doesn't match the schema or a route parameter that isn't a GUID. |
-| `401 Unauthorized` | The access token is missing or invalid. |
-| `403 Forbidden` | The access token is valid but isn't allowed to submit results. |
+| `401 Unauthorized` | The access token is missing or invalid. See [Authentication](authentication.md). |
+| `403 Forbidden` | The access token is valid but isn't allowed to submit results. See [Authentication](authentication.md). |
 | `404 Not Found` | Something in the request didn't match. See `reason`. |
 | `409 Conflict` | The result conflicts with what's stored, or matches more than one order or extension. See `reason`. |
 | `500 Internal Server Error` | An unexpected error occurred. |
@@ -131,7 +132,7 @@ A `404` without a `reason` usually means the request URL is wrong and the reques
 
 Submit with a Microsoft Entra access token issued by the tenant in your manifest's `auth.tenantId`. A token issued by any other tenant won't match your extension, so the submission is rejected.
 
-How to get the access token, including the application to request it for, will be added to this section.
+See [Authentication](authentication.md) for Partner identity setup and token acquisition.
 
 ## Report formatting
 

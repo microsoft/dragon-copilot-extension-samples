@@ -15,7 +15,7 @@ Welcome! This repository contains sample code, models, OpenAPI specs, and develo
 
 This repo includes:
 
-- [Shared Platform Documentation](doc/) for authentication guides and resources common across all products
+- [Shared Platform Documentation](doc/) for authentication guides and resources common across all products where Dragon Copilot calls a partner service. For integrations where a partner calls a Dragon Copilot endpoint, see the [Radiologists authentication documentation](radiologists/partner-initiated/authentication.md).
 - Sample [`Physician Workflow`](physician/) with best practices
 - Sample [`Radiologists Workflow`](radiologists/) with best practices
 - [Clinical Application Connector documentation](connector/) for EHR and enterprise API integrations

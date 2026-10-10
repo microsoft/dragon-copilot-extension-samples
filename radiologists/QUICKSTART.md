@@ -2,6 +2,8 @@
 
 In this quickstart, you run a sample extension locally, test it in the sandbox, customize it, and package it for distribution.
 
+> **Building a `partnerInitiated` tool?** This quickstart builds a `contractBased` tool, which Dragon Copilot calls. A `partnerInitiated` tool calls Dragon Copilot instead, so follow the [`partnerInitiated` documentation](partner-initiated/README.md), including its [authentication guide](partner-initiated/authentication.md), rather than this quickstart.
+
 ## Table of contents
 
 - [Prerequisites](#prerequisites)
@@ -124,6 +126,8 @@ devtunnel host radiologists-quickstart
 7. Re-run the sandbox and confirm the request still succeeds.
 
 ## Authentication setup
+
+These steps are for `contractBased` tools, where Dragon Copilot calls your endpoint. For a `partnerInitiated` tool, follow [`partnerInitiated` authentication](partner-initiated/authentication.md) instead.
 
 For production authentication setup, follow the [Authentication guide](../doc/Authentication.md) and complete these onboarding steps:
 
