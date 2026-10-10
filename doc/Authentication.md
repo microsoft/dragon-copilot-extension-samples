@@ -47,7 +47,7 @@ The production configuration in [appsettings.json](../physician/src/samples/Drag
 - `Instance` — the Entra ID authority URL (typically `https://login.microsoftonline.com/`)
 - `RequiredClaims` — claims required for authorization (e.g. `idtyp`, `azp`)
 
-> **CLI Note:** Physician and Radiologists Workflow manifests capture `auth.tenantId`, which must match the `TenantId` configured here. For a Radiologists `partnerInitiated` tool, `auth.tenantId` is instead the tenant that issues your access tokens. See [`partnerInitiated` authentication](../radiologists/partner-initiated/authentication.md). Clinical Application Connector manifests do not use `auth.tenantId`; their wizard configures `server-authentication` and instance-level client authentication issuer and claim fields instead. See the [Connector Quickstart](../connector/QUICKSTART.md).
+> **CLI Note:** Physician and Radiologists Workflow manifests capture `auth.tenantId`, which must match the `TenantId` configured here. For a Radiologists `partnerInitiated` tool, `auth.tenantId` is the tenant that issues your access tokens. A manifest has a single `auth.tenantId`, so if it declares both tool types, the `TenantId` configured here and the tenant that issues your tokens must be the same. See [`partnerInitiated` authentication](../radiologists/partner-initiated/authentication.md). Clinical Application Connector manifests do not use `auth.tenantId`; their wizard configures `server-authentication` and instance-level client authentication issuer and claim fields instead. See the [Connector Quickstart](../connector/QUICKSTART.md).
 
 ## Microsoft Entra ID (JWT) Authentication
 

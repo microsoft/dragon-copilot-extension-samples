@@ -14,7 +14,7 @@ A single manifest may declare tools of both types. Most of this file describes `
 ## Authoritative contract
 
 - **OpenAPI spec (`contractBased`):** `radiologists/extensibility-api/radiologists-extensibility-api.yaml` is the canonical wire contract for `POST /v1/process`. It defines the envelope as `ProcessRequest` (request) and `ProcessResponse` (response), and contains the full schema definitions for all Radiologists domain types (`SessionData`, `PatientInformation`, `Report`, `QualityCheckResult`, `Recommendation`, `Provenance`, `ReferenceResource`).
-- **JSON Schemas (`partnerInitiated`):** `radiologists/partner-initiated/` holds `draft-report-ingest-request-schema.json` (the request body) and `draft-report-schema.json` (the report itself, carried as `draftReport`), plus a worked example of each under `samples/`.
+- **JSON Schemas (`partnerInitiated`):** `radiologists/partner-initiated/` holds `draft-report-ingest-request-schema.json` (the request body) and `draft-report-schema.json` (the report itself, carried as `draftReport`). `samples/` holds an example submission (`PreDraftReportGeneration-Ingest-Request-Example.json`) and an example of what Dragon Copilot returns when the result is later retrieved (`PreDraftReportGeneration-Retrieve-Response-Example.json`).
 - **Models project:** `radiologists/src/models/Dragon.Copilot.Radiologists.Models/` — C# classes mirroring both contracts, split into `ContractBased/` and `PartnerInitiated/` subfolders. Both share the namespace `Dragon.Copilot.Radiologists.Models`. The wire types live **here**, not in each sample.
 - **Wire shape (from the spec):**
     - Request `ProcessRequest`: required `sessionData`; optional `extensibilityApiVersion` (string, e.g. `"1.1.1"`, informational metadata from Dragon Copilot), `patientInformation`, and `report`. Additional named inputs flow through `additionalProperties`. The Radiologists C# model declares `patientInformation` and `report` as explicit properties for convenience.
@@ -33,7 +33,9 @@ Three C# `contractBased` variants live under `radiologists/src/samples/ContractB
 
 `radiologists/src/samples/ContractBased/extension.yaml` declares only the tools those samples implement. `radiologists/manifest/extension.yaml` is the reference manifest showing every field and both tool types; it is not wired to a sample.
 
-## Stack facts
+For `partnerInitiated` work, use the contract in `radiologists/partner-initiated/` (`README.md`, the schemas, the example payloads in `samples/` and `authentication.md`) and the `PartnerInitiated/` models.
+
+## Stack facts (`contractBased` samples)
 
 - C# target framework: `net10.0` (Quickstart and Ai, cross-platform), `net10.0-windows10.0.26100` (Foundry Local, due to the Foundry Local dependency).
 - Default dev ports: **5080** (HTTP), **7080** (HTTPS).

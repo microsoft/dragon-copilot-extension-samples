@@ -66,7 +66,7 @@ Clinical Application Connectors don't use `auth.tenantId`. See `connector/QUICKS
 
 ### Configuration Patterns
 
-These apply only when Dragon Copilot calls the partner's endpoint (Authentication item 1), not to Radiologists `partnerInitiated` tools.
+These apply only when Dragon Copilot calls the partner's endpoint, not when a Radiologists `partnerInitiated` tool calls Dragon Copilot.
 
 - **Development**: Authentication disabled for easier testing
 - **Production**: JWT authentication with Microsoft Entra ID
