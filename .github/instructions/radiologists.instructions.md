@@ -31,9 +31,15 @@ Three C# `contractBased` variants live under `radiologists/src/samples/ContractB
 | Ai            | `SampleExtension.Radiologists.Web.Ai/`         | Calls **Azure OpenAI** when the `OpenAI` config is populated; otherwise returns a `503` "not configured" error.                   | `net10.0`                   | Cross-platform |
 | Foundry Local | `SampleExtension.Radiologists.Web.Local/`      | Runs an on-device model via **Foundry Local** (`Microsoft.AI.Foundry.Local.WinML`); no cloud account or API key needed.           | `net10.0-windows10.0.26100` | Windows-only   |
 
-`radiologists/src/samples/ContractBased/extension.yaml` declares only the tools those samples implement. `radiologists/manifest/extension.yaml` is the reference manifest showing every field and both tool types; it is not wired to a sample.
+One `partnerInitiated` variant lives under `radiologists/src/samples/PartnerInitiated/`:
 
-For `partnerInitiated` work, use the contract in `radiologists/partner-initiated/` (`README.md`, the schemas, the example payloads in `samples/` and `authentication.md`) and the `PartnerInitiated/` models.
+| Variant    | Folder                               | Purpose                                                                                                                                 | Target    | Platform       |
+| ---------- | ------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------- | --------- | -------------- |
+| Quickstart | `PreDraftReport.Console.QuickStart/` | Console app that submits a pre-draft report the way a Partner's service does, to a simulated Dragon Copilot endpoint in `Simulation/`. | `net10.0` | Cross-platform |
+
+Each samples folder has its own `extension.yaml` declaring only the tools that folder implements. `radiologists/manifest/extension.yaml` is the reference manifest showing every field and both tool types; it is not wired to a sample.
+
+For `partnerInitiated` work, use the contract in `radiologists/partner-initiated/` (`README.md`, the schemas, the example payloads in `samples/` and `authentication.md`) and the `PartnerInitiated/` models. The console sample's `Simulation/` folder mirrors the real submission endpoint: its validation rules, the order in which it resolves the environment, extension, tool, stored identifier and order, and its status codes, `reason` values and response bodies. Keep it in step with `radiologists/partner-initiated/README.md` when either changes. It deliberately simplifies authentication and only checks that a bearer token is present.
 
 ## Stack facts (`contractBased` samples)
 

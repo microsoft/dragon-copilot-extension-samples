@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="../../models/Dragon.Copilot.Radiologists.Models/Dragon.Copilot.Radiologists.Models.csproj" />
+  <Project Path="PreDraftReport.Console.QuickStart/PreDraftReport.Console.QuickStart.csproj" />
+  <Project Path="PreDraftReport.Console.QuickStart.Tests/PreDraftReport.Console.QuickStart.Tests.csproj" />
+</Solution>

@@ -43,7 +43,7 @@ const templates: Record<string, TemplateConfig> = {
     ]
   },
   'pre-draft-report': {
-    name: 'samplePreDraftReportExtension',
+    name: 'sampleRadiologyExtension',
     description: 'Extension to provide pre-draft radiology report generation',
     version: '0.0.1',
     radiologistsExtensibilityApiVersion: '1.0.0',

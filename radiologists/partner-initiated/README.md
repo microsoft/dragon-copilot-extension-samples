@@ -63,6 +63,9 @@ POST {baseUrl}/api/v1/tenants/{customerTenantId}/environments/{environmentId}/dr
 | --- | --- |
 | `Content-Type` | `application/json` |
 | `Authorization` | `Bearer {access token}`. See [Authentication](#authentication). |
+| `x-ms-correlation-id` | Optional. An ID for the request, such as a GUID, of up to 128 characters. |
+
+Every response carries an `x-ms-correlation-id` header: the value you sent, or one Dragon Copilot generated if you didn't send a usable one. Log it, and include it when you contact support.
 
 The JSON body identifies your extension and tool, and carries the draft report. The accession number inside the draft report (`draftReport.imagingStudy.accessionNumber`) is how Dragon Copilot finds the order the draft belongs to.
 
