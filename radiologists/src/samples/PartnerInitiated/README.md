@@ -71,3 +71,18 @@ those schemas.
 The endpoint, how a submission is matched, and every response are described in
 [Submitting a result](../../../partner-initiated/README.md#submitting-a-result). Partner identity setup
 and token acquisition are in [Authentication](../../../partner-initiated/authentication.md).
+
+## Samples in other languages
+
+This sample is written in C#, but the same contract works in any language. To scaffold an
+equivalent client in Python, Go, Java, Node.js, TypeScript, or Rust, use the reusable Copilot
+prompt:
+
+1. Open the repo in VS Code with GitHub Copilot Chat enabled.
+2. In Copilot Chat, type `/` and select `radiologists-scaffold-partner-initiated-sample`.
+3. Provide the target language when prompted, then review and run the generated sample.
+
+The prompt lives at
+[`.github/prompts/radiologists-scaffold-partner-initiated-sample.prompt.md`](../../../../.github/prompts/radiologists-scaffold-partner-initiated-sample.prompt.md).
+The generated sample sends the same request as this one, but submits to a minimal simulated
+endpoint that returns only some of Dragon Copilot's responses.

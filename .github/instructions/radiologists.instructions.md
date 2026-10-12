@@ -180,4 +180,4 @@ See `tools/dragon-copilot-cli/src/schemas/radiologists/radiologists-extension-ma
 
 ## Scaffolding a sample in another language
 
-A Python sample already ships at `radiologists/src/samples/ContractBased/sample_extension_radiologists_python_quickstart/`. When a partner wants a Radiologists sample in another language (for example Go, Java, or Node.js), invoke the reusable Copilot prompt at `.github/prompts/radiologists-scaffold-language-sample.prompt.md`. Its usage instructions live inside the prompt file itself. It currently scaffolds `contractBased` samples only.
+A Python sample already ships at `radiologists/src/samples/ContractBased/sample_extension_radiologists_python_quickstart/`. When a partner wants a Radiologists sample in another language (for example Go, Java, or Node.js), invoke the reusable Copilot prompt at `.github/prompts/radiologists-scaffold-language-sample.prompt.md`. Its usage instructions live inside the prompt file itself. It scaffolds `contractBased` samples only. For a `partnerInitiated` sample, which submits a pre-draft report to Dragon Copilot, invoke `.github/prompts/radiologists-scaffold-partner-initiated-sample.prompt.md` instead.
