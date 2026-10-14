@@ -1,6 +1,6 @@
 # MCP Conversational Extension Sample
 
-ASP.NET Core (.NET 9) [Model Context Protocol](https://modelcontextprotocol.io/) server that Dragon Copilot can call during a conversation. It uses the official [C# MCP SDK](https://github.com/modelcontextprotocol/csharp-sdk) over Streamable HTTP.
+ASP.NET Core (.NET 10) [Model Context Protocol](https://modelcontextprotocol.io/) server that Dragon Copilot can call during a conversation. It uses the official [C# MCP SDK](https://github.com/modelcontextprotocol/csharp-sdk) over Streamable HTTP.
 
 > **Public Preview.** Conversational extensions use manifest schema [`0.4.0-preview.2`](../../../manifest/0.4.0-preview.2/manifest-schema.json), which may change.
 

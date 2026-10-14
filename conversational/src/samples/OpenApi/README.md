@@ -1,6 +1,6 @@
 # OpenAPI Conversational Extension Sample
 
-ASP.NET Core (.NET 9) REST API described by an OpenAPI 3.0 document. Dragon Copilot reads the spec from `specUrl` and calls the operations listed in `expose`.
+ASP.NET Core (.NET 10) REST API described by an OpenAPI 3.0 document. Dragon Copilot reads the spec from `specUrl` and calls the operations listed in `expose`.
 
 > **Public Preview.** Conversational extensions use manifest schema [`0.4.0-preview.2`](../../../manifest/0.4.0-preview.2/manifest-schema.json), which may change.
 
@@ -25,7 +25,7 @@ dotnet run
 
 Authentication is disabled in `Development`. Try [`SampleConversational.OpenApi.Web.http`](SampleConversational.OpenApi.Web/SampleConversational.OpenApi.Web.http).
 
-Set `PublicUrl` in [`appsettings.json`](SampleConversational.OpenApi.Web/appsettings.json) so the document's `servers` entry points at your public host.
+`PublicUrl` in [`appsettings.json`](SampleConversational.OpenApi.Web/appsettings.json) is empty by default, so the document's `servers` entry uses the host of the incoming request. Set it only when the service runs behind a proxy or gateway that changes the public host.
 
 ## Test
 

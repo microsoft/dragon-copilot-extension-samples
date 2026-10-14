@@ -6,7 +6,7 @@ Build, run and package the MCP sample end to end in about 15 minutes. The [OpenA
 
 ## Prerequisites
 
-- [.NET 9 SDK](https://dotnet.microsoft.com/download/dotnet/9.0)
+- [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0)
 - [Node.js 20+](https://nodejs.org/) (for the CLI)
 - Optional: [Docker](https://www.docker.com/), [MCP Inspector](https://github.com/modelcontextprotocol/inspector)
 
