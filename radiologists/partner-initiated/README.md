@@ -1,14 +1,14 @@
 # `partnerInitiated` tools
 
-Artifacts for tools whose `toolType` is **`partnerInitiated`**: the Partner calls Dragon Copilot (radiologists) to submit results, rather than Dragon Copilot calling the Partner.
+For a **`partnerInitiated`** tool, the Partner calls Dragon Copilot Radiologists to submit results rather than being called by Dragon Copilot.
 
 See [Two tool types](../README.md#two-tool-types) in the radiologists README for how this compares with `contractBased`.
 
 ## What a Partner builds
 
-A client that calls Dragon Copilot. After your model processes a study, your application or service POSTs the draft report to Dragon Copilot's [submission endpoint](#submitting-a-result), on its own schedule. Dragon Copilot stores the draft and shows it to the radiologist when they open the order.
+A client application or service that submits draft reports to Dragon Copilot through the [submission endpoint](#submitting-a-result). Dragon Copilot stores each draft and displays it when the radiologist opens the order.
 
-Because Dragon Copilot never calls you, there's no endpoint to host and no extensibility API to implement, unlike a `contractBased` tool.
+Because Dragon Copilot does not call the Partner, there is no endpoint to expose or extensibility API to implement.
 
 ## Integration steps
 

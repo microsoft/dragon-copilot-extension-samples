@@ -15,7 +15,7 @@ Welcome! This section contains sample code and documentation for building **Drag
 
 Key resources:
 
-- [Shared Platform Documentation](../doc/) — Authentication guides and resources common across all products where Dragon Copilot calls a partner service. For integrations where a partner calls a Dragon Copilot endpoint, see the [Radiologists authentication documentation](partner-initiated/authentication.md).
+- [Shared Platform Documentation](../doc/) — Authentication guidance and resources for all products in which Dragon Copilot calls a Partner service. For integrations in which a Partner calls a Dragon Copilot endpoint, see the [Radiologists authentication documentation](partner-initiated/authentication.md).
 - Sample [`Radiologists Workflow`](src/) with best practices
 - CLI tools to initialize, generate manifests, validate, and package Radiologists Workflows
 

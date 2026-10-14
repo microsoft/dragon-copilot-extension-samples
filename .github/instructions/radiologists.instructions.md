@@ -4,12 +4,12 @@ applyTo: "radiologists/**"
 
 # Radiologists Extension Samples — Copilot Instructions
 
-Radiologists extensions come in two directions, and every tool declares which one it is via `toolType`:
+Radiologists extension tools support two interaction patterns, identified by `toolType`: Dragon Copilot can call the Partner, or the Partner can call Dragon Copilot.
 
-- **`contractBased`** — Dragon Copilot calls the partner's `POST /v1/process` endpoint and waits. Used for quality checks on a radiology report.
-- **`partnerInitiated`** — the partner generates a result on their own schedule and posts it to the Dragon Copilot Radiologists API. Used for pre-draft report generation. Nothing calls the partner, so these tools declare no `endpoint` and no `inputs`.
+- **`contractBased`** — Dragon Copilot calls the Partner's `POST /v1/process` endpoint and waits for the tool output in the response. Used for quality checks on radiology reports.
+- **`partnerInitiated`** — The Partner generates a result on its own schedule and submits it to the Dragon Copilot Radiologists API. Used for pre-draft report generation. Dragon Copilot does not call the Partner for these tools, so they declare no `endpoint` or `inputs`.
 
-A single manifest may declare tools of both types. Most of this file describes `contractBased`; sections that only apply to one type say so.
+A single manifest may declare tools of both types. Most of this document describes `contractBased`; sections that apply to only one type say so.
 
 ## Authoritative contract
 

@@ -2,7 +2,7 @@
 
 In this quickstart, you run a sample extension locally, test it in the sandbox, customize it, and package it for distribution.
 
-> **Building a `partnerInitiated` tool?** This quickstart builds a `contractBased` tool, which Dragon Copilot calls. A `partnerInitiated` tool calls Dragon Copilot instead, so follow the [`partnerInitiated` documentation](partner-initiated/README.md), including its [authentication guide](partner-initiated/authentication.md), rather than this quickstart.
+> **Note:** Building a `partnerInitiated` tool? Follow the [`partnerInitiated` documentation](partner-initiated/README.md) instead. This quickstart covers tools that Dragon Copilot calls.
 
 ## Table of contents
 
