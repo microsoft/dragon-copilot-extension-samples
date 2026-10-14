@@ -45,7 +45,7 @@ The production configuration in [appsettings.json](../physician/src/samples/Drag
 - `Instance` — the Entra ID authority URL (typically `https://login.microsoftonline.com/`)
 - `RequiredClaims` — claims required for authorization (e.g. `idtyp`, `azp`)
 
-> **CLI Note:** Physician and Radiologists Workflow manifests capture `auth.tenantId`, which must match the `TenantId` configured here. Clinical Application Connector manifests do not use `auth.tenantId`; their wizard configures `server-authentication` and instance-level client authentication issuer and claim fields instead. See the [Connector Quickstart](../connector/QUICKSTART.md).
+> **CLI Note:** Physician and Radiologists Workflow manifests capture `auth.tenantId`, which must match the `TenantId` configured here. [Conversational](../conversational/README.md) manifests (`dragon-copilot conversational init`) also capture `auth.tenantId`: for the MCP and OpenAPI samples it must match `Authentication:TenantId` in that sample's `appsettings.json`, and both samples require an Entra ID app-only bearer token outside `Development`. Copilot Studio tools have no server of their own to configure. Clinical Application Connector manifests do not use `auth.tenantId`; their wizard configures `server-authentication` and instance-level client authentication issuer and claim fields instead. See the [Connector Quickstart](../connector/QUICKSTART.md).
 
 ## Microsoft Entra ID (JWT) Authentication
 

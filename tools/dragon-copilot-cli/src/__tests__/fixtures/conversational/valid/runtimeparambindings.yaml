@@ -125,6 +125,6 @@
         - source: dataSourceParams
           target: argument
           path: dataSourceParams
-        - source: dcsSessionId
+        - source: sessionUniqueId
           target: sideChannel
-          path: dcs.sessionId
+          path: session.uniqueId
