@@ -13,7 +13,7 @@ This repository contains sample code and tools for developing **Dragon Copilot E
 - **Integration**: Extensions are called by Dragon Copilot platform via HTTP POST to `/v1/process`
 
 ### Conversational Extensions (Public Preview, `conversational/`)
-- **Purpose**: Tools/agents the Dragon Copilot orchestrator calls during a conversation (`IntentDriven` trigger)
+- **Purpose**: Tools/agents the Dragon Copilot assistant calls during a conversation (`IntentDriven` trigger)
 - **Types covered here**: `MCP` (Model Context Protocol server), `OpenAPI` (REST + OpenAPI spec), `CopilotStudio` (published agent). Other integration types are out of scope for this repo — do not add samples for them.
 - **Manifest**: schema `0.4.0-preview.2` (`conversational/manifest/`), mirrored in `tools/dragon-copilot-cli/src/schemas/conversational/` — keep both copies identical
 - **Key fields**: `expose`, `customExtractors`, `runtimeParamBindings` (keyed by MCP tool / operationId; flat list for CopilotStudio), `isExclusive`, `timeout` (3–60s)

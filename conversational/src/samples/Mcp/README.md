@@ -48,7 +48,7 @@ Outside `Development`, the server requires a Microsoft Entra ID app-only bearer 
 
 [`extension.yaml`](SampleConversational.Mcp.Web/extension.yaml) registers the server twice, once per tool, to show:
 
-- **`expose`** — which MCP tools the orchestrator may call (allow-list).
+- **`expose`** — which MCP tools Dragon Copilot may call (allow-list).
 - **`customExtractors`** — keyed by MCP tool name; map JSON paths in the result to `Response Text` / `Evidence Link`.
 - **`runtimeParamBindings`** — keyed by MCP tool name; inject Dragon runtime values the user never types:
   - `transcript` → tool argument `transcript` (`target: argument`).

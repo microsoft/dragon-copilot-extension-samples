@@ -119,9 +119,6 @@
         - source: locale
           target: sideChannel
           path: locale
-        - source: tenantName
-          target: sideChannel
-          path: tenant.name
         - source: dataSourceParams
           target: argument
           path: dataSourceParams

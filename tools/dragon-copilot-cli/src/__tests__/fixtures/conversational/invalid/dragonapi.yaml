@@ -22,7 +22,7 @@
   tool:
     name: dragonapi-leak-isexclusive
     caption: Leak isExclusive
-    description: DragonAPI is never blended into an orchestrator response.
+    description: DragonAPI is never blended into an assistant response.
     type: DragonAPI
     triggers:
       - DataAvailable

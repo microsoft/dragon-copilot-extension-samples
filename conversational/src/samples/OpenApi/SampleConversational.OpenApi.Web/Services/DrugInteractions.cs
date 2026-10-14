@@ -5,7 +5,7 @@ namespace SampleConversational.OpenApi.Web.Services;
 
 /// <summary>
 /// Request body for <c>checkDrugInteraction</c>. <c>Locale</c> is injected by the platform
-/// through <c>runtimeParamBindings</c> (target: body); the orchestrator fills the medications.
+/// through <c>runtimeParamBindings</c> (target: body); the Dragon Copilot assistant fills the medications.
 /// </summary>
 public sealed record DrugInteractionRequest(string MedicationA, string MedicationB, string? Locale = null);
 

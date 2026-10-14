@@ -15,7 +15,7 @@ Accept: application/json, text/event-stream
 
 ###
 
-# Call lookup_reference_range (arguments chosen by the orchestrator)
+# Call lookup_reference_range (arguments chosen by Dragon Copilot)
 POST {{host}}/mcp
 Content-Type: application/json
 Accept: application/json, text/event-stream

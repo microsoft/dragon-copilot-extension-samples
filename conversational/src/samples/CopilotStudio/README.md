@@ -40,7 +40,7 @@ Edit [`extension.yaml`](extension.yaml):
 | `environmentId`, `agentIdentifier` | Values from step 2. |
 | `cloud` | `Prod` (default), `Gov`, `High`, `DoD` or `Mooncake`. |
 | `agentType` | `Published` (default) or `Prebuilt`. |
-| `description` | **Most important field** — the orchestrator selects the agent from it. State clearly *when* to use the agent. |
+| `description` | **Most important field** — Dragon Copilot selects the agent from it. State clearly *when* to use the agent. |
 | `timeout` | Seconds to wait for the agent (agents are slower than APIs; 30–60 is typical). |
 | `runtimeParamBindings` | Flat list for agent types. `target: intent` (default) adds a labelled value to the query sent to the agent; `target: sideChannel` sends it as activity metadata. |
 

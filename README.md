@@ -29,7 +29,7 @@ This repo includes:
 | **Physician Workflow**             | Custom AI-powered extensions with automation scripts, event triggers, and dependencies | Extend Dragon Copilot with custom clinical data processing |
 | **Clinical Application Connector** | EHR integrations and API connectors that interface with clinical applications          | Connect Dragon Copilot to external clinical systems        |
 | **Radiologists Workflow**          | Custom AI-powered extensions that analyze radiology reports and return quality-check recommendations | Extend Dragon Copilot with Report Optimization |
-| **Conversational Extension** (Public Preview) | MCP servers, OpenAPI services and Copilot Studio agents the Dragon Copilot orchestrator calls during a conversation | Answer clinician questions with your own tools and agents |
+| **Conversational Extension** (Public Preview) | MCP servers, OpenAPI services and Copilot Studio agents the Dragon Copilot assistant calls during a conversation | Answer clinician questions with your own tools and agents |
 
 ## 🚀 Getting Started
 

@@ -45,7 +45,7 @@
   tool:
     name: mcp-intent
     caption: MCP Intent
-    description: Selected by the orchestrator from user intent.
+    description: Selected by Dragon Copilot from user intent.
     type: MCP
     triggers:
       - IntentDriven
@@ -54,7 +54,7 @@
   tool:
     name: openapi-intent
     caption: OpenAPI Intent
-    description: Selected by the orchestrator from user intent.
+    description: Selected by Dragon Copilot from user intent.
     type: OpenAPI
     triggers:
       - IntentDriven

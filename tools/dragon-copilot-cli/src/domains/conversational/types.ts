@@ -6,7 +6,6 @@ export const CONVERSATIONAL_TOOL_TYPES: readonly ConversationalToolType[] = ['MC
 
 export type ExtractorType =
   | 'Evidence Link'
-  | 'Plotly Chart'
   | 'Evidence Title'
   | 'Evidence Image'
   | 'Evidence Author'

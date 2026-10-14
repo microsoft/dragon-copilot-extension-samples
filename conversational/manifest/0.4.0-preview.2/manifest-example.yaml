@@ -1,7 +1,7 @@
 # Dragon Copilot – Conversational Extension Manifest (0.4.0-preview.2, Public Preview)
 #
 # Conversational extensions add intent-driven tools to the Dragon Copilot
-# conversation. The orchestrator selects a tool from its `description` when a
+# conversation. Dragon Copilot selects a tool from its `description` when a
 # user's request matches, calls it, and blends the response into its answer.
 #
 # Supported conversational tool types in this public sample:

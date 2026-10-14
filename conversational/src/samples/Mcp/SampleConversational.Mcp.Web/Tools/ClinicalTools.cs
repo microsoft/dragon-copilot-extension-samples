@@ -11,7 +11,7 @@ namespace SampleConversational.Mcp.Web.Tools;
 
 /// <summary>
 /// MCP tools exposed by this server. Dragon Copilot discovers them via <c>tools/list</c> and the
-/// orchestrator picks one based on its name, description and parameter descriptions.
+/// assistant picks one based on its name, description and parameter descriptions.
 /// </summary>
 [McpServerToolType]
 public sealed class ClinicalTools
@@ -34,7 +34,7 @@ public sealed class ClinicalTools
     /// <remarks>
     /// In the manifest, <c>runtimeParamBindings</c> injects the transcript into the <c>transcript</c>
     /// argument (target: argument) and the conversation ID into <c>_meta.dragon.conversationId</c>
-    /// (target: sideChannel). The orchestrator LLM never sees or retypes either value.
+    /// (target: sideChannel). The Dragon Copilot assistant's model never sees or retypes either value.
     /// </remarks>
     [McpServerTool(Name = "extract_orders", ReadOnly = true, UseStructuredContent = true, Title = "Extract orders")]
     [Description("Extracts lab, imaging, medication and referral orders mentioned in the current encounter transcript.")]

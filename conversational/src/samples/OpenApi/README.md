@@ -50,8 +50,8 @@ Outside `Development`, the API requires a Microsoft Entra ID app-only bearer tok
 
 [`extension.yaml`](SampleConversational.OpenApi.Web/extension.yaml) shows:
 
-- **`specUrl`** — where the orchestrator fetches the OpenAPI document (or inline it with `specString`).
-- **`expose`** — operationIds the orchestrator may call.
+- **`specUrl`** — where Dragon Copilot fetches the OpenAPI document (or inline it with `specString`).
+- **`expose`** — operationIds Dragon Copilot may call.
 - **`customExtractors`** — `$.summary` → `Response Text`, `$.sources[*].url` → `Evidence Link`.
 - **`runtimeParamBindings`** — keyed by operationId:
   - `locale` → request body `locale` (`target: body`, the default for OpenAPI).
