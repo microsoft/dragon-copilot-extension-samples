@@ -2,7 +2,7 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://dragon.microsoft.com/schemas/extension-manifest/0.4.0-preview.2",
   "title": "Dragon Copilot Extension Manifest",
-  "description": "Private Preview manifest schema (0.4.0-preview.2) for Dragon Copilot extensions. Superset of the GA 0.3.0 schema with one intentional tightening: each tool's triggers must align with its type (DragonAPI: DataAvailable / ExplicitRequest; every other type: IntentDriven). Adds customExtractors, an inline OpenAPI specString as an alternative to specUrl, isExclusive and runtimeParamBindings (every tool type except DragonAPI). This public copy covers the DragonAPI (Workflow) and the MCP, OpenAPI and CopilotStudio (Conversational) tool types. Additional integration types are available in Private Preview through your Microsoft representative.",
+  "description": "Public Preview manifest schema (0.4.0-preview.2) for Dragon Copilot extensions. Superset of the GA 0.3.0 schema with one intentional tightening: each tool's triggers must align with its type (DragonAPI: DataAvailable / ExplicitRequest; every other type: IntentDriven). Adds customExtractors, an inline OpenAPI specString as an alternative to specUrl, isExclusive and runtimeParamBindings (every tool type except DragonAPI). This public copy covers the DragonAPI (Workflow) and the MCP, OpenAPI and CopilotStudio (Conversational) tool types.",
   "type": "object",
   "required": [
     "name",
@@ -18,7 +18,7 @@
     "schemaVersion": {
       "type": "string",
       "const": "0.4.0-preview.2",
-      "description": "Schema version of the extension manifest. A manifest opts in to the Private Preview surface by declaring \"0.4.0-preview.2\"; manifests declaring \"0.3.0\" are validated by the unchanged 0.3.0 schema instead."
+      "description": "Schema version of the extension manifest. A manifest opts in to the Public Preview surface by declaring \"0.4.0-preview.2\"; manifests declaring \"0.3.0\" are validated by the unchanged 0.3.0 schema instead."
     },
     "name": {
       "type": "string",

@@ -2,7 +2,7 @@
 
 Connect a published [Microsoft Copilot Studio](https://learn.microsoft.com/microsoft-copilot-studio/) agent to the Dragon Copilot conversation. Copilot Studio hosts the agent, so this sample has **no server code** — only a manifest ([`extension.yaml`](extension.yaml)) and setup steps.
 
-> **Private Preview.** Conversational extensions use manifest schema [`0.4.0-preview.2`](../../../manifest/0.4.0-preview.2/manifest-schema.json), which may change.
+> **Public Preview.** Conversational extensions use manifest schema [`0.4.0-preview.2`](../../../manifest/0.4.0-preview.2/manifest-schema.json), which may change.
 
 ## 1. Build and publish the agent
 

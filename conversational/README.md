@@ -2,7 +2,7 @@
 
 Conversational extensions let Dragon Copilot call **your** tools and agents while a clinician talks to it. The Dragon Copilot orchestrator reads each tool's `description`, decides when the tool is relevant to the user's request (`IntentDriven` trigger), calls it, and blends the result into its answer.
 
-> **Private Preview.** Conversational extensions use the Private Preview manifest schema [`0.4.0-preview.2`](manifest/0.4.0-preview.2/manifest-schema.json). Fields and behavior may change before general availability.
+> **Public Preview.** Conversational extensions use the Public Preview manifest schema [`0.4.0-preview.2`](manifest/0.4.0-preview.2/manifest-schema.json). Fields and behavior may change before general availability.
 
 ## 📚 Contents
 
@@ -21,7 +21,7 @@ Conversational extensions let Dragon Copilot call **your** tools and agents whil
 | **OpenAPI** | A REST API with an OpenAPI 3.x description (`specUrl` or inline `specString`). | [`src/samples/OpenApi`](src/samples/OpenApi/README.md) (C# / ASP.NET Core) |
 | **CopilotStudio** | A published [Microsoft Copilot Studio](https://learn.microsoft.com/microsoft-copilot-studio/) agent. | [`src/samples/CopilotStudio`](src/samples/CopilotStudio/README.md) (manifest + setup guide) |
 
-Additional integration types (for example Agent-to-Agent (A2A), Azure AI Foundry agents and Healthcare Agent Service) are available in **Private Preview** — contact your Microsoft representative.
+These samples cover the MCP, OpenAPI and CopilotStudio integration types.
 
 ### How a call flows
 
@@ -134,4 +134,4 @@ dragon-copilot conversational package                      # Validate + zip for 
 4. Upload (sideload) the package for your organization in the Dragon admin center, or publish it through the [marketplace](https://admin.healthplatform.microsoft.com/marketplace).
 5. Ask Dragon Copilot one of the sample's test prompts.
 
-Access to the Private Preview, tenant enablement, customizations and the additional integration types are arranged through your Microsoft representative.
+Conversational extensions are in Public Preview: fields and behavior may change before general availability, so re-run `dragon-copilot conversational validate` when the schema is updated.

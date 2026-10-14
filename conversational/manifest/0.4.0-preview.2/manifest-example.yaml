@@ -1,4 +1,4 @@
-# Dragon Copilot – Conversational Extension Manifest (0.4.0-preview.2, Private Preview)
+# Dragon Copilot – Conversational Extension Manifest (0.4.0-preview.2, Public Preview)
 #
 # Conversational extensions add intent-driven tools to the Dragon Copilot
 # conversation. The orchestrator selects a tool from its `description` when a
