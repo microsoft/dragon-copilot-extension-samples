@@ -4,7 +4,7 @@ import { load, dump } from 'js-yaml';
 import chalk from 'chalk';
 import type { GenerateOptions, ConversationalManifest, ConversationalTool } from '../types.js';
 import { createManifest, getToolTemplate } from '../templates/index.js';
-import { promptTool, promptToolType } from '../shared/prompts.js';
+import { promptExtensionDetails, promptTool, promptToolType } from '../shared/prompts.js';
 import { validateConversationalManifest, formatErrors } from '../shared/schema-validator.js';
 
 const PLACEHOLDER_DETAILS = {
@@ -49,7 +49,8 @@ export async function generateManifest(options: GenerateOptions): Promise<void> 
   if (manifest) {
     manifest.tools.push(tool);
   } else {
-    manifest = createManifest(PLACEHOLDER_DETAILS, [tool]);
+    const envelope = options.interactive ? await promptExtensionDetails({}) : PLACEHOLDER_DETAILS;
+    manifest = createManifest(envelope, [tool]);
   }
 
   const result = validateConversationalManifest(manifest);
@@ -60,6 +61,9 @@ export async function generateManifest(options: GenerateOptions): Promise<void> 
 
   writeFileSync(outputPath, dump(manifest, { lineWidth: -1 }));
   console.log(chalk.green(`✅ Added ${tool.type} tool '${tool.name}' to ${outputPath}`));
+  if (manifest.auth?.tenantId === PLACEHOLDER_DETAILS.tenantId) {
+    console.log(chalk.yellow('   auth.tenantId is the all-zero placeholder; set your publisher tenant ID before packaging.'));
+  }
   if (!options.interactive) {
     console.log(chalk.yellow('   Replace the placeholder endpoint / IDs with your own values.'));
   }

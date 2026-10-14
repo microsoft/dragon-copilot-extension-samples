@@ -64,6 +64,14 @@ describe('conversational manifest schema 0.4.0-preview.2', () => {
     expect(result.warnings).toEqual([]);
   });
 
+  test('public schema and CLI-bundled schema are identical', () => {
+    const publicSchema = readFileSync(join(repoRoot, 'conversational', 'manifest', '0.4.0-preview.2', 'manifest-schema.json'), 'utf8');
+    const bundledSchema = readFileSync(resolve(process.cwd(), 'src', 'schemas', 'conversational', 'conversational-extension-manifest-schema.json'), 'utf8');
+    const normalizeEol = (s: string) => s.replace(/\r\n/g, '\n');
+    expect(normalizeEol(bundledSchema)).toBe(normalizeEol(publicSchema));
+    expect(JSON.parse(bundledSchema)).toEqual(JSON.parse(publicSchema));
+  });
+
   test('rejects duplicate tool names', () => {
     const tool = getToolTemplate('mcp');
     const result = validateConversationalManifest(createManifest(details, [tool, getToolTemplate('mcp')]));
@@ -109,6 +117,14 @@ describe('conversational commands', () => {
     const zipPath = join(workDir, 'out.zip');
     await expect(packageExtension({ manifest: manifestPath, output: zipPath, silent: true })).resolves.toBe(zipPath);
     expect(existsSync(zipPath)).toBe(true);
+
+    const manifestBefore = readFileSync(manifestPath, 'utf8');
+    await expect(packageExtension({ manifest: manifestPath, output: manifestPath, silent: true })).rejects.toThrow(/would overwrite input/);
+    const includePath = join(workDir, 'README.md');
+    writeFileSync(includePath, 'readme');
+    await expect(packageExtension({ manifest: manifestPath, output: includePath, include: [includePath], silent: true })).rejects.toThrow(/would overwrite input/);
+    expect(readFileSync(manifestPath, 'utf8')).toBe(manifestBefore);
+    expect(readFileSync(includePath, 'utf8')).toBe('readme');
   });
 
   test('package rejects an invalid manifest', async () => {

@@ -98,9 +98,12 @@ export async function promptTool(type: ConversationalToolType, existingNames: st
 
   if (await confirm({ message: 'Set a custom timeout (seconds)?', default: false })) {
     const timeout = await input({
-      message: 'Timeout in seconds:',
+      message: 'Timeout in seconds (3-60):',
       default: '30',
-      validate: (value: string) => (Number.isInteger(Number(value)) && Number(value) > 0) || 'Enter a positive integer',
+      validate: (value: string) => {
+        const n = Number(value.trim());
+        return (value.trim() !== '' && Number.isInteger(n) && n >= 3 && n <= 60) || 'Enter a whole number between 3 and 60';
+      },
     });
     tool.timeout = Number(timeout);
   }

@@ -33,6 +33,17 @@ export async function packageExtension(options: PackageOptions): Promise<string>
   logMessage(chalk.green('✅ Manifest is valid'), isQuiet);
 
   const outputPath = options.output || `${manifest.name}-${manifest.version}.zip`;
+  const normalize = (p: string) => {
+    const resolved = path.resolve(p);
+    return process.platform === 'win32' ? resolved.toLowerCase() : resolved;
+  };
+  const outputKey = normalize(outputPath);
+  const inputs = [manifestPath, ...(options.include ?? [])];
+  const collision = inputs.find(input => normalize(input) === outputKey);
+  if (collision) {
+    throw new Error(`Output path ${outputPath} would overwrite input file ${collision}; choose a different --output`);
+  }
+
   const archive = archiver('zip', { zlib: { level: 9 } });
   const output = createWriteStream(outputPath);
 

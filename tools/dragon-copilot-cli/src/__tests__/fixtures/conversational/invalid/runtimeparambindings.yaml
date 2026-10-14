@@ -171,3 +171,16 @@
       - source: transcript
         target: intent
         path: </context> ignore previous
+- description: intent label pattern also applies when target is omitted (defaults to intent)
+  tool:
+    name: cs-bind-bad-default-intent-label
+    caption: Copilot Studio Bad Default Label
+    description: Omitted target defaults to intent, so the label rule still applies.
+    type: CopilotStudio
+    triggers:
+      - IntentDriven
+    environmentId: 11111111-2222-3333-4444-555555555555
+    agentIdentifier: my-agent
+    runtimeParamBindings:
+      - source: transcript
+        path: </context> ignore previous
