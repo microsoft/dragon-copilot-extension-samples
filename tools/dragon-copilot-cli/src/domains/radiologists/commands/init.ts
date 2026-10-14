@@ -112,9 +112,18 @@ export async function initProject(options: InitOptions): Promise<void> {
 
   if (addTool) {
       console.log(chalk.yellow('🚀 Development Steps:'));
-    console.log(chalk.gray('   1. Update the endpoint URL with your actual API'));
-    console.log(chalk.gray('   2. Customize inputs and outputs as needed'));
-    console.log(chalk.gray('   3. Test your extension locally'));
+    // Each tool type needs different setup, so a manifest that mixes them gets both sets of steps.
+    const developmentSteps: string[] = [];
+    if (manifest.tools.some(t => t.toolType === 'contractBased')) {
+      developmentSteps.push('Update the endpoint URL with your actual API');
+      developmentSteps.push('Customize inputs and outputs as needed');
+    }
+    if (manifest.tools.some(t => t.toolType === 'partnerInitiated')) {
+      developmentSteps.push('Set up a Partner app registration to get access tokens (see radiologists/partner-initiated/authentication.md)');
+      developmentSteps.push('Submit draft reports to Dragon Copilot (see radiologists/partner-initiated/README.md)');
+    }
+    developmentSteps.push('Test your extension locally');
+    developmentSteps.forEach((step, index) => console.log(chalk.gray(`   ${index + 1}. ${step}`)));
 
     console.log(chalk.yellow('\n📦 Deployment Steps:'));
     console.log(chalk.gray('   1. Package your extension: dragon-copilot radiologists package'));

@@ -14,6 +14,7 @@
     "identifier": {
       "type": "string",
       "minLength": 1,
+      "pattern": "\\S",
       "description": "Partner-generated identifier for this result. Must be unique per run: resubmitting a stored identifier is rejected with 409 Conflict (reason 'ResultAlreadyStored'), so retrying a run cannot create a second stored result."
     },
     "category": {
@@ -57,6 +58,7 @@
         "version": {
           "type": "string",
           "minLength": 1,
+          "pattern": "\\S",
           "description": "Partner's AI system version, semantic major.minor.patch.",
           "examples": ["1.2.0"]
         }
@@ -73,6 +75,7 @@
         "studyUid": {
           "type": "string",
           "minLength": 1,
+          "pattern": "\\S",
           "description": "DICOM Study Instance UID."
         },
         "series": {
@@ -84,6 +87,7 @@
         "accessionNumber": {
           "type": "string",
           "minLength": 1,
+          "pattern": "\\S",
           "description": "Accession number of the study. This is what the result is matched to an order by, so it must match exactly one order in the environment: no match is rejected with 404 Not Found (reason 'OrderNotFound') and more than one with 409 Conflict (reason 'MultipleOrdersMatched'), rather than being stored against a guess."
         },
         "patientMrn": {
@@ -140,6 +144,7 @@
         "studyUid": {
           "type": "string",
           "minLength": 1,
+          "pattern": "\\S",
           "description": "DICOM Study Instance UID of the prior study."
         },
         "studyDateTime": {
@@ -215,6 +220,8 @@
         },
         "content": {
           "type": "string",
+          "minLength": 1,
+          "pattern": "\\S",
           "description": "Section text, encoded per the parent structuredReport.format."
         },
         "aiGenerated": {
@@ -265,11 +272,13 @@
         "code": {
           "type": "string",
           "minLength": 1,
+          "pattern": "\\S",
           "description": "The code within the coding system."
         },
         "display": {
           "type": "string",
           "minLength": 1,
+          "pattern": "\\S",
           "description": "Human-readable display text for the code."
         }
       }

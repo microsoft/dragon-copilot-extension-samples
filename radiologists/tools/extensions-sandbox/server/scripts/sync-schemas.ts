@@ -4,7 +4,7 @@
  * The sandbox validates against two contracts it does not own:
  *
  * - `radiologists-extension-manifest-schema.json` — owned by `tools/dragon-copilot-cli`.
- * - `radiologists-extensibility-api.yaml` — owned by `radiologists/` (the copy the
+ * - `radiologists-extensibility-api.yaml` — owned by `radiologists/extensibility-api/` (the copy the
  *   radiology samples are built against); the response and input schemas under
  *   `src/schemas/generated-schemas/` are derived from it.
  *
@@ -43,9 +43,9 @@ const SYNC_TARGETS: SyncTarget[] = [
     owner: 'tools/dragon-copilot-cli',
   },
   {
-    // server/scripts -> radiologists/radiologists-extensibility-api.yaml
-    source: resolve(__dirname, '..', '..', '..', '..', 'radiologists-extensibility-api.yaml'),
-    owner: 'radiologists/',
+    // server/scripts -> radiologists/extensibility-api/radiologists-extensibility-api.yaml
+    source: resolve(__dirname, '..', '..', '..', '..', 'extensibility-api', 'radiologists-extensibility-api.yaml'),
+    owner: 'radiologists/extensibility-api/',
   },
 ];
 
