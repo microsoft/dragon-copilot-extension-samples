@@ -4,6 +4,14 @@ This console app does what your service does after your model generates a draft 
 
 It submits to a simulated Dragon Copilot endpoint built into the app, so it runs without a Dragon Copilot environment and, by default, without credentials. The simulator checks a submission in the same order as Dragon Copilot and returns the same status codes, reasons and response bodies. See [What the simulator doesn't do](#what-the-simulator-doesnt-do) for the differences.
 
+> [!NOTE]
+> **How the simulation works**
+>
+> - There's no separate server. The app's `HttpClient` uses [`SimulatedDragonCopilotHandler`](Simulation/SimulatedDragonCopilotHandler.cs), a hard-coded [HTTP message handler](https://learn.microsoft.com/dotnet/api/system.net.http.httpmessagehandler) that acts like middleware for outgoing calls.
+> - The handler intercepts each request to Dragon Copilot, checks it the way Dragon Copilot does, and returns the response Dragon Copilot would send. The request never leaves the console app.
+> - Authentication isn't simulated. When it's on, the token request goes to Microsoft Entra ID, and the handler only checks that a bearer token is present. See [What the simulator doesn't do](#what-the-simulator-doesnt-do) for what Dragon Copilot checks.
+> - Your own service doesn't need the handler: create the `HttpClient` without it, with the base URL that Microsoft provides for the environment.
+
 ## Prerequisites
 
 - [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0)
