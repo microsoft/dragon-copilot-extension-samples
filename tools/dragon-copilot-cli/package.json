@@ -23,7 +23,7 @@
     "dragon-copilot": "dist/cli.js"
   },
   "dependencies": {
-    "@inquirer/prompts": "^8.5.2",
+    "@inquirer/prompts": "^8.7.3",
     "ajv": "^8.20.0",
     "ajv-formats": "^3.0.1",
     "archiver": "^7.0.1",
@@ -38,7 +38,7 @@
     "@types/jest": "^30.0.0",
     "@types/js-yaml": "^4.0.9",
     "@types/node": "^26.6.4",
-    "esbuild": "^0.28.1",
+    "esbuild": "^0.28.2",
     "jest": "^30.5.2",
     "postject": "^1.0.0-alpha.6",
     "rimraf": "^6.1.3",
