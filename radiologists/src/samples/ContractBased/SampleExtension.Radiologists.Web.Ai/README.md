@@ -177,7 +177,7 @@ These are the same variables shown in the sample's `Dockerfile`.
 
 ## Request / response contract
 
-See [`radiologists-extensibility-api.yaml`](../../../../radiologists-extensibility-api.yaml) for the full OpenAPI spec.
+See [`radiologists-extensibility-api.yaml`](../../../../extensibility-api/radiologists-extensibility-api.yaml) for the full OpenAPI spec.
 
 Only `sessionData` is required. `extensibilityApiVersion` shows which Dragon Copilot API version sent the request, and your extension does not need to read it. Extra fields are accepted, so your extension keeps working as the API evolves.
 

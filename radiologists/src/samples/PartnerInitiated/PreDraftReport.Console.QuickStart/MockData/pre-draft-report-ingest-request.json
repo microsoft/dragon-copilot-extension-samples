@@ -1,0 +1,91 @@
+{
+  "publisherId": "101",
+  "planId": "303",
+  "offerId": "202",
+  "manifestName": "sampleRadiologyExtension",
+  "version": "1.0.0",
+  "toolName": "preDraftReportGeneratorTool",
+  "draftReport": {
+    "identifier": "a25c4954-a7f7-49f0-a4a2-98d354d60705",
+    "category": "RAD",
+    "code": "68604-8",
+    "aiSystemInfo": {
+      "version": "1.2.0"
+    },
+    "imagingStudy": {
+      "studyUid": "2.25.329391862910276348519548604004805820309",
+      "series": [
+        {
+          "seriesUid": "2.25.329391862910276348519548604004805820310",
+          "instanceUids": [
+            "2.25.329391862910276348519548604004805820309",
+            "2.25.329391862910276348519548604004805820303"
+          ]
+        },
+        {
+          "seriesUid": "2.25.329391862910276348519548604004805820344",
+          "instanceUids": [
+            "2.25.329391862910276348519548604004805820398"
+          ]
+        }
+      ],
+      "accessionNumber": "ACC-0000001",
+      "patientMrn": "99999",
+      "modality": "CT",
+      "bodyParts": [
+        "Lung",
+        "Chest"
+      ],
+      "procedureCode": "77734",
+      "studyDateTime": "2020-04-07T12:34:56Z"
+    },
+    "imagingStudyPriors": [
+      {
+        "studyUid": "2.25.329391862910276348519548604004805820221",
+        "studyDateTime": "2020-04-06T23:24:36Z",
+        "modality": "CT"
+      }
+    ],
+    "qualityMetrics": {
+      "overallConfidenceScore": 0.98,
+      "imageQualityScore": 0.95,
+      "diagnosticCertaintyScore": 0.99
+    },
+    "reportContent": {
+      "format": "structured_report",
+      "structuredReport": {
+        "format": "plain_text",
+        "sections": [
+          {
+            "name": "technique",
+            "content": "CT scan performed with contrast enhancement",
+            "aiGenerated": true,
+            "aiConfidence": 0.95,
+            "sectionOrder": 1,
+            "codes": [
+              {
+                "system": "LOINC",
+                "code": "55111-9",
+                "display": "Technique"
+              }
+            ]
+          },
+          {
+            "name": "impression",
+            "content": "No acute cardiopulmonary abnormality.",
+            "aiGenerated": true,
+            "aiConfidence": 1,
+            "sectionOrder": 2,
+            "codes": [
+              {
+                "system": "LOINC",
+                "code": "68604-8",
+                "display": "Radiology Diagnostic study note"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

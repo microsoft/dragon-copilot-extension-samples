@@ -57,7 +57,7 @@ export function registerRadiologistsCommands(program: Command): void {
     radiologists
         .command('generate')
         .description('Generate or update a radiologists extension manifest')
-        .option('-t, --template <template>', 'Template to use (quality-check)')
+        .option('-t, --template <template>', 'Template to use (quality-check, pre-draft-report)')
         .option('-o, --output <path>', 'Output file path', 'extension.yaml')
         .option('-i, --interactive', 'Interactive mode')
         .action(async (options: { template?: string; output: string; interactive?: boolean }) => {

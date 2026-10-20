@@ -352,6 +352,65 @@ describe('validateDcrExtensionManifest (radiologists)', () => {
     expect(result.errors).toHaveLength(0);
   });
 
+  function buildValidPartnerInitiatedManifest(): DcrExtensionManifest {
+    return {
+      name: 'testPreDraftExtension',
+      description: 'Partner-initiated extension for schema validation tests',
+      version: '1.0.0',
+      radiologistsExtensibilityApiVersion: '1.0.0',
+      auth: {
+        tenantId: TENANT_ID,
+      },
+      tools: [
+        {
+          name: 'preDraftReportGeneratorTool',
+          toolType: 'partnerInitiated',
+          capability: 'preDraftReportGeneration',
+          description: 'Generates a pre-draft radiology report',
+          outputs: [
+            {
+              name: 'preDraftReportResult',
+              description: 'Pre-draft radiology report',
+              'content-type': 'application/vnd.ms-dragon.rad.draft-report+json',
+              schemaVersion: '1.0',
+            },
+          ],
+        },
+      ],
+    };
+  }
+
+  it('returns valid for a partnerInitiated tool that omits endpoint and inputs', () => {
+    const manifest = buildValidPartnerInitiatedManifest();
+
+    const result = validateDcrExtensionManifest(manifest);
+
+    expect(result.isValid).toBe(true);
+    expect(result.errors).toHaveLength(0);
+  });
+
+  it('requires endpoint and inputs when toolType is contractBased', () => {
+    const manifest = buildValidPartnerInitiatedManifest();
+    (manifest.tools[0] as any).toolType = 'contractBased';
+    (manifest.tools[0] as any).capability = 'qualityCheck';
+
+    const result = validateDcrExtensionManifest(manifest);
+
+    expect(result.isValid).toBe(false);
+    const messages = result.errors.map(e => `${e.path}: ${e.message}`).join('\n');
+    expect(messages).toContain('endpoint');
+    expect(messages).toContain('inputs');
+  });
+
+  it('rejects an unknown toolType', () => {
+    const manifest = buildValidPartnerInitiatedManifest();
+    (manifest.tools[0] as any).toolType = 'somethingElse';
+
+    const result = validateDcrExtensionManifest(manifest);
+
+    expect(result.isValid).toBe(false);
+  });
+
   it('rejects an invalid capability value', () => {
     const manifest = buildValidRadiologistsManifest();
     (manifest.tools[0] as any).capability = 'invalidCapability';

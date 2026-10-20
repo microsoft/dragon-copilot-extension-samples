@@ -11,13 +11,19 @@ export interface AuthConfig {
   tenantId: string;
 }
 
+export type DcrToolType = 'contractBased' | 'partnerInitiated';
+
+export type DcrCapability = 'qualityCheck' | 'preDraftReportGeneration';
+
 export interface DcrTool {
   name: string;
-  toolType: 'contractBased';
-  capability: 'qualityCheck';
+  toolType: DcrToolType;
+  capability: DcrCapability;
   description: string;
-  endpoint: string;
-  inputs: DcrInput[];
+  /** Required for contractBased tools; omitted for partnerInitiated, which are never called. */
+  endpoint?: string;
+  /** Required for contractBased tools; omitted for partnerInitiated, which receive no inputs. */
+  inputs?: DcrInput[];
   outputs: DcrOutput[];
   relevanceFilteringCriteria?: RelevanceFilteringCriteria;
   configurationTemplate?: Record<string, any>;
@@ -73,11 +79,11 @@ export interface TemplateConfig {
 
 export interface ToolTemplate {
   name: string;
-  toolType: 'contractBased';
-  capability: 'qualityCheck';
+  toolType: DcrToolType;
+  capability: DcrCapability;
   description: string;
-  endpoint: string;
-  inputs: Array<{
+  endpoint?: string;
+  inputs?: Array<{
     name: string;
     description: string;
     'content-type': string;

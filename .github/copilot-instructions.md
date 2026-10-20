@@ -47,10 +47,27 @@ public async Task<ProcessResponse> ProcessAsync([FromBody] ProcessRequest reques
 ```
 
 ### Authentication
-1. **JWT Authentication**: Microsoft Entra ID integration for service-to-service auth
-2. **Conditional Security**: Can be disabled for development environments
+
+Extensions authenticate in one of two directions. Determine which applies before writing or changing auth code.
+
+1. **Dragon Copilot calls the partner's endpoint** (Physician extensions and Radiologists tools with `toolType: contractBased`)
+   - The extension validates the Microsoft Entra ID JWT bearer token that the Dragon Copilot Extension Runtime sends on every request.
+   - Production settings: `TenantId`, `ClientId`, `Instance`, `RequiredClaims`. The manifest's `auth.tenantId` must match `TenantId`.
+   - Validation can be disabled in `appsettings.Development.json` for local testing only. Never ship it disabled.
+   - Source of truth: `doc/Authentication.md`, `doc/AuthenticationDesign.md`, `doc/Troubleshooting-Authentication.md`.
+
+2. **The partner calls Dragon Copilot** (Radiologists tools with `toolType: partnerInitiated`)
+   - These tools declare no `endpoint`, so there is no inbound request to validate and no development bypass.
+   - The partner workload acquires an app-only access token through the OAuth 2.0 client credentials flow. Its app registration needs the Partner Communications API `AiFindingsWriters` application permission.
+   - The manifest's `auth.tenantId` is the tenant that issues these tokens, and the token's `tid` claim must match it.
+   - Source of truth: `radiologists/partner-initiated/authentication.md`. The `doc/` guides don't apply.
+
+Clinical Application Connectors don't use `auth.tenantId`. See `connector/QUICKSTART.md` for their server and client authentication.
 
 ### Configuration Patterns
+
+These apply only when Dragon Copilot calls the partner's endpoint, not when a Radiologists `partnerInitiated` tool calls Dragon Copilot.
+
 - **Development**: Authentication disabled for easier testing
 - **Production**: JWT authentication with Microsoft Entra ID
 - **Environment-specific**: `appsettings.json` vs `appsettings.Development.json`

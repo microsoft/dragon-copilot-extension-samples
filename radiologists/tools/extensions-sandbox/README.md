@@ -6,7 +6,7 @@ A local development environment for testing and validating Microsoft Dragon Copi
 
 **Who it's for**: partners building radiology extensions.
 
-**Where it fits**: author your manifest with `tools/dragon-copilot-cli`, run your extension (or one of the samples in `radiologists/src/samples/Workflow`), then load the manifest here to test.
+**Where it fits**: author your manifest with `tools/dragon-copilot-cli`, run your extension (or one of the samples in `radiologists/src/samples/ContractBased`), then load the manifest here to test.
 
 ## Prerequisites
 
@@ -225,13 +225,13 @@ server proxies `/api/*` to the backend.
 
 ## Testing against a sample extension
 
-Rather than shipping its own throwaway extension service, the sandbox is meant to be pointed at the canonical **Quickstart sample extension** that lives alongside these samples: [`SampleExtension.Radiologists.Web.Quickstart`](../../src/samples/Workflow/README.md). It implements the same `ProcessRequest`/`ProcessResponse` envelope contract from the Extensibility API for Dragon Copilot (radiologists) and returns a schema-valid `QualityCheckResult` payload, so you can exercise the sandbox UI end-to-end without deploying a real extension.
+Rather than shipping its own throwaway extension service, the sandbox is meant to be pointed at the canonical **Quickstart sample extension** that lives alongside these samples: [`SampleExtension.Radiologists.Web.Quickstart`](../../src/samples/ContractBased/README.md). It implements the same `ProcessRequest`/`ProcessResponse` envelope contract from the Extensibility API for Dragon Copilot (radiologists) and returns a schema-valid `QualityCheckResult` payload, so you can exercise the sandbox UI end-to-end without deploying a real extension.
 
 ### Start the sample extension
 
 ```bash
 # From the repository root
-cd radiologists/src/samples/Workflow
+cd radiologists/src/samples/ContractBased
 dotnet run --project SampleExtension.Radiologists.Web.Quickstart
 ```
 
@@ -241,7 +241,7 @@ The service listens on `http://localhost:5080` (https `https://localhost:7080`) 
 
 1. Start the sample extension (port `5080`, above).
 2. Start the sandbox (`npm run dev` from `extensions-sandbox/`).
-3. Load the shared manifest [`extension.yaml`](../../src/samples/Workflow/extension.yaml) — its `sampleQualityCheckTool` already targets `http://localhost:5080/v1/process`, so there is nothing to edit.
+3. Load the shared manifest [`extension.yaml`](../../src/samples/ContractBased/extension.yaml) — its `sampleQualityCheckTool` already targets `http://localhost:5080/v1/process`, so there is nothing to edit.
 4. Click **Validate**. The Testing panel stays closed until the manifest validates, so this step is required (uploading alone does not open it).
 5. Switch to the **Setup** tab, fill in the report inputs, and click **Run**.
 6. View results in the **Results** and **Outputs** tabs.
