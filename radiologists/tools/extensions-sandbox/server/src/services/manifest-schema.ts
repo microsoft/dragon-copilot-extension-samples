@@ -19,6 +19,34 @@ const validateSchema = ajv.compile(manifestJsonSchema);
 
 export type DetailedValidationError = ReturnType<typeof buildDetailedErrors>[number];
 
+/**
+ * Upper bound on the values (objects, arrays and scalars) in a manifest we will
+ * validate. The validator reports every error (`allErrors`), so Ajv walks the
+ * whole document; YAML aliases can expand a file of a few KB into hundreds of
+ * thousands of values, so the byte limits on uploads and request bodies alone
+ * do not bound that walk. Real manifests contain well under a hundred values.
+ */
+export const MAX_MANIFEST_VALUES = 10_000;
+
+/** Counts values reachable from `root`, stopping as soon as `limit` is exceeded. */
+function exceedsValueLimit(root: unknown, limit: number): boolean {
+  const pending: unknown[] = [root];
+  let count = 1;
+  while (pending.length > 0) {
+    const value = pending.pop();
+    if (value === null || typeof value !== 'object') {
+      continue;
+    }
+    for (const child of Object.values(value)) {
+      if (++count > limit) {
+        return true;
+      }
+      pending.push(child);
+    }
+  }
+  return false;
+}
+
 export type ManifestValidationResult =
   | { valid: true; manifest: ExtensionManifest }
   | { valid: false; errors: DetailedValidationError[] };
@@ -39,6 +67,22 @@ export interface ManifestSummary {
  * @param sourceText The JSON/YAML the manifest was parsed from, used for line numbers.
  */
 export function validateManifestDocument(parsed: unknown, sourceText: string): ManifestValidationResult {
+  if (exceedsValueLimit(parsed, MAX_MANIFEST_VALUES)) {
+    return {
+      valid: false,
+      errors: [
+        {
+          path: '/',
+          line: null,
+          message: `/: manifest exceeds ${MAX_MANIFEST_VALUES} values`,
+          detail: `The manifest contains more than ${MAX_MANIFEST_VALUES} values (objects, arrays and fields), so it was not validated.`,
+          hint: 'Reduce the number of tools, inputs and outputs. If the file uses YAML anchors and aliases (&name / *name), write the content out explicitly instead.',
+          severity: 'error',
+        },
+      ],
+    };
+  }
+
   if (validateSchema(parsed)) {
     return { valid: true, manifest: parsed as ExtensionManifest };
   }
