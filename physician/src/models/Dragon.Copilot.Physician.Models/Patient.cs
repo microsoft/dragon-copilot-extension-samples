@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
+using System;
 using System.Text.Json.Serialization;
 
 namespace Dragon.Copilot.Physician.Models;
@@ -21,6 +22,12 @@ public class Patient
     /// </summary>
     [JsonPropertyName("gender")]
     public string? Gender { get; set; }
+
+    /// <summary>
+    /// Date of birth
+    /// </summary>
+    [JsonPropertyName("birthdate")]
+    public DateTime? Birthdate { get; set; }
 
     /// <summary>
     /// Pronoun preference for the patient

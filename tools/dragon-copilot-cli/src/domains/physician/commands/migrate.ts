@@ -172,6 +172,11 @@ async function migrateToolTo030(tool: Manifest, index: number, ctx: MigrationCon
 
   ctx.changes.push(`${label}: added type: DragonAPI`);
   const triggers = await resolveTriggers(trigger, migratedName, label, ctx);
+  const migratedOutputs = (Array.isArray(outputs) ? outputs : []).map((item: Manifest, i: number) =>
+    convertDataField(item, `${label}.outputs[${i}]`, ctx, () => OUTPUT_CONTENT_TYPE));
+  if (migratedOutputs.length === 0 && outputs !== undefined) {
+    ctx.changes.push(`${label}: removed empty outputs (outputs are optional in 0.3.0)`);
+  }
 
   return {
     name: migratedName,
@@ -182,8 +187,7 @@ async function migrateToolTo030(tool: Manifest, index: number, ctx: MigrationCon
     endpoint,
     inputs: (Array.isArray(inputs) ? inputs : []).map((item: Manifest, i: number) =>
       convertDataField(item, `${label}.inputs[${i}]`, ctx, value => DATA_TO_CONTENT_TYPE[value])),
-    outputs: (Array.isArray(outputs) ? outputs : []).map((item: Manifest, i: number) =>
-      convertDataField(item, `${label}.outputs[${i}]`, ctx, () => OUTPUT_CONTENT_TYPE)),
+    ...(migratedOutputs.length > 0 ? { outputs: migratedOutputs } : {}),
     ...rest
   };
 }

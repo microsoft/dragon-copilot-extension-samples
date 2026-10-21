@@ -1,13 +1,18 @@
+schemaVersion: 0.3.0
 name: sample-clinical-extraction
+caption: Sample Clinical Extraction
 description: Extracts certain clinical entities
 version: 0.0.1
 auth:
   tenantId: 00000000-0000-0000-0000-000000000000
 tools:
   - name: clinical-entity-extractor
+    caption: Clinical Entity Extractor
     description: Extracts certain clinical entities
+    type: DragonAPI
+    triggers:
+      - DataAvailable
     endpoint: http://localhost:5181/v1/process
-    trigger: AutoRun
     inputs:
       - name: note
         description: Note

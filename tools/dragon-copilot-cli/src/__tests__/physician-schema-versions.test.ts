@@ -13,7 +13,13 @@ import {
   LATEST_SCHEMA_VERSION,
   LEGACY_SCHEMA_VERSION
 } from '../domains/physician/shared/schema-validator.js';
-import { validateToolName, validateTimeout, humanizeName } from '../domains/physician/shared/prompts.js';
+import {
+  validateToolName,
+  validateTimeout,
+  humanizeName,
+  buildV030Inputs,
+  ADAPTIVE_CARD_CONTENT_TYPE
+} from '../domains/physician/shared/prompts.js';
 import { buildManifest, buildTool } from '../domains/physician/shared/manifest-builder.js';
 import { getTemplate } from '../domains/physician/templates/index.js';
 
@@ -248,6 +254,49 @@ describe('physician version-aware helpers', () => {
     expect(legacy.schemaVersion).toBeUndefined();
     expect(validateExtensionManifest({ ...legacy, auth: { tenantId: TENANT_ID } }).errors).toEqual([]);
   });
+
+  test.each([['note-suggestions'], ['audio-analysis']])('0.3.0-only %s template is valid', (name) => {
+    const template = getTemplate(name) as Record<string, any>;
+    expect(validateExtensionManifest({ ...template, auth: { tenantId: TENANT_ID } }).errors).toEqual([]);
+    expect(() => getTemplate(name, LEGACY_SCHEMA_VERSION)).toThrow();
+  });
+
+  test('builder keeps prebuilt 0.3.0 inputs and omits empty outputs', () => {
+    const manifest = buildManifest(
+      { name: 'feedback-extension', description: 'Feedback', version: '0.0.1' },
+      { tenantId: TENANT_ID },
+      '0.3.0'
+    );
+    const inputs = buildV030Inputs(
+      ['application/vnd.ms-dragon.dsp.note+json', 'application/fhir.ehr-context+json', ADAPTIVE_CARD_CONTENT_TYPE],
+      ['patient', 'current-encounter']
+    );
+    inputs.push({
+      name: 'supplemental-context',
+      description: 'Optional context',
+      'content-type': 'application/fhir.ehr-context+json',
+      include: ['conditions'],
+      required: false
+    });
+    inputs[2].required = false;
+
+    const tool = buildTool({
+      toolName: 'feedback-tool',
+      toolDescription: 'Handles card actions',
+      endpoint: 'https://example.org/process',
+      triggers: ['DataAvailable', 'ExplicitRequest'],
+      inputTypes: [],
+      inputs,
+      outputs: []
+    }, '0.3.0') as Record<string, any>;
+    (manifest.tools as unknown[]).push(tool);
+
+    expect(validateExtensionManifest(manifest).errors).toEqual([]);
+    expect(tool.outputs).toBeUndefined();
+    expect(tool.inputs.map((item: { name: string }) => item.name))
+      .toEqual(['note', 'ehr-context', 'card-content', 'supplemental-context']);
+    expect(tool.inputs[2].required).toBe(false);
+  });
 });
 
 describe('physician migrate and versions commands', () => {
@@ -317,6 +366,21 @@ describe('physician migrate and versions commands', () => {
     expect(process.exitCode).toBe(0);
     expect(logs).toContain('schemaVersion: 0.3.0');
     expect(existsSync(join(workingDir, 'extension.migrated.yaml'))).toBe(false);
+  });
+
+  test('drops an empty outputs array because 0.3.0 outputs are optional', async () => {
+    const manifestPath = join(workingDir, 'extension.yaml');
+    const yaml = LEGACY_MANIFEST_YAML.replace(
+      /(  - name: transcript-tool[\s\S]*?)    outputs:[\s\S]*$/,
+      '$1    outputs: []\n'
+    );
+    writeFileSync(manifestPath, yaml, 'utf8');
+
+    await run('migrate', manifestPath, '--non-interactive');
+
+    const migrated = load(readFileSync(join(workingDir, 'extension.migrated.yaml'), 'utf8')) as Record<string, any>;
+    expect(validateExtensionManifest(migrated).errors).toEqual([]);
+    expect(migrated.tools[1].outputs).toBeUndefined();
   });
 
   test('--in-place overwrites the original file', async () => {

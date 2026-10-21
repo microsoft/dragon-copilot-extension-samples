@@ -28,4 +28,16 @@ public class SessionData
     /// </summary>
     [JsonPropertyName("tenant_id")]
     public string? TenantId { get; set; }
+
+    /// <summary>
+    /// Dragon Copilot environment identifier
+    /// </summary>
+    [JsonPropertyName("environment_id")]
+    public string? EnvironmentId { get; set; }
+
+    /// <summary>
+    /// Entra ID tenant of the customer whose session produced the request
+    /// </summary>
+    [JsonPropertyName("customer_tenant_id")]
+    public string? CustomerTenantId { get; set; }
 }

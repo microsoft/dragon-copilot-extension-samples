@@ -2,6 +2,7 @@ import { input, select, checkbox, confirm } from '@inquirer/prompts';
 import type {
   DragonExtensionManifest,
   AuthConfig,
+  DragonInputV030,
   EhrContextSelector,
   ToolTrigger
 } from '../types.js';
@@ -24,6 +25,8 @@ export interface ToolDetails {
   timeout?: number;
   inputTypes: string[];
   ehrInclude?: EhrContextSelector[];
+  /** Fully built 0.3.0 inputs; when present these take precedence over inputTypes/ehrInclude. */
+  inputs?: DragonInputV030[];
   outputs: OutputDetails[];
 }
 
@@ -34,6 +37,8 @@ export interface OutputDetails {
 }
 
 export const EHR_CONTEXT_CONTENT_TYPE = 'application/fhir.ehr-context+json';
+export const ADAPTIVE_CARD_CONTENT_TYPE = 'application/vnd.ms-dragon.adaptivecard-content+json';
+export const SUPPLEMENTAL_EHR_CONTEXT_INPUT_NAME = 'supplemental-context';
 
 export const INPUT_TYPE_CHOICES = [
   { name: 'Clinical Note (DSP/Note)', value: 'application/vnd.ms-dragon.dsp.note+json' },
@@ -42,7 +47,10 @@ export const INPUT_TYPE_CHOICES = [
   { name: 'Transcript (DSP/Transcript)', value: 'application/vnd.ms-dragon.dsp.transcript+json' },
 ];
 
-const EHR_CONTEXT_INPUT_CHOICE = { name: 'EHR Context (FHIR Bundle)', value: EHR_CONTEXT_CONTENT_TYPE };
+const V030_INPUT_CHOICES = [
+  { name: 'EHR Context (FHIR Bundle)', value: EHR_CONTEXT_CONTENT_TYPE },
+  { name: 'Adaptive Card Content (card payload and executed action)', value: ADAPTIVE_CARD_CONTENT_TYPE },
+];
 
 export const TRIGGER_CHOICES: Array<{ name: string; value: ToolTrigger }> = [
   { name: 'DataAvailable - run automatically when all required inputs are available', value: 'DataAvailable' },
@@ -277,7 +285,7 @@ export async function promptToolDetails(
     }
   }
 
-  const inputChoices = legacy ? INPUT_TYPE_CHOICES : [...INPUT_TYPE_CHOICES, EHR_CONTEXT_INPUT_CHOICE];
+  const inputChoices = legacy ? INPUT_TYPE_CHOICES : [...INPUT_TYPE_CHOICES, ...V030_INPUT_CHOICES];
   const inputTypes = await checkbox({
     message: allowMultipleInputs ? 'Select input data types:' : 'Select primary input data type:',
     choices: inputChoices,
@@ -292,14 +300,21 @@ export async function promptToolDetails(
 
   let ehrInclude: EhrContextSelector[] | undefined;
   if (inputTypes.includes(EHR_CONTEXT_CONTENT_TYPE)) {
-    ehrInclude = await checkbox({
-      message: 'Which EHR context sections does the tool need?',
-      choices: EHR_INCLUDE_CHOICES.map(value => ({ name: value, value })),
-      validate: (choices) => (choices.length === 0 ? 'Please select at least one EHR context section' : true)
-    });
+    ehrInclude = await promptEhrInclude('Which EHR context sections does the tool need?');
   }
 
-  const outputs = await promptOutputs();
+  let inputs: DragonInputV030[] | undefined;
+  let outputs: OutputDetails[];
+  if (legacy) {
+    outputs = await promptOutputs();
+  } else {
+    inputs = await promptV030Inputs(inputTypes, ehrInclude ?? [], triggers ?? []);
+    const returnsOutput = await confirm({
+      message: 'Does this tool return results (adaptive cards) to Dragon Copilot? (No = fire-and-forget)',
+      default: true
+    });
+    outputs = returnsOutput ? await promptOutputs() : [];
+  }
 
   return {
     toolName,
@@ -310,8 +325,80 @@ export async function promptToolDetails(
     ...(caption !== undefined ? { caption } : {}),
     ...(triggers !== undefined ? { triggers } : {}),
     ...(timeout !== undefined ? { timeout } : {}),
-    ...(ehrInclude !== undefined ? { ehrInclude } : {})
+    ...(ehrInclude !== undefined ? { ehrInclude } : {}),
+    ...(inputs !== undefined ? { inputs } : {})
   };
+}
+
+async function promptEhrInclude(message: string): Promise<EhrContextSelector[]> {
+  return checkbox({
+    message,
+    choices: EHR_INCLUDE_CHOICES.map(value => ({ name: value, value })),
+    validate: (choices) => (choices.length === 0 ? 'Please select at least one EHR context section' : true)
+  });
+}
+
+/**
+ * Builds 0.3.0 inputs from the selected content types, offering an optional supplemental EHR
+ * context input and letting the author mark inputs as optional (`required: false`).
+ */
+async function promptV030Inputs(
+  inputTypes: string[],
+  ehrInclude: EhrContextSelector[],
+  triggers: ToolTrigger[]
+): Promise<DragonInputV030[]> {
+  const inputs = buildV030Inputs(inputTypes, ehrInclude);
+
+  if (inputTypes.includes(EHR_CONTEXT_CONTENT_TYPE)) {
+    const addSupplemental = await confirm({
+      message: 'Add an optional supplemental EHR context input? (the tool still runs when that context is unavailable)',
+      default: false
+    });
+    if (addSupplemental) {
+      const include = await promptEhrInclude('Which EHR context sections are optional?');
+      inputs.push({
+        name: SUPPLEMENTAL_EHR_CONTEXT_INPUT_NAME,
+        description: 'Optional supplemental EHR context',
+        'content-type': EHR_CONTEXT_CONTENT_TYPE,
+        include,
+        required: false
+      });
+    }
+  }
+
+  const candidates = inputs.filter(item => item.required !== false);
+  if (candidates.length > 1) {
+    // Card content only arrives on card actions, so it must be optional for DataAvailable runs to happen.
+    const cardContentOptionalByDefault = triggers.includes('DataAvailable');
+    const optionalNames = await checkbox({
+      message: 'Which inputs are optional? (the tool is invoked even when they are unavailable)',
+      choices: candidates.map(item => ({
+        name: `${item.name} (${item['content-type']})`,
+        value: item.name,
+        checked: cardContentOptionalByDefault && item['content-type'] === ADAPTIVE_CARD_CONTENT_TYPE
+      })),
+      validate: (choices) => (choices.length === candidates.length ? 'At least one input must stay required' : true)
+    });
+    for (const item of inputs) {
+      if (optionalNames.includes(item.name)) {
+        item.required = false;
+      }
+    }
+  }
+
+  return inputs;
+}
+
+/**
+ * Maps selected content types to 0.3.0 input definitions (all required).
+ */
+export function buildV030Inputs(inputTypes: string[], ehrInclude: EhrContextSelector[] = []): DragonInputV030[] {
+  return inputTypes.map((contentType, index): DragonInputV030 => ({
+    name: getInputName(contentType, index),
+    description: getInputDescription(contentType),
+    'content-type': contentType,
+    ...(contentType === EHR_CONTEXT_CONTENT_TYPE ? { include: ehrInclude.length > 0 ? ehrInclude : ['patient'] } : {})
+  }));
 }
 
 /**
@@ -329,6 +416,8 @@ export function getInputDescription(contentType: string): string {
       return 'Complete transcript from Dragon Copilot';
     case EHR_CONTEXT_CONTENT_TYPE:
       return 'EHR context for the current encounter';
+    case ADAPTIVE_CARD_CONTENT_TYPE:
+      return 'Adaptive card payload and details of the executed action';
     default:
       return 'Data from Dragon Copilot';
   }
@@ -349,6 +438,8 @@ export function getInputName(contentType: string, index: number): string {
       return 'transcript';
     case EHR_CONTEXT_CONTENT_TYPE:
       return 'ehr-context';
+    case ADAPTIVE_CARD_CONTENT_TYPE:
+      return 'card-content';
     default:
       return `input-${index + 1}`;
   }

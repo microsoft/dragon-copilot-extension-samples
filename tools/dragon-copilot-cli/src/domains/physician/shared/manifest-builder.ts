@@ -2,13 +2,12 @@ import type {
   AuthConfig,
   DragonExtensionManifest,
   DragonExtensionManifestV030,
-  DragonInputV030,
   DragonTool,
   DragonToolV030
 } from '../types.js';
 import type { ExtensionDetails, ToolDetails } from './prompts.js';
 import {
-  EHR_CONTEXT_CONTENT_TYPE,
+  buildV030Inputs,
   getInputDescription,
   getInputName,
   humanizeName,
@@ -39,13 +38,8 @@ export function buildTool(details: ToolDetails, schemaVersion: string): DragonTo
     triggers: details.triggers && details.triggers.length > 0 ? details.triggers : ['DataAvailable'],
     ...(details.timeout !== undefined ? { timeout: details.timeout } : {}),
     endpoint: details.endpoint,
-    inputs: details.inputTypes.map((contentType, index): DragonInputV030 => ({
-      name: getInputName(contentType, index),
-      description: getInputDescription(contentType),
-      'content-type': contentType,
-      ...(contentType === EHR_CONTEXT_CONTENT_TYPE ? { include: details.ehrInclude ?? ['patient'] } : {})
-    })),
-    outputs: details.outputs
+    inputs: details.inputs ?? buildV030Inputs(details.inputTypes, details.ehrInclude),
+    ...(details.outputs.length > 0 ? { outputs: details.outputs } : {})
   };
 }
 

@@ -1,0 +1,973 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Dragon Standard Payload (DSP) Schemas",
+  "version": "0.1",
+  "description": "Schema definitions for Dragon Standard Payload components and data types",
+  "definitions": {
+    "IterativeAudio": {
+      "type": "object",
+      "properties": {
+        "payload_version": {
+          "type": "string",
+          "example": "1.1.0"
+        },
+        "schema_version": {
+          "type": "string",
+          "example": "0.1"
+        },
+        "language": {
+          "type": "string",
+          "example": "en-US"
+        },
+        "encounter": {
+          "$ref": "#/definitions/Encounter"
+        },
+        "recordings": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Recording"
+          }
+        },
+        "turn": {
+          "$ref": "#/definitions/AudioTurn"
+        }
+      }
+    },
+    "AudioTurn": {
+      "type": "object",
+      "required": ["index", "speaker", "audio", "start_time", "end_time", "is_last"],
+      "properties": {
+        "index": {
+          "type": "integer",
+          "example": 0
+        },
+        "speaker": {
+          "type": "string",
+          "example": "Clinician"
+        },
+        "audio": {
+          "type": "string",
+          "format": "byte",
+          "description": "Base64-encoded audio data"
+        },
+        "start_time": {
+          "type": "string",
+          "example": "00:00:00.000"
+        },
+        "end_time": {
+          "type": "string",
+          "example": "00:00:14.940"
+        },
+        "is_last": {
+          "type": "boolean",
+          "example": "false"
+        }
+      }
+    },
+    "Note": {
+      "type": "object",
+      "properties": {
+        "payload_version": {
+          "type": "string",
+          "example": "1.1.0"
+        },
+        "schema_version": {
+          "type": "string",
+          "example": "0.1"
+        },
+        "language": {
+          "type": "string",
+          "example": "en-US"
+        },
+        "priority": {
+          "type": "string",
+          "nullable": true
+        },
+        "encounter": {
+          "$ref": "#/definitions/Encounter"
+        },
+        "sessions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Session"
+          }
+        },
+        "recordings": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Recording"
+          }
+        },
+        "document": {
+          "$ref": "#/definitions/Document"
+        },
+        "resources": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ClinicalDocumentSection"
+          }
+        }
+      }
+    },
+    "Transcript": {
+      "type": "object",
+      "properties": {
+        "payload_version": {
+          "type": "string",
+          "example": "2.2.0"
+        },
+        "schema_version": {
+          "type": "string",
+          "example": "0.1"
+        },
+        "language": {
+          "type": "string",
+          "example": "en-US"
+        },
+        "encounter": {
+          "$ref": "#/definitions/Encounter"
+        },
+        "recordings": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Recording"
+          }
+        },
+        "transcript": {
+          "$ref": "#/definitions/TranscriptContent"
+        }
+      }
+    },
+    "IterativeTranscript": {
+      "type": "object",
+      "properties": {
+        "payload_version": {
+          "type": "string",
+          "example": "1.1.0"
+        },
+        "schema_version": {
+          "type": "string",
+          "example": "0.1"
+        },
+        "language": {
+          "type": "string",
+          "example": "en-US"
+        },
+        "encounter": {
+          "$ref": "#/definitions/Encounter"
+        },
+        "recordings": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Recording"
+          }
+        },
+        "turn": {
+          "$ref": "#/definitions/Turn"
+        }
+      }
+    },
+    "Encounter": {
+      "type": "object",
+      "properties": {
+        "correlation_id": {
+          "type": "string",
+          "example": "aeda69e6-99c2-466d-a55e-6a9547af06a5"
+        },
+        "external_encounter_id": {
+          "type": "string",
+          "example": "6488",
+          "description": "Deprecated, will be removed in future versions. Use external_encounter_ids instead."
+        },
+        "external_encounter_ids": {
+          "type": "array",
+          "description": "An array of external encounter identifiers for the encounter. Each object contains an identifier and a type. This array contains also a CSN (if available), as an item with type 'CSN'.",
+          "items": {
+            "type": "object",
+            "properties": {
+              "identifier": {
+                "type": "string",
+                "description": "The external identifier for the encounter."
+              },
+              "type": {
+                "type": "string",
+                "description": "The type of the external identifier."
+              }
+            },
+            "required": ["identifier", "type"]
+          }
+        },
+        "status": {
+          "type": "string",
+          "example": "complete"
+        },
+        "date_of_encounter": {
+          "type": "string",
+          "format": "date-time",
+          "example": "2025-06-20T08:51:53.858360Z"
+        },
+        "patient": {
+          "$ref": "#/definitions/Patient"
+        },
+        "practitioner": {
+          "$ref": "#/definitions/Practitioner"
+        },
+        "visit": {
+          "$ref": "#/definitions/Visit"
+        },
+        "organization_id": {
+          "type": "string",
+          "example": "01bd0d47-1621-4a29-941d-00e9a9420f20"
+        },
+        "user_id": {
+          "type": "string",
+          "example": "5df21012-bdee-414d-ba75-ec1a1ad2c82c"
+        },
+        "recording_locales": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "example": ["en-US"]
+        },
+        "report_locale": {
+          "type": "string",
+          "example": "en-US"
+        },
+        "ui_locale": {
+          "type": "string",
+          "example": "en-US"
+        }
+      }
+    },
+    "Patient": {
+      "type": "object",
+      "properties": {
+        "name_details": {
+          "type": "object",
+          "properties": {
+            "given_name": {
+              "type": "string"
+            },
+            "family_name": {
+              "type": "string"
+            }
+          }
+        },
+        "gender": {
+          "type": "string",
+          "description": "The biologic sex of the patient at birth. male | female | unknown ",
+          "enum": ["Male", "Female", "Other", "Unknown"],
+          "example": "Unknown"
+        },
+        "birthdate": {
+          "type": "string",
+          "format": "date-time",
+          "description": "The date of birth of the patient."
+        },
+        "pronoun_preference": {
+          "type": "object",
+          "properties": {
+            "description": {
+              "type": "string",
+              "example": "he/him/his/his/himself"
+            },
+            "identifier": {
+              "type": "string",
+              "example": "LA29518-0"
+            },
+            "system": {
+              "type": "string",
+              "example": "loinc.org"
+            }
+          }
+        },
+        "medical_record_number": {
+          "type": "string"
+        },
+        "external_patient_id": {
+          "type": "string"
+        }
+      }
+    },
+    "Practitioner": {
+      "type": "object",
+      "properties": {
+        "full_name": {
+          "type": "string"
+        },
+        "user_id": {
+          "type": "string"
+        },
+        "npi": {
+          "type": "integer",
+          "description": "The NPI of the practitioner."
+        },
+        "external_practitioner_ids": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "identifier": {
+                "type": "string"
+              },
+              "type": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    },
+    "Visit": {
+      "type": "object",
+      "properties": {
+        "reason_for_visit": {
+          "type": "string"
+        },
+        "actual_start_date": {
+          "type": "string",
+          "format": "date-time",
+          "description": "The actual start time of the encounter. Follows ISO 8601 format.",
+          "example": "2025-08-19T09:00:00Z"
+        }
+      }
+    },
+    "Session": {
+      "type": "object",
+      "properties": {
+        "dax_session_id": {
+          "type": "string",
+          "example": "b65c4365-05bd-493b-953d-ae73b9f6ee1a"
+        },
+        "user_id": {
+          "type": "string"
+        },
+        "organization_id": {
+          "type": "string"
+        }
+      }
+    },
+    "Document": {
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string",
+          "example": "Outpatient Note"
+        },
+        "type": {
+          "type": "object",
+          "properties": {
+            "text": {
+              "type": "string"
+            },
+            "codes": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/Code"
+              }
+            }
+          }
+        }
+      }
+    },
+    "ClinicalDocumentSection": {
+      "type": "object",
+      "properties": {
+        "legacy_id": {
+          "type": "string"
+        },
+        "context": {
+          "$ref": "#/definitions/Context"
+        },
+        "content": {
+          "type": "string"
+        }
+      }
+    },
+    "Code": {
+      "type": "object",
+      "properties": {
+        "system": {
+          "type": "string",
+          "description": "The coding system for the code."
+        },
+        "identifier": {
+          "type": "string",
+          "description": "The code value."
+        },
+        "description": {
+          "type": "string",
+          "description": "Description of the code."
+        },
+        "system_url": {
+          "type": "string",
+          "format": "uri",
+          "description": "URL resource for system details."
+        },
+        "system_version": {
+          "type": "string",
+          "description": "Version of the coding system."
+        }
+      }
+    },
+    "Context": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "content_type": {
+          "type": "string"
+        },
+        "display_description": {
+          "type": "string"
+        },
+        "definition": {
+          "type": "string",
+          "description": "Describes the purpose or functionality of the context",
+          "example": "A lab orders component that supports only lab orders."
+        },
+        "codes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Code"
+          }
+        },
+        "spoken_forms": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "Recording": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "first_turn": {
+          "type": "integer"
+        },
+        "last_turn": {
+          "type": "integer"
+        },
+        "length": {
+          "type": "string"
+        },
+        "creation_date": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "recording_locales": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "example": ["en-US"]
+        }
+      }
+    },
+    "TranscriptContent": {
+      "type": "object",
+      "required": ["speaker_count", "turns", "webVTT"],
+      "properties": {
+        "speaker_count": {
+          "type": "integer",
+          "example": 2
+        },
+        "turns": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Turn"
+          }
+        },
+        "webVTT": {
+          "type": "string"
+        }
+      }
+    },
+    "Turn": {
+      "type": "object",
+      "required": ["index", "speaker", "text", "start_time", "end_time"],
+      "properties": {
+        "index": {
+          "type": "integer",
+          "example": 0
+        },
+        "speaker": {
+          "type": "string",
+          "example": "Clinician"
+        },
+        "text": {
+          "type": "string",
+          "example": "Hi Mr. Porter, good to see you."
+        },
+        "start_time": {
+          "type": "string",
+          "example": "00:00:00.000"
+        },
+        "end_time": {
+          "type": "string",
+          "example": "00:00:14.940"
+        }
+      }
+    },
+    "ProcessResponse": {
+      "type": "object",
+      "properties": {
+        "success": {
+          "type": "boolean",
+          "example": true
+        },
+        "message": {
+          "type": "string",
+          "example": "Payload processed successfully"
+        },
+        "payload": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/DSP"
+          }
+        }
+      }
+    },
+    "DSP": {
+      "type": "object",
+      "properties": {
+        "schema_version": {
+          "type": "string",
+          "description": "References the DSP version utilized, as the structure requirements may evolve.",
+          "example": "0.1"
+        },
+        "document": {
+          "$ref": "#/definitions/Document"
+        },
+        "resources": {
+          "type": "array",
+          "description": "A list clinical or non-clinical objects extracted or generated based on source materials (ie. transcript).",
+          "items": {
+            "anyOf": [
+              {
+                "$ref": "#/definitions/ClinicalDocumentSection"
+              },
+              {
+                "$ref": "#/definitions/VisualizationResource"
+              },
+              {
+                "$ref": "#/definitions/MedicalCode"
+              },
+              {
+                "$ref": "#/definitions/ObservationConcept"
+              },
+              {
+                "$ref": "#/definitions/ObservationNumber"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "VisualizationResource": {
+      "type": "object",
+      "required": [
+        "id",
+        "type",
+        "adaptive_card_payload",
+        "payloadSources",
+        "dragonCopilotCopyData"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string",
+          "enum": ["AdaptiveCard"]
+        },
+        "subtype": {
+          "type": "string",
+          "description": "The subtype of the adaptive card indicating its category or purpose",
+          "enum": ["note", "timeline"],
+          "example": "note"
+        },
+        "cardTitle": {
+          "type": "string",
+          "description": "The display title for the adaptive card",
+          "example": "Medication Summary & Recommendations"
+        },
+        "partnerLogo": {
+          "type": "string",
+          "format": "uri",
+          "description": "URL to the partner's logo image",
+          "example": "https://contoso.com/logo.png"
+        },
+        "adaptive_card_payload": {
+          "description": "Adaptive Card payload as defined by the Adaptive Card schema following the limits from provided Microsoft specification",
+          "allOf": [
+            {
+              "$ref": "http://adaptivecards.io/schemas/adaptive-card.json"
+            },
+            {
+              "type": "object",
+              "required": ["type", "version"],
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "enum": ["AdaptiveCard"]
+                },
+                "version": {
+                  "type": "string",
+                  "enum": ["1.3"]
+                }
+              },
+              "additionalProperties": true
+            }
+          ]
+        },
+        "actions": {
+          "type": "array",
+          "description": "Array of actions that users can perform on the card",
+          "items": {
+            "type": "object",
+            "required": ["title", "action", "actionType"],
+            "properties": {
+              "title": {
+                "type": "string",
+                "description": "Display text for the action button",
+                "example": "Accept Recommendations"
+              },
+              "action": {
+                "type": "string",
+                "description": "Action identifier that defines what happens when the action is triggered",
+                "enum": ["accept", "reject", "copy", "updateNote"],
+                "example": "accept"
+              },
+              "actionType": {
+                "type": "string",
+                "description": "The type/style of the action button",
+                "enum": ["primary", "secondary", "tertiary"],
+                "example": "primary"
+              },
+              "code": {
+                "type": "string",
+                "description": "Optional code content for copy actions",
+                "example": "MEDICATION ANALYSIS SUMMARY\\n\\nCurrent Status:\\n- 5 active medications"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "references": {
+          "type": "array",
+          "description": "Array of reference objects linking to related data sources",
+          "items": {
+            "type": "object",
+            "required": ["id", "type"],
+            "properties": {
+              "id": {
+                "type": "string",
+                "description": "Unique identifier for the reference",
+                "example": "ref-patient-note-001"
+              },
+              "type": {
+                "type": "string",
+                "description": "Type of reference",
+                "enum": ["Note", "Transcript", "Web"],
+                "example": "Note"
+              },
+              "sectionId": {
+                "type": "string",
+                "description": "Section identifier for Note type references",
+                "example": "medications-section-2024-07-20"
+              },
+              "text": {
+                "type": "string",
+                "description": "Reference text content for Transcript type references",
+                "example": "Patient reports occasional missed doses of evening medications"
+              },
+              "title": {
+                "type": "string",
+                "description": "Title for Web type references",
+                "example": "Drug Interaction Database - Lisinopril/NSAID"
+              },
+              "url": {
+                "type": "string",
+                "format": "uri",
+                "description": "URL for Web type references",
+                "example": "https://druginteractions.com/lisinopril-nsaid-interaction"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "payloadSources": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "identifier": {
+                "type": "string",
+                "description": "The unique identifier for referencing the overall request"
+              },
+              "description": {
+                "type": "string",
+                "description": "The name of the source that generated the code. Could be internal or vendor service"
+              },
+              "url": {
+                "type": "string",
+                "format": "uri",
+                "description": "A URL pointing to the source or relevant resource"
+              }
+            },
+            "required": ["identifier", "description", "url"],
+            "additionalProperties": false
+          }
+        },
+        "dragonCopilotCopyData": {
+          "type": "string",
+          "example": "medication_analysis|patient_id:12345|generated:2024-07-24T10:30:00Z|version:1.2"
+        }
+      }
+    },
+    "Provenance": {
+      "type": "array",
+      "description": "An array of the sources, and source details, used to generate the data.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "session_id": {
+            "type": "string",
+            "description": "The ID of the session for which the value was obtained."
+          },
+          "source": {
+            "type": "string",
+            "description": "The input source type. 'transcript', 'document', 'patient_details', etc."
+          },
+          "turns": {
+            "type": "array",
+            "description": "For use with 'transcript' source types. An array of turn ids used in the generation of the data.",
+            "items": {
+              "type": "object",
+              "properties": {
+                "index": {
+                  "type": "integer",
+                  "description": "The index value of the transcript."
+                },
+                "positions": {
+                  "type": "array",
+                  "minItems": 2,
+                  "maxItems": 2,
+                  "items": {
+                    "type": "integer",
+                    "description": "The character position (start, end)."
+                  }
+                }
+              }
+            }
+          },
+          "document_sections": {
+            "type": "array",
+            "description": "For use with 'document_section' source types. An array of document section ids used in the generation of the data.",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "positions": {
+                  "type": "array",
+                  "minItems": 2,
+                  "maxItems": 2,
+                  "items": {
+                    "type": "integer",
+                    "description": "The character position (start, end)."
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "MedicalCode": {
+      "type": "object",
+      "description": "Represents a medical code with context, code details, and provenance.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "The unique internal identifier for the medication."
+        },
+        "context": {
+          "$ref": "#/definitions/Context",
+          "description": "The circumstances that form the setting for the resource in terms of which it can be fully understood, assessed, and mapped."
+        },
+        "code": {
+          "type": "object",
+          "required": ["identifier"],
+          "properties": {
+            "identifier": {
+              "type": "string",
+              "description": "The code value."
+            },
+            "description": {
+              "type": "string",
+              "description": "The description of the code."
+            },
+            "system_url": {
+              "type": "string",
+              "format": "uri",
+              "description": "The url resource to obtain the system details."
+            },
+            "system_version": {
+              "type": "string",
+              "description": "The version of the system."
+            }
+          }
+        },
+        "details": {
+          "type": "string",
+          "description": "Details regarding why the code was applied."
+        },
+        "source": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "description": "The unique identifier for referencing the overall request."
+            },
+            "description": {
+              "type": "string",
+              "description": "The name of the source that generated the code. Could be internal or vendor service."
+            }
+          },
+          "additionalProperties": false
+        },
+        "priority": {
+          "type": "string",
+          "description": "The priority in which the payload resource must be handled.",
+          "enum": ["low", "medium", "high"]
+        },
+        "reason": {
+          "type": "string",
+          "description": "The reason the code is being recommended."
+        },
+        "provenance": {
+          "$ref": "#/definitions/Provenance",
+          "description": "An array of the sources, and source details, used to generate the data."
+        }
+      },
+      "required": ["context", "code"]
+    },
+    "ObservationConcept": {
+      "type": "object",
+      "description": "Represents an observation concept with value, codes, and provenance.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "The unique internal identifier for the concept."
+        },
+        "context": {
+          "$ref": "#/definitions/Context",
+          "description": "The circumstances that form the setting for the resource in terms of which it can be fully understood, assessed, and mapped."
+        },
+        "value": {
+          "type": "object",
+          "properties": {
+            "text": {
+              "type": "string",
+              "description": "The actual value goes here."
+            },
+            "codes": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "system": {
+                    "type": "string",
+                    "description": "The coding system that the code belongs to."
+                  },
+                  "identifier": {
+                    "type": "string",
+                    "description": "The code value."
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "The description of the code."
+                  },
+                  "system_url": {
+                    "type": "string",
+                    "format": "uri",
+                    "description": "The url resource to obtain the system details."
+                  },
+                  "system_version": {
+                    "type": "string",
+                    "description": "The version of the system."
+                  }
+                }
+              }
+            },
+            "concept_id": {
+              "type": "string",
+              "description": "The identifier for the Dragon defined concept."
+            }
+          }
+        },
+        "priority": {
+          "type": "string",
+          "description": "The priority in which the payload resource must be handled.",
+          "enum": ["low", "medium", "high"]
+        },
+        "parent_reference": {
+          "type": "string",
+          "format": "uuid",
+          "description": "A reference to the parent entity which the resource belongs."
+        },
+        "provenance": {
+          "$ref": "#/definitions/Provenance",
+          "description": "An array of the sources, and source details, used to generate the data."
+        }
+      },
+      "required": ["context"]
+    },
+    "ObservationNumber": {
+      "type": "object",
+      "description": "Represents a numeric observation with context, value, and provenance.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "The unique internal identifier for the number."
+        },
+        "context": {
+          "$ref": "#/definitions/Context",
+          "description": "The circumstances that form the setting for the resource in terms of which it can be fully understood, assessed, and mapped."
+        },
+        "value": {
+          "type": "number",
+          "description": "The value which is an integer or float/double."
+        },
+        "value_unit": {
+          "type": "string",
+          "description": "The unit for the value."
+        },
+        "priority": {
+          "type": "string",
+          "description": "The priority in which the payload resource must be handled.",
+          "enum": ["low", "medium", "high"]
+        },
+        "parent_reference": {
+          "type": "string",
+          "format": "uuid",
+          "description": "A reference to the parent entity which the resource belongs."
+        },
+        "provenance": {
+          "$ref": "#/definitions/Provenance",
+          "description": "An array of the sources, and source details, used to generate the data."
+        }
+      },
+      "required": ["context", "value"]
+    }
+  }
+}

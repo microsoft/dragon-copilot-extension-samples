@@ -144,9 +144,103 @@ const v030Templates: Record<string, TemplateConfigV030> = {
             description: 'Speech analysis results in Adaptive Card format',
             'content-type': 'application/vnd.ms-dragon.dsp+json'
           },
+        ]
+      }
+    ]
+  },
+
+  // Mirrors the GA sample: required + optional EHR context, card actions, and a fire-and-forget feedback tool.
+  'note-suggestions': {
+    schemaVersion: '0.3.0',
+    name: 'my-note-suggestions-extension',
+    caption: 'Note Suggestions',
+    description: 'Proposes changes to the clinical note based on the note content and EHR context',
+    version: '0.0.1',
+    tools: [
+      {
+        name: 'note-suggesting-tool',
+        caption: 'Note Suggesting Tool',
+        description: 'Generates clinical suggestions for a physician based on a clinical note',
+        type: 'DragonAPI',
+        triggers: ['DataAvailable', 'ExplicitRequest'],
+        endpoint: 'https://publisher.example.com/note-suggesting/v1/process',
+        inputs: [
           {
-            name: 'coded-speech-analysis-results',
-            description: 'Speech analysis results in coded format',
+            name: 'note',
+            description: 'Clinical note content',
+            'content-type': 'application/vnd.ms-dragon.dsp.note+json'
+          },
+          {
+            name: 'encounter-context',
+            description: 'Required current-encounter EHR context',
+            'content-type': 'application/fhir.ehr-context+json',
+            include: ['provider', 'patient', 'current-encounter']
+          },
+          {
+            name: 'supplemental-context',
+            description: 'Optional supplemental EHR context',
+            'content-type': 'application/fhir.ehr-context+json',
+            include: ['reason-for-visit', 'conditions'],
+            required: false
+          },
+          {
+            name: 'card-content',
+            description: 'Adaptive card feedback action payload',
+            'content-type': 'application/vnd.ms-dragon.adaptivecard-content+json',
+            required: false
+          }
+        ],
+        outputs: [
+          {
+            name: 'note-suggestions',
+            description: 'Generated adaptive cards',
+            'content-type': 'application/vnd.ms-dragon.dsp+json'
+          }
+        ]
+      },
+      {
+        name: 'suggestion-feedback',
+        caption: 'Suggestion Feedback Tool',
+        description: 'Handles adaptive card feedback actions',
+        type: 'DragonAPI',
+        triggers: ['ExplicitRequest'],
+        endpoint: 'https://publisher.example.com/suggestion-feedback/v1/process',
+        inputs: [
+          {
+            name: 'card-content',
+            description: 'Adaptive card feedback action payload',
+            'content-type': 'application/vnd.ms-dragon.adaptivecard-content+json'
+          }
+        ]
+      }
+    ]
+  },
+
+  'audio-analysis': {
+    schemaVersion: '0.3.0',
+    name: 'my-audio-analysis-extension',
+    caption: 'Audio Analysis',
+    description: 'Analyzes encounter audio and presents findings to the physician',
+    version: '0.0.1',
+    tools: [
+      {
+        name: 'audio-analysis-tool',
+        caption: 'Audio Analysis Tool',
+        description: 'Analyzes the iterative encounter audio and surfaces findings to the physician',
+        type: 'DragonAPI',
+        triggers: ['DataAvailable'],
+        endpoint: 'https://publisher.example.com/audio-analysis/v1/process',
+        inputs: [
+          {
+            name: 'audio',
+            description: 'Iterative encounter audio stream',
+            'content-type': 'application/vnd.ms-dragon.dsp.iterative-audio+json'
+          }
+        ],
+        outputs: [
+          {
+            name: 'audio-analysis-findings',
+            description: 'Generated adaptive card with audio analysis findings',
             'content-type': 'application/vnd.ms-dragon.dsp+json'
           }
         ]

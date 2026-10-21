@@ -66,7 +66,7 @@ Run `npm unlink -g dragon-copilot` only once per workstation; subsequent rebuild
 | Domain     | Command Example                                       | Description |
 |------------|--------------------------------------------------------|-------------|
 | Physician  | `dragon-copilot physician init`                        | Interactive wizard that generates an extension manifest (latest schema by default; `--schema-version` to pick another) |
-| Physician  | `dragon-copilot physician generate --template note-analysis` | Generate a manifest from a template (`note-analysis`, `speech-analysis`) or interactively with `--interactive` |
+| Physician  | `dragon-copilot physician generate --template note-analysis` | Generate a manifest from a template (`note-analysis`, `speech-analysis`; 0.3.0 also has `note-suggestions`, `audio-analysis`) or interactively with `--interactive` |
 | Physician  | `dragon-copilot physician validate ./extension.yaml`   | Validates the manifest against the JSON schema for its `schemaVersion` + business rules |
 | Physician  | `dragon-copilot physician migrate ./extension.yaml`    | Upgrades a manifest to the latest schema version (writes `extension.migrated.yaml`; see options below) |
 | Physician  | `dragon-copilot physician versions`                    | Lists supported physician manifest schema versions |
@@ -91,6 +91,8 @@ Physician manifests declare their format with a top-level `schemaVersion` field.
 - **Anything else**: rejected as an unsupported schema version.
 
 `init` and `generate` create manifests for the latest version by default. Pass `--schema-version <version>` (or `--schema-version legacy`) to target another one. When `generate --interactive` adds a tool to an existing manifest, it always uses that manifest's version.
+
+For `0.3.0`, the interactive prompts also cover captions, `triggers`, an optional `timeout`, EHR context (`application/fhir.ehr-context+json` with `include` sections, plus an optional supplemental context input), adaptive card content inputs, marking inputs optional (`required: false`), and fire-and-forget tools with no outputs.
 
 `migrate <file>` upgrades a manifest and validates the result before writing it:
 
