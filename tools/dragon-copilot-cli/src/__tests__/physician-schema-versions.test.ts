@@ -347,6 +347,7 @@ describe('physician migrate and versions commands', () => {
     expect(noteTool.caption).toBe('Note Tool');
     expect(noteTool.type).toBe('DragonAPI');
     expect(noteTool.triggers).toEqual(['ExplicitRequest']);
+    expect(noteTool.timeout).toBe(60);
     expect(noteTool.trigger).toBeUndefined();
     expect(noteTool.inputs[0]).toEqual({
       name: 'note',
@@ -458,7 +459,9 @@ describe('physician migrate and versions commands', () => {
     const latest = load(readFileSync(join(workingDir, 'latest.yaml'), 'utf8')) as Record<string, any>;
     const legacy = load(readFileSync(join(workingDir, 'legacy.yaml'), 'utf8')) as Record<string, any>;
     expect(latest.schemaVersion).toBe('0.3.0');
+    expect(latest.tools.every((tool: Record<string, any>) => tool.timeout === 60)).toBe(true);
     expect(legacy.schemaVersion).toBeUndefined();
+    expect(legacy.tools[0].timeout).toBeUndefined();
   });
 
   test('versions lists the latest and legacy versions', async () => {

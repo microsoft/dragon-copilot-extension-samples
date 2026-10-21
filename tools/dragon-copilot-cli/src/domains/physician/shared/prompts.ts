@@ -111,13 +111,19 @@ export function validateExtensionName(input: string, schemaVersion: string = LAT
 }
 
 /**
+ * Timeout the tooling writes into 0.3.0+ tools. The platform falls back to 5 seconds when the field
+ * is omitted, which is too short for most model-backed tools, so it is always written explicitly.
+ */
+export const DEFAULT_TOOL_TIMEOUT_SECONDS = 60;
+
+/**
  * Validates an optional tool timeout (whole seconds, 3-60). Empty means "use the default".
  */
 export function validateTimeout(input: string): string | boolean {
   if (!input.trim()) return true;
   const value = Number(input.trim());
   if (!Number.isInteger(value) || value < 3 || value > 60) {
-    return 'Timeout must be a whole number of seconds between 3 and 60 (leave empty for the default of 5)';
+    return `Timeout must be a whole number of seconds between 3 and 60 (default ${DEFAULT_TOOL_TIMEOUT_SECONDS})`;
   }
   return true;
 }
@@ -276,13 +282,11 @@ export async function promptToolDetails(
     });
 
     const timeoutInput = await input({
-      message: 'Timeout in seconds (3-60, leave empty for the default of 5):',
-      default: '',
+      message: 'Timeout in seconds (3-60):',
+      default: String(DEFAULT_TOOL_TIMEOUT_SECONDS),
       validate: validateTimeout
     });
-    if (timeoutInput.trim()) {
-      timeout = Number(timeoutInput.trim());
-    }
+    timeout = timeoutInput.trim() ? Number(timeoutInput.trim()) : DEFAULT_TOOL_TIMEOUT_SECONDS;
   }
 
   const inputChoices = legacy ? INPUT_TYPE_CHOICES : [...INPUT_TYPE_CHOICES, ...V030_INPUT_CHOICES];

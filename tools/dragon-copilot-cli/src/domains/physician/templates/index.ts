@@ -1,5 +1,6 @@
 import type { TemplateConfig, TemplateConfigV030 } from '../types.js';
 import { LEGACY_SCHEMA_VERSION, LATEST_SCHEMA_VERSION } from '../shared/schema-validator.js';
+import { DEFAULT_TOOL_TIMEOUT_SECONDS } from '../shared/prompts.js';
 
 const legacyTemplates: Record<string, TemplateConfig> = {
   'note-analysis': {
@@ -88,6 +89,7 @@ const v030Templates: Record<string, TemplateConfigV030> = {
         description: 'Provides analysis of a note',
         type: 'DragonAPI',
         triggers: ['DataAvailable'],
+        timeout: DEFAULT_TOOL_TIMEOUT_SECONDS,
         endpoint: 'https://publisher.example.com/note-analysis',
         inputs: [
           {
@@ -125,6 +127,7 @@ const v030Templates: Record<string, TemplateConfigV030> = {
         description: 'Provides analysis of iterative speech',
         type: 'DragonAPI',
         triggers: ['DataAvailable'],
+        timeout: DEFAULT_TOOL_TIMEOUT_SECONDS,
         endpoint: 'https://publisher.example.com/speech-analysis',
         inputs: [
           {
@@ -163,6 +166,7 @@ const v030Templates: Record<string, TemplateConfigV030> = {
         description: 'Generates clinical suggestions for a physician based on a clinical note',
         type: 'DragonAPI',
         triggers: ['DataAvailable', 'ExplicitRequest'],
+        timeout: DEFAULT_TOOL_TIMEOUT_SECONDS,
         endpoint: 'https://publisher.example.com/note-suggesting/v1/process',
         inputs: [
           {
@@ -204,6 +208,7 @@ const v030Templates: Record<string, TemplateConfigV030> = {
         description: 'Handles adaptive card feedback actions',
         type: 'DragonAPI',
         triggers: ['ExplicitRequest'],
+        timeout: DEFAULT_TOOL_TIMEOUT_SECONDS,
         endpoint: 'https://publisher.example.com/suggestion-feedback/v1/process',
         inputs: [
           {
@@ -229,6 +234,7 @@ const v030Templates: Record<string, TemplateConfigV030> = {
         description: 'Analyzes the iterative encounter audio and surfaces findings to the physician',
         type: 'DragonAPI',
         triggers: ['DataAvailable'],
+        timeout: DEFAULT_TOOL_TIMEOUT_SECONDS,
         endpoint: 'https://publisher.example.com/audio-analysis/v1/process',
         inputs: [
           {

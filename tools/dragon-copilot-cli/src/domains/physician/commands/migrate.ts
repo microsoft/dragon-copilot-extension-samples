@@ -14,7 +14,7 @@ import {
   LEGACY_SCHEMA_VERSION
 } from '../shared/schema-validator.js';
 import type { SchemaError } from '../shared/schema-validator.js';
-import { TRIGGER_CHOICES, humanizeName } from '../shared/prompts.js';
+import { TRIGGER_CHOICES, DEFAULT_TOOL_TIMEOUT_SECONDS, humanizeName } from '../shared/prompts.js';
 
 type Manifest = Record<string, any>;
 
@@ -164,7 +164,7 @@ async function migrateLegacyTo030(manifest: Manifest, ctx: MigrationContext): Pr
 }
 
 async function migrateToolTo030(tool: Manifest, index: number, ctx: MigrationContext): Promise<Manifest> {
-  const { name, description, trigger, endpoint, inputs, outputs, ...rest } = tool;
+  const { name, description, trigger, endpoint, inputs, outputs, timeout, ...rest } = tool;
   const label = `tools[${index}]`;
 
   const migratedName = await ensureValidName(name, 'definitions.Tool.properties.name', `Tool name for ${label}`, ctx);
@@ -177,6 +177,9 @@ async function migrateToolTo030(tool: Manifest, index: number, ctx: MigrationCon
   if (migratedOutputs.length === 0 && outputs !== undefined) {
     ctx.changes.push(`${label}: removed empty outputs (outputs are optional in 0.3.0)`);
   }
+  if (timeout === undefined) {
+    ctx.changes.push(`${label}: added timeout: ${DEFAULT_TOOL_TIMEOUT_SECONDS}`);
+  }
 
   return {
     name: migratedName,
@@ -184,6 +187,7 @@ async function migrateToolTo030(tool: Manifest, index: number, ctx: MigrationCon
     description,
     type: 'DragonAPI',
     triggers,
+    timeout: timeout ?? DEFAULT_TOOL_TIMEOUT_SECONDS,
     endpoint,
     inputs: (Array.isArray(inputs) ? inputs : []).map((item: Manifest, i: number) =>
       convertDataField(item, `${label}.inputs[${i}]`, ctx, value => DATA_TO_CONTENT_TYPE[value])),

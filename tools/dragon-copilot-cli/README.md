@@ -92,7 +92,7 @@ Physician manifests declare their format with a top-level `schemaVersion` field.
 
 `init` and `generate` create manifests for the latest version by default. Pass `--schema-version <version>` (or `--schema-version legacy`) to target another one. When `generate --interactive` adds a tool to an existing manifest, it always uses that manifest's version.
 
-For `0.3.0`, the interactive prompts also cover captions, `triggers`, an optional `timeout`, EHR context (`application/fhir.ehr-context+json` with `include` sections, plus an optional supplemental context input), adaptive card content inputs, marking inputs optional (`required: false`), and fire-and-forget tools with no outputs.
+For `0.3.0`, the interactive prompts also cover captions, `triggers`, a `timeout` (defaults to 60 seconds and is always written, because the platform uses 5 when it's omitted), EHR context (`application/fhir.ehr-context+json` with `include` sections, plus an optional supplemental context input), adaptive card content inputs, marking inputs optional (`required: false`), and fire-and-forget tools with no outputs.
 
 `migrate <file>` upgrades a manifest and validates the result before writing it:
 
@@ -103,7 +103,7 @@ For `0.3.0`, the interactive prompts also cover captions, `triggers`, an optiona
 | `--dry-run` | Print the migrated manifest and the list of changes without writing |
 | `--non-interactive` | Use inferred captions (from names) and triggers instead of prompting |
 
-Migrating from the original format to `0.3.0` adds `schemaVersion` and captions, adds `type: DragonAPI` to each tool, converts `trigger` to `triggers` (`AutoRun` → `DataAvailable`, `AdaptiveCardAction` → `ExplicitRequest`, unset → `DataAvailable`), and replaces deprecated `data` fields with `content-type`. Names that start with a digit must be renamed; interactive mode prompts for a new name.
+Migrating from the original format to `0.3.0` adds `schemaVersion` and captions, adds `type: DragonAPI` and `timeout: 60` to each tool, converts `trigger` to `triggers` (`AutoRun` → `DataAvailable`, `AdaptiveCardAction` → `ExplicitRequest`, unset → `DataAvailable`), and replaces deprecated `data` fields with `content-type`. Names that start with a digit must be renamed; interactive mode prompts for a new name.
 
 ## Clinical Application Connector
 

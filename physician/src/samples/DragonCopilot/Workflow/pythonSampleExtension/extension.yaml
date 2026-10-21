@@ -12,6 +12,7 @@ tools:
     type: DragonAPI
     triggers:
       - DataAvailable
+    timeout: 60
     endpoint: http://localhost:5181/v1/process
     inputs:
       - name: note
