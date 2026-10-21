@@ -132,7 +132,7 @@ describe('physician schema version routing', () => {
   test('resolveRequestedSchemaVersion defaults to latest and rejects unknown versions', () => {
     expect(resolveRequestedSchemaVersion()).toBe('0.3.0');
     expect(resolveRequestedSchemaVersion('legacy')).toBe(LEGACY_SCHEMA_VERSION);
-    expect(() => resolveRequestedSchemaVersion('0.4.0')).toThrow(/Unsupported schema version/);
+    expect(() => resolveRequestedSchemaVersion('9.9.9')).toThrow(/Unsupported schema version/);
   });
 });
 
@@ -149,8 +149,8 @@ describe('physician 0.3.0 schema rules', () => {
     ['missing triggers', (m: Record<string, any>) => { delete m.tools[0].triggers; }],
     ['empty triggers', (m: Record<string, any>) => { m.tools[0].triggers = []; }],
     ['missing type', (m: Record<string, any>) => { delete m.tools[0].type; }],
-    ['IntentDriven trigger (0.4.0)', (m: Record<string, any>) => { m.tools[0].triggers = ['IntentDriven']; }],
-    ['non-DragonAPI type', (m: Record<string, any>) => { m.tools[0].type = 'MCP'; }],
+    ['unknown trigger', (m: Record<string, any>) => { m.tools[0].triggers = ['OnDemand']; }],
+    ['non-DragonAPI type', (m: Record<string, any>) => { m.tools[0].type = 'CustomType'; }],
     ['unknown tool field', (m: Record<string, any>) => { m.tools[0].unexpected = true; }],
     ['legacy trigger field', (m: Record<string, any>) => { m.tools[0].trigger = 'AutoRun'; }],
     ['tool name starting with a digit', (m: Record<string, any>) => { m.tools[0].name = '1-tool'; }],
