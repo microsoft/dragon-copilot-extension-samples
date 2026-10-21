@@ -21,7 +21,7 @@ describe('registerCommands', () => {
     expect(physician).toBeDefined();
     const subCommands = physician?.commands.map(command => command.name()) ?? [];
     expect(subCommands).toEqual(
-      expect.arrayContaining(['init', 'generate', 'validate', 'package']),
+      expect.arrayContaining(['init', 'generate', 'validate', 'package', 'migrate', 'versions']),
     );
   });
 
