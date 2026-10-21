@@ -22,6 +22,7 @@ import {
 } from '../domains/physician/shared/prompts.js';
 import { buildManifest, buildTool } from '../domains/physician/shared/manifest-builder.js';
 import { getTemplate } from '../domains/physician/templates/index.js';
+import { getMigrationVersions } from '../domains/physician/commands/migrate.js';
 
 const TENANT_ID = '00000000-0000-0000-0000-000000000001';
 
@@ -96,6 +97,24 @@ describe('physician schema version routing', () => {
   test('latest schema version is 0.3.0', () => {
     expect(LATEST_SCHEMA_VERSION).toBe('0.3.0');
     expect(getSchemaVersions().map(v => v.version)).toEqual(['0.3.0', LEGACY_SCHEMA_VERSION]);
+  });
+
+  test('every supported schema version is reachable by migrate', () => {
+    const migratable = getMigrationVersions();
+    for (const { version } of getSchemaVersions()) {
+      expect(migratable).toContain(version);
+    }
+  });
+
+  test.each([
+    ['a non-array tools value', 'ab'],
+    ['null tool entries', [null, null]]
+  ])('reports schema errors instead of throwing for %s', (_label, tools) => {
+    const manifest = { ...buildV030Manifest(), tools };
+    let result: ReturnType<typeof validateExtensionManifest> | undefined;
+    expect(() => { result = validateExtensionManifest(manifest); }).not.toThrow();
+    expect(result?.isValid).toBe(false);
+    expect(result?.errors.length).toBeGreaterThan(0);
   });
 
   test('accepts a valid 0.3.0 manifest and reports its version', () => {
@@ -369,21 +388,6 @@ describe('physician migrate and versions commands', () => {
     expect(existsSync(join(workingDir, 'extension.migrated.yaml'))).toBe(false);
   });
 
-  test('drops an empty outputs array because 0.3.0 outputs are optional', async () => {
-    const manifestPath = join(workingDir, 'extension.yaml');
-    const yaml = LEGACY_MANIFEST_YAML.replace(
-      /(  - name: transcript-tool[\s\S]*?)    outputs:[\s\S]*$/,
-      '$1    outputs: []\n'
-    );
-    writeFileSync(manifestPath, yaml, 'utf8');
-
-    await run('migrate', manifestPath, '--non-interactive');
-
-    const migrated = load(readFileSync(join(workingDir, 'extension.migrated.yaml'), 'utf8')) as Record<string, any>;
-    expect(validateExtensionManifest(migrated).errors).toEqual([]);
-    expect(migrated.tools[1].outputs).toBeUndefined();
-  });
-
   test('--in-place overwrites the original file', async () => {
     const manifestPath = join(workingDir, 'extension.yaml');
     writeFileSync(manifestPath, LEGACY_MANIFEST_YAML, 'utf8');
@@ -392,6 +396,45 @@ describe('physician migrate and versions commands', () => {
 
     const migrated = load(readFileSync(manifestPath, 'utf8')) as Record<string, any>;
     expect(migrated.schemaVersion).toBe('0.3.0');
+  });
+
+  test('--in-place keeps comments and aliases from the original file', async () => {
+    const manifestPath = join(workingDir, 'extension.yaml');
+    const commented = LEGACY_MANIFEST_YAML
+      .replace('name: legacy-extension', '# Owned by the notes team\nname: legacy-extension')
+      .replace('    endpoint: https://example.org/process', '    endpoint: &ep https://example.org/process # prod endpoint')
+      .replace('    endpoint: https://example.org/transcript', '    endpoint: *ep');
+    writeFileSync(manifestPath, commented, 'utf8');
+
+    await run('migrate', manifestPath, '--non-interactive', '--in-place');
+
+    const content = readFileSync(manifestPath, 'utf8');
+    expect(content.startsWith('# Owned by the notes team\nschemaVersion: 0.3.0')).toBe(true);
+    expect(content).toContain('# prod endpoint');
+    expect(content).toContain('endpoint: *ep');
+    expect(validateExtensionManifest(load(content)).errors).toEqual([]);
+  });
+
+  test('refuses to migrate a source manifest that is not valid for its own version', async () => {
+    const manifestPath = join(workingDir, 'extension.yaml');
+    writeFileSync(manifestPath, LEGACY_MANIFEST_YAML.replace('trigger: AdaptiveCardAction', 'trigger: Manual'), 'utf8');
+
+    const logs = await run('migrate', manifestPath, '--non-interactive');
+
+    expect(process.exitCode).toBe(1);
+    expect(logs).toContain('fix it before migrating');
+    expect(existsSync(join(workingDir, 'extension.migrated.yaml'))).toBe(false);
+  });
+
+  test('does not guess a content-type for an unrecognized output data value', async () => {
+    const manifestPath = join(workingDir, 'extension.yaml');
+    writeFileSync(manifestPath, LEGACY_MANIFEST_YAML.replace('        data: DSP\n', '        data: free text\n'), 'utf8');
+
+    const logs = await run('migrate', manifestPath, '--non-interactive');
+
+    expect(process.exitCode).toBe(1);
+    expect(logs).toContain('unknown data value "free text"');
+    expect(existsSync(join(workingDir, 'extension.migrated.yaml'))).toBe(false);
   });
 
   test('does not write when the migrated manifest would be invalid', async () => {

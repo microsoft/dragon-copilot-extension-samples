@@ -215,18 +215,15 @@ export interface ValidationResult {
 export function validateExtensionManifest(manifest: unknown): ValidationResult {
   // Step 1: Pure JSON Schema validation
   const schemaResult = validateManifestSchema(manifest);
-  if (schemaResult.schemaVersion === undefined) {
+  // Business rules assume a schema-valid shape, so they would crash on malformed input.
+  if (!schemaResult.isValid) {
     return schemaResult;
   }
 
   // Step 2: Simple business rules (easily portable to C#)
   const businessRuleErrors = validateManifestBusinessRules(manifest as DragonExtensionManifest);
 
-  return {
-    isValid: schemaResult.isValid && businessRuleErrors.length === 0,
-    errors: [...schemaResult.errors, ...businessRuleErrors],
-    schemaVersion: schemaResult.schemaVersion
-  };
+  return { ...schemaResult, isValid: businessRuleErrors.length === 0, errors: businessRuleErrors };
 }
 
 /**
@@ -272,8 +269,8 @@ function validateManifestBusinessRules(manifest: DragonExtensionManifest): Schem
   const errors: SchemaError[] = [];
 
   // Check for duplicate tool names
-  if (manifest?.tools && manifest.tools.length > 1) {
-    const toolNames = manifest.tools.map((t: { name: string }) => t.name).filter(Boolean);
+  if (Array.isArray(manifest?.tools) && manifest.tools.length > 1) {
+    const toolNames = manifest.tools.map((t: { name?: string } | null) => t?.name).filter(Boolean);
     const duplicates = toolNames.filter((name, index) => toolNames.indexOf(name) !== index);
 
     if (duplicates.length > 0) {
