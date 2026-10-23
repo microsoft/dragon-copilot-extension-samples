@@ -85,7 +85,7 @@ Symptom: the extension is deployed and "auth is configured," but no requests eve
    - Confirm the path (`POST` to your `/v1/process` endpoint) and `Authorization` header are not being stripped or normalized by an intermediate proxy.
    - Common managed-WAF rule sets (Azure Front Door / Application Gateway default rules, Cloudflare managed rules) sometimes flag the request body or bearer header as suspicious. Temporarily lower the rule set or whitelist the Runtime's traffic to confirm.
    - If your endpoint is in a VNet behind a private endpoint or IP allowlist, the Runtime's egress is not on a fixed IP range — you cannot allowlist it. Expose the endpoint via a public ingress (Azure API Management, Azure Front Door, Application Gateway, or Container Apps public ingress).
-4. **Trigger configuration.** If `trigger: AdaptiveCardAction`, the extension only fires on user action — it will not auto-run.
+4. **Trigger configuration.** If the tool's `triggers` list only `ExplicitRequest` (or, in manifests without `schemaVersion`, `trigger: AdaptiveCardAction`), the extension only fires on user action — it will not auto-run. A required input that isn't available (for example `adaptivecard-content` without `required: false`) also prevents automatic invocation.
 
 ---
 

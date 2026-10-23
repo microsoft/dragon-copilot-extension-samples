@@ -9,8 +9,11 @@ import { fileURLToPath } from 'url';
 import type { DragonExtensionManifest } from '../domains/physician/types.js';
 import type { ConnectorIntegrationManifest } from '../domains/connector/types.js';
 import type { DcrExtensionManifest } from '../domains/radiologists/types.js';
+import {
+  validateExtensionManifest as validatePhysicianManifest,
+  validateManifestSchema as validatePhysicianManifestSchema
+} from '../domains/physician/shared/schema-validator.js';
 
-type ManifestLike = DragonExtensionManifest | ConnectorIntegrationManifest | DcrExtensionManifest;
 
 const ajv = new Ajv({ allErrors: true, strict: false });
 addFormats(ajv);
@@ -88,7 +91,6 @@ const extensionManifestSchema = loadSchema('physician/physician-extension-manife
 const connectorManifestSchema = loadSchema('connector-manifest.json');
 const dcrExtensionManifestSchema = loadSchema('radiologists/radiologists-extension-manifest-schema.json');
 
-const validateExtensionSchema = ajv.compile(extensionManifestSchema);
 const validateConnectorSchema = ajv.compile(connectorManifestSchema);
 const validateDcrExtensionSchema = ajv.compile(dcrExtensionManifestSchema);
 
@@ -104,16 +106,12 @@ export interface SchemaError {
 export interface ValidationResult {
   isValid: boolean;
   errors: SchemaError[];
+  schemaVersion?: string;
 }
 
-export function validateExtensionManifest(manifest: DragonExtensionManifest): ValidationResult {
-  const schemaResult = validateExtensionManifestSchema(manifest);
-  const businessRuleErrors = validateExtensionBusinessRules(manifest);
-
-  return {
-    isValid: schemaResult.isValid && businessRuleErrors.length === 0,
-    errors: [...schemaResult.errors, ...businessRuleErrors]
-  };
+// Physician manifests are versioned; delegate so the CLI commands and this module route identically.
+export function validateExtensionManifest(manifest: DragonExtensionManifest | unknown): ValidationResult {
+  return validatePhysicianManifest(manifest);
 }
 
 export function validateConnectorManifest(manifest: ConnectorIntegrationManifest): ValidationResult {
@@ -126,12 +124,8 @@ export function validateConnectorManifest(manifest: ConnectorIntegrationManifest
   };
 }
 
-export function validateExtensionManifestSchema(manifest: DragonExtensionManifest): ValidationResult {
-  const isValid = validateExtensionSchema(manifest);
-  return {
-    isValid,
-    errors: isValid ? [] : (validateExtensionSchema.errors || []).map(convertAjvError)
-  };
+export function validateExtensionManifestSchema(manifest: DragonExtensionManifest | unknown): ValidationResult {
+  return validatePhysicianManifestSchema(manifest);
 }
 
 export function validateDcrExtensionManifest(manifest: DcrExtensionManifest): ValidationResult {
@@ -158,30 +152,6 @@ export function validateConnectorManifestSchema(manifest: ConnectorIntegrationMa
     isValid,
     errors: isValid ? [] : (validateConnectorSchema.errors || []).map(convertAjvError)
   };
-}
-
-function validateExtensionBusinessRules(manifest: ManifestLike): SchemaError[] {
-  const errors: SchemaError[] = [];
-  const tools = Array.isArray((manifest as any).tools) ? (manifest as any).tools : [];
-
-  if (tools.length > 1) {
-    const toolNames = tools.map((tool: any) => tool?.name).filter(Boolean);
-    const duplicates = toolNames.filter((name: string, index: number) => toolNames.indexOf(name) !== index);
-
-    if (duplicates.length > 0) {
-      const uniqueDuplicates = [...new Set(duplicates)];
-      errors.push({
-        instancePath: '/tools',
-        keyword: 'uniqueToolNames',
-        message: `Duplicate tool names found: ${uniqueDuplicates.join(', ')}`,
-        data: tools,
-        schemaPath: '#/tools',
-        params: { duplicates: uniqueDuplicates }
-      });
-    }
-  }
-
-  return errors;
 }
 
 function validateDcrExtensionBusinessRules(manifest: DcrExtensionManifest): SchemaError[] {

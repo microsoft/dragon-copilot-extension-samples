@@ -56,22 +56,34 @@ public async Task<ProcessResponse> ProcessAsync([FromBody] ProcessRequest reques
 - **Environment-specific**: `appsettings.json` vs `appsettings.Development.json`
 
 ## Extension Manifest Format
+Physician manifests are versioned by `schemaVersion` (latest: `0.3.0`). Manifests without it use the original format; convert them with `dragon-copilot physician migrate`.
 ```yaml
-name: extension-name
+schemaVersion: 0.3.0
+name: extension-name            # lowercase, starts with a letter
+caption: Extension Name          # display name
 description: Extension description
 version: 0.0.1
 auth:
   tenantId: 12345678-1234-1234-1234-123456789abc
 tools:
   - name: tool-name
+    caption: Tool Name
     description: Tool description
+    type: DragonAPI
+    triggers:                    # DataAvailable and/or ExplicitRequest
+      - DataAvailable
+    timeout: 60                  # Optional: 3-60 seconds; the platform uses 5 if omitted, so set it explicitly
     endpoint: https://api.example.com/v1/process
-    trigger: AutoRun  # Optional: AutoRun (default) or AdaptiveCardAction
     inputs:
       - name: note
         description: Clinical note input
         content-type: application/vnd.ms-dragon.dsp.note+json
-    outputs:
+      - name: ehr-context
+        description: EHR context for the current encounter
+        content-type: application/fhir.ehr-context+json
+        include: [patient, current-encounter]
+        required: false          # Optional input: the tool still runs without it
+    outputs:                     # Optional: omit for fire-and-forget tools
       - name: processed-data
         description: Processed results
         content-type: application/vnd.ms-dragon.dsp+json

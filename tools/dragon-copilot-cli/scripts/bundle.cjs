@@ -13,8 +13,12 @@ async function bundle() {
 	// Read schema JSON files so they can be embedded directly in the bundle.
 	// This ensures the SEA standalone binary works without needing schema files on disk.
 	const schemasDir = path.join(rootDir, 'src', 'schemas');
+	// Physician schemas are versioned; embed every file so adding a version needs no bundler change.
+	const physicianSchemaSources = fs.readdirSync(path.join(schemasDir, 'physician'))
+		.filter(file => file.endsWith('.json'))
+		.map(file => ({ aliases: [`physician/${file}`, file], file: path.join('physician', file) }));
 	const schemaSources = [
-		{ aliases: ['physician/physician-extension-manifest-schema.json', 'physician-extension-manifest-schema.json'], file: path.join('physician', 'physician-extension-manifest-schema.json') },
+		...physicianSchemaSources,
 		{ aliases: ['radiologists/radiologists-extension-manifest-schema.json', 'radiologists-extension-manifest-schema.json'], file: path.join('radiologists', 'radiologists-extension-manifest-schema.json') },
 		{ aliases: ['connector-manifest.json'], file: 'connector-manifest.json' },
 	];

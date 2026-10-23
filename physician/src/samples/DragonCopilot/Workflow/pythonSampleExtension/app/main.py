@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Header, HTTPException, Request
+from fastapi import FastAPI, Header, HTTPException, Query, Request
 # RequestValidationError import kept for reference; handler is commented out below
 # from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse, RedirectResponse
@@ -65,10 +65,17 @@ async def process_endpoint(
     payload: DragonStandardPayload,
     x_ms_request_id: str | None = Header(default=None, alias="x-ms-request-id"),
     x_ms_correlation_id: str | None = Header(default=None, alias="x-ms-correlation-id"),
+    # Optional so callers that predate API 1.2.0 (which made it required) are still accepted.
+    api_version: str | None = Query(default=None, alias="api-version"),
 ):
     try:
         start_time = datetime.now(timezone.utc)
-        logger.info("Processing incoming request at %s", start_time)
+        logger.info(
+            "Processing incoming request at %s api_version=%s additional_inputs=%s",
+            start_time,
+            api_version or payload.extensibilityApiVersion or "unspecified",
+            sorted((payload.model_extra or {}).keys()),
+        )
         resp = service.process(payload, x_ms_request_id, x_ms_correlation_id)
         elapsed = datetime.now(timezone.utc) - start_time
         logger.info("Request processed in %s", elapsed)
