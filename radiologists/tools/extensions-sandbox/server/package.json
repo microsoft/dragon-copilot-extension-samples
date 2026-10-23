@@ -5,11 +5,12 @@
   "type": "module",
   "scripts": {
     "sync-schemas": "tsx scripts/sync-schemas.ts",
+    "typecheck-cli-core": "tsc -p tsconfig.cli-core.json",
     "generate-schemas": "npm run sync-schemas && tsx scripts/generate-output-schemas.ts",
     "dev": "npm run sync-schemas && tsx watch --conditions=development src/index.ts",
-    "build": "npm run generate-schemas && tsc -p tsconfig.json && cpy \"src/schemas/**/*.json\" dist/schemas",
+    "build": "npm run generate-schemas && npm run typecheck-cli-core && tsc -p tsconfig.json && tsx scripts/copy-schemas.ts",
     "start": "node dist/index.js",
-    "test": "npm run generate-schemas && vitest run",
+    "test": "npm run generate-schemas && npm run typecheck-cli-core && vitest run",
     "clean": "rimraf dist"
   },
   "engines": {
@@ -30,7 +31,6 @@
     "@types/js-yaml": "^4.0.9",
     "@types/multer": "^2.1.0",
     "@types/node": "^22.15.0",
-    "cpy-cli": "^7.0.0",
     "rimraf": "^6.1.2",
     "tsx": "^4.19.4",
     "typescript": "^5.8.3",

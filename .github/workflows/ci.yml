@@ -156,3 +156,34 @@ jobs:
     - name: Verify bundle
       working-directory: tools/dragon-copilot-cli
       run: npm run bundle
+
+  extensions-sandbox:
+    runs-on: ubuntu-latest
+
+    # The sandbox consumes two contracts and the manifest-generation code from
+    # tools/dragon-copilot-cli, syncing them in at build/test time. Building and
+    # testing it here is what catches a CLI-side change that breaks that sync.
+    # `npm test` / `npm run build` also typecheck the synced core against the
+    # CLI's stricter ES2020 baseline, so this job cannot go green on code the
+    # CLI would fail to compile.
+    steps:
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+    - name: Setup Node.js
+      uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+      with:
+        node-version: '20'
+        cache: 'npm'
+        cache-dependency-path: radiologists/tools/extensions-sandbox/package-lock.json
+
+    - name: Install dependencies
+      working-directory: radiologists/tools/extensions-sandbox
+      run: npm ci
+
+    - name: Run tests
+      working-directory: radiologists/tools/extensions-sandbox
+      run: npm test
+
+    - name: Build
+      working-directory: radiologists/tools/extensions-sandbox
+      run: npm run build

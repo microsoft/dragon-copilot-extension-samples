@@ -86,8 +86,9 @@ See the root-level [Connector documentation](../../connector/README.md) for conn
 ## Development Notes
 
 - Shared helpers now live under `src/common`, keeping the CLI self-contained without external workspaces.
+- `src/domains/radiologists/manifest/` is the **pure manifest core** — manifest types, templates, selectable values, and assembly. It must stay free of prompts, filesystem access, `process.exit`, and any dependency other than `js-yaml`: the Extensions Sandbox (`radiologists/tools/extensions-sandbox`) syncs the folder in verbatim to power its "Dragon Copilot CLI" wizard, so both surfaces emit identical manifests. Adding a CLI-only import there breaks the sandbox build.
 - `npm run build` emits compiled JS plus copies schemas/resources into `dist/`.
-- `npm test` covers physician, radiologists, and connector flows (command registration, schema validation, CLI integration).
+- `npm test` covers physician, radiologists, and connector flows (command registration, schema validation, manifest generation, CLI integration).
 
 ## Versioning & Releases
 

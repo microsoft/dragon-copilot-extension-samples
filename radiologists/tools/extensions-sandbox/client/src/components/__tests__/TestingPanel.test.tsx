@@ -1,0 +1,200 @@
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { FluentProvider, webLightTheme } from '@fluentui/react-components';
+import { TestingPanel } from '../TestingPanel';
+
+const manifestInfo = {
+  name: 'sample-extension',
+  version: '0.0.1',
+  toolCount: 1,
+  capabilities: ['reportQuality'],
+};
+
+let fetchMock: ReturnType<typeof vi.fn>;
+
+function json(body: unknown) {
+  return new Response(JSON.stringify(body), {
+    status: 200,
+    headers: { 'Content-Type': 'application/json' },
+  });
+}
+
+/**
+ * Renders the panel and waits for both mount fetches to settle, so the state
+ * updates they trigger happen inside `act` rather than during an assertion.
+ */
+async function renderPanel() {
+  render(
+    <FluentProvider theme={webLightTheme}>
+      <TestingPanel manifestInfo={manifestInfo} manifestRevision={0} />
+    </FluentProvider>,
+  );
+  await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2));
+  await act(async () => {});
+}
+
+beforeEach(() => {
+  fetchMock = vi.fn(async (input: RequestInfo | URL) => {
+    const url = String(input);
+    if (url.endsWith('/api/manifest/capabilities')) {
+      return json([{ name: 'reportQuality', displayName: 'Report Quality', description: 'Quality checks', toolCount: 1 }]);
+    }
+    if (url.includes('/tools')) {
+      return json([]);
+    }
+    return json({});
+  });
+  vi.stubGlobal('fetch', fetchMock);
+});
+
+afterEach(() => {
+  vi.unstubAllGlobals();
+});
+
+describe('TestingPanel tabs', () => {
+  it('adds the Dragon Copilot Preview tab alongside the existing tabs', async () => {
+    await renderPanel();
+
+    expect(screen.getByRole('tab', { name: 'Setup' })).toBeInTheDocument();
+    expect(screen.getByRole('tab', { name: 'Results' })).toBeInTheDocument();
+    expect(screen.getByRole('tab', { name: 'Outputs' })).toBeInTheDocument();
+    expect(screen.getByRole('tab', { name: 'Dragon Copilot Preview' })).toBeInTheDocument();
+  });
+
+  it('shows the not-run Report optimization card before a tool has been run', async () => {
+    await renderPanel();
+
+    fireEvent.click(screen.getByRole('tab', { name: 'Dragon Copilot Preview' }));
+
+    expect(screen.getByText('Run smart impression to view suggestions.')).toBeInTheDocument();
+  });
+
+  it('leaves the raw JSON Results and Outputs tabs unchanged', async () => {
+    await renderPanel();
+
+    fireEvent.click(screen.getByRole('tab', { name: 'Results' }));
+    expect(screen.getByText('No results yet. Run a test from the Setup tab.')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('tab', { name: 'Outputs' }));
+    expect(screen.getByText('No outputs yet. Run a test from the Setup tab.')).toBeInTheDocument();
+  });
+
+  it('shows a failed run in the preview instead of the not-run state', async () => {
+    fetchMock.mockImplementation(async (input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url.endsWith('/api/manifest/capabilities')) {
+        return json([{ name: 'reportQuality', displayName: 'Report Quality', description: 'Quality checks', toolCount: 1 }]);
+      }
+      if (url.includes('/tools')) {
+        return json([{ name: 'sampleQualityCheckTool', description: '', inputs: [], outputs: [] }]);
+      }
+      if (url.endsWith('/api/manifest/execute')) {
+        return new Response(JSON.stringify({ error: 'Could not reach the extension endpoint.' }), {
+          status: 502,
+          headers: { 'Content-Type': 'application/json' },
+        });
+      }
+      return json({});
+    });
+    await renderPanel();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Run Test' }));
+    await waitFor(() =>
+      expect(screen.getByRole('tab', { name: 'Results' })).toHaveAttribute('aria-selected', 'true'),
+    );
+
+    fireEvent.click(screen.getByRole('tab', { name: 'Dragon Copilot Preview' }));
+
+    expect(screen.getByText(/The run failed: Could not reach the extension endpoint\./)).toBeInTheDocument();
+    expect(screen.queryByText('Run smart impression to view suggestions.')).toBeNull();
+  });
+});
+
+describe('TestingPanel capability label', () => {
+  it('shows the capability display name but sends the manifest value when running a tool', async () => {
+    fetchMock.mockImplementation(async (input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url.endsWith('/api/manifest/capabilities')) {
+        return json([
+          {
+            name: 'qualityCheck',
+            displayName: 'Report Optimization',
+            description: 'Report Optimization capability',
+            toolCount: 1,
+          },
+        ]);
+      }
+      if (url.includes('/tools')) {
+        return json([{ name: 'sampleQualityCheckTool', description: '', inputs: [], outputs: [] }]);
+      }
+      if (url.endsWith('/api/manifest/execute')) {
+        return new Response(JSON.stringify({ error: 'Could not reach the extension endpoint.' }), {
+          status: 502,
+          headers: { 'Content-Type': 'application/json' },
+        });
+      }
+      return json({});
+    });
+    await renderPanel();
+
+    expect(screen.getByText('Report Optimization')).toBeInTheDocument();
+    expect(screen.queryByText('qualityCheck')).toBeNull();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Run Test' }));
+    await waitFor(() =>
+      expect(screen.getByRole('tab', { name: 'Results' })).toHaveAttribute('aria-selected', 'true'),
+    );
+
+    const executeCall = fetchMock.mock.calls.find(([url]) => String(url).endsWith('/api/manifest/execute'));
+    expect(JSON.parse(String((executeCall?.[1] as RequestInit | undefined)?.body))).toMatchObject({
+      capability: 'qualityCheck',
+    });
+    expect(screen.getByText('Report Optimization')).toBeInTheDocument();
+  });
+
+  it('does not show the previous raw capability value when a new manifest has no capabilities', async () => {
+    let capabilitiesResponse: unknown[] = [
+      {
+        name: 'qualityCheck',
+        displayName: 'Report Optimization',
+        description: 'Report Optimization capability',
+        toolCount: 1,
+      },
+    ];
+    fetchMock.mockImplementation(async (input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url.endsWith('/api/manifest/capabilities')) {
+        return json(capabilitiesResponse);
+      }
+      return json([]);
+    });
+    const { rerender } = render(
+      <FluentProvider theme={webLightTheme}>
+        <TestingPanel manifestInfo={manifestInfo} manifestRevision={0} />
+      </FluentProvider>,
+    );
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2));
+    await act(async () => {});
+    expect(screen.getByText('Report Optimization')).toBeInTheDocument();
+
+    capabilitiesResponse = [];
+    rerender(
+      <FluentProvider theme={webLightTheme}>
+        <TestingPanel
+          manifestInfo={{ ...manifestInfo, name: 'other-extension', capabilities: [] }}
+          manifestRevision={1}
+        />
+      </FluentProvider>,
+    );
+    await waitFor(() =>
+      expect(
+        fetchMock.mock.calls.filter(([url]) => String(url).endsWith('/api/manifest/capabilities')),
+      ).toHaveLength(2),
+    );
+    await act(async () => {});
+
+    expect(screen.getByText('other-extension')).toBeInTheDocument();
+    expect(screen.queryByText('Report Optimization')).toBeNull();
+    expect(screen.queryByText('qualityCheck')).toBeNull();
+  });
+});
