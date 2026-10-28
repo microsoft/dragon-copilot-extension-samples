@@ -1,0 +1,250 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://dragon.microsoft.com/schemas/extension-manifest/0.3.0",
+  "title": "Dragon Copilot Extension Manifest",
+  "description": "Unified manifest schema for Dragon Copilot extensions (Workflow). v0.3.0. Describes the contract between the Dragon Copilot orchestrator and partner extensions: authentication, capabilities (tools), and per-tool integration protocol (DragonAPI).",
+  "type": "object",
+  "required": ["name", "version", "auth", "tools", "schemaVersion", "caption", "description"],
+  "additionalProperties": false,
+  "properties": {
+    "schemaVersion": {
+      "type": "string",
+      "enum": ["0.3.0"],
+      "description": "Schema version of the extension manifest."
+    },
+    "name": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]*$",
+      "minLength": 1,
+      "description": "Extension name (lowercase letters, numbers, and hyphens only)"
+    },
+    "caption": {
+      "type": "string",
+      "description": "Human-readable caption of the extension."
+    },
+    "description": {
+      "type": "string",
+      "description": "Long-form description of the extension."
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$",
+      "description": "Semantic version of the extension (x.y.z)."
+    },
+    "auth": {
+      "$ref": "#/definitions/AuthConfig",
+      "description": "Extension-level authentication configuration."
+    },
+    "tools": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/definitions/Tool"
+      },
+      "description": "Array of tools (capabilities) provided by this extension."
+    }
+  },
+  "definitions": {
+    "AuthConfig": {
+      "type": "object",
+      "description": "Extension auth identity",
+      "required": ["tenantId"],
+      "additionalProperties": false,
+      "properties": {
+        "tenantId": {
+          "type": "string",
+          "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$",
+          "description": "Entra Id tenant id (GUID format) that hosts the extension's application registration."
+        }
+      }
+    },
+    "Triggers": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "description": "Trigger types that activate the tool. 'DataAvailable' = automatically triggered when all required input data (e.g. note, transcript, EHR context) becomes available; retryable. 'ExplicitRequest' = triggered only by a deliberate user action via UI (e.g. button, card, or command); never automatic.",
+      "default": ["DataAvailable"],
+      "items": {
+        "type": "string",
+        "enum": ["DataAvailable", "ExplicitRequest"]
+      }
+    },
+
+    "DragonInput": {
+      "type": "object",
+      "required": ["name", "description", "content-type"],
+      "allOf": [
+        {
+          "description": "'include' is required when content-type is application/fhir.ehr-context+json, and not valid on any other content-type.",
+          "if": {
+            "properties": {
+              "content-type": { "const": "application/fhir.ehr-context+json" }
+            },
+            "required": ["content-type"]
+          },
+          "then": {
+            "required": ["include"]
+          },
+          "else": {
+            "not": { "required": ["include"] }
+          }
+        }
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Input name"
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Input description"
+        },
+        "content-type": {
+          "type": "string",
+          "enum": [
+            "application/vnd.ms-dragon.dsp+json",
+            "application/vnd.ms-dragon.dsp.transcript+json",
+            "application/vnd.ms-dragon.dsp.note+json",
+            "application/vnd.ms-dragon.dsp.iterative-audio+json",
+            "application/vnd.ms-dragon.dsp.iterative-transcript+json",
+            "application/vnd.ms-dragon.adaptivecard-content+json",
+            "application/fhir.ehr-context+json"
+          ],
+          "description": "Content type identifier (IANA MIME type)"
+        },
+        "include": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "enum": [
+              "provider",
+              "patient",
+              "current-encounter",
+              "problem-list",
+              "current-encounter-diagnoses",
+              "reason-for-visit",
+              "conditions"
+            ]
+          },
+          "description": "Non-empty list of EHR concept selectors the platform resolves and projects into this input's FHIR Bundle. Only valid (and required) when content-type is application/fhir.ehr-context+json."
+        },
+        "required": {
+          "type": "boolean",
+          "default": true,
+          "description": "If false, this input is not mandatory for tool invocation and can be omitted, if not present in a system."
+        }
+      },
+      "additionalProperties": false
+    },
+    "DragonOutput": {
+      "type": "object",
+      "required": ["name", "description", "content-type"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Output name"
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Output description"
+        },
+        "content-type": {
+          "type": "string",
+          "enum": [
+            "application/vnd.ms-dragon.dsp+json"
+          ],
+          "description": "Content type identifier (IANA MIME type)"
+        }
+      },
+      "additionalProperties": false
+    },
+    "Tool": {
+      "type": "object",
+      "description": "Tool definition. Common fields live at tool level; each type's allowed type-specific fields are defined and constrained within its own if/then block. Type-specific fields are not interchangeable across types (flat structure, no cross-type fields).",
+      "required": ["name", "caption", "description", "type", "triggers"],
+      "additionalProperties": true,
+      "propertyNames": {
+        "enum": [
+          "name",
+          "caption",
+          "description",
+          "triggers",
+          "type",
+          "timeout",
+          "endpoint",
+          "inputs",
+          "outputs"
+        ]
+      },
+      "properties": {
+        "name": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9-]*$",
+          "minLength": 1,
+          "description": "Unique tool name within the extension (lowercase, must start with a letter, then letters/digits/hyphens)."
+        },
+        "caption": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Visual / display caption shown in UI."
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Orchestrator tool-selection prompt."
+        },
+        "triggers": { "$ref": "#/definitions/Triggers" },
+        "type": {
+          "type": "string",
+          "enum": [
+            "DragonAPI"
+          ],
+          "description": "Integration protocol / platform type. 'DragonAPI' = Dragon Extensibility API."
+        },
+        "timeout": {
+          "type": "integer",
+          "minimum": 3,
+          "maximum": 60,
+          "default": 5,
+          "description": "Hard timeout in seconds. Orchestrator aborts the tool call after this period. Allowed range: 3–60. Default: 5."
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": { "type": { "const": "DragonAPI" } },
+            "required": ["type"]
+          },
+          "then": {
+            "required": ["endpoint", "inputs"],
+            "properties": {
+              "endpoint": {
+                "type": "string",
+                "format": "uri",
+                "description": "Dragon Extensibility API endpoint URL."
+              },
+              "inputs": {
+                "type": "array",
+                "minItems": 1,
+                "items": { "$ref": "#/definitions/DragonInput" },
+                "description": "Array of DragonAPI input definitions."
+              },
+              "outputs": {
+                "type": "array",
+                "minItems": 1,
+                "items": { "$ref": "#/definitions/DragonOutput" },
+                "description": "Array of DragonAPI output definitions. Optional — omit for fire-and-forget tools."
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

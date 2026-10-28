@@ -41,6 +41,7 @@ public class ProcessController : ControllerBase
     /// Process Dragon Standard payload
     /// </summary>
     /// <param name="payload">The Dragon Standard payload containing note, transcript, iterative transcript and/or iterative audio data</param>
+    /// <param name="apiVersion">Dragon Extensibility API version (the <c>api-version</c> query parameter, e.g. 1.2.0)</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>The processing response</returns>
     /// <response code="200">Successfully processed</response>
@@ -57,12 +58,16 @@ public class ProcessController : ControllerBase
     [ProducesResponseType(typeof(object), StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<ProcessResponse>> ProcessDragonStandard(
         [FromBody] DragonStandardPayload payload,
+        // Optional so callers that predate API 1.2.0 (which made it required) are still accepted.
+        [FromQuery(Name = "api-version")] string? apiVersion = null,
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(payload, nameof(payload));
 
         try
         {
+            _logger.LogApiVersion(apiVersion ?? payload.ExtensibilityApiVersion ?? "unspecified", payload.AdditionalInputs?.Count ?? 0);
+
             // Extract headers as per OpenAPI specification
             var requestId = Request.Headers["x-ms-request-id"].FirstOrDefault();
             var correlationId = Request.Headers["x-ms-correlation-id"].FirstOrDefault();

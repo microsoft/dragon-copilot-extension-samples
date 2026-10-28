@@ -1,13 +1,19 @@
+schemaVersion: 0.3.0
 name: sample-clinical-extraction-py
+caption: Sample Clinical Extraction (Python)
 description: Python FastAPI version of clinical entity extraction sample
 version: 0.0.1
 auth:
   tenantId: 00000000-0000-0000-0000-000000000000
 tools:
   - name: clinical-entity-extractor-py
+    caption: Clinical Entity Extractor (Python)
     description: Extracts certain clinical entities (Python FastAPI)
+    type: DragonAPI
+    triggers:
+      - DataAvailable
+    timeout: 60
     endpoint: http://localhost:5181/v1/process
-    trigger: AutoRun
     inputs:
       - name: note
         description: Note

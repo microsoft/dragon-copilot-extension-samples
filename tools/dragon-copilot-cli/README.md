@@ -65,8 +65,11 @@ Run `npm unlink -g dragon-copilot` only once per workstation; subsequent rebuild
 
 | Domain     | Command Example                                       | Description |
 |------------|--------------------------------------------------------|-------------|
-| Physician  | `dragon-copilot physician init`                        | Interactive wizard that generates an extension manifest |
-| Physician  | `dragon-copilot physician validate ./extension.yaml`   | Validates the manifest against JSON schema + business rules |
+| Physician  | `dragon-copilot physician init`                        | Interactive wizard that generates an extension manifest (latest schema by default; `--schema-version` to pick another) |
+| Physician  | `dragon-copilot physician generate --template note-analysis` | Generate a manifest from a template (`note-analysis`, `speech-analysis`; 0.3.0 also has `note-suggestions`, `audio-analysis`) or interactively with `--interactive` |
+| Physician  | `dragon-copilot physician validate ./extension.yaml`   | Validates the manifest against the JSON schema for its `schemaVersion` + business rules |
+| Physician  | `dragon-copilot physician migrate ./extension.yaml`    | Upgrades a manifest to the latest schema version (writes `extension.migrated.yaml`; see options below) |
+| Physician  | `dragon-copilot physician versions`                    | Lists supported physician manifest schema versions |
 | Physician  | `dragon-copilot physician package`                     | Produces a zip containing the manifest and any included files |
 | Radiologists | `dragon-copilot radiologists init`                     | Interactive wizard that scaffolds a radiologists extension manifest |
 | Radiologists | `dragon-copilot radiologists generate --template quality-check -o extension.yaml` | Generate a manifest from a built-in template (currently `quality-check`) or interactively with `--interactive` |
@@ -78,6 +81,29 @@ Run `npm unlink -g dragon-copilot` only once per workstation; subsequent rebuild
 | Connector  | `dragon-copilot connector package`                     | Produces a zip containing the manifest and any included files |
 
 Use `dragon-copilot --help` or `dragon-copilot <domain> --help` for additional options.
+
+## Physician Manifest Schema Versions
+
+Physician manifests declare their format with a top-level `schemaVersion` field.
+
+- **No `schemaVersion`**: validated against the original (legacy) schema. Still accepted, but `validate` suggests migrating.
+- **A supported version** (e.g. `0.3.0`): validated against that version's schema.
+- **Anything else**: rejected as an unsupported schema version.
+
+`init` and `generate` create manifests for the latest version by default. Pass `--schema-version <version>` (or `--schema-version legacy`) to target another one. When `generate --interactive` adds a tool to an existing manifest, it always uses that manifest's version.
+
+For `0.3.0`, the interactive prompts also cover captions, `triggers`, a `timeout` (defaults to 60 seconds and is always written, because the platform uses 5 when it's omitted), EHR context (`application/fhir.ehr-context+json` with `include` sections, plus an optional supplemental context input), adaptive card content inputs, marking inputs optional (`required: false`), and fire-and-forget tools with no outputs.
+
+`migrate <file>` upgrades a manifest and validates the result before writing it. The source manifest must already be valid for its own version, and nothing is written while any item still needs attention (for example an unrecognized trigger or `data` value). Comments and anchors from the original file are preserved.
+
+| Option | Behavior |
+|--------|----------|
+| `--to <version>` | Target version (default: latest) |
+| `--in-place` | Overwrite the input file instead of writing `<name>.migrated.yaml` |
+| `--dry-run` | Print the migrated manifest and the list of changes without writing |
+| `--non-interactive` | Use inferred captions (from names) and triggers instead of prompting |
+
+Migrating from the original format to `0.3.0` adds `schemaVersion` and captions, adds `type: DragonAPI` and `timeout: 60` to each tool, converts `trigger` to `triggers` (`AutoRun` → `DataAvailable`, `AdaptiveCardAction` → `ExplicitRequest`, unset → `DataAvailable`), and replaces deprecated `data` fields with `content-type` (`DSP/*` input values map to their DSP content types; the output value `DSP` maps to `application/vnd.ms-dragon.dsp+json`). Names that start with a digit must be renamed; interactive mode prompts for a new name.
 
 ## Clinical Application Connector
 

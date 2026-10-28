@@ -106,10 +106,85 @@ function loadSchema(name: string): any {
   return JSON.parse(readFileSync(join(schemaDir, name), 'utf8'));
 }
 
-const manifestSchema = loadSchema('physician-extension-manifest-schema.json');
+/** Selector for manifests that omit `schemaVersion`. */
+export const LEGACY_SCHEMA_VERSION = 'legacy';
 
-// Compile schemas for faster validation
-const validateManifest = ajv.compile(manifestSchema);
+interface SchemaVersionEntry {
+  version: string;
+  file: string;
+  /** Preview versions are accepted by validate but never chosen as the default. */
+  preview?: boolean;
+}
+
+// Ordered oldest to newest. Adding a version only requires a new schema file and an entry here.
+const SCHEMA_VERSION_REGISTRY: SchemaVersionEntry[] = [
+  { version: '0.3.0', file: 'physician-extension-manifest-schema-0.3.0.json' },
+];
+
+const LEGACY_SCHEMA_FILE = 'physician-extension-manifest-schema.json';
+
+const manifestSchema = loadSchema(LEGACY_SCHEMA_FILE);
+const validateLegacyManifest = ajv.compile(manifestSchema);
+
+// Each versioned schema declares a unique `$id`, so it must be compiled exactly once per Ajv instance.
+const versionedSchemas = new Map<string, { schema: any; validate: ReturnType<typeof ajv.compile> }>(
+  SCHEMA_VERSION_REGISTRY.map(entry => {
+    const schema = loadSchema(entry.file);
+    return [entry.version, { schema, validate: ajv.compile(schema) }];
+  })
+);
+
+export const LATEST_SCHEMA_VERSION: string =
+  [...SCHEMA_VERSION_REGISTRY].reverse().find(entry => !entry.preview)?.version ?? LEGACY_SCHEMA_VERSION;
+
+export interface SchemaVersionInfo {
+  version: string;
+  latest: boolean;
+  preview: boolean;
+  deprecated: boolean;
+}
+
+/** All selectable schema versions, newest first, including `legacy`. */
+export function getSchemaVersions(): SchemaVersionInfo[] {
+  const versioned = [...SCHEMA_VERSION_REGISTRY].reverse().map(entry => ({
+    version: entry.version,
+    latest: entry.version === LATEST_SCHEMA_VERSION,
+    preview: entry.preview === true,
+    deprecated: false
+  }));
+  return [...versioned, { version: LEGACY_SCHEMA_VERSION, latest: false, preview: false, deprecated: true }];
+}
+
+export function isSupportedSchemaVersion(version: string): boolean {
+  return version === LEGACY_SCHEMA_VERSION || versionedSchemas.has(version);
+}
+
+/** Resolves a `--schema-version` option to a supported version, defaulting to the latest. */
+export function resolveRequestedSchemaVersion(requested?: string): string {
+  const version = requested ?? LATEST_SCHEMA_VERSION;
+  if (!isSupportedSchemaVersion(version)) {
+    const supported = getSchemaVersions().map(v => v.version).join(', ');
+    throw new Error(`Unsupported schema version "${version}". Supported: ${supported}`);
+  }
+  return version;
+}
+
+/**
+ * Reads the manifest's `schemaVersion`. Returns `legacy` when it's absent. A present but
+ * non-string or empty value is returned as-is so it's reported as unsupported rather than
+ * silently validated against the legacy schema.
+ */
+export function getManifestSchemaVersion(manifest: unknown): string {
+  if (!manifest || typeof manifest !== 'object' || !('schemaVersion' in manifest)) {
+    return LEGACY_SCHEMA_VERSION;
+  }
+  const value = (manifest as Record<string, unknown>).schemaVersion;
+  return typeof value === 'string' ? value : JSON.stringify(value);
+}
+
+function getSchemaForVersion(version: string): any {
+  return version === LEGACY_SCHEMA_VERSION ? manifestSchema : versionedSchemas.get(version)?.schema;
+}
 
 /**
  * Schema validation error (directly from AJV)
@@ -129,34 +204,59 @@ export interface SchemaError {
 export interface ValidationResult {
   isValid: boolean;
   errors: SchemaError[];
+  /** Schema version the manifest was validated against (`legacy` when `schemaVersion` is absent). */
+  schemaVersion?: string;
 }
 
 /**
  * Complete validation for Extension Manifest
  * Combines JSON Schema validation with simple business rules
  */
-export function validateExtensionManifest(manifest: DragonExtensionManifest): ValidationResult {
+export function validateExtensionManifest(manifest: unknown): ValidationResult {
   // Step 1: Pure JSON Schema validation
   const schemaResult = validateManifestSchema(manifest);
+  // Business rules assume a schema-valid shape, so they would crash on malformed input.
+  if (!schemaResult.isValid) {
+    return schemaResult;
+  }
 
   // Step 2: Simple business rules (easily portable to C#)
-  const businessRuleErrors = validateManifestBusinessRules(manifest);
+  const businessRuleErrors = validateManifestBusinessRules(manifest as DragonExtensionManifest);
 
-  return {
-    isValid: schemaResult.isValid && businessRuleErrors.length === 0,
-    errors: [...schemaResult.errors, ...businessRuleErrors]
-  };
+  return { ...schemaResult, isValid: businessRuleErrors.length === 0, errors: businessRuleErrors };
 }
 
 /**
- * Pure JSON Schema validation for Extension Manifest
+ * Pure JSON Schema validation for Extension Manifest. Picks the schema from `schemaVersion`;
+ * `schemaVersion` is undefined in the result when the declared version isn't supported.
  */
-export function validateManifestSchema(manifest: DragonExtensionManifest): ValidationResult {
-  const isValid = validateManifest(manifest);
+export function validateManifestSchema(manifest: unknown): ValidationResult {
+  const version = getManifestSchemaVersion(manifest);
+  const validator = version === LEGACY_SCHEMA_VERSION
+    ? validateLegacyManifest
+    : versionedSchemas.get(version)?.validate;
+
+  if (!validator) {
+    const supported = SCHEMA_VERSION_REGISTRY.map(entry => entry.version).join(', ');
+    return {
+      isValid: false,
+      errors: [{
+        instancePath: '/schemaVersion',
+        keyword: 'unsupportedSchemaVersion',
+        message: `Unsupported schema version "${version}". Supported: ${supported} (or omit schemaVersion for the original format)`,
+        data: (manifest as Record<string, unknown>).schemaVersion,
+        schemaPath: '#/properties/schemaVersion',
+        params: { schemaVersion: version, supported: SCHEMA_VERSION_REGISTRY.map(entry => entry.version) }
+      }]
+    };
+  }
+
+  const isValid = validator(manifest) as boolean;
 
   return {
     isValid,
-    errors: isValid ? [] : (validateManifest.errors || []).map(convertAjvError)
+    errors: isValid ? [] : (validator.errors || []).map(convertAjvError),
+    schemaVersion: version
   };
 }
 
@@ -169,8 +269,8 @@ function validateManifestBusinessRules(manifest: DragonExtensionManifest): Schem
   const errors: SchemaError[] = [];
 
   // Check for duplicate tool names
-  if (manifest.tools && manifest.tools.length > 1) {
-    const toolNames = manifest.tools.map(t => t.name).filter(Boolean);
+  if (Array.isArray(manifest?.tools) && manifest.tools.length > 1) {
+    const toolNames = manifest.tools.map((t: { name?: string } | null) => t?.name).filter(Boolean);
     const duplicates = toolNames.filter((name, index) => toolNames.indexOf(name) !== index);
 
     if (duplicates.length > 0) {
@@ -203,10 +303,16 @@ function convertAjvError(ajvError: any): SchemaError {
 }
 
 /**
- * Field validation for prompts
+ * Field validation for prompts, against the schema for the given version (default: latest).
+ * `fieldPath` is a top-level property name or a dotted path into the schema (e.g. `definitions.Tool.properties.name`).
  */
-export function validateFieldValue(value: any, fieldPath: string, schemaType: 'manifest'): string | true {
-  const schema = manifestSchema;
+export function validateFieldValue(
+  value: any,
+  fieldPath: string,
+  schemaType: 'manifest',
+  schemaVersion: string = LATEST_SCHEMA_VERSION
+): string | true {
+  const schema = getSchemaForVersion(schemaVersion) ?? manifestSchema;
   const fieldSchema = extractFieldSchema(fieldPath, schema);
 
   if (!fieldSchema) {
@@ -249,6 +355,8 @@ function extractFieldSchema(fieldPath: string, schema: any): any | null {
 
     if (currentSchema && typeof currentSchema === 'object' && part in currentSchema) {
       currentSchema = currentSchema[part];
+    } else if (currentSchema?.properties && part in currentSchema.properties) {
+      currentSchema = currentSchema.properties[part];
     } else {
       return null;
     }
