@@ -1,0 +1,31 @@
+{
+  // Divergence guard for the CLI manifest core synced into `src/cli/radiologists`.
+  //
+  // That code is compiled twice: here (server target ES2022) and by
+  // `tools/dragon-copilot-cli` (target/lib ES2020, plus stricter flags). Without
+  // this check the sandbox build stays green while the CLI build breaks — an
+  // ES2022-only API such as `Object.hasOwn` would sail through `tsconfig.json`.
+  //
+  // The options below mirror the CLI's tsconfig so the sandbox fails fast on
+  // anything the CLI could not compile. Keep in sync with
+  // `tools/dragon-copilot-cli/tsconfig.json`.
+  "compilerOptions": {
+    "target": "es2020",
+    "lib": ["es2020"],
+    "module": "es2020",
+    "moduleResolution": "bundler",
+    "types": ["node"],
+
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
+    "verbatimModuleSyntax": true,
+    "isolatedModules": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+
+    "noEmit": true
+  },
+  "include": ["src/cli/radiologists"]
+}

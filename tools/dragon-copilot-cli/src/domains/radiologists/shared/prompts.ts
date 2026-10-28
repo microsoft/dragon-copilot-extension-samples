@@ -1,12 +1,37 @@
 import { input, select, checkbox, confirm } from '@inquirer/prompts';
 import type {
-  DcrCapability,
+  Capability,
   DcrExtensionManifest,
   DcrOutput,
-  DcrToolType,
-  RelevanceFilteringCriteria
+  RelevanceFilteringCriteria,
+  ToolType
 } from '../types.js';
+import {
+  BODY_PART_CHOICES,
+  CAPABILITY_CHOICES,
+  CAPABILITY_OUTPUT,
+  INPUT_TYPE_CHOICES,
+  MANIFEST_DEFAULTS,
+  MODALITY_CHOICES,
+  TOOL_TYPE_CAPABILITIES,
+  TOOL_TYPE_CHOICES,
+  getInputDescription,
+  getInputName
+} from '../manifest/index.js';
 import { validateFieldValue } from './schema-validator.js';
+
+// Selectable values and content-type derivations are owned by the pure manifest
+// core so the Extensions Sandbox wizard offers exactly the same options; they are
+// re-exported here for existing callers.
+export {
+  BODY_PART_CHOICES,
+  CAPABILITY_CHOICES,
+  INPUT_TYPE_CHOICES,
+  MODALITY_CHOICES,
+  TOOL_TYPE_CHOICES,
+  getInputDescription,
+  getInputName
+};
 
 export interface ExtensionDetails {
   name: string;
@@ -18,52 +43,13 @@ export interface ExtensionDetails {
 export interface ToolDetails {
   toolName: string;
   toolDescription: string;
-  toolType: DcrToolType;
-  capability: DcrCapability;
+  toolType: ToolType;
+  capability: Capability;
   endpoint?: string | undefined;
   inputTypes: string[];
   outputs: DcrOutput[];
   relevanceFilteringCriteria?: RelevanceFilteringCriteria | undefined;
 }
-
-export const INPUT_TYPE_CHOICES = [
-  { name: 'Radiology Report', value: 'application/vnd.ms-dragon.rad.report+json' },
-  { name: 'Patient Information', value: 'application/vnd.ms-dragon.rad.patient-information+json' },
-];
-
-export const TOOL_TYPE_CHOICES = [
-  { name: 'Contract Based (Dragon Copilot calls your endpoint)', value: 'contractBased' as const },
-  { name: 'Partner Initiated (you submit results to Dragon Copilot)', value: 'partnerInitiated' as const },
-];
-
-export const CAPABILITY_CHOICES = [
-  { name: 'Quality Check', value: 'qualityCheck' as const },
-  { name: 'Pre-Draft Report Generation', value: 'preDraftReportGeneration' as const },
-];
-
-/**
- * The capabilities each tool type can implement. qualityCheck needs an endpoint for Dragon Copilot
- * to call, and preDraftReportGeneration is submitted by the partner and read back from storage, so
- * neither capability works under the other tool type.
- */
-export const TOOL_TYPE_CAPABILITIES: Record<DcrToolType, readonly DcrCapability[]> = {
-  contractBased: ['qualityCheck'],
-  partnerInitiated: ['preDraftReportGeneration']
-};
-
-/** The output content type each capability produces. */
-export const CAPABILITY_OUTPUT: Record<DcrCapability, { contentType: string; name: string; description: string }> = {
-  qualityCheck: {
-    contentType: 'application/vnd.ms-dragon.rad.quality-check-result+json',
-    name: 'qualityCheckResult',
-    description: 'Quality check result'
-  },
-  preDraftReportGeneration: {
-    contentType: 'application/vnd.ms-dragon.rad.draft-report+json',
-    name: 'preDraftReportResult',
-    description: 'Pre-draft radiology report'
-  }
-};
 
 /**
  * Validates tool name input
@@ -129,24 +115,24 @@ export function validateTenantId(input: string): string | boolean {
 export async function promptExtensionDetails(defaults?: Partial<ExtensionDetails>): Promise<ExtensionDetails> {
   const name = await input({
     message: 'Extension name:',
-    default: defaults?.name || 'myRadiologistsExtension',
+    default: defaults?.name || MANIFEST_DEFAULTS.extensionName,
     validate: validateExtensionName
   });
 
   const description = await input({
     message: 'Extension description:',
-    default: defaults?.description || 'A Dragon Copilot radiologists extension'
+    default: defaults?.description || MANIFEST_DEFAULTS.extensionDescription
   });
 
   const version = await input({
     message: 'Version:',
-    default: defaults?.version || '0.0.1',
+    default: defaults?.version || MANIFEST_DEFAULTS.version,
     validate: validateVersion
   });
 
   const radiologistsExtensibilityApiVersion = await input({
     message: 'Radiologists Extensibility API version this manifest was authored against:',
-    default: defaults?.radiologistsExtensibilityApiVersion || '1.0.0',
+    default: defaults?.radiologistsExtensibilityApiVersion || MANIFEST_DEFAULTS.radiologistsExtensibilityApiVersion,
     validate: validateradiologistsExtensibilityApiVersion
   });
 
@@ -251,37 +237,9 @@ export async function promptToolDetails(
 }
 
 /**
- * Gets description for a given data type
- */
-export function getInputDescription(contentType: string): string {
-  switch (contentType) {
-    case 'application/vnd.ms-dragon.rad.report+json':
-      return 'Radiology report from Dragon Copilot';
-    case 'application/vnd.ms-dragon.rad.patient-information+json':
-      return 'Patient demographic information from Dragon Copilot';
-    default:
-      return 'Data from Dragon Copilot';
-  }
-}
-
-/**
- * Maps a content-type to a default input name
- */
-export function getInputName(contentType: string, index: number): string {
-  switch (contentType) {
-    case 'application/vnd.ms-dragon.rad.report+json':
-      return 'report';
-    case 'application/vnd.ms-dragon.rad.patient-information+json':
-      return 'patientInformation';
-    default:
-      return `input-${index + 1}`;
-  }
-}
-
-/**
  * Prompts for output details
  */
-export async function promptOutputDetails(capability: DcrCapability, defaults?: { name?: string; description?: string; schemaVersion?: string }): Promise<DcrOutput> {
+export async function promptOutputDetails(capability: Capability, defaults?: { name?: string; description?: string; schemaVersion?: string }): Promise<DcrOutput> {
   const expected = CAPABILITY_OUTPUT[capability];
 
   const name = await input({
@@ -296,7 +254,7 @@ export async function promptOutputDetails(capability: DcrCapability, defaults?: 
 
   const schemaVersion = await input({
     message: 'Output payload schemaVersion (major.minor):',
-    default: defaults?.schemaVersion || '1.0'
+    default: defaults?.schemaVersion || MANIFEST_DEFAULTS.schemaVersion
   });
 
   return {
@@ -306,43 +264,6 @@ export async function promptOutputDetails(capability: DcrCapability, defaults?: 
     schemaVersion
   };
 }
-
-export const BODY_PART_CHOICES = [
-  { name: 'Head', value: 'HEAD' },
-  { name: 'Brain', value: 'BRAIN' },
-  { name: 'Skull', value: 'SKULL' },
-  { name: 'Sinus', value: 'SINUS' },
-  { name: 'Neck', value: 'NECK' },
-  { name: 'C-Spine', value: 'CSPINE' },
-  { name: 'T-Spine', value: 'TSPINE' },
-  { name: 'L-Spine', value: 'LSPINE' },
-  { name: 'Spine', value: 'SPINE' },
-  { name: 'Chest', value: 'CHEST' },
-  { name: 'Abdomen', value: 'ABDOMEN' },
-  { name: 'Pelvis', value: 'PELVIS' },
-  { name: 'Shoulder', value: 'SHOULDER' },
-  { name: 'Elbow', value: 'ELBOW' },
-  { name: 'Wrist', value: 'WRIST' },
-  { name: 'Hand', value: 'HAND' },
-  { name: 'Hip', value: 'HIP' },
-  { name: 'Knee', value: 'KNEE' },
-  { name: 'Ankle', value: 'ANKLE' },
-  { name: 'Foot', value: 'FOOT' },
-  { name: 'Whole Body', value: 'WHOLEBODY' },
-];
-
-export const MODALITY_CHOICES = [
-  { name: 'CR - Computed Radiography', value: 'CR' },
-  { name: 'CT - Computed Tomography', value: 'CT' },
-  { name: 'DX - Digital Radiography', value: 'DX' },
-  { name: 'MG - Mammography', value: 'MG' },
-  { name: 'MR - MRI', value: 'MR' },
-  { name: 'NM - Nuclear Medicine', value: 'NM' },
-  { name: 'PT - PET', value: 'PT' },
-  { name: 'RF - Fluoroscopy', value: 'RF' },
-  { name: 'US - Ultrasound', value: 'US' },
-  { name: 'XA - X-ray Angiography', value: 'XA' },
-];
 
 /**
  * Prompts for relevance filtering criteria
@@ -383,7 +304,7 @@ export async function promptRelevanceFilteringCriteria(): Promise<RelevanceFilte
 /**
  * Prompts for multiple outputs
  */
-export async function promptOutputs(capability: DcrCapability): Promise<DcrOutput[]> {
+export async function promptOutputs(capability: Capability): Promise<DcrOutput[]> {
   const outputs: DcrOutput[] = [];
 
   console.log('\n Configuring outputs for your tool...');
