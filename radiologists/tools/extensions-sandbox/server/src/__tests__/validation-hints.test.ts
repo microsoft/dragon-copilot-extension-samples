@@ -185,7 +185,7 @@ describe('buildDetailedErrors', () => {
 
     const endpointErr = errors.find((e) => e.path === '/tools/0/endpoint');
     expect(endpointErr).toBeDefined();
-    expect(endpointErr!.detail).toContain('not allo wed on a partnerInitiated tool');
+    expect(endpointErr!.detail).toContain('not allowed on a partnerInitiated tool');
     expect(endpointErr!.hint).toContain("Remove 'endpoint'");
 
     const capabilityErr = errors.find((e) => e.path === '/tools/0/capability');
