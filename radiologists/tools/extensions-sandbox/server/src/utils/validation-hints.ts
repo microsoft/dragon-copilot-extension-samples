@@ -87,6 +87,48 @@ function getHintForError(err: ErrorObject): { detail: string; hint: string } {
       };
     }
 
+    case 'const': {
+      const allowed = params.allowedValue as string;
+      if (path.endsWith('/capability')) {
+        return {
+          detail: `Capability at '${path}' does not match the tool's toolType (expected "${allowed}").`,
+          hint: `Each toolType supports exactly one capability: "contractBased" → "qualityCheck", "partnerInitiated" → "preDraftReportGeneration".`,
+        };
+      }
+      if (path.includes('/outputs/') && path.endsWith('/content-type')) {
+        return {
+          detail: `Output content-type at '${path}' does not match the tool's capability (expected "${allowed}").`,
+          hint: `Each capability produces one output type: "qualityCheck" → "application/vnd.ms-dragon.rad.quality-check-result+json", "preDraftReportGeneration" → "application/vnd.ms-dragon.rad.draft-report+json".`,
+        };
+      }
+      return {
+        detail: `The value at '${path}' must be "${allowed}".`,
+        hint: `Set the value at '${path}' to "${allowed}".`,
+      };
+    }
+
+    // A `false` subschema forbids the property outright (e.g., endpoint/inputs on partnerInitiated tools).
+    case 'false schema': {
+      const property = path.split('/').pop() ?? path;
+      if (property === 'endpoint' || property === 'inputs') {
+        return {
+          detail: `'${property}' is not allowed on a partnerInitiated tool (at '${path}').`,
+          hint: `Remove '${property}'. Dragon Copilot never calls partnerInitiated tools; the partner submits results through the partner-initiated API, so these tools declare no endpoint or inputs.`,
+        };
+      }
+      return {
+        detail: `The property at '${path}' is not allowed here.`,
+        hint: `Remove the property at '${path}'.`,
+      };
+    }
+
+    case 'if': {
+      return {
+        detail: `The tool at '${path}' does not satisfy the rules for its toolType or capability.`,
+        hint: `See the related errors for this tool: "contractBased" tools require 'endpoint' and 'inputs' with capability "qualityCheck"; "partnerInitiated" tools forbid 'endpoint' and 'inputs' and use capability "preDraftReportGeneration"; outputs must use the capability's content-type.`,
+      };
+    }
+
     default:
       return {
         detail: `Validation failed at '${path}': ${err.message ?? keyword}.`,
@@ -102,11 +144,11 @@ function getRequiredPropertyHint(path: string, missing: string, schemaPath: stri
   if (schemaPath.includes('DragonTool') || path.match(/\/tools\/\d+$/)) {
     const toolHints: Record<string, string> = {
       name: `Add a 'name' field using camelCase (e.g., "chestCtQuality").`,
-      toolType: `Add a 'toolType' field. Allowed value: "contractBased". Use "contractBased" for standard REST API integrations.`,
-      capability: `Add a 'capability' field. Allowed value: "qualityCheck".`,
+      toolType: `Add a 'toolType' field. Allowed values: "contractBased" (REST API integrations; requires 'endpoint' and 'inputs') or "partnerInitiated" (the partner submits results to Dragon Copilot).`,
+      capability: `Add a 'capability' field. Allowed values: "qualityCheck" (contractBased tools) or "preDraftReportGeneration" (partnerInitiated tools).`,
       description: `Add a 'description' field explaining what this tool does.`,
-      endpoint: `Add an 'endpoint' field with the full HTTPS URL of your extension's /v1/process endpoint (e.g., "https://api.example.com/v1/process").`,
-      inputs: `Add an 'inputs' array with at least one input definition. Each input needs 'name', 'description', and 'content-type'.`,
+      endpoint: `Add an 'endpoint' field with the full HTTPS URL of your extension's /v1/process endpoint (e.g., "https://api.example.com/v1/process"). Required for contractBased tools.`,
+      inputs: `Add an 'inputs' array with at least one input definition. Each input needs 'name', 'description', and 'content-type'. Required for contractBased tools.`,
       outputs: `Add an 'outputs' array with at least one output definition. Each output needs 'name', 'description', and 'content-type'.`,
     };
     return {
@@ -133,7 +175,7 @@ function getRequiredPropertyHint(path: string, missing: string, schemaPath: stri
     const outputHints: Record<string, string> = {
       name: `Add a 'name' field to identify this output (e.g., "quality-result").`,
       description: `Add a 'description' field explaining what this output produces.`,
-      'content-type': `Add a 'content-type' field. Allowed value: "application/vnd.ms-dragon.rad.quality-check-result+json".`,
+      'content-type': `Add a 'content-type' field. Allowed values: "application/vnd.ms-dragon.rad.quality-check-result+json" (qualityCheck), "application/vnd.ms-dragon.rad.draft-report+json" (preDraftReportGeneration).`,
     };
     return {
       detail: `Missing required property '${missing}' in output definition at '${location}'.`,
@@ -178,7 +220,7 @@ function getEnumHint(path: string, allowed: string[], schemaPath: string): { det
     if (schemaPath.includes('Output') || path.includes('/outputs/')) {
       return {
         detail: `Invalid output content-type at '${path}'.`,
-        hint: `Use one of the supported output content types:\n  • "application/vnd.ms-dragon.rad.quality-check-result+json" (report optimization findings)`,
+        hint: `Use one of the supported output content types:\n  • "application/vnd.ms-dragon.rad.quality-check-result+json" (report optimization findings)\n  • "application/vnd.ms-dragon.rad.draft-report+json" (draft report)`,
       };
     }
   }
@@ -186,14 +228,14 @@ function getEnumHint(path: string, allowed: string[], schemaPath: string): { det
   if (path.endsWith('/toolType')) {
     return {
       detail: `Invalid tool type at '${path}'.`,
-      hint: `Use "contractBased" (REST API). This is the only supported tool type.`,
+      hint: `Use "contractBased" (REST API) or "partnerInitiated" (partner submits results).`,
     };
   }
 
   if (path.endsWith('/capability')) {
     return {
       detail: `Invalid capability at '${path}'.`,
-      hint: `Use "qualityCheck" (Report Optimization). This is the only supported capability.`,
+      hint: `Use "qualityCheck" (Report Optimization, contractBased tools) or "preDraftReportGeneration" (Draft Report Generation, partnerInitiated tools).`,
     };
   }
 

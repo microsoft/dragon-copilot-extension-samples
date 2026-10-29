@@ -1,6 +1,6 @@
 # Sample Requests and Responses
 
-This directory contains sample request and response payloads for a Dragon Copilot (radiologists) extension. See [`radiologists-extensibility-api.yaml`](../../../radiologists-extensibility-api.yaml) for the full API contract.
+This directory contains sample request and response payloads for a Dragon Copilot (radiologists) extension. See [`radiologists-extensibility-api.yaml`](../../../../extensibility-api/radiologists-extensibility-api.yaml) for the full API contract.
 
 ## Sample Request: Patient Information
 

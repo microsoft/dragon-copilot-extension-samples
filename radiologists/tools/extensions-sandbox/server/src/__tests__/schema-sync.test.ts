@@ -29,7 +29,7 @@ const CLI_SCHEMA_PATH = resolve(
   'radiologists-extension-manifest-schema.json',
 );
 
-// server/src/__tests__ -> radiologists/radiologists-extensibility-api.yaml
+// server/src/__tests__ -> radiologists/extensibility-api/radiologists-extensibility-api.yaml
 const RADIOLOGISTS_SPEC_PATH = resolve(
   __dirname,
   '..',
@@ -37,6 +37,7 @@ const RADIOLOGISTS_SPEC_PATH = resolve(
   '..',
   '..',
   '..',
+  'extensibility-api',
   'radiologists-extensibility-api.yaml',
 );
 

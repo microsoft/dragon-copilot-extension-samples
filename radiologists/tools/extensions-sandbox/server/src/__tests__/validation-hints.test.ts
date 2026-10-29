@@ -160,6 +160,71 @@ describe('buildDetailedErrors', () => {
     expect(uriErr!.hint).toContain('https://');
   });
 
+  it('should provide hints for toolType-specific rules on partnerInitiated tools', () => {
+    const manifest = {
+      name: 'test',
+      description: 'Test',
+      version: '1.0.0',
+      radiologistsExtensibilityApiVersion: '0.1.0',
+      auth: { tenantId: '12345678-1234-1234-1234-123456789abc' },
+      tools: [
+        {
+          name: 'tool',
+          toolType: 'partnerInitiated',
+          capability: 'qualityCheck',
+          description: 'A tool',
+          endpoint: 'https://api.example.com/v1/process',
+          outputs: [
+            { name: 'draft', description: 'Draft', 'content-type': 'application/vnd.ms-dragon.rad.draft-report+json', schemaVersion: '1.0' },
+          ],
+        },
+      ],
+    };
+    validate(manifest);
+    const errors = buildDetailedErrors(validate.errors!);
+
+    const endpointErr = errors.find((e) => e.path === '/tools/0/endpoint');
+    expect(endpointErr).toBeDefined();
+    expect(endpointErr!.detail).toContain('not allowed on a partnerInitiated tool');
+    expect(endpointErr!.hint).toContain("Remove 'endpoint'");
+
+    const capabilityErr = errors.find((e) => e.path === '/tools/0/capability');
+    expect(capabilityErr).toBeDefined();
+    expect(capabilityErr!.detail).toContain('preDraftReportGeneration');
+    expect(capabilityErr!.hint).toContain('"partnerInitiated" → "preDraftReportGeneration"');
+
+    const ifErr = errors.find((e) => e.path === '/tools/0' && e.detail.includes('toolType'));
+    expect(ifErr).toBeDefined();
+  });
+
+  it('should provide hints when an output content-type does not match the capability', () => {
+    const manifest = {
+      name: 'test',
+      description: 'Test',
+      version: '1.0.0',
+      radiologistsExtensibilityApiVersion: '0.1.0',
+      auth: { tenantId: '12345678-1234-1234-1234-123456789abc' },
+      tools: [
+        {
+          name: 'tool',
+          toolType: 'partnerInitiated',
+          capability: 'preDraftReportGeneration',
+          description: 'A tool',
+          outputs: [
+            { name: 'result', description: 'Result', 'content-type': 'application/vnd.ms-dragon.rad.quality-check-result+json', schemaVersion: '1.0' },
+          ],
+        },
+      ],
+    };
+    expect(validate(manifest)).toBe(false);
+    const errors = buildDetailedErrors(validate.errors!);
+
+    const contentTypeErr = errors.find((e) => e.path === '/tools/0/outputs/0/content-type');
+    expect(contentTypeErr).toBeDefined();
+    expect(contentTypeErr!.detail).toContain('does not match the tool\'s capability (expected "application/vnd.ms-dragon.rad.draft-report+json")');
+    expect(contentTypeErr!.hint).toContain('"preDraftReportGeneration" → "application/vnd.ms-dragon.rad.draft-report+json"');
+  });
+
   it('should include all fields: path, message, detail, hint, severity', () => {
     validate({});
     const errors = buildDetailedErrors(validate.errors!);

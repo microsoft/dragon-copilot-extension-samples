@@ -9,10 +9,10 @@
  */
 
 /** The integration pattern a tool uses. */
-export type ToolType = 'contractBased';
+export type ToolType = 'contractBased' | 'partnerInitiated';
 
 /** The capability a tool provides. */
-export type Capability = 'qualityCheck';
+export type Capability = 'qualityCheck' | 'preDraftReportGeneration';
 
 export interface DcrExtensionManifest {
   name: string;
@@ -32,8 +32,10 @@ export interface DcrTool {
   toolType: ToolType;
   capability: Capability;
   description: string;
-  endpoint: string;
-  inputs: DcrInput[];
+  /** Required for contractBased tools; omitted for partnerInitiated, which are never called. */
+  endpoint?: string;
+  /** Required for contractBased tools; omitted for partnerInitiated, which receive no inputs. */
+  inputs?: DcrInput[];
   outputs: DcrOutput[];
   relevanceFilteringCriteria?: RelevanceFilteringCriteria;
   configurationTemplate?: Record<string, any>;
@@ -72,8 +74,8 @@ export interface ToolTemplate {
   toolType: ToolType;
   capability: Capability;
   description: string;
-  endpoint: string;
-  inputs: Array<{
+  endpoint?: string;
+  inputs?: Array<{
     name: string;
     description: string;
     'content-type': string;
