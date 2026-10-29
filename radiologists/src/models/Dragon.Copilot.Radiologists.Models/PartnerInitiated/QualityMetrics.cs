@@ -21,6 +21,7 @@ public class QualityMetrics
     /// Gets or sets the quality of the input images, between 0 and 1.
     /// </summary>
     [JsonPropertyName("imageQualityScore")]
+    [JsonRequired]
     public double ImageQualityScore { get; set; }
 
     /// <summary>

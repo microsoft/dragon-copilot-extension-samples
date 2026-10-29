@@ -97,13 +97,54 @@ public sealed class ProgramTests : IDisposable
         var exitCode = await RunAsync(ShippedSettings(), WritePayload("{ not json"));
 
         Assert.Equal(1, exitCode);
-        Assert.Contains("Payload is not valid JSON", Output, StringComparison.Ordinal);
+        Assert.Contains("Payload could not be read", Output, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task APayloadMissingARequiredValueFailsInsteadOfSendingADefault()
+    {
+        // Without [JsonRequired], a missing aiGenerated would load as false and be submitted.
+        var bundled = await File.ReadAllTextAsync(BundledPayload);
+        var payload = WritePayload(bundled.Replace("\"aiGenerated\": true,", string.Empty, StringComparison.Ordinal));
+
+        var exitCode = await RunAsync(ShippedSettings(), payload);
+
+        Assert.Equal(1, exitCode);
+        Assert.Contains("Payload could not be read", Output, StringComparison.Ordinal);
+        Assert.Contains("'aiGenerated'", Output, StringComparison.Ordinal);
+        Assert.DoesNotContain("Submitting", Output, StringComparison.Ordinal);
     }
 
     [Fact]
     public async Task MainThrowsWhenArgsIsNull()
     {
         await Assert.ThrowsAsync<ArgumentNullException>(() => Program.Main(null!));
+    }
+
+    [Fact]
+    public async Task CancellingWhileTheReportIsSubmittedExitsCleanly()
+    {
+        using var cancellation = new CancellationTokenSource();
+
+        var exitCode = await Program.RunAsync(
+            ShippedSettings(), BundledPayload, AppContext.BaseDirectory, _output, new CancellingTokenProvider(cancellation), cancellation.Token);
+
+        Assert.Equal(1, exitCode);
+        Assert.Contains("Submitting", Output, StringComparison.Ordinal);
+        Assert.EndsWith("Cancelled.", Output.TrimEnd(), StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task CancellingWhileThePayloadLoadsExitsCleanly()
+    {
+        using var cancellation = new CancellationTokenSource();
+        await cancellation.CancelAsync();
+
+        var exitCode = await Program.RunAsync(
+            ShippedSettings(), BundledPayload, AppContext.BaseDirectory, _output, null, cancellation.Token);
+
+        Assert.Equal(1, exitCode);
+        Assert.Equal("Cancelled.", Output.Trim());
     }
 
     private SampleSettings ShippedSettings()
@@ -132,5 +173,17 @@ public sealed class ProgramTests : IDisposable
     private sealed class FakeTokenProvider : ITokenProvider
     {
         public Task<string> GetAccessTokenAsync(CancellationToken cancellationToken) => Task.FromResult("test-token");
+    }
+
+    /// <summary>
+    /// Cancels the run while handing out the token, as Ctrl+C would, so the submit that follows sees a cancelled token.
+    /// </summary>
+    private sealed class CancellingTokenProvider(CancellationTokenSource cancellation) : ITokenProvider
+    {
+        public async Task<string> GetAccessTokenAsync(CancellationToken cancellationToken)
+        {
+            await cancellation.CancelAsync();
+            return "test-token";
+        }
     }
 }

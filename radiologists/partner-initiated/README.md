@@ -42,7 +42,8 @@ tools:
 ```
 
 - `auth.tenantId` should be your Microsoft Entra tenant ID. Results must be submitted with an access token issued by your tenant. See [Authentication](#authentication).
-- A `partnerInitiated` tool omits `endpoint` and `inputs`, since neither is used, and declares only what it produces. The manifest schema requires `endpoint` and `inputs` only when `toolType` is `contractBased`.
+- A `partnerInitiated` tool omits `endpoint` and `inputs`, since neither is used, and declares only what it produces. The manifest schema requires `endpoint` and `inputs` when `toolType` is `contractBased`, and rejects them when it's `partnerInitiated`.
+- Each capability produces one output type, so a `preDraftReportGeneration` tool's outputs use `application/vnd.ms-dragon.rad.draft-report+json`.
 
 The [reference manifest](../manifest/extension.yaml) declares this tool alongside a `contractBased` one.
 

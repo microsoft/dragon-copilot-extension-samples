@@ -88,7 +88,7 @@ public static class Program
     /// <param name="output">Where to write progress and results.</param>
     /// <param name="tokenProvider">Supplies the access token, or null to submit without one.</param>
     /// <param name="cancellationToken">Cancels the run.</param>
-    /// <returns>Zero when the draft report is stored, or was already stored; one otherwise.</returns>
+    /// <returns>Zero when the draft report is stored, or was already stored; one otherwise, including when the run is cancelled.</returns>
     public static async Task<int> RunAsync(
         SampleSettings settings,
         string payloadPath,
@@ -100,6 +100,27 @@ public static class Program
         ArgumentNullException.ThrowIfNull(settings);
         ArgumentNullException.ThrowIfNull(output);
 
+        try
+        {
+            return await RunStepsAsync(settings, payloadPath, baseDirectory, output, tokenProvider, cancellationToken)
+                .ConfigureAwait(false);
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            // Ctrl+C cancels whichever step is running: loading the payload, acquiring the token or submitting.
+            await output.WriteLineAsync("Cancelled.").ConfigureAwait(false);
+            return 1;
+        }
+    }
+
+    private static async Task<int> RunStepsAsync(
+        SampleSettings settings,
+        string payloadPath,
+        string baseDirectory,
+        TextWriter output,
+        ITokenProvider? tokenProvider,
+        CancellationToken cancellationToken)
+    {
         // 1. Load the request. A Partner's service builds it from its model's output instead.
         var request = await LoadRequestAsync(payloadPath, output, cancellationToken).ConfigureAwait(false);
         if (request is null)
@@ -211,7 +232,7 @@ public static class Program
         }
         catch (JsonException ex)
         {
-            await output.WriteLineAsync($"Payload is not valid JSON: {ex.Message}").ConfigureAwait(false);
+            await output.WriteLineAsync($"Payload could not be read: {ex.Message}").ConfigureAwait(false);
             return null;
         }
     }

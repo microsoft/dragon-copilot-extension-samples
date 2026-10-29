@@ -35,7 +35,7 @@ export async function initProject(options: InitOptions): Promise<void> {
 
   // Step 2: Authentication Configuration
     console.log(chalk.blue('\n🔐 Step 2: Authentication Configuration'));
-  console.log(chalk.gray('Configure Azure Entra ID authentication for your extension.\n'));
+  console.log(chalk.gray('Configure Microsoft Entra authentication for your extension.\n'));
 
   const authDetails = await promptAuthDetails();
 

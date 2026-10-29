@@ -331,6 +331,15 @@ manifestRouter.post('/execute', async (req, res) => {
     return;
   }
 
+  if (tool.toolType === 'partnerInitiated') {
+    log.warn(`Execute rejected: tool '${toolName}' is partnerInitiated and cannot be executed.`);
+    res.status(400).json({
+      error:
+        `Tool '${toolName}' is partnerInitiated: Dragon Copilot never calls it, so it cannot use the execute endpoint.`,
+    });
+    return;
+  }
+
   if (!tool.endpoint) {
     log.warn(`Execute rejected: tool '${toolName}' has no endpoint configured.`);
     res.status(400).json({ error: 'Tool endpoint is not configured in the manifest.' });

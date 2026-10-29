@@ -155,7 +155,7 @@
           }
         },
         {
-          "$comment": "partnerInitiated means the partner submits results instead of being called. preDraftReportGeneration is the only capability delivered that way.",
+          "$comment": "partnerInitiated means the partner submits results instead of being called, so it has no endpoint to call and nothing to send: endpoint and inputs are forbidden. preDraftReportGeneration is the only capability delivered that way.",
           "if": {
             "required": [
               "toolType"
@@ -170,6 +170,60 @@
             "properties": {
               "capability": {
                 "const": "preDraftReportGeneration"
+              },
+              "endpoint": false,
+              "inputs": false
+            }
+          }
+        },
+        {
+          "$comment": "Each capability produces exactly one output payload type: qualityCheck returns QualityCheckResult.",
+          "if": {
+            "required": [
+              "capability"
+            ],
+            "properties": {
+              "capability": {
+                "const": "qualityCheck"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "outputs": {
+                "items": {
+                  "properties": {
+                    "content-type": {
+                      "const": "application/vnd.ms-dragon.rad.quality-check-result+json"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "$comment": "Each capability produces exactly one output payload type: preDraftReportGeneration submits a DraftReport.",
+          "if": {
+            "required": [
+              "capability"
+            ],
+            "properties": {
+              "capability": {
+                "const": "preDraftReportGeneration"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "outputs": {
+                "items": {
+                  "properties": {
+                    "content-type": {
+                      "const": "application/vnd.ms-dragon.rad.draft-report+json"
+                    }
+                  }
+                }
               }
             }
           }

@@ -174,7 +174,7 @@ describe('POST /api/cli/generate (custom mode)', () => {
     expect(manifest.name).toBe('myRadiologistsExtension');
     expect(manifest.tools[0].toolType).toBe('contractBased');
     expect(manifest.tools[0].capability).toBe('qualityCheck');
-    expect(manifest.tools[0].inputs.map((input) => input.name)).toEqual(['report', 'patientInformation']);
+    expect(manifest.tools[0].inputs!.map((input) => input.name)).toEqual(['report', 'patientInformation']);
     expect(manifest.tools[0].outputs[0]['content-type']).toBe(
       'application/vnd.ms-dragon.rad.quality-check-result+json',
     );
