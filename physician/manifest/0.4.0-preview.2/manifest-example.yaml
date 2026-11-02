@@ -21,7 +21,7 @@
 # All values below are placeholders. Replace contoso.com hosts and GUIDs with
 # your own.
 
-# yaml-language-server: $schema=./manifest-schema.json
+# yaml-language-server: $schema=../../../tools/dragon-copilot-cli/src/schemas/physician/physician-extension-manifest-schema-0.4.0-preview.2.json
 
 schemaVersion: 0.4.0-preview.2
 name: contoso-conversational-sample
@@ -77,7 +77,7 @@ tools:
     caption: Drug Interaction Check
     description: Check interactions between two medications.
     type: OpenAPI
-    specUrl: https://api.contoso.com/openapi.json
+    specUrl: https://api.contoso.com/openapi.json   # or inline it with specString (see formulary-lookup)
     triggers:
       - IntentDriven
     expose:

@@ -15,7 +15,7 @@ This repository contains sample code and tools for developing **Dragon Copilot E
 ### Physician Conversational Tools (Public Preview, schema `0.4.0-preview.2`)
 - **Purpose**: Tools the Dragon Copilot assistant calls during a conversation (`IntentDriven` trigger). Part of the physician domain, not a separate product
 - **Types covered here**: `MCP`, `OpenAPI`, `CopilotStudio`
-- **Schema**: `physician/manifest/0.4.0-preview.2/manifest-schema.json`, mirrored in `tools/dragon-copilot-cli/src/schemas/physician/physician-extension-manifest-schema-0.4.0-preview.2.json` — keep both copies byte-identical
+- **Schema**: `tools/dragon-copilot-cli/src/schemas/physician/physician-extension-manifest-schema-0.4.0-preview.2.json` (reference docs and example in `physician/manifest/0.4.0-preview.2/`)
 - **Key fields**: `expose`, `customExtractors`, `runtimeParamBindings` (keyed by MCP tool / operationId; flat list for CopilotStudio), `isExclusive`, `timeout` (5–60s)
 - **Default**: registered as `preview`, so `0.3.0` stays the default schema
 

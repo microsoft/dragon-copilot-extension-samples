@@ -1,6 +1,6 @@
 # Manifest reference — schema 0.4.0-preview.2 (Public Preview)
 
-A field-by-field reference for [`manifest-schema.json`](manifest-schema.json). For a complete annotated manifest, see [`manifest-example.yaml`](manifest-example.yaml). For the concepts, see [Conversational Extensions](../../CONVERSATIONAL.md).
+A field-by-field reference for the [manifest schema](../../../tools/dragon-copilot-cli/src/schemas/physician/physician-extension-manifest-schema-0.4.0-preview.2.json). For a complete annotated manifest, see [`manifest-example.yaml`](manifest-example.yaml). For the concepts, see [Conversational Extensions](../../CONVERSATIONAL.md).
 
 > **Public Preview.** Fields and behavior may change before general availability. The JSON schema is authoritative. A test in the CLI checks that every enum value in the schema is documented here.
 

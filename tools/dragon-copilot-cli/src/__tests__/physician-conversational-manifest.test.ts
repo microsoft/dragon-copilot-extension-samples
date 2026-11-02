@@ -65,7 +65,7 @@ describe('physician manifest schema 0.4.0-preview.2 (conversational tools)', () 
   describe('manifest reference README', () => {
     const referenceDir = join(repoRoot, 'physician', 'manifest', V040_SCHEMA_VERSION);
     const readme = readFileSync(join(referenceDir, 'README.md'), 'utf8').replace(/\r\n/g, '\n');
-    const schema = JSON.parse(readFileSync(join(referenceDir, 'manifest-schema.json'), 'utf8'));
+    const schema = JSON.parse(readFileSync(resolve(process.cwd(), 'src', 'schemas', 'physician', `physician-extension-manifest-schema-${V040_SCHEMA_VERSION}.json`), 'utf8'));
 
     function collect(node: unknown, enums: Set<string>): void {
       if (Array.isArray(node)) { node.forEach(n => collect(n, enums)); return; }
@@ -111,14 +111,6 @@ describe('physician manifest schema 0.4.0-preview.2 (conversational tools)', () 
       }
     });
   });
-  test('public schema and CLI-bundled schema are identical', () => {
-    const publicSchema = readFileSync(join(repoRoot, 'physician', 'manifest', V040_SCHEMA_VERSION, 'manifest-schema.json'), 'utf8');
-    const bundledSchema = readFileSync(resolve(process.cwd(), 'src', 'schemas', 'physician', `physician-extension-manifest-schema-${V040_SCHEMA_VERSION}.json`), 'utf8');
-    const normalizeEol = (s: string) => s.replace(/\r\n/g, '\n');
-    expect(normalizeEol(bundledSchema)).toBe(normalizeEol(publicSchema));
-    expect(JSON.parse(bundledSchema)).toEqual(JSON.parse(publicSchema));
-  });
-
   test('rejects duplicate tool names', () => {
     const result = validate(withTools(getConversationalToolTemplate('MCP'), getConversationalToolTemplate('MCP')));
     expect(result.isValid).toBe(false);

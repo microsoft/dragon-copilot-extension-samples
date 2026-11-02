@@ -1,6 +1,6 @@
 # Dragon Copilot conversational extension manifest for the MCP sample server.
 # Replace the tenant ID and endpoint host with your own before packaging.
-# yaml-language-server: $schema=../../../../../../manifest/0.4.0-preview.2/manifest-schema.json
+# yaml-language-server: $schema=../../../../../../../tools/dragon-copilot-cli/src/schemas/physician/physician-extension-manifest-schema-0.4.0-preview.2.json
 
 schemaVersion: 0.4.0-preview.2
 name: contoso-clinical-mcp

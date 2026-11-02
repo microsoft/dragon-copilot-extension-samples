@@ -2,7 +2,7 @@
 
 Build, run and package the MCP sample end to end in about 15 minutes. The [OpenAPI](OpenApi/README.md) and [Copilot Studio](CopilotStudio/README.md) samples follow the same flow.
 
-> **Public Preview.** Uses manifest schema [`0.4.0-preview.2`](../../../../manifest/0.4.0-preview.2/manifest-schema.json).
+> **Public Preview.** Uses manifest schema [`0.4.0-preview.2`](../../../../../tools/dragon-copilot-cli/src/schemas/physician/physician-extension-manifest-schema-0.4.0-preview.2.json).
 
 ## Prerequisites
 

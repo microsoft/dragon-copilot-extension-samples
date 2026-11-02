@@ -4,7 +4,7 @@ Conversational extensions let Dragon Copilot call **your** tools and agents whil
 
 In this guide, **intent** means what the clinician is asking for in the current turn (for example "what's the normal potassium range?"). An `IntentDriven` tool is called when Dragon Copilot judges, from that request and the tool's `description`, that the tool can help answer it.
 
-> **Public Preview.** Conversational extensions use the Public Preview manifest schema [`0.4.0-preview.2`](manifest/0.4.0-preview.2/manifest-schema.json). Fields and behavior may change before general availability.
+> **Public Preview.** Conversational extensions use the Public Preview manifest schema [`0.4.0-preview.2`](../tools/dragon-copilot-cli/src/schemas/physician/physician-extension-manifest-schema-0.4.0-preview.2.json). Fields and behavior may change before general availability.
 
 ## 📚 Contents
 
@@ -43,7 +43,7 @@ sequenceDiagram
 
 ## 📐 Manifest schema 0.4.0-preview.2
 
-- Schema: [`manifest/0.4.0-preview.2/manifest-schema.json`](manifest/0.4.0-preview.2/manifest-schema.json)
+- Schema: [`physician-extension-manifest-schema-0.4.0-preview.2.json`](../tools/dragon-copilot-cli/src/schemas/physician/physician-extension-manifest-schema-0.4.0-preview.2.json)
 - **Field reference** (every field, trigger, content type, binding source/target and extractor): [`manifest/0.4.0-preview.2/README.md`](manifest/0.4.0-preview.2/README.md)
 - Annotated example (all three types): [`manifest/0.4.0-preview.2/manifest-example.yaml`](manifest/0.4.0-preview.2/manifest-example.yaml)
 

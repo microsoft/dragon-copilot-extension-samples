@@ -1,7 +1,7 @@
 # Dragon Copilot conversational extension manifest for a Copilot Studio agent.
 # Replace environmentId and agentIdentifier with your own values. auth.tenantId is required by the
 # schema but ignored for CopilotStudio-only manifests, so any valid GUID works.
-# yaml-language-server: $schema=../../../../../manifest/0.4.0-preview.2/manifest-schema.json
+# yaml-language-server: $schema=../../../../../../tools/dragon-copilot-cli/src/schemas/physician/physician-extension-manifest-schema-0.4.0-preview.2.json
 
 schemaVersion: 0.4.0-preview.2
 name: contoso-scheduling-agent
