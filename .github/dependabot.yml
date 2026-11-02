@@ -32,6 +32,22 @@ updates:
       - "dotnet"
       - "sample-extension"
 
+  # Enable version updates for .NET dependencies - Conversational samples (central package management)
+  - package-ecosystem: "nuget"
+    directory: "/conversational"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "04:00"
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "deps"
+      include: "scope"
+    labels:
+      - "dependencies"
+      - "dotnet"
+      - "conversational"
+
   # Enable version updates for npm dependencies
   - package-ecosystem: "npm"
     directory: "/tools/dragon-copilot-cli"

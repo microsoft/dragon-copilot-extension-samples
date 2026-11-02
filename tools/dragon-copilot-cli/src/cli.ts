@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 
 import { Command } from 'commander';
-import chalk from 'chalk';
 import { createRequire } from 'module';
 import { registerCommands } from './commands/index.js';
+import { reportCliError } from './common/index.js';
 
 // Injected at bundle time by esbuild define; falls back to package.json for dev (npm link).
 declare const __CLI_VERSION__: string | undefined;
@@ -18,7 +18,9 @@ async function main(): Promise<void> {
 	program
 		.name('dragon-copilot')
 		.description('Unified CLI for Dragon Copilot extensions and integrations')
-		.version(VERSION);
+		.version(VERSION)
+		.option('--debug', 'Show stack traces for errors (same as DEBUG=1)')
+		.option('--verbose', 'Alias for --debug');
 
 	registerCommands(program);
 
@@ -26,16 +28,16 @@ async function main(): Promise<void> {
 }
 
 main().catch(error => {
-	console.error(chalk.red('Unhandled CLI error:'), error);
+	reportCliError(error);
 	process.exitCode = 1;
 });
 
-process.on('unhandledRejection', (reason, promise) => {
-	console.error(chalk.red('Unhandled Rejection at:'), promise, chalk.red('reason:'), reason);
+process.on('unhandledRejection', reason => {
+	reportCliError(reason);
 	process.exit(1);
 });
 
 process.on('uncaughtException', error => {
-	console.error(chalk.red('Uncaught Exception:'), error);
+	reportCliError(error);
 	process.exit(1);
 });

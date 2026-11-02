@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="Mcp/SampleConversational.Mcp.Web/SampleConversational.Mcp.Web.csproj" />
+  <Project Path="Mcp/SampleConversational.Mcp.Web.Tests/SampleConversational.Mcp.Web.Tests.csproj" />
+  <Project Path="OpenApi/SampleConversational.OpenApi.Web/SampleConversational.OpenApi.Web.csproj" />
+  <Project Path="OpenApi/SampleConversational.OpenApi.Web.Tests/SampleConversational.OpenApi.Web.Tests.csproj" />
+</Solution>

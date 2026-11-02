@@ -1,5 +1,6 @@
-import type { TemplateConfig, TemplateConfigV030 } from '../types.js';
-import { LEGACY_SCHEMA_VERSION, LATEST_SCHEMA_VERSION } from '../shared/schema-validator.js';
+import type { TemplateConfig, TemplateConfigV030, TemplateConfigV040, ConversationalTool, ConversationalToolType } from '../types.js';
+import { V040_SCHEMA_VERSION } from '../types.js';
+import { LEGACY_SCHEMA_VERSION, LATEST_SCHEMA_VERSION, PLACEHOLDER_TENANT_ID } from '../shared/schema-validator.js';
 import { DEFAULT_TOOL_TIMEOUT_SECONDS } from '../shared/prompts.js';
 
 const legacyTemplates: Record<string, TemplateConfig> = {
@@ -255,15 +256,103 @@ const v030Templates: Record<string, TemplateConfigV030> = {
   }
 };
 
-const templatesByVersion: Record<string, Record<string, TemplateConfig | TemplateConfigV030>> = {
+/** Conversational starter tools; each mirrors a sample under physician/src/samples/DragonCopilot/Conversational. */
+const conversationalToolTemplates: Record<string, () => ConversationalTool> = {
+  mcp: () => ({
+    name: 'order-extraction',
+    caption: 'Order Extraction',
+    description: 'Extract clinical orders mentioned in the current encounter transcript.',
+    type: 'MCP',
+    endpoint: 'https://mcp.example.com/mcp',
+    triggers: ['IntentDriven'],
+    expose: ['extract_orders'],
+    customExtractors: {
+      extract_orders: [{ propertyPath: '$.summary', extractorType: 'Response Text' }]
+    },
+    runtimeParamBindings: {
+      extract_orders: [
+        { source: 'transcript', target: 'argument', path: 'transcript', required: true },
+        { source: 'conversationId', target: 'sideChannel', path: 'dragon.conversationId' }
+      ]
+    },
+    timeout: 10
+  }),
+  openapi: () => ({
+    name: 'drug-interaction-check',
+    caption: 'Drug Interaction Check',
+    description: 'Check interactions between two medications.',
+    type: 'OpenAPI',
+    specUrl: 'https://api.example.com/openapi/v1.json',
+    triggers: ['IntentDriven'],
+    expose: ['checkDrugInteraction'],
+    customExtractors: {
+      checkDrugInteraction: [
+        { propertyPath: '$.summary', extractorType: 'Response Text' },
+        { propertyPath: '$.sources[*].url', extractorType: 'Evidence Link' }
+      ]
+    },
+    runtimeParamBindings: {
+      checkDrugInteraction: [{ source: 'correlationId', target: 'header', path: 'x-correlation-id' }]
+    }
+  }),
+  'copilot-studio': () => ({
+    name: 'scheduling-agent',
+    caption: 'Appointment Scheduling',
+    description: 'Handles appointment scheduling and rescheduling questions.',
+    type: 'CopilotStudio',
+    environmentId: '00000000-0000-0000-0000-000000000000',
+    agentIdentifier: 'cr123_schedulingAgent',
+    cloud: 'Prod',
+    agentType: 'Published',
+    timeout: 45,
+    triggers: ['IntentDriven'],
+    runtimeParamBindings: [{ source: 'locale', path: 'locale' }]
+  })
+};
+
+export const TEMPLATE_FOR_TOOL_TYPE: Record<ConversationalToolType, string> = {
+  MCP: 'mcp',
+  OpenAPI: 'openapi',
+  CopilotStudio: 'copilot-studio'
+};
+
+export function getConversationalToolTemplate(type: ConversationalToolType): ConversationalTool {
+  return conversationalToolTemplates[TEMPLATE_FOR_TOOL_TYPE[type]]!();
+}
+
+const conversationalManifests: Record<string, TemplateConfigV040> = Object.fromEntries(
+  Object.entries(conversationalToolTemplates).map(([key, factory]) => {
+    const tool = factory();
+    return [key, {
+      schemaVersion: V040_SCHEMA_VERSION,
+      name: `my-${tool.name}-extension`,
+      caption: tool.caption,
+      description: tool.description,
+      version: '0.0.1',
+      auth: { tenantId: PLACEHOLDER_TENANT_ID },
+      tools: [tool]
+    }];
+  })
+);
+
+// 0.4.0-preview.2 keeps every 0.3.0 DragonAPI template and adds the conversational ones.
+const v040Templates: Record<string, TemplateConfigV040> = {
+  ...Object.fromEntries(
+    Object.entries(v030Templates).map(([key, template]) => [key, { ...template, schemaVersion: V040_SCHEMA_VERSION }])
+  ),
+  ...conversationalManifests
+};
+
+const templatesByVersion: Record<string, Record<string, TemplateConfig | TemplateConfigV030 | TemplateConfigV040>> = {
   [LEGACY_SCHEMA_VERSION]: legacyTemplates,
-  '0.3.0': v030Templates
+  '0.3.0': v030Templates,
+  [V040_SCHEMA_VERSION]: v040Templates
 };
 
 export function getTemplate(
   templateName: string,
   schemaVersion: string = LATEST_SCHEMA_VERSION
-): TemplateConfig | TemplateConfigV030 {
+): TemplateConfig | TemplateConfigV030 | TemplateConfigV040 {
   const templates = templatesByVersion[schemaVersion];
   if (!templates) {
     throw new Error(`No templates are available for schema version '${schemaVersion}'`);

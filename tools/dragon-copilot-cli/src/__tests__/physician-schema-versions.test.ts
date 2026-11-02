@@ -11,11 +11,15 @@ import {
   getManifestSchemaVersion,
   resolveRequestedSchemaVersion,
   LATEST_SCHEMA_VERSION,
-  LEGACY_SCHEMA_VERSION
+  LEGACY_SCHEMA_VERSION,
+  getRegisteredSchemaVersions,
+  validateFieldValue
 } from '../domains/physician/shared/schema-validator.js';
+import { getMigrationChainProblems } from '../domains/physician/commands/migrate.js';
 import {
   validateToolName,
   validateTimeout,
+  minTimeoutSeconds,
   humanizeName,
   buildV030Inputs,
   ADAPTIVE_CARD_CONTENT_TYPE
@@ -96,7 +100,7 @@ const LEGACY_MANIFEST_YAML = [
 describe('physician schema version routing', () => {
   test('latest schema version is 0.3.0', () => {
     expect(LATEST_SCHEMA_VERSION).toBe('0.3.0');
-    expect(getSchemaVersions().map(v => v.version)).toEqual(['0.3.0', LEGACY_SCHEMA_VERSION]);
+    expect(getSchemaVersions().map(v => v.version)).toEqual(['0.4.0-preview.2', '0.3.0', LEGACY_SCHEMA_VERSION]);
   });
 
   test('every supported schema version is reachable by migrate', () => {
@@ -212,12 +216,20 @@ describe('physician version-aware helpers', () => {
     expect(validateToolName('tool-1', null, '0.3.0')).toBe(true);
   });
 
-  test('validateTimeout allows blank and 3-60 whole seconds', () => {
+  test('validateTimeout allows blank and 5-60 whole seconds', () => {
     expect(validateTimeout('')).toBe(true);
-    expect(validateTimeout('3')).toBe(true);
+    expect(validateTimeout('5')).toBe(true);
     expect(validateTimeout('60')).toBe(true);
-    expect(typeof validateTimeout('2')).toBe('string');
+    expect(typeof validateTimeout('4')).toBe('string');
+    expect(typeof validateTimeout('61')).toBe('string');
     expect(typeof validateTimeout('5.5')).toBe('string');
+  });
+
+  test('timeout minimum follows the schema version (0.3.0: 3, 0.4.0-preview.2: 5)', () => {
+    expect(minTimeoutSeconds('0.3.0')).toBe(3);
+    expect(minTimeoutSeconds('0.4.0-preview.2')).toBe(5);
+    expect(validateTimeout('3', minTimeoutSeconds('0.3.0'))).toBe(true);
+    expect(typeof validateTimeout('3', minTimeoutSeconds('0.4.0-preview.2'))).toBe('string');
   });
 
   test('humanizeName builds a caption from a kebab-case name', () => {
@@ -512,5 +524,31 @@ describe('physician migrate and versions commands', () => {
     expect(logs).toContain('0.3.0');
     expect(logs).toContain('latest, default');
     expect(logs).toContain('legacy');
+  });
+});
+
+describe('physician schema registry and migration chain', () => {
+  test('0.4.0-preview.2 is registered as preview and 0.3.0 stays the default', () => {
+    expect(getRegisteredSchemaVersions()).toEqual(['0.3.0', '0.4.0-preview.2']);
+    const preview = getSchemaVersions().find(info => info.version === '0.4.0-preview.2');
+    expect(preview).toMatchObject({ preview: true, latest: false });
+    expect(LATEST_SCHEMA_VERSION).toBe('0.3.0');
+    expect(resolveRequestedSchemaVersion()).toBe('0.3.0');
+  });
+
+  test('every registered schema version has exactly one migration step', () => {
+    expect(getMigrationChainProblems()).toEqual([]);
+  });
+
+  test('validateFieldValue throws on an unknown field path or version', () => {
+    expect(() => validateFieldValue('x', 'definitions.Tool.properties.nope', 'manifest')).toThrow(/has no field/);
+    expect(() => validateFieldValue('x', 'name', 'manifest', '9.9.9')).toThrow(/Unsupported schema version/);
+    expect(validateFieldValue('my-ext', 'name', 'manifest', '0.4.0-preview.2')).toBe(true);
+  });
+
+  test.each([['0.3.0'], ['0.4.0-preview.2']])('non-array tools fail validation without throwing (%s)', (version) => {
+    const manifest = { ...buildV030Manifest(), schemaVersion: version, tools: { name: 'not-an-array' } };
+    const result = validateExtensionManifest(manifest);
+    expect(result.isValid).toBe(false);
   });
 });

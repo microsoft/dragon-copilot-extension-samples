@@ -52,6 +52,26 @@ jobs:
       run: |
         docker build -f ${{ matrix.product.dockerfile }} -t ${{ matrix.product.name }}-sample-extension .
 
+  build-and-test-physician-conversational:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+      with:
+        dotnet-version: '10.0.x'
+
+    - name: Build and test conversational samples (MCP, OpenAPI)
+      run: dotnet test physician/src/samples/DragonCopilot/Conversational/SampleConversational.slnx --configuration Release --verbosity normal
+
+    - name: Build MCP sample Docker image
+      run: docker build -f physician/src/samples/DragonCopilot/Conversational/Mcp/SampleConversational.Mcp.Web/Dockerfile -t conversational-mcp-sample .
+
+    - name: Build OpenAPI sample Docker image
+      run: docker build -f physician/src/samples/DragonCopilot/Conversational/OpenApi/SampleConversational.OpenApi.Web/Dockerfile -t conversational-openapi-sample .
+
   build-and-test-radiologists:
     runs-on: ubuntu-latest
 

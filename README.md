@@ -18,6 +18,7 @@ This repo includes:
 - [Shared Platform Documentation](doc/) for authentication guides and resources common across all products
 - Sample [`Physician Workflow`](physician/) with best practices
 - Sample [`Radiologists Workflow`](radiologists/) with best practices
+- **Physician conversational tools (Public Preview)**: [MCP, OpenAPI and Copilot Studio](physician/CONVERSATIONAL.md) tools, defined with physician manifest schema `0.4.0-preview.2`
 - [Clinical Application Connector documentation](connector/) for EHR and enterprise API integrations
 - CLI [`tools`](tools/dragon-copilot-cli/README.md) to initialize & package both **Extensions** and **Clinical Application Connectors**
 
@@ -70,6 +71,8 @@ dragon-copilot physician generate   # Generate or update extension manifest
 dragon-copilot physician validate   # Validate extension manifest
 dragon-copilot physician package    # Package for distribution
 ```
+
+Conversational tools (Public Preview) use schema `0.4.0-preview.2`, e.g. `dragon-copilot physician init --schema-version 0.4.0-preview.2 --type MCP`. See [physician/CONVERSATIONAL.md](physician/CONVERSATIONAL.md).
 
 #### Radiologists Extension Commands
 

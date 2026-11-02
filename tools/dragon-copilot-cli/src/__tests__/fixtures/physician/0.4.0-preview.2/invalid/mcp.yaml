@@ -1,0 +1,18 @@
+# Invalid conversational manifest cases (mcp). Each case MUST fail schema validation.
+# A "tool" case is wrapped in a minimal manifest envelope before validation.
+
+- description: leaks specString (OpenAPI-only inline spec source)
+  tool:
+    name: mcp-leak-specstring
+    caption: Leak SpecString
+    description: Carries an inline spec, which only OpenAPI tools may use.
+    type: MCP
+    triggers:
+      - IntentDriven
+    endpoint: https://mcp.example.com
+    specString: |-
+      openapi: 3.0.3
+      info:
+        title: Example API
+        version: 1.0.0
+      paths: {}

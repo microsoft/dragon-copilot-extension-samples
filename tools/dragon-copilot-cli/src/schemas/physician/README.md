@@ -4,6 +4,7 @@
 |------|-----------------|-------|
 | `physician-extension-manifest-schema.json` | _(absent)_ | Original, unversioned format. Used when a manifest has no `schemaVersion`. |
 | `physician-extension-manifest-schema-0.3.0.json` | `0.3.0` | Public 0.3.0 schema. Current default for new manifests. |
+| `physician-extension-manifest-schema-0.4.0-preview.2.json` | `0.4.0-preview.2` | Public Preview. Adds conversational tools (`MCP`, `OpenAPI`, `CopilotStudio`). Marked `preview`, so never the default. Must stay byte-identical to [`physician/manifest/0.4.0-preview.2/manifest-schema.json`](../../../../../physician/manifest/0.4.0-preview.2/manifest-schema.json). |
 
 ## Adding a version
 

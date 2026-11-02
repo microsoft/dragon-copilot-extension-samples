@@ -1,5 +1,6 @@
 import fs from 'fs-extra';
-const { readFileSync, writeFileSync } = fs;
+const { readFileSync, writeFileSync, ensureDirSync } = fs;
+import path from 'path';
 import { load, dump } from 'js-yaml';
 import chalk from 'chalk';
 import type { GenerateOptions, DragonExtensionManifest } from '../types.js';
@@ -9,8 +10,17 @@ import { buildManifest, buildTool } from '../shared/manifest-builder.js';
 import {
   getManifestSchemaVersion,
   isSupportedSchemaVersion,
-  resolveRequestedSchemaVersion
+  resolveRequestedSchemaVersion,
+  validateExtensionManifest,
+  formatErrors,
+  PLACEHOLDER_TENANT_ID,
+  PLACEHOLDER_TENANT_WARNING
 } from '../shared/schema-validator.js';
+
+function writeManifest(outputPath: string, manifest: unknown): void {
+  ensureDirSync(path.dirname(path.resolve(outputPath)));
+  writeFileSync(outputPath, dump(manifest, { lineWidth: -1 }));
+}
 
 export async function generateManifest(options: GenerateOptions): Promise<void> {
   console.log(chalk.blue('🐉 Generating Dragon Copilot Physician Workflow Manifest'));
@@ -20,8 +30,7 @@ export async function generateManifest(options: GenerateOptions): Promise<void> 
   } else if (options.template) {
     await generateFromTemplate(options);
   } else {
-    console.log(chalk.red('❌ Please specify either --template or --interactive'));
-    process.exit(1);
+    throw new Error('Please specify either --template or --interactive');
   }
 }
 
@@ -76,31 +85,31 @@ async function generateInteractive(options: GenerateOptions): Promise<void> {
     (manifest.tools as unknown[]).push(newTool);
   }
 
-  const yamlContent = dump(manifest, { lineWidth: -1 });
-  writeFileSync(options.output || 'extension.yaml', yamlContent);
+  const result = validateExtensionManifest(manifest);
+  if (!result.isValid) {
+    formatErrors(result.errors).forEach(line => console.log(chalk.red(`  • ${line}`)));
+    throw new Error('Generated manifest failed validation');
+  }
+
+  writeManifest(options.output || 'extension.yaml', manifest);
 
   console.log(chalk.green('\n✅ Tool added to manifest successfully!'));
   console.log(chalk.gray(`📁 Manifest saved to: ${options.output || 'extension.yaml'}`));
+  if (manifest.auth?.tenantId === PLACEHOLDER_TENANT_ID) {
+    console.log(chalk.yellow(`⚠️  ${PLACEHOLDER_TENANT_WARNING}`));
+  }
 }
+
 async function generateFromTemplate(options: GenerateOptions): Promise<void> {
   if (!options.template) {
-    console.log(chalk.red('❌ Template name is required'));
-    return;
+    throw new Error('Template name is required');
   }
 
-  try {
-    const template = getTemplate(options.template, resolveRequestedSchemaVersion(options.schemaVersion));
-    const yamlContent = dump(template, { lineWidth: -1 });
-    writeFileSync(options.output || 'extension.yaml', yamlContent);
+  const outputPath = options.output || 'extension.yaml';
 
-    console.log(chalk.green(`✅ Manifest generated from template: ${options.template}`));
-    console.log(chalk.gray(`📁 Manifest saved to: ${options.output || 'extension.yaml'}`));
+  const template = getTemplate(options.template, resolveRequestedSchemaVersion(options.schemaVersion));
+  writeManifest(outputPath, template);
 
-  } catch (error) {
-    if (error instanceof Error) {
-      console.log(chalk.red(`❌ Error generating from template: ${error.message}`));
-    } else {
-      console.log(chalk.red('❌ Unknown error occurred while generating from template'));
-    }
-  }
+  console.log(chalk.green(`✅ Manifest generated from template: ${options.template}`));
+  console.log(chalk.gray(`📁 Manifest saved to: ${outputPath}`));
 }
