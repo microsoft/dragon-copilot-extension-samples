@@ -85,7 +85,7 @@ tools:
     type: DragonAPI
     triggers:                    # DataAvailable and/or ExplicitRequest
       - DataAvailable
-    timeout: 60                  # Optional: 5-60 seconds; the platform uses 5 if omitted, so set it explicitly
+    timeout: 60                  # Optional: 3-60 seconds; the platform uses 5 if omitted, so set it explicitly
     endpoint: https://api.example.com/v1/process
     inputs:
       - name: note

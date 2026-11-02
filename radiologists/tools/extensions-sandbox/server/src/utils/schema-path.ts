@@ -9,7 +9,9 @@ import { dirname, join } from 'node:path';
  * dev/build/test time by `scripts/sync-schemas.ts` and are git-ignored locally, so the
  * upstream copy holds the single source of truth in each case:
  * - `radiologists-extension-manifest-schema.json` is owned by `tools/dragon-copilot-cli`.
- * - `radiologists-extensibility-api.yaml` is owned by `radiologists/`.
+ * - `radiologists-extensibility-api.yaml` is owned by `radiologists/`, and will be replaced
+ *   with an internal package reference once `diag-radex-extension-service` publishes its
+ *   authoritative version.
  */
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);

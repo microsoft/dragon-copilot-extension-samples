@@ -172,7 +172,9 @@ The generation script (`scripts/generate-output-schemas.ts`) extracts the `Patie
 > the manifest schema (`radiologists-extension-manifest-schema.json`) and the manifest core
 > (`src/cli/radiologists/`) are owned by the `tools/dragon-copilot-cli` package, and the OpenAPI spec
 > (`radiologists-extensibility-api.yaml`) is owned by `radiologists/`.
-> `src/__tests__/schema-sync.test.ts` fails if any copy drifts from its source.
+> `src/__tests__/schema-sync.test.ts` fails if any copy drifts from its source. The OpenAPI spec will
+> be replaced with an internal package reference once `diag-radex-extension-service` publishes its
+> authoritative version.
 
 ## API Endpoints
 

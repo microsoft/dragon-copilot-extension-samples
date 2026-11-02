@@ -2,7 +2,7 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://dragon.microsoft.com/schemas/extension-manifest/0.3.0",
   "title": "Dragon Copilot Extension Manifest",
-  "description": "Unified manifest schema for Dragon Copilot extensions (Workflow). v0.3.0. Describes the contract between Dragon Copilot and partner extensions: authentication, capabilities (tools), and per-tool integration protocol (DragonAPI).",
+  "description": "Unified manifest schema for Dragon Copilot extensions (Workflow). v0.3.0. Describes the contract between the Dragon Copilot orchestrator and partner extensions: authentication, capabilities (tools), and per-tool integration protocol (DragonAPI).",
   "type": "object",
   "required": ["name", "version", "auth", "tools", "schemaVersion", "caption", "description"],
   "additionalProperties": false,
@@ -197,7 +197,7 @@
         "description": {
           "type": "string",
           "minLength": 1,
-          "description": "Dragon Copilot tool-selection prompt."
+          "description": "Orchestrator tool-selection prompt."
         },
         "triggers": { "$ref": "#/definitions/Triggers" },
         "type": {
@@ -212,7 +212,7 @@
           "minimum": 3,
           "maximum": 60,
           "default": 5,
-          "description": "Hard timeout in seconds. Dragon Copilot aborts the tool call after this period. Allowed range: 3–60. Default: 5."
+          "description": "Hard timeout in seconds. Orchestrator aborts the tool call after this period. Allowed range: 3–60. Default: 5."
         }
       },
       "allOf": [

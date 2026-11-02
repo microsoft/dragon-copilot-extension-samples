@@ -61,7 +61,7 @@ jobs:
     - name: Setup .NET
       uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
       with:
-        dotnet-version: '10.0.x'
+        dotnet-version: '9.0.x'
 
     - name: Build and test conversational samples (MCP, OpenAPI)
       run: dotnet test physician/src/samples/DragonCopilot/Conversational/SampleConversational.slnx --configuration Release --verbosity normal
