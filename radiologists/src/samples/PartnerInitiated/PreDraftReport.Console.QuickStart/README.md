@@ -32,7 +32,7 @@ Simulated Dragon Copilot environment
   Customer tenant: 11111111-1111-1111-1111-111111111111
   Environment:     22222222-2222-2222-2222-222222222222
   Installed:       sampleRadiologyExtension (Marketplace offer 101/202/303) from .../extension.yaml
-  Orders:          ACC-0000001
+  Orders:          1
   Stored results:  .../Temp/PreDraftReport.Console.QuickStart/stored-results.txt
 
 Submitting .../MockData/pre-draft-report-ingest-request.json
@@ -41,8 +41,10 @@ Submitting .../MockData/pre-draft-report-ingest-request.json
 
 200 OK
   x-ms-correlation-id: 432de2f5-820b-4861-8232-a59aadd38878
-  Stored. Dragon Copilot shows the draft when the radiologist opens the order with accession number ACC-0000001.
+  Stored. Dragon Copilot shows the draft when the radiologist opens the order whose accession number is in draftReport.imagingStudy.accessionNumber.
 ```
+
+Accession numbers identify a patient's study, so the console prints how many orders the environment has rather than their accession numbers, and never prints the payload's accession number or `draftReport.identifier`. Do the same in your service's logs, and log the correlation ID instead.
 
 Run it again and the response is `409 Conflict` with reason `ResultAlreadyStored`, because a result with the same `draftReport.identifier` is already stored. Resubmitting an identifier never stores the draft twice, which is what makes a retry safe.
 
@@ -123,7 +125,7 @@ The console then acquires an app-only token for the Partner Communications API a
 
 ## Try each response
 
-The console prints the status, `reason`, correlation ID, response body and a hint for each failure. Every response is described in [Responses](../../../../partner-initiated/README.md#responses).
+The console prints the status, `reason` and correlation ID of each failure, then the error's message, or each validation error for a `400`, and a hint. It prints these fields rather than the raw response body. Every response is described in [Responses](../../../../partner-initiated/README.md#responses).
 
 | Response | How to get it |
 | --- | --- |

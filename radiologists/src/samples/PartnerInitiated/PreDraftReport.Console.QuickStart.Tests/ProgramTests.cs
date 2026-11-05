@@ -1,3 +1,4 @@
+using System.Text.Json.Nodes;
 using Microsoft.Extensions.Configuration;
 using PreDraftReport.Console.QuickStart.Authentication;
 using Xunit;
@@ -116,6 +117,81 @@ public sealed class ProgramTests : IDisposable
     }
 
     [Fact]
+    public async Task APayloadMissingTheSectionsFailsInsteadOfSendingAnEmptyList()
+    {
+        var payload = await BundledPayloadAsync();
+        payload["draftReport"]!["reportContent"]!["structuredReport"]!.AsObject().Remove("sections");
+
+        var exitCode = await RunAsync(ShippedSettings(), WritePayload(payload.ToJsonString()));
+
+        Assert.Equal(1, exitCode);
+        Assert.Contains("Payload could not be read", Output, StringComparison.Ordinal);
+        Assert.Contains("'sections'", Output, StringComparison.Ordinal);
+        Assert.Contains("Path: $.draftReport.reportContent.structuredReport", Output, StringComparison.Ordinal);
+        Assert.DoesNotContain("Submitting", Output, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task TheOutputLeavesOutTheAccessionNumbersAndTheIdentifier()
+    {
+        var settings = ShippedSettings();
+        var payload = await BundledPayloadAsync();
+        var accessionNumber = payload["draftReport"]!["imagingStudy"]!["accessionNumber"]!.GetValue<string>();
+        var identifier = payload["draftReport"]!["identifier"]!.GetValue<string>();
+
+        await RunAsync(settings, BundledPayload);
+        var exitCode = await RunAsync(settings, BundledPayload);
+
+        Assert.Equal(0, exitCode);
+        Assert.Contains("Orders:          1", Output, StringComparison.Ordinal);
+        Assert.Contains("200 OK", Output, StringComparison.Ordinal);
+        Assert.Contains("409 Conflict, reason ResultAlreadyStored", Output, StringComparison.Ordinal);
+        Assert.DoesNotContain(accessionNumber, Output, StringComparison.Ordinal);
+        Assert.DoesNotContain(identifier, Output, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task AnErrorResponseIsReportedByItsFieldsRatherThanItsBody()
+    {
+        var bundled = await File.ReadAllTextAsync(BundledPayload);
+        var payload = WritePayload(bundled.Replace("ACC-0000001", "ACC-DOES-NOT-EXIST", StringComparison.Ordinal));
+
+        var exitCode = await RunAsync(ShippedSettings(), payload);
+
+        Assert.Equal(1, exitCode);
+        Assert.Contains("  Resource not found.", Output, StringComparison.Ordinal);
+        Assert.DoesNotContain("ACC-DOES-NOT-EXIST", Output, StringComparison.Ordinal);
+        Assert.DoesNotContain("\"message\"", Output, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task AValidationErrorIsReportedByItsKeyAndMessage()
+    {
+        var payload = await BundledPayloadAsync();
+        payload["draftReport"]!["reportContent"]!["structuredReport"]!["sections"]![0]!["aiConfidence"] = 2;
+
+        var exitCode = await RunAsync(ShippedSettings(), WritePayload(payload.ToJsonString()));
+
+        Assert.Equal(1, exitCode);
+        Assert.Contains("400 BadRequest", Output, StringComparison.Ordinal);
+        Assert.Contains(
+            "  DraftReport.ReportContent.StructuredReport.Sections[0].AiConfidence: The field AiConfidence must be between 0 and 1.",
+            Output,
+            StringComparison.Ordinal);
+        Assert.Contains("  traceId: ", Output, StringComparison.Ordinal);
+    }
+
+    [Theory]
+    [InlineData("Accession ACC-0000001 failed", "  The response body isn't JSON, so it isn't shown.")]
+    [InlineData("[\"ACC-0000001\"]", "  The response body isn't a JSON error object, so it isn't shown.")]
+    public void AnErrorResponseThatIsNotAJsonObjectIsNotPrinted(string body, string expected)
+    {
+        Program.WriteErrorDetails(body, _output);
+
+        Assert.Equal(expected, Output.TrimEnd());
+    }
+
+    [Fact]
     public async Task MainThrowsWhenArgsIsNull()
     {
         await Assert.ThrowsAsync<ArgumentNullException>(() => Program.Main(null!));
@@ -166,6 +242,9 @@ public sealed class ProgramTests : IDisposable
         File.WriteAllText(path, json);
         return path;
     }
+
+    private static async Task<JsonNode> BundledPayloadAsync() =>
+        JsonNode.Parse(await File.ReadAllTextAsync(BundledPayload))!;
 
     private Task<int> RunAsync(SampleSettings settings, string payloadPath, ITokenProvider? tokenProvider = null) =>
         Program.RunAsync(settings, payloadPath, AppContext.BaseDirectory, _output, tokenProvider, CancellationToken.None);

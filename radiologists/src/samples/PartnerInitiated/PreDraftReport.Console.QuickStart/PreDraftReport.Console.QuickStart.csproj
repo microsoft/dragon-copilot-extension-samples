@@ -34,4 +34,7 @@
         <!-- The sample's manifest, which the simulated environment installs. -->
         <Content Include="..\extension.yaml" Link="extension.yaml" CopyToOutputDirectory="PreserveNewest" />
     </ItemGroup>
+    <ItemGroup>
+        <InternalsVisibleTo Include="PreDraftReport.Console.QuickStart.Tests" />
+    </ItemGroup>
 </Project>

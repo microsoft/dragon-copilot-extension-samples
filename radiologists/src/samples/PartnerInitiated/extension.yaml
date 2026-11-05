@@ -1,6 +1,6 @@
 name: sampleRadiologyExtension
 description: Sample extension providing pre-draft radiology report generation
-version: 0.0.1
+version: 1.0.0
 radiologistsExtensibilityApiVersion: 1.0.0
 auth:
   tenantId: 00000000-0000-0000-0000-000000000000
