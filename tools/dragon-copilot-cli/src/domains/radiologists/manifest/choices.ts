@@ -9,8 +9,9 @@ import type { Capability, ManifestChoice, ToolType } from './types.js';
 
 export const REPORT_CONTENT_TYPE = 'application/vnd.ms-dragon.rad.report+json';
 export const PATIENT_INFORMATION_CONTENT_TYPE = 'application/vnd.ms-dragon.rad.patient-information+json';
+export const DRAFT_REPORT_CONTENT_TYPE = 'application/vnd.ms-dragon.rad.draft-report+json';
 
-/** The only output media type the radiologists manifest schema allows today. */
+/** The output media type the default capability produces. */
 export const DEFAULT_OUTPUT_CONTENT_TYPE = 'application/vnd.ms-dragon.rad.quality-check-result+json';
 
 /** Payload schema version (major.minor) applied to generated inputs and outputs. */
@@ -26,15 +27,28 @@ export const INPUT_TYPE_CHOICES: ManifestChoice[] = [
 
 export const OUTPUT_TYPE_CHOICES: ManifestChoice[] = [
   { name: 'Report Optimization Result', value: DEFAULT_OUTPUT_CONTENT_TYPE },
+  { name: 'Pre-Draft Report', value: DRAFT_REPORT_CONTENT_TYPE },
 ];
 
 export const TOOL_TYPE_CHOICES: ManifestChoice<ToolType>[] = [
-  { name: 'Contract Based', value: DEFAULT_TOOL_TYPE },
+  { name: 'Contract Based (Dragon Copilot calls your endpoint)', value: DEFAULT_TOOL_TYPE },
+  { name: 'Partner Initiated (you submit results to Dragon Copilot)', value: 'partnerInitiated' },
 ];
 
 export const CAPABILITY_CHOICES: ManifestChoice<Capability>[] = [
   { name: 'Report Optimization', value: DEFAULT_CAPABILITY },
+  { name: 'Pre-Draft Report Generation', value: 'preDraftReportGeneration' },
 ];
+
+/**
+ * The capabilities each tool type can implement. qualityCheck needs an endpoint for Dragon Copilot
+ * to call, and preDraftReportGeneration is submitted by the partner and read back from storage, so
+ * neither capability works under the other tool type.
+ */
+export const TOOL_TYPE_CAPABILITIES: Record<ToolType, readonly Capability[]> = {
+  contractBased: ['qualityCheck'],
+  partnerInitiated: ['preDraftReportGeneration'],
+};
 
 export const BODY_PART_CHOICES: ManifestChoice[] = [
   { name: 'Head', value: 'HEAD' },
@@ -86,6 +100,20 @@ export const MANIFEST_DEFAULTS = {
   outputDescription: 'Report optimization result',
   schemaVersion: DEFAULT_PAYLOAD_SCHEMA_VERSION,
 } as const;
+
+/** The output each capability produces, and the name and description offered for it. */
+export const CAPABILITY_OUTPUT: Record<Capability, { contentType: string; name: string; description: string }> = {
+  qualityCheck: {
+    contentType: DEFAULT_OUTPUT_CONTENT_TYPE,
+    name: MANIFEST_DEFAULTS.outputName,
+    description: MANIFEST_DEFAULTS.outputDescription,
+  },
+  preDraftReportGeneration: {
+    contentType: DRAFT_REPORT_CONTENT_TYPE,
+    name: 'preDraftReportResult',
+    description: 'Pre-draft radiology report',
+  },
+};
 
 /**
  * Describes an input content type in generated manifests.

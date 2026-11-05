@@ -10,6 +10,8 @@ Additionally, you will find the threat model applied to the service-to-service r
 
 See [Authentication.md](Authentication.md) for implementation details in the Sample Extension.
 
+> **Building a Radiologists `partnerInitiated` tool?** This design covers requests that the Dragon Copilot Extension Runtime sends to your extension endpoint. A `partnerInitiated` tool calls Dragon Copilot instead and uses a different service principal and permission, so this design and its setup steps don't apply. Follow [`partnerInitiated` authentication](../radiologists/partner-initiated/authentication.md).
+
 > **Hitting auth errors?** See [Troubleshooting-Authentication.md](Troubleshooting-Authentication.md) for a symptom → cause matrix, FAQ, and pre-flight checklist covering the most common partner issues (`InvalidAudience`/`InvalidIssuer`, `identifierUris` mistakes, `AADSTS500011`, and more).
 
 > **Related tooling**: The `dragon-copilot` CLI generates manifest version 3 files that capture the same tenant identifiers discussed here. Ensure the values provided to the CLI match the configuration steps below so request validation succeeds.

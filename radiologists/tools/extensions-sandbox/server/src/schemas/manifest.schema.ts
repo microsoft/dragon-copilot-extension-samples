@@ -15,7 +15,8 @@ export type InputContentType =
   | 'application/vnd.ms-dragon.rad.patient-information+json';
 
 export type OutputContentType =
-  | 'application/vnd.ms-dragon.rad.quality-check-result+json';
+  | 'application/vnd.ms-dragon.rad.quality-check-result+json'
+  | 'application/vnd.ms-dragon.rad.draft-report+json';
 
 export interface RelevanceFilteringCriteria {
   relevantBodyParts?: BodyPart[];
@@ -37,17 +38,28 @@ export interface ManifestOutput {
   schemaVersion: string;
 }
 
-export interface ManifestTool {
+interface ManifestToolBase {
   name: string;
-  toolType: 'contractBased';
-  capability: 'qualityCheck';
   description: string;
-  endpoint: string;
-  inputs: ManifestInput[];
   outputs: ManifestOutput[];
   relevanceFilteringCriteria?: RelevanceFilteringCriteria;
   configurationTemplate?: Record<string, unknown>;
 }
+
+export type ManifestTool = ManifestToolBase & (
+  | {
+      toolType: 'contractBased';
+      capability: 'qualityCheck';
+      endpoint: string;
+      inputs: ManifestInput[];
+    }
+  | {
+      toolType: 'partnerInitiated';
+      capability: 'preDraftReportGeneration';
+      endpoint?: string;
+      inputs?: ManifestInput[];
+    }
+);
 
 export interface ManifestAuth {
   tenantId: string;
@@ -61,4 +73,3 @@ export interface ExtensionManifest {
   auth: ManifestAuth;
   tools: ManifestTool[];
 }
-

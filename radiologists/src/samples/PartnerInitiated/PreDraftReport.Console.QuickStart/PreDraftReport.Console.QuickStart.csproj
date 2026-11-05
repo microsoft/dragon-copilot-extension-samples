@@ -1,0 +1,37 @@
+<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+        <TargetFramework>net10.0</TargetFramework>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <RootNamespace>PreDraftReport.Console.QuickStart</RootNamespace>
+        <AssemblyName>PreDraftReport.Console.QuickStart</AssemblyName>
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
+        <UserSecretsId>c3f4b1d2-8a7e-4f6b-9d2c-5e1a0b7f3c84</UserSecretsId>
+        <!--
+      CA1303/CA1861: Console output and inline arrays are fine for a sample.
+      CA1812: False positive for types instantiated via JSON, YAML or configuration binding.
+      CA1848: High-performance logging is unnecessary for a simple sample project.
+      CS1591: XML doc comments on every public member is excessive for a sample.
+    -->
+        <NoWarn>CA1303;CA1515;CA1812;CA1848;CA1861;CS1591</NoWarn>
+    </PropertyGroup>
+    <ItemGroup>
+        <PackageReference Include="Microsoft.Extensions.Configuration.Binder" />
+        <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" />
+        <PackageReference Include="Microsoft.Extensions.Configuration.Json" />
+        <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" />
+        <PackageReference Include="Microsoft.Identity.Client" />
+        <PackageReference Include="YamlDotNet" />
+    </ItemGroup>
+    <ItemGroup>
+        <ProjectReference Include="..\..\..\models\Dragon.Copilot.Radiologists.Models\Dragon.Copilot.Radiologists.Models.csproj" />
+    </ItemGroup>
+    <ItemGroup>
+        <!-- Include, not Update: plain Microsoft.NET.Sdk has no default JSON items to update. -->
+        <Content Include="appsettings.json" CopyToOutputDirectory="PreserveNewest" />
+        <Content Include="MockData\**\*.json" CopyToOutputDirectory="PreserveNewest" />
+        <!-- The sample's manifest, which the simulated environment installs. -->
+        <Content Include="..\extension.yaml" Link="extension.yaml" CopyToOutputDirectory="PreserveNewest" />
+    </ItemGroup>
+</Project>

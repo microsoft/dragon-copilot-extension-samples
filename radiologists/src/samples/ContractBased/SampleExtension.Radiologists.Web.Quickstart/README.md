@@ -66,7 +66,7 @@ Invoke-RestMethod http://localhost:5080/health/liveness
 Invoke-RestMethod http://localhost:5080/health/readiness
 ```
 
-**Process a report** (see [`SampleExtension.Radiologists.Web.Quickstart.http`](./SampleExtension.Radiologists.Web.Quickstart.http) for the full body). The relative path below assumes you are in the `radiologists/src/samples/Workflow` directory (the same place you ran `dotnet run` from):
+**Process a report** (see [`SampleExtension.Radiologists.Web.Quickstart.http`](./SampleExtension.Radiologists.Web.Quickstart.http) for the full body). The relative path below assumes you are in the `radiologists/src/samples/ContractBased` directory (the same place you ran `dotnet run` from):
 
 ```bash
 curl -X POST http://localhost:5080/v1/process \
@@ -158,7 +158,7 @@ To replace the stub with real logic, edit
 
 ## Request / response contract
 
-See [`radiologists-extensibility-api.yaml`](../../../../radiologists-extensibility-api.yaml) for the full OpenAPI spec.
+See [`radiologists-extensibility-api.yaml`](../../../../extensibility-api/radiologists-extensibility-api.yaml) for the full OpenAPI spec.
 
 Only `sessionData` is required. `extensibilityApiVersion` shows which Dragon Copilot API version sent the request, and your extension does not need to read it. Extra fields are accepted, so your extension keeps working as the API evolves.
 

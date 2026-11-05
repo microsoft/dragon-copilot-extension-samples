@@ -1,6 +1,6 @@
 # Radiologists AI sample (cross-platform, Azure OpenAI).
 # The build context is the repository root, e.g.:
-#   docker build -f radiologists/src/samples/Workflow/SampleExtension.Radiologists.Web.Ai/Dockerfile -t radiologists-ai .
+#   docker build -f radiologists/src/samples/ContractBased/SampleExtension.Radiologists.Web.Ai/Dockerfile -t radiologists-ai .
 #
 # The image builds without any credentials. To call a real model at runtime, supply the
 # Azure OpenAI settings as environment variables, e.g.:
@@ -20,7 +20,7 @@ WORKDIR /src
 # and Directory.Build.props resolve during restore.
 COPY . .
 
-RUN dotnet publish "radiologists/src/samples/Workflow/SampleExtension.Radiologists.Web.Ai/SampleExtension.Radiologists.Web.Ai.csproj" \
+RUN dotnet publish "radiologists/src/samples/ContractBased/SampleExtension.Radiologists.Web.Ai/SampleExtension.Radiologists.Web.Ai.csproj" \
     -c Release -o /app/publish /p:UseAppHost=false
 
 FROM base AS final

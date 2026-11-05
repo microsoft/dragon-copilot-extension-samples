@@ -75,34 +75,45 @@ jobs:
         dotnet test --no-build --configuration Release --verbosity normal
 
     - name: Build Radiologists Quickstart sample (cross-platform)
-      working-directory: radiologists/src/samples/Workflow/SampleExtension.Radiologists.Web.Quickstart
+      working-directory: radiologists/src/samples/ContractBased/SampleExtension.Radiologists.Web.Quickstart
       run: |
         dotnet restore
         dotnet build --no-restore --configuration Release
 
     - name: Test Radiologists Quickstart sample
-      working-directory: radiologists/src/samples/Workflow/SampleExtension.Radiologists.Web.Quickstart.Tests
+      working-directory: radiologists/src/samples/ContractBased/SampleExtension.Radiologists.Web.Quickstart.Tests
       run: |
         dotnet test --configuration Release --verbosity normal
 
     - name: Build Radiologists AI sample (cross-platform, Azure OpenAI)
-      working-directory: radiologists/src/samples/Workflow/SampleExtension.Radiologists.Web.Ai
+      working-directory: radiologists/src/samples/ContractBased/SampleExtension.Radiologists.Web.Ai
       run: |
         dotnet restore
         dotnet build --no-restore --configuration Release
 
     - name: Test Radiologists AI sample
-      working-directory: radiologists/src/samples/Workflow/SampleExtension.Radiologists.Web.Ai.Tests
+      working-directory: radiologists/src/samples/ContractBased/SampleExtension.Radiologists.Web.Ai.Tests
+      run: |
+        dotnet test --configuration Release --verbosity normal
+
+    - name: Build Radiologists Pre-Draft Report sample (partnerInitiated)
+      working-directory: radiologists/src/samples/PartnerInitiated/PreDraftReport.Console.QuickStart
+      run: |
+        dotnet restore
+        dotnet build --no-restore --configuration Release
+
+    - name: Test Radiologists Pre-Draft Report sample
+      working-directory: radiologists/src/samples/PartnerInitiated/PreDraftReport.Console.QuickStart.Tests
       run: |
         dotnet test --configuration Release --verbosity normal
 
     - name: Build Radiologists Quickstart Docker image
       run: |
-        docker build -f radiologists/src/samples/Workflow/SampleExtension.Radiologists.Web.Quickstart/Dockerfile -t radiologists-quickstart-sample .
+        docker build -f radiologists/src/samples/ContractBased/SampleExtension.Radiologists.Web.Quickstart/Dockerfile -t radiologists-quickstart-sample .
 
     - name: Build Radiologists AI Docker image
       run: |
-        docker build -f radiologists/src/samples/Workflow/SampleExtension.Radiologists.Web.Ai/Dockerfile -t radiologists-ai-sample .
+        docker build -f radiologists/src/samples/ContractBased/SampleExtension.Radiologists.Web.Ai/Dockerfile -t radiologists-ai-sample .
 
   build-radiologists-foundry-local:
     runs-on: windows-latest
@@ -118,13 +129,13 @@ jobs:
     # The Foundry Local sample is Windows-only (net10.0-windows, Microsoft.AI.Foundry.Local.WinML),
     # so it is built on a Windows runner rather than the cross-platform ubuntu job above.
     - name: Build Radiologists Foundry Local sample (Windows-only, on-device)
-      working-directory: radiologists/src/samples/Workflow/SampleExtension.Radiologists.Web.Local
+      working-directory: radiologists/src/samples/ContractBased/SampleExtension.Radiologists.Web.Local
       run: |
         dotnet restore
         dotnet build --no-restore --configuration Release
 
     - name: Test Radiologists Foundry Local sample (Windows-only, on-device)
-      working-directory: radiologists/src/samples/Workflow/SampleExtension.Radiologists.Web.Local.Tests
+      working-directory: radiologists/src/samples/ContractBased/SampleExtension.Radiologists.Web.Local.Tests
       run: |
         dotnet test --configuration Release --verbosity normal
 

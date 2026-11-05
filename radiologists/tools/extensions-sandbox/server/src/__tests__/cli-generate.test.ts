@@ -89,7 +89,10 @@ describe('GET /api/cli/options', () => {
       REPORT_CONTENT_TYPE,
       PATIENT_INFORMATION_CONTENT_TYPE,
     ]);
-    expect(options.capabilities).toEqual([{ name: 'Report Optimization', value: 'qualityCheck' }]);
+    expect(options.capabilities).toEqual([
+      { name: 'Report Optimization', value: 'qualityCheck' },
+      { name: 'Pre-Draft Report Generation', value: 'preDraftReportGeneration' },
+    ]);
     expect(options.bodyParts.length).toBeGreaterThan(0);
     expect(options.modalities.length).toBeGreaterThan(0);
     expect(options.defaults.extensionName).toBe('myRadiologistsExtension');
@@ -171,7 +174,7 @@ describe('POST /api/cli/generate (custom mode)', () => {
     expect(manifest.name).toBe('myRadiologistsExtension');
     expect(manifest.tools[0].toolType).toBe('contractBased');
     expect(manifest.tools[0].capability).toBe('qualityCheck');
-    expect(manifest.tools[0].inputs.map((input) => input.name)).toEqual(['report', 'patientInformation']);
+    expect(manifest.tools[0].inputs!.map((input) => input.name)).toEqual(['report', 'patientInformation']);
     expect(manifest.tools[0].outputs[0]['content-type']).toBe(
       'application/vnd.ms-dragon.rad.quality-check-result+json',
     );

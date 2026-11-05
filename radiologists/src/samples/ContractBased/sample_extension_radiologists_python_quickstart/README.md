@@ -87,7 +87,7 @@ Invoke-RestMethod http://localhost:5080/health/readiness
 ### Process a report
 
 The relative path below assumes you are in the
-`radiologists/src/samples/Workflow` directory.
+`radiologists/src/samples/ContractBased` directory.
 
 ```bash
 curl -X POST http://localhost:5080/v1/process \
@@ -199,7 +199,7 @@ To replace the stub with real logic, edit
 
 ## Request / response contract
 
-See [`radiologists-extensibility-api.yaml`](../../../../radiologists-extensibility-api.yaml)
+See [`radiologists-extensibility-api.yaml`](../../../../extensibility-api/radiologists-extensibility-api.yaml)
 for the full OpenAPI spec.
 
 Only `sessionData` is required. `extensibilityApiVersion` shows which Dragon

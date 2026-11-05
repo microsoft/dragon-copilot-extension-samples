@@ -171,11 +171,26 @@ function convertAjvError(ajvError: any): SchemaError {
   return {
     instancePath: ajvError.instancePath || '',
     keyword: ajvError.keyword,
-    message: ajvError.message || '',
+    message: describeAjvError(ajvError),
     data: ajvError.data,
     schemaPath: ajvError.schemaPath || '',
     params: ajvError.params || {}
   };
+}
+
+/**
+ * AJV reports a property forbidden by a `false` subschema as "boolean schema is
+ * false". The schema only does that for properties a tool's `toolType` rules out
+ * (e.g. `endpoint` and `inputs` on a partnerInitiated tool), so say that instead.
+ */
+function describeAjvError(ajvError: any): string {
+  if (ajvError.keyword === 'false schema') {
+    return 'is not allowed for this toolType';
+  }
+  if (ajvError.keyword === 'const' && /\/outputs\/\d+\/content-type$/.test(ajvError.instancePath ?? '')) {
+    return `must be "${ajvError.params?.allowedValue}" for this tool's capability`;
+  }
+  return ajvError.message || '';
 }
 
 /**

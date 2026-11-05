@@ -1,17 +1,21 @@
 [← Radiologists product overview](../../../README.md)
 
-# Dragon Copilot — Radiologists Extension Samples (Workflow)
+# Dragon Copilot Radiologists Extension Samples (contractBased)
 
 This folder contains ASP.NET Core sample projects that demonstrate the
-partner extension pattern for Dragon Copilot.
+`contractBased` tool type, where Dragon Copilot calls your endpoint and waits for
+the response.
 
-> **Note:** Run all commands in this README from the `radiologists/src/samples/Workflow` directory (the folder containing this file).
+If your system produces results on its own schedule and pushes them in, see
+[`../PartnerInitiated`](../PartnerInitiated/README.md) instead.
 
-| Project                                                                                                      | Purpose                                                                                                              | Default port (http/https) | Target                                                                |
-| ------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------- | ------------------------- | --------------------------------------------------------------------- |
-| [`SampleExtension.Radiologists.Web.Quickstart`](./SampleExtension.Radiologists.Web.Quickstart/README.md)     | Returns a canned response loaded from `MockData/qualitycheck-response.json`. No model inference, no AI dependencies. | 5080 / 7080               | `net10.0` (cross-platform)                                            |
-| [`SampleExtension.Radiologists.Web.Ai`](./SampleExtension.Radiologists.Web.Ai/README.md)                     | AI-powered quality checks via **Azure OpenAI** (cloud).                                                              | 5080 / 7080               | `net10.0` (cross-platform)                                            |
-| [`SampleExtension.Radiologists.Web.Local`](./SampleExtension.Radiologists.Web.Local/README.md) | AI-powered quality checks via **Foundry Local** (on-device).                                                         | 5080 / 7080               | `net10.0-windows10.0.26100` (**Windows-only**, Foundry Local / WinML) |
+> **Note:** Run all commands in this README from the `radiologists/src/samples/ContractBased` directory (the folder containing this file).
+
+| Project                                                                                                  | Purpose                                                                                                              | Default port (http/https) | Target                                                                |
+| -------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- | ------------------------- | --------------------------------------------------------------------- |
+| [`SampleExtension.Radiologists.Web.Quickstart`](./SampleExtension.Radiologists.Web.Quickstart/README.md) | Returns a canned response loaded from `MockData/qualitycheck-response.json`. No model inference, no AI dependencies. | 5080 / 7080               | `net10.0` (cross-platform)                                            |
+| [`SampleExtension.Radiologists.Web.Ai`](./SampleExtension.Radiologists.Web.Ai/README.md)                 | AI-powered quality checks via **Azure OpenAI** (cloud).                                                              | 5080 / 7080               | `net10.0` (cross-platform)                                            |
+| [`SampleExtension.Radiologists.Web.Local`](./SampleExtension.Radiologists.Web.Local/README.md)           | AI-powered quality checks via **Foundry Local** (on-device).                                                         | 5080 / 7080               | `net10.0-windows10.0.26100` (**Windows-only**, Foundry Local / WinML) |
 
 ## Solution
 
@@ -51,7 +55,7 @@ This runs the test projects for the Quickstart, AI, and Foundry Local samples.
 
 ## Extension manifest
 
-All Radiologists Workflow samples implement the **same** extension contract, so they
+All Radiologists `contractBased` samples implement the **same** extension contract, so they
 share one manifest: [`extension.yaml`](./extension.yaml). It declares the
 `qualityCheck` tool, its inputs and outputs, and the endpoint
 (`http://localhost:5080/v1/process`), and it's what you register with Dragon
