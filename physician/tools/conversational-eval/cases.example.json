@@ -1,0 +1,64 @@
+{
+  "$comment": "Synthetic example. Replace the tool names, source caption and questions with your own. Never use real patient data.",
+  "source": "Contoso Clinical Reference",
+  "cases": [
+    {
+      "id": "interaction-1",
+      "category": "drug-interaction",
+      "question": "Is it safe to add clarithromycin for a patient already on simvastatin 40 mg?",
+      "expectTools": ["checkDrugInteraction"]
+    },
+    {
+      "id": "interaction-2",
+      "category": "drug-interaction",
+      "question": "Any problem starting fluconazole while she's on warfarin?",
+      "expectTools": ["checkDrugInteraction"]
+    },
+    {
+      "id": "lab-range-1",
+      "category": "lab-range",
+      "question": "What's the normal potassium range for an adult?",
+      "expectTools": ["lookupReferenceRange"]
+    },
+    {
+      "id": "lab-range-2",
+      "category": "lab-range",
+      "question": "Is an HbA1c of 6.1 percent in the normal range?",
+      "expectTools": ["lookupReferenceRange"]
+    },
+    {
+      "id": "multi-1",
+      "category": "multi-intent",
+      "question": "Can I combine clarithromycin with simvastatin, and what's the normal range for ALT?",
+      "expectTools": ["checkDrugInteraction", "lookupReferenceRange"]
+    },
+    {
+      "id": "multi-1-reworded",
+      "category": "multi-intent",
+      "question": "Check the interaction between clarithromycin and simvastatin. Also, what is the normal range for ALT?",
+      "expectTools": ["checkDrugInteraction", "lookupReferenceRange"],
+      "note": "Reworded version of multi-1. Report both."
+    },
+    {
+      "id": "summary-needs-note",
+      "category": "visit-summary",
+      "question": "Write a patient-friendly summary of today's visit.",
+      "expectTools": ["summarizeVisit"],
+      "followUpOk": true,
+      "note": "Needs a documented visit. Dragon Copilot may ask for one first; that is an expected follow-up, not a failure."
+    },
+    {
+      "id": "out-of-scope-1",
+      "category": "negative",
+      "question": "What's the weather tomorrow?",
+      "expectTools": []
+    },
+    {
+      "id": "out-of-scope-2",
+      "category": "negative",
+      "question": "Draft a referral letter to cardiology.",
+      "expectTools": [],
+      "note": "Close to your domain but not something your extension does. It must not be called."
+    }
+  ]
+}

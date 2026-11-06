@@ -15,6 +15,7 @@ In this guide, **intent** means what the clinician is asking for in the current 
 - [How Dragon Copilot calls your tool](#how-dragon-copilot-calls-your-tool)
 - [Onboarding](#-onboarding)
 - [Writing tool descriptions](TOOL-DESCRIPTIONS.md)
+- [Evaluating your extension end to end](tools/conversational-eval/README.md)
 - [Quick start](src/samples/DragonCopilot/Conversational/README.md)
 
 ## 🧩 Integration types
@@ -179,5 +180,6 @@ The rest of this section applies to `MCP` and `OpenAPI` only. The MCP and OpenAP
 3. `dragon-copilot physician package` to produce the upload package.
 4. Upload (sideload) the package for your organization in the Dragon admin center, or publish it through the [marketplace](https://admin.healthplatform.microsoft.com/marketplace).
 5. Ask Dragon Copilot one of the sample's test prompts.
+6. Run your own list of clinician questions with the [evaluation kit](tools/conversational-eval/README.md) and tune your descriptions until the right tool is called.
 
 Conversational extensions are in Public Preview: fields and behavior may change before general availability, so re-run `dragon-copilot physician validate` when the schema is updated.

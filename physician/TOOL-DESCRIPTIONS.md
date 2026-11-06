@@ -179,3 +179,5 @@ MCP server `tools/list` entry:
 - [ ] Context values come from `runtimeParamBindings`, not from the model.
 - [ ] No real patient data in descriptions or examples.
 - [ ] Two of your own tools never match the same request without a "Do not use for …" line telling them apart.
+
+To check your descriptions against real questions, use the [evaluation kit](tools/conversational-eval/README.md).
