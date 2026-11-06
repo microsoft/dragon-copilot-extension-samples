@@ -14,9 +14,9 @@ auth:
 tools:
   - name: clinical-reference
     caption: Clinical Reference
-    # For MCP tools this text is for readers only; Dragon Copilot selects tools
-    # using each MCP tool's own description and input schema from the server.
-    description: Clinical lab reference data (synthetic values for the sample).
+    # For MCP tools this is server-level context shared by all the server's tools.
+    # Each MCP tool's own description and input schema decide when it is called.
+    description: Lab reference data. Returns typical adult reference ranges for common lab tests; values are synthetic and are not patient results.
     type: MCP
     endpoint: https://your-mcp-host.example.com/mcp
     triggers:

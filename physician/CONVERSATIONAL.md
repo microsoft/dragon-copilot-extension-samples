@@ -77,7 +77,7 @@ A manifest opts in by declaring `schemaVersion: 0.4.0-preview.2`; manifests decl
 | --- | --- | --- |
 | `name` | ✅ | Unique in the manifest; lowercase, digits, hyphens. |
 | `caption` | ✅ | Display name. |
-| `description` | ✅ | What the tool does. `CopilotStudio`: the whole selection description. `MCP`: for readers only; selection uses each MCP tool's own description and input schema. `OpenAPI`: for readers only; selection uses the operation and parameter descriptions. See [Writing tool descriptions](TOOL-DESCRIPTIONS.md). |
+| `description` | ✅ | What the tool does. `CopilotStudio`: the whole selection description. `MCP`: server-level context shared by all the server's tools; each MCP tool's own description and input schema decide when it is called. `OpenAPI`: for readers only; selection uses the operation and parameter descriptions. See [Writing tool descriptions](TOOL-DESCRIPTIONS.md). |
 | `type` | ✅ | `MCP`, `OpenAPI` or `CopilotStudio`. |
 | `triggers` | ✅ | `[IntentDriven]` for conversational tools. |
 | `timeout` | | Seconds, 5–60 (default 5). |
@@ -180,6 +180,6 @@ The rest of this section applies to `MCP` and `OpenAPI` only. The MCP and OpenAP
 3. `dragon-copilot physician package` to produce the upload package.
 4. Upload (sideload) the package for your organization in the Dragon admin center, or publish it through the [marketplace](https://admin.healthplatform.microsoft.com/marketplace).
 5. Ask Dragon Copilot one of the sample's test prompts.
-6. Run your own list of clinician questions with the [evaluation kit](tools/conversational-eval/README.md) and tune your descriptions until the right tool is called.
+6. Run your own list of clinician questions with the [evaluation kit](tools/conversational-eval/README.md) and tune your descriptions until the right tool is called. To automate the loop, give the kit's [agent skill](tools/conversational-eval/SKILL.md) to your favorite LLM coding agent.
 
 Conversational extensions are in Public Preview: fields and behavior may change before general availability, so re-run `dragon-copilot physician validate` when the schema is updated.

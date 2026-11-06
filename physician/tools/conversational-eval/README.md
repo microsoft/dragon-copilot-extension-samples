@@ -4,9 +4,12 @@ Use this kit to check how Dragon Copilot routes real clinician questions to your
 
 > **Public Preview.** Applies to manifest schema `0.4.0-preview.2`. Use synthetic patients and questions only. Never put real patient data in a cases file, a request log or a report.
 
+> 🤖 **Automate the loop with your AI coding agent.** The kit ships with an agent skill, [SKILL.md](SKILL.md). Give it to your favorite LLM coding agent (for example GitHub Copilot, Claude Code or Cursor) and ask it to evaluate your extension. The agent drafts your cases, runs them, reads the report, proposes description fixes and re-runs after you upload the updated extension. You still sign in to Dragon Copilot and approve each change yourself.
+
 ## 📚 Contents
 
 - [How it works](#how-it-works)
+- [Automate with an AI agent](#automate-with-an-ai-agent)
 - [Prerequisites](#prerequisites)
 - [1. Write your cases](#1-write-your-cases)
 - [2. Log the requests your service receives](#2-log-the-requests-your-service-receives)
@@ -30,6 +33,15 @@ cases.json ──► run.mjs ──► Dragon Copilot web app ──► your ext
 ```
 
 Cases run one at a time. Each request in your log is matched to the case whose question was being answered at that moment (send time to answer time, plus a few seconds). That tells you which of your tools Dragon Copilot called and with which arguments. Without a log, the report falls back to the **Source:** caption under each answer, which shows that one of your tools answered but not which one.
+
+## Automate with an AI agent
+
+[SKILL.md](SKILL.md) is an [agent skill](https://agentskills.io/) that walks an LLM coding agent through the whole loop: cases → run → report → tune descriptions → re-run. To use it:
+
+- **Skill-aware agents** (for example GitHub Copilot, Claude Code): copy this folder into your agent's skills folder (such as `.github/skills/` or `.claude/skills/`) in your extension's repo, then ask "Evaluate my Dragon Copilot extension".
+- **Any other agent or chat LLM:** open this folder in the agent's workspace, or paste `SKILL.md` into the chat, and ask it to follow the skill.
+
+The agent needs your extension's source (OpenAPI document or MCP server) to propose description changes, and a terminal to run `node`. It never signs in for you and only uses synthetic questions.
 
 ## Prerequisites
 
