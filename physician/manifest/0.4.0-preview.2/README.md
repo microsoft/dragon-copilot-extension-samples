@@ -49,7 +49,7 @@ tools: [ ... ]
 | --- | --- | --- | --- | --- |
 | `name` | string | ✅ | — | Tool ID. Must be unique within the manifest, follows `^[a-z][a-z0-9-]*$`, and must start with a letter. |
 | `caption` | string | ✅ | — | Display name shown in the UI. |
-| `description` | string | ✅ | — | What the tool does. How Dragon Copilot uses it for tool selection depends on the type: for `CopilotStudio` it is the whole selection description; for `MCP` it is server-level context shared by all the server's tools, while each MCP tool's own description and input schema from your server decide when that tool is called; for `OpenAPI` selection uses the operation and parameter descriptions in your OpenAPI document instead. See [Writing tool descriptions](../../TOOL-DESCRIPTIONS.md). |
+| `description` | string | ✅ | — | What the tool does. How Dragon Copilot uses it for tool selection depends on the type: for `CopilotStudio` it is the whole selection description; for `MCP` and `OpenAPI` it is short server notes shared by all the server's tools or operations, given to the model once per server, while each MCP tool's or OpenAPI operation's own description and parameters decide when it is called. See [Writing tool descriptions](../../TOOL-DESCRIPTIONS.md). |
 | `type` | enum | ✅ | — | Integration type: `DragonAPI`, `MCP`, `OpenAPI` or `CopilotStudio`. This value decides which type-specific fields are allowed. |
 | `triggers` | array of enum | ✅ | — | What activates the tool. See [Triggers](#triggers). |
 | `timeout` | integer | | `5` | Hard timeout in seconds. Allowed range is 5–60. Dragon Copilot aborts the call after this many seconds. The platform default of 5 s is short for model-backed tools, so set it explicitly. |
@@ -153,7 +153,7 @@ A [Model Context Protocol](https://modelcontextprotocol.io/) server, reached ove
 ```yaml
 - name: clinical-reference
   caption: Clinical Reference
-  description: Lab reference data; values are synthetic.   # server-level context; each MCP tool's own description drives routing
+  description: Lab reference data; values are synthetic.   # server notes; each MCP tool's own description drives routing
   type: MCP
   triggers: [IntentDriven]
   timeout: 30
@@ -179,7 +179,7 @@ The API's base URL comes from the document's `servers` entry, so OpenAPI tools h
 ```yaml
 - name: drug-interactions
   caption: Drug Interactions
-  description: Drug interaction checks.   # for readers; selection uses the OpenAPI operation description
+  description: Drug interaction checks.   # server notes; each operation's own description drives routing
   type: OpenAPI
   triggers: [IntentDriven]
   timeout: 30

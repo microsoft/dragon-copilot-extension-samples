@@ -418,7 +418,7 @@ export async function promptConversationalTool(
   const descriptionPrompts: Record<ConversationalToolType, string> = {
     CopilotStudio: "When should Dragon Copilot use this tool? (the agent's whole selection description; say what it handles and what it doesn't):",
     MCP: "Server description (shared context for all this server's tools; each MCP tool's own description decides when it is called):",
-    OpenAPI: 'Tool description (for readers; Dragon Copilot selects operations by their OpenAPI operation and parameter descriptions):'
+    OpenAPI: "Server description (short notes shared by all this service's operations; each operation's own description decides when it is called):"
   };
   const description = (await input({
     message: descriptionPrompts[type],

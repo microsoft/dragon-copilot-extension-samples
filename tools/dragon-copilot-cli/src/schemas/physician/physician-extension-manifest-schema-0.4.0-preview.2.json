@@ -381,7 +381,7 @@
         "description": {
           "type": "string",
           "minLength": 1,
-          "description": "What the tool does. CopilotStudio: the whole tool-selection description. MCP: server-level context shared by all the server's tools; each MCP tool's own description and input schema decide when it is called. OpenAPI: for readers only; tool selection uses the OpenAPI operation and parameter descriptions."
+          "description": "What the tool does. CopilotStudio: the whole tool-selection description. MCP and OpenAPI: short server notes shared by all the server's tools or operations, given to the model once per server; each MCP tool's or OpenAPI operation's own description and parameters decide when it is called."
         },
         "triggers": {
           "$ref": "#/definitions/Triggers"

@@ -14,9 +14,9 @@ auth:
 tools:
   - name: drug-interaction-check
     caption: Drug Interaction Check
-    # For OpenAPI tools this text is for people reading the manifest. Dragon Copilot routes on the
-    # operation description and parameter descriptions in the OpenAPI document.
-    description: Drug interaction checks for medication pairs.
+    # For OpenAPI tools these are short server notes shared by all the service's operations.
+    # Each operation's own description and parameters decide when it is called.
+    description: Drug interaction checks for medication pairs. Medication names are generic or brand names as the clinician said them.
     type: OpenAPI
     specUrl: https://your-api-host.example.com/openapi/v1.json
     triggers:

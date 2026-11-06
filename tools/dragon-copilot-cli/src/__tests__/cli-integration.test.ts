@@ -321,7 +321,7 @@ describe('CLI integration paths', () => {
         [/^Tool type/, 'OpenAPI'],
         [/^Tool name/, 'drug-check'],
         [/^Tool caption/, 'Drug Check'],
-        [/^Tool description \(for readers/, 'Drug interaction checks.'],
+        [/^Server description \(short notes shared by all this service/, 'Drug interaction checks.'],
         [/^OpenAPI document URL/, 'https://api.contoso.com/openapi/v1.json'],
         [/^OpenAPI operationIds to expose/, 'checkInteractions'],
         [/^Set a custom timeout/, false],
