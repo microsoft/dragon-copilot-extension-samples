@@ -49,7 +49,7 @@ tools: [ ... ]
 | --- | --- | --- | --- | --- |
 | `name` | string | ✅ | — | Tool ID. Must be unique within the manifest, follows `^[a-z][a-z0-9-]*$`, and must start with a letter. |
 | `caption` | string | ✅ | — | Display name shown in the UI. |
-| `description` | string | ✅ | — | What the tool does. How Dragon Copilot uses it for tool selection depends on the type: for `CopilotStudio` it is the whole selection description; for `MCP` and `OpenAPI` it is short server notes shared by all the server's tools or operations, given to the model once per server, while each MCP tool's or OpenAPI operation's own description and parameters decide when it is called. See [Writing tool descriptions](../../TOOL-DESCRIPTIONS.md). |
+| `description` | string | ✅ | — | What the tool does. How Dragon Copilot uses it for tool selection depends on the type: for `CopilotStudio` it is the whole selection description; for `MCP` and `OpenAPI` it is short server notes shared by all the server's tools or operations, given to the model once per server (at most 1000 characters), while each MCP tool's or OpenAPI operation's own description and parameters decide when it is called. See [Writing tool descriptions](../../TOOL-DESCRIPTIONS.md). |
 | `type` | enum | ✅ | — | Integration type: `DragonAPI`, `MCP`, `OpenAPI` or `CopilotStudio`. This value decides which type-specific fields are allowed. |
 | `triggers` | array of enum | ✅ | — | What activates the tool. See [Triggers](#triggers). |
 | `timeout` | integer | | `5` | Hard timeout in seconds. Allowed range is 5–60. Dragon Copilot aborts the call after this many seconds. The platform default of 5 s is short for model-backed tools, so set it explicitly. |

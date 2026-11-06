@@ -381,7 +381,7 @@
         "description": {
           "type": "string",
           "minLength": 1,
-          "description": "What the tool does. CopilotStudio: the whole tool-selection description. MCP and OpenAPI: short server notes shared by all the server's tools or operations, given to the model once per server; each MCP tool's or OpenAPI operation's own description and parameters decide when it is called."
+          "description": "What the tool does. CopilotStudio: the whole tool-selection description. MCP and OpenAPI: short server notes shared by all the server's tools or operations, given to the model once per server (at most 1000 characters); each MCP tool's or OpenAPI operation's own description and parameters decide when it is called."
         },
         "triggers": {
           "$ref": "#/definitions/Triggers"
