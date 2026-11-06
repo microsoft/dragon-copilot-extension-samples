@@ -141,10 +141,11 @@ describe('physician manifest schema 0.4.0-preview.2 (conversational tools)', () 
     expect(result.errors).toEqual([]);
   });
 
-  test.each(listTemplates(V040_SCHEMA_VERSION))('0.4.0 template %s produces a valid manifest', name => {
+  test.each(listTemplates(V040_SCHEMA_VERSION))('0.4.0 template %s validates as-is', name => {
     const template = getTemplate(name, V040_SCHEMA_VERSION);
-    const result = validate({ auth: { tenantId: PLACEHOLDER_TENANT_ID }, ...template });
+    const result = validate(template);
     expect(result.errors).toEqual([]);
+    expect((template as { auth?: { tenantId: string } }).auth?.tenantId).toBe(PLACEHOLDER_TENANT_ID);
   });
 
   test.each(CONVERSATIONAL_TOOL_TYPES)('%s tool template validates and is not listed for 0.3.0', (type: ConversationalToolType) => {
@@ -166,7 +167,10 @@ describe('physician 0.4.0 conversational commands', () => {
   });
 
   test('generate --template rejects templates unknown to the schema version', async () => {
-    await expect(generateManifest({ template: 'mcp', output: join(workDir, 'v030.yaml'), schemaVersion: '0.3.0' })).rejects.toThrow(/not found/);
+    await expect(generateManifest({ template: 'mcp', output: join(workDir, 'v030.yaml'), schemaVersion: '0.3.0' }))
+      .rejects.toThrow(`Template 'mcp' requires --schema-version ${V040_SCHEMA_VERSION} (current: 0.3.0)`);
+    await expect(generateManifest({ template: 'unknown', output: join(workDir, 'v040.yaml'), schemaVersion: V040_SCHEMA_VERSION }))
+      .rejects.toThrow(/Template 'unknown' not found/);
   });
 
   test('generate --template writes a manifest and package zips it', async () => {

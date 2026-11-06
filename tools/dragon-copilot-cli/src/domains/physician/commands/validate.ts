@@ -6,8 +6,7 @@ import type { DragonExtensionManifest } from '../types.js';
 import {
   validateExtensionManifest,
   formatErrors,
-  PLACEHOLDER_TENANT_ID,
-  PLACEHOLDER_TENANT_WARNING,
+  getPlaceholderWarnings,
   LEGACY_SCHEMA_VERSION,
   LATEST_SCHEMA_VERSION
 } from '../shared/schema-validator.js';
@@ -67,9 +66,9 @@ export async function validateManifest(filePath: string): Promise<void> {
       hasWarnings = true;
       console.log(chalk.yellow(`⚠️  ${warning}`));
     });
-    if (manifest?.auth?.tenantId === PLACEHOLDER_TENANT_ID) {
+    for (const warning of getPlaceholderWarnings(manifest)) {
       hasWarnings = true;
-      console.log(chalk.yellow(`⚠️  ${PLACEHOLDER_TENANT_WARNING}`));
+      console.log(chalk.yellow(`⚠️  ${warning}`));
     }
 
     if (schemaVersion === LEGACY_SCHEMA_VERSION && LATEST_SCHEMA_VERSION !== LEGACY_SCHEMA_VERSION) {

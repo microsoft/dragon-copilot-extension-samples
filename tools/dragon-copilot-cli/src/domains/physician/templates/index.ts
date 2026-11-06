@@ -1,5 +1,5 @@
-import type { TemplateConfig, TemplateConfigV030, TemplateConfigV040, ConversationalTool, ConversationalToolType } from '../types.js';
-import { V040_SCHEMA_VERSION } from '../types.js';
+import type { AuthConfig, TemplateConfig, TemplateConfigV030, TemplateConfigV040, ConversationalTool, ConversationalToolType } from '../types.js';
+import { V040_SCHEMA_VERSION, supportsConversationalTools } from '../types.js';
 import { LEGACY_SCHEMA_VERSION, LATEST_SCHEMA_VERSION, PLACEHOLDER_TENANT_ID } from '../shared/schema-validator.js';
 import { DEFAULT_TOOL_TIMEOUT_SECONDS } from '../shared/prompts.js';
 
@@ -336,9 +336,14 @@ const conversationalManifests: Record<string, TemplateConfigV040> = Object.fromE
 );
 
 // 0.4.0-preview.2 keeps every 0.3.0 DragonAPI template and adds the conversational ones.
+// Like the conversational templates, they get a placeholder auth block so they validate out of the box.
 const v040Templates: Record<string, TemplateConfigV040> = {
   ...Object.fromEntries(
-    Object.entries(v030Templates).map(([key, template]) => [key, { ...template, schemaVersion: V040_SCHEMA_VERSION }])
+    Object.entries(v030Templates).map(([key, template]) => [key, {
+      ...template,
+      schemaVersion: V040_SCHEMA_VERSION,
+      auth: (template as { auth?: AuthConfig }).auth ?? { tenantId: PLACEHOLDER_TENANT_ID }
+    }])
   ),
   ...conversationalManifests
 };
@@ -358,6 +363,9 @@ export function getTemplate(
     throw new Error(`No templates are available for schema version '${schemaVersion}'`);
   }
   const template = templates[templateName];
+  if (!template && Object.prototype.hasOwnProperty.call(conversationalToolTemplates, templateName) && !supportsConversationalTools(schemaVersion)) {
+    throw new Error(`Template '${templateName}' requires --schema-version ${V040_SCHEMA_VERSION} (current: ${schemaVersion})`);
+  }
   if (!template) {
     throw new Error(`Template '${templateName}' not found. Available templates: ${Object.keys(templates).join(', ')}`);
   }

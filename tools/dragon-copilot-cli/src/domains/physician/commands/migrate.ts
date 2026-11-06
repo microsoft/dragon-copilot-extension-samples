@@ -17,7 +17,7 @@ import {
   LEGACY_SCHEMA_VERSION
 } from '../shared/schema-validator.js';
 import type { SchemaError } from '../shared/schema-validator.js';
-import { TRIGGER_CHOICES, DEFAULT_TOOL_TIMEOUT_SECONDS, humanizeName } from '../shared/prompts.js';
+import { TRIGGER_CHOICES, DEFAULT_TOOL_TIMEOUT_SECONDS, humanizeName, minTimeoutSeconds } from '../shared/prompts.js';
 
 type Manifest = Record<string, any>;
 
@@ -277,10 +277,21 @@ async function migrateLegacyTo030(manifest: Manifest, ctx: MigrationContext): Pr
   };
 }
 
-// 0.4.0-preview.2 is a superset of 0.3.0 (it adds conversational tool types), so only the version changes.
+// 0.4.0-preview.2 keeps the 0.3.0 DragonAPI tool shape and adds conversational tool types,
+// but raises the minimum tool timeout from 3 to 5 seconds, so shorter timeouts are bumped.
 async function migrate030To040(manifest: Manifest, ctx: MigrationContext): Promise<Manifest> {
   const { schemaVersion: _previous, ...rest } = manifest;
   ctx.changes.push(`Updated schemaVersion: ${V030} -> ${V040_PREVIEW_2}`);
+  const minimum = minTimeoutSeconds(V040_PREVIEW_2);
+  if (Array.isArray(rest.tools)) {
+    rest.tools = rest.tools.map((tool: Manifest, index: number) => {
+      if (typeof tool?.timeout !== 'number' || tool.timeout >= minimum) {
+        return tool;
+      }
+      ctx.changes.push(`tools[${index}].timeout: ${tool.timeout} -> ${minimum} (${V040_PREVIEW_2} minimum)`);
+      return { ...tool, timeout: minimum };
+    });
+  }
   return { schemaVersion: V040_PREVIEW_2, ...rest };
 }
 

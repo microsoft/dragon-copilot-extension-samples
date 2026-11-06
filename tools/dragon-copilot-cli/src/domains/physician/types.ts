@@ -1,3 +1,5 @@
+import { LEGACY_SCHEMA_VERSION } from './shared/schema-validator.js';
+
 /**
  * Manifest without a `schemaVersion` field (the original, unversioned format).
  */
@@ -181,9 +183,48 @@ export function isConversationalTool(tool: { type?: unknown }): tool is Conversa
   return CONVERSATIONAL_TOOL_TYPES.includes(tool.type as ConversationalToolType);
 }
 
-/** Whether a schema version supports conversational tool types. */
+const SCHEMA_VERSION_PATTERN = /^(\d+)\.(\d+)\.(\d+)(?:-([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?$/;
+
+/**
+ * Compares two `major.minor.patch[-prerelease]` schema versions, returning a negative number,
+ * zero or a positive number like a sort comparator. A release ranks above its prereleases;
+ * prerelease identifiers compare numerically when both are numeric, otherwise lexically.
+ * Throws when either version can't be parsed.
+ */
+export function compareSchemaVersions(a: string, b: string): number {
+  const left = SCHEMA_VERSION_PATTERN.exec(a);
+  const right = SCHEMA_VERSION_PATTERN.exec(b);
+  if (!left || !right) {
+    throw new Error(`Cannot compare schema versions "${a}" and "${b}"`);
+  }
+  for (let i = 1; i <= 3; i++) {
+    const diff = Number(left[i]) - Number(right[i]);
+    if (diff !== 0) return Math.sign(diff);
+  }
+  const leftPre = left[4];
+  const rightPre = right[4];
+  if (leftPre === undefined || rightPre === undefined) {
+    return leftPre === rightPre ? 0 : leftPre === undefined ? 1 : -1;
+  }
+  const leftIds = leftPre.split('.');
+  const rightIds = rightPre.split('.');
+  for (let i = 0; i < Math.max(leftIds.length, rightIds.length); i++) {
+    const l = leftIds[i];
+    const r = rightIds[i];
+    if (l === undefined) return -1;
+    if (r === undefined) return 1;
+    const diff = /^\d+$/.test(l) && /^\d+$/.test(r) ? Number(l) - Number(r) : (l < r ? -1 : l > r ? 1 : 0);
+    if (diff !== 0) return Math.sign(diff);
+  }
+  return 0;
+}
+
+/** Whether a schema version supports conversational tool types (0.4.0-preview.2 and later). */
 export function supportsConversationalTools(schemaVersion: string): boolean {
-  return schemaVersion === V040_SCHEMA_VERSION;
+  if (schemaVersion === LEGACY_SCHEMA_VERSION || !SCHEMA_VERSION_PATTERN.test(schemaVersion)) {
+    return false;
+  }
+  return compareSchemaVersions(schemaVersion, V040_SCHEMA_VERSION) >= 0;
 }
 
 export interface GenerateOptions {

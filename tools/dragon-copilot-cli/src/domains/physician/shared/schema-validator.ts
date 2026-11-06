@@ -222,6 +222,26 @@ export const PLACEHOLDER_TENANT_ID = '00000000-0000-0000-0000-000000000000';
 export const PLACEHOLDER_TENANT_WARNING =
   'auth.tenantId is the all-zero placeholder; set your publisher Microsoft Entra tenant ID before uploading';
 
+export const PLACEHOLDER_ENVIRONMENT_ID_WARNING =
+  'environmentId is the all-zero placeholder; set your Copilot Studio environment ID before uploading';
+
+/** Warnings for all-zero placeholder IDs (tenant and Copilot Studio environment) left in a manifest. */
+export function getPlaceholderWarnings(manifest: unknown): string[] {
+  const warnings: string[] = [];
+  const { auth, tools } = (manifest ?? {}) as { auth?: { tenantId?: unknown }; tools?: unknown };
+  if (auth?.tenantId === PLACEHOLDER_TENANT_ID) {
+    warnings.push(PLACEHOLDER_TENANT_WARNING);
+  }
+  if (Array.isArray(tools)) {
+    tools.forEach((tool: { name?: unknown; environmentId?: unknown } | null, index) => {
+      if (tool?.environmentId === PLACEHOLDER_TENANT_ID) {
+        warnings.push(`tools[${index}] (${tool.name}): ${PLACEHOLDER_ENVIRONMENT_ID_WARNING}`);
+      }
+    });
+  }
+  return warnings;
+}
+
 /**
  * Complete validation for Extension Manifest
  * Combines JSON Schema validation with simple business rules

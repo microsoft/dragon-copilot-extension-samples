@@ -313,7 +313,15 @@ describe('CLI integration paths', () => {
     });
 
     test('generate --template rejects conversational templates under 0.3.0', async () => {
-      await expect(run('generate', '--template', 'mcp')).rejects.toThrow(/Template 'mcp' not found/);
+      await expect(run('generate', '--template', 'mcp')).rejects.toThrow(
+        `Template 'mcp' requires --schema-version ${V040} (current: 0.3.0)`
+      );
+      await expect(run('generate', '--template', 'no-such-template')).rejects.toThrow(/Template 'no-such-template' not found/);
+    });
+
+    test('generate --template copilot-studio warns about the placeholder environment ID', async () => {
+      await run('generate', '--schema-version', V040, '--template', 'copilot-studio');
+      expect(logs()).toContain('tools[0] (scheduling-agent): environmentId is the all-zero placeholder');
     });
 
     test('generate --interactive creates a new 0.4.0 manifest with a prompted tool type', async () => {
@@ -429,6 +437,51 @@ describe('CLI integration paths', () => {
       const migrated = readManifest('extension.migrated.yaml');
       expect(migrated.schemaVersion).toBe(V040);
       expect(migrated.tools[0].type).toBe('DragonAPI');
+      await run('validate', 'extension.migrated.yaml');
+      expect(logs()).toContain(`Validation passed! (schema ${V040})`);
+    });
+
+    test('migrate 0.3.0 -> 0.4.0-preview.2 raises timeouts below the 0.4.0 minimum to 5', async () => {
+      writeFileSync(join(workingDir, 'extension.yaml'), [
+        'schemaVersion: "0.3.0"',
+        'name: migrate-extension',
+        'caption: Migrate Extension',
+        'description: Migration test',
+        'version: 0.0.1',
+        'auth:',
+        '  tenantId: 00000000-0000-0000-0000-000000000001',
+        'tools:',
+        '  - name: fast-tool',
+        '    caption: Fast Tool',
+        '    description: Short timeout',
+        '    type: DragonAPI',
+        '    timeout: 3',
+        '    endpoint: https://example.org/fast',
+        '    triggers: [DataAvailable]',
+        '    inputs:',
+        '      - name: note',
+        '        description: Clinical note payload',
+        '        content-type: application/vnd.ms-dragon.dsp.note+json',
+        '  - name: slow-tool',
+        '    caption: Slow Tool',
+        '    description: Long timeout',
+        '    type: DragonAPI',
+        '    timeout: 30',
+        '    endpoint: https://example.org/slow',
+        '    triggers: [DataAvailable]',
+        '    inputs:',
+        '      - name: note',
+        '        description: Clinical note payload',
+        '        content-type: application/vnd.ms-dragon.dsp.note+json',
+      ].join('\n'), 'utf8');
+
+      await run('migrate', 'extension.yaml', '--to', V040, '--non-interactive');
+
+      expect(process.exitCode).toBe(0);
+      const migrated = readManifest('extension.migrated.yaml');
+      expect(migrated.tools.map((tool: { timeout: number }) => tool.timeout)).toEqual([5, 30]);
+      expect(logs()).toContain(`tools[0].timeout: 3 -> 5 (${V040} minimum)`);
+      expect(logs()).not.toContain('tools[1].timeout');
       await run('validate', 'extension.migrated.yaml');
       expect(logs()).toContain(`Validation passed! (schema ${V040})`);
     });

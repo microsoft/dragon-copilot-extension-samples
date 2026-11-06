@@ -8,15 +8,14 @@ import { logMessage } from '../../../common/index.js';
 import type { PackageOptions, DragonExtensionManifest } from '../types.js';
 import {
   validateExtensionManifest,
-  PLACEHOLDER_TENANT_ID,
-  PLACEHOLDER_TENANT_WARNING
+  getPlaceholderWarnings
 } from '../shared/schema-validator.js';
+import type { SchemaError } from '../shared/schema-validator.js';
 
 const normalizePath = (p: string) => {
   const resolved = path.resolve(p);
   return process.platform === 'win32' ? resolved.toLowerCase() : resolved;
 };
-import type { SchemaError } from '../shared/schema-validator.js';
 
 export async function packageExtension(options: PackageOptions): Promise<void> {
   const isQuiet = options.silent || process.env.NODE_ENV === 'test';
@@ -54,8 +53,8 @@ export async function packageExtension(options: PackageOptions): Promise<void> {
     }
   logMessage(chalk.green('✅ Physician workflow manifest is valid'), isQuiet);
     manifestValidation.warnings?.forEach(warning => logMessage(chalk.yellow(`⚠️  ${warning}`), isQuiet));
-    if (manifest.auth?.tenantId === PLACEHOLDER_TENANT_ID) {
-      logMessage(chalk.yellow(`⚠️  ${PLACEHOLDER_TENANT_WARNING}`), isQuiet);
+    for (const warning of getPlaceholderWarnings(manifest)) {
+      logMessage(chalk.yellow(`⚠️  ${warning}`), isQuiet);
     }
 
     // Step 3: Create package
@@ -141,8 +140,7 @@ export async function packageExtension(options: PackageOptions): Promise<void> {
     }
 
     // Finalize the archive
-    await archive.finalize();
-    await closed;
+    await Promise.all([archive.finalize(), closed]);
 
   } catch (error) {
     if (error instanceof Error) {

@@ -142,7 +142,7 @@ export const DEFAULT_TOOL_TIMEOUT_SECONDS = 60;
  * Validates an optional tool timeout in whole seconds. Empty means "use the default".
  * The minimum is 5 for 0.4.0-preview.2 and 3 for 0.3.0 (see minTimeoutSeconds).
  */
-export function validateTimeout(input: string, minimum: number = 5): string | boolean {
+export function validateTimeout(input: string, minimum: number): string | boolean {
   if (!input.trim()) return true;
   const value = Number(input.trim());
   if (!Number.isInteger(value) || value < minimum || value > 60) {
@@ -454,10 +454,11 @@ export async function promptConversationalTool(
   }
 
   if (await confirm({ message: 'Set a custom timeout (seconds)?', default: false })) {
+    const minTimeout = minTimeoutSeconds(schemaVersion);
     const timeout = await input({
-      message: 'Timeout in seconds (5-60):',
+      message: `Timeout in seconds (${minTimeout}-60):`,
       default: '30',
-      validate: (value: string) => (value.trim() && validateTimeout(value) === true ? true : 'Enter a whole number between 5 and 60')
+      validate: (value: string) => (value.trim() && validateTimeout(value, minTimeout) === true ? true : `Enter a whole number between ${minTimeout} and 60`)
     });
     tool.timeout = Number(timeout.trim());
   }

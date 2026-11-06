@@ -13,8 +13,13 @@ import {
   LATEST_SCHEMA_VERSION,
   LEGACY_SCHEMA_VERSION,
   getRegisteredSchemaVersions,
-  validateFieldValue
+  validateFieldValue,
+  getPlaceholderWarnings,
+  PLACEHOLDER_TENANT_ID,
+  PLACEHOLDER_TENANT_WARNING,
+  PLACEHOLDER_ENVIRONMENT_ID_WARNING
 } from '../domains/physician/shared/schema-validator.js';
+import { compareSchemaVersions, supportsConversationalTools } from '../domains/physician/types.js';
 import { getMigrationChainProblems } from '../domains/physician/commands/migrate.js';
 import {
   validateToolName,
@@ -216,13 +221,62 @@ describe('physician version-aware helpers', () => {
     expect(validateToolName('tool-1', null, '0.3.0')).toBe(true);
   });
 
-  test('validateTimeout allows blank and 5-60 whole seconds', () => {
-    expect(validateTimeout('')).toBe(true);
-    expect(validateTimeout('5')).toBe(true);
-    expect(validateTimeout('60')).toBe(true);
-    expect(typeof validateTimeout('4')).toBe('string');
-    expect(typeof validateTimeout('61')).toBe('string');
-    expect(typeof validateTimeout('5.5')).toBe('string');
+  test('validateTimeout allows blank and minimum-60 whole seconds', () => {
+    expect(validateTimeout('', 5)).toBe(true);
+    expect(validateTimeout('5', 5)).toBe(true);
+    expect(validateTimeout('60', 5)).toBe(true);
+    expect(typeof validateTimeout('4', 5)).toBe('string');
+    expect(typeof validateTimeout('61', 5)).toBe('string');
+    expect(typeof validateTimeout('5.5', 5)).toBe('string');
+  });
+
+  test.each([
+    ['0.4.0-preview.2', '0.4.0-preview.2', 0],
+    ['0.4.0-preview.10', '0.4.0-preview.2', 1],
+    ['0.4.0', '0.4.0-preview.2', 1],
+    ['0.3.0', '0.4.0-preview.2', -1],
+    ['1.0.0', '0.9.9', 1],
+    ['0.4.0-preview.2', '0.4.0-preview.2.1', -1],
+    ['0.4.0-alpha', '0.4.0-beta', -1],
+    ['0.4.0-rc.1', '0.4.0-preview.2', 1],
+  ])('compareSchemaVersions(%s, %s) has sign %d', (a, b, expected) => {
+    expect(Math.sign(compareSchemaVersions(a, b))).toBe(expected);
+    expect(Math.sign(compareSchemaVersions(b, a))).toBe(-expected || 0);
+  });
+
+  test('compareSchemaVersions rejects unparseable versions', () => {
+    expect(() => compareSchemaVersions(LEGACY_SCHEMA_VERSION, '0.3.0')).toThrow();
+    expect(() => compareSchemaVersions('0.4', '0.3.0')).toThrow();
+  });
+
+  test.each([
+    ['0.4.0-preview.2', true],
+    ['0.4.0-preview.3', true],
+    ['0.4.0', true],
+    ['1.0.0', true],
+    ['0.4.0-preview.1', false],
+    ['0.3.0', false],
+    [LEGACY_SCHEMA_VERSION, false],
+    ['not-a-version', false],
+    ['', false],
+  ])('supportsConversationalTools(%s) is %s', (version, expected) => {
+    expect(supportsConversationalTools(version)).toBe(expected);
+  });
+
+  test('getPlaceholderWarnings reports a placeholder tenant and Copilot Studio environment IDs', () => {
+    expect(getPlaceholderWarnings({ auth: { tenantId: TENANT_ID }, tools: [] })).toEqual([]);
+    expect(getPlaceholderWarnings(null)).toEqual([]);
+    expect(getPlaceholderWarnings({
+      auth: { tenantId: PLACEHOLDER_TENANT_ID },
+      tools: [
+        { name: 'notes', type: 'DragonAPI' },
+        { name: 'scheduler', type: 'CopilotStudio', environmentId: PLACEHOLDER_TENANT_ID },
+        { name: 'real', type: 'CopilotStudio', environmentId: TENANT_ID }
+      ]
+    })).toEqual([
+      PLACEHOLDER_TENANT_WARNING,
+      `tools[1] (scheduler): ${PLACEHOLDER_ENVIRONMENT_ID_WARNING}`
+    ]);
   });
 
   test('timeout minimum follows the schema version (0.3.0: 3, 0.4.0-preview.2: 5)', () => {

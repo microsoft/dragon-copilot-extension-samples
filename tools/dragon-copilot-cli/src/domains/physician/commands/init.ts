@@ -18,8 +18,7 @@ import {
   resolveRequestedSchemaVersion,
   validateExtensionManifest,
   formatErrors,
-  PLACEHOLDER_TENANT_ID,
-  PLACEHOLDER_TENANT_WARNING
+  getPlaceholderWarnings
 } from '../shared/schema-validator.js';
 
 /** Case-insensitive `--type` lookup, checked against the schema version. */
@@ -104,8 +103,8 @@ export async function initProject(options: InitOptions): Promise<void> {
 
   console.log(chalk.green('\n✅ Physician workflow project initialized successfully!'));
   console.log(chalk.gray(`📁 Manifest created at: ${outputPath}`));
-  if (manifest.auth?.tenantId === PLACEHOLDER_TENANT_ID) {
-    console.log(chalk.yellow(`⚠️  ${PLACEHOLDER_TENANT_WARNING}`));
+  for (const warning of getPlaceholderWarnings(manifest)) {
+    console.log(chalk.yellow(`⚠️  ${warning}`));
   }
 
   // Enhanced next steps with better organization

@@ -13,8 +13,7 @@ import {
   resolveRequestedSchemaVersion,
   validateExtensionManifest,
   formatErrors,
-  PLACEHOLDER_TENANT_ID,
-  PLACEHOLDER_TENANT_WARNING
+  getPlaceholderWarnings
 } from '../shared/schema-validator.js';
 
 function writeManifest(outputPath: string, manifest: unknown): void {
@@ -95,8 +94,8 @@ async function generateInteractive(options: GenerateOptions): Promise<void> {
 
   console.log(chalk.green('\n✅ Tool added to manifest successfully!'));
   console.log(chalk.gray(`📁 Manifest saved to: ${options.output || 'extension.yaml'}`));
-  if (manifest.auth?.tenantId === PLACEHOLDER_TENANT_ID) {
-    console.log(chalk.yellow(`⚠️  ${PLACEHOLDER_TENANT_WARNING}`));
+  for (const warning of getPlaceholderWarnings(manifest)) {
+    console.log(chalk.yellow(`⚠️  ${warning}`));
   }
 }
 
@@ -112,4 +111,7 @@ async function generateFromTemplate(options: GenerateOptions): Promise<void> {
 
   console.log(chalk.green(`✅ Manifest generated from template: ${options.template}`));
   console.log(chalk.gray(`📁 Manifest saved to: ${outputPath}`));
+  for (const warning of getPlaceholderWarnings(template)) {
+    console.log(chalk.yellow(`⚠️  ${warning}`));
+  }
 }
