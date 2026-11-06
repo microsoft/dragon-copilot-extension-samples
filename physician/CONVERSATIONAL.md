@@ -76,7 +76,7 @@ A manifest opts in by declaring `schemaVersion: 0.4.0-preview.2`; manifests decl
 | --- | --- | --- |
 | `name` | ✅ | Unique in the manifest; lowercase, digits, hyphens. |
 | `caption` | ✅ | Display name. |
-| `description` | ✅ | What the tool does. `CopilotStudio`: the whole selection description. `MCP`: shared context placed before each MCP tool's own description. `OpenAPI`: for readers only; selection uses the operation and parameter descriptions. See [Writing tool descriptions](TOOL-DESCRIPTIONS.md). |
+| `description` | ✅ | What the tool does. `CopilotStudio`: the whole selection description. `MCP`: for readers only; selection uses each MCP tool's own description and input schema. `OpenAPI`: for readers only; selection uses the operation and parameter descriptions. See [Writing tool descriptions](TOOL-DESCRIPTIONS.md). |
 | `type` | ✅ | `MCP`, `OpenAPI` or `CopilotStudio`. |
 | `triggers` | ✅ | `[IntentDriven]` for conversational tools. |
 | `timeout` | | Seconds, 5–60 (default 5). |

@@ -49,7 +49,7 @@ tools: [ ... ]
 | --- | --- | --- | --- | --- |
 | `name` | string | ✅ | — | Tool ID. Must be unique within the manifest, follows `^[a-z][a-z0-9-]*$`, and must start with a letter. |
 | `caption` | string | ✅ | — | Display name shown in the UI. |
-| `description` | string | ✅ | — | What the tool does. How Dragon Copilot uses it for tool selection depends on the type: for `CopilotStudio` it is the whole selection description; for `MCP` it is placed before each exposed MCP tool's own description; for `OpenAPI` selection uses the operation and parameter descriptions in your OpenAPI document instead. See [Writing tool descriptions](../../TOOL-DESCRIPTIONS.md). |
+| `description` | string | ✅ | — | What the tool does. How Dragon Copilot uses it for tool selection depends on the type: for `CopilotStudio` it is the whole selection description; for `MCP` selection uses each MCP tool's own description and input schema from your server instead; for `OpenAPI` selection uses the operation and parameter descriptions in your OpenAPI document instead. See [Writing tool descriptions](../../TOOL-DESCRIPTIONS.md). |
 | `type` | enum | ✅ | — | Integration type: `DragonAPI`, `MCP`, `OpenAPI` or `CopilotStudio`. This value decides which type-specific fields are allowed. |
 | `triggers` | array of enum | ✅ | — | What activates the tool. See [Triggers](#triggers). |
 | `timeout` | integer | | `5` | Hard timeout in seconds. Allowed range is 5–60. Dragon Copilot aborts the call after this many seconds. The platform default of 5 s is short for model-backed tools, so set it explicitly. |
@@ -153,7 +153,7 @@ A [Model Context Protocol](https://modelcontextprotocol.io/) server, reached ove
 ```yaml
 - name: clinical-reference
   caption: Clinical Reference
-  description: Clinical lab reference data.   # shared context, placed before each MCP tool's own description
+  description: Clinical lab reference data.   # for readers; selection uses each MCP tool's own description
   type: MCP
   triggers: [IntentDriven]
   timeout: 30

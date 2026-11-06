@@ -417,7 +417,7 @@ export async function promptConversationalTool(
   const caption = (await promptCaption('Tool caption (display name):', humanizeName(name))).trim();
   const descriptionPrompts: Record<ConversationalToolType, string> = {
     CopilotStudio: "When should Dragon Copilot use this tool? (the agent's whole selection description; say what it handles and what it doesn't):",
-    MCP: "Tool description (short shared context; Dragon Copilot places it before each MCP tool's own description):",
+    MCP: "Tool description (for readers; Dragon Copilot selects tools by each MCP tool's own description and input schema):",
     OpenAPI: 'Tool description (for readers; Dragon Copilot selects operations by their OpenAPI operation and parameter descriptions):'
   };
   const description = (await input({

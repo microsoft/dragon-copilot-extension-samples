@@ -250,7 +250,7 @@ describe('CLI integration paths', () => {
         ...envelopeAnswers('integration-extension'),
         [/^Tool name/, 'orders'],
         [/^Tool caption/, 'Orders'],
-        [/^Tool description \(short shared context/, 'Order extraction from the current encounter.'],
+        [/^Tool description \(for readers; Dragon Copilot selects tools by each MCP/, 'Order extraction from the current encounter.'],
         [/^MCP endpoint/, 'https://mcp.contoso.com/mcp'],
         [/^MCP tool names to expose/, 'extract_orders'],
         [/^Set a custom timeout/, true],
