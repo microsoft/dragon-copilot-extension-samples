@@ -14,9 +14,9 @@ auth:
 tools:
   - name: clinical-reference
     caption: Clinical Reference
-    description: >-
-      Returns typical adult lab reference ranges. Use when the user asks what
-      the normal range is for a lab test such as HbA1c, potassium or TSH.
+    # For MCP tools this text is placed before each exposed tool's own description,
+    # so keep it short and shared; per-tool routing lives in the server's tool descriptions.
+    description: Clinical lab reference data (synthetic values for the sample).
     type: MCP
     endpoint: https://your-mcp-host.example.com/mcp
     triggers:
@@ -31,9 +31,7 @@ tools:
 
   - name: order-extraction
     caption: Order Extraction
-    description: >-
-      Extracts lab, imaging, medication and referral orders mentioned in the
-      current encounter transcript.
+    description: Order extraction from the current encounter.
     type: MCP
     endpoint: https://your-mcp-host.example.com/mcp
     triggers:

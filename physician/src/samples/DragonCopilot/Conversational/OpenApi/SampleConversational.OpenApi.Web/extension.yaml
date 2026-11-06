@@ -14,9 +14,9 @@ auth:
 tools:
   - name: drug-interaction-check
     caption: Drug Interaction Check
-    description: >-
-      Checks for interactions between two medications. Use when the user asks
-      whether two drugs can be taken together.
+    # For OpenAPI tools this text is for people reading the manifest. Dragon Copilot routes on the
+    # operation description and parameter descriptions in the OpenAPI document.
+    description: Drug interaction checks for medication pairs.
     type: OpenAPI
     specUrl: https://your-api-host.example.com/openapi/v1.json
     triggers:

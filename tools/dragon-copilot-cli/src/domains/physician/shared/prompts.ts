@@ -415,8 +415,13 @@ export async function promptConversationalTool(
     validate: (value: string) => validateToolName(value.trim(), existingManifest, schemaVersion)
   })).trim();
   const caption = (await promptCaption('Tool caption (display name):', humanizeName(name))).trim();
+  const descriptionPrompts: Record<ConversationalToolType, string> = {
+    CopilotStudio: "When should Dragon Copilot use this tool? (the agent's whole selection description; say what it handles and what it doesn't):",
+    MCP: "Tool description (short shared context; Dragon Copilot places it before each MCP tool's own description):",
+    OpenAPI: 'Tool description (for readers; Dragon Copilot selects operations by their OpenAPI operation and parameter descriptions):'
+  };
   const description = (await input({
-    message: 'When should Dragon Copilot use this tool? (Dragon Copilot reads this description to decide when to call the tool):',
+    message: descriptionPrompts[type],
     validate: (value: string) => (value.trim() ? true : 'Description is required')
   })).trim();
 

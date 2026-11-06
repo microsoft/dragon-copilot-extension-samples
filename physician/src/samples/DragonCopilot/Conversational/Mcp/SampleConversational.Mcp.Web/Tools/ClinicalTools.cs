@@ -21,9 +21,9 @@ public sealed class ClinicalTools
     /// Returns a synthetic reference range for a lab test.
     /// </summary>
     [McpServerTool(Name = "lookup_reference_range", ReadOnly = true, UseStructuredContent = true, Title = "Lookup reference range")]
-    [Description("Returns the typical adult reference range for a lab test (for example HbA1c, potassium, sodium, TSH).")]
+    [Description("Returns the typical adult reference range for one lab test. Use when the clinician asks what the normal range is for a lab test such as HbA1c, potassium, sodium or TSH. Do not use to interpret a patient's result or to extract orders. If the clinician asks about several tests, call once per test.")]
     public static ReferenceRange LookupReferenceRange(
-        [Description("Lab test name, for example 'HbA1c'.")] string test)
+        [Description("Lab test name as the clinician said it, for example HbA1c or potassium. Do not include patient names or identifiers.")] string test)
     {
         return ClinicalReference.LookupReferenceRange(test)
             ?? new ReferenceRange(test, "unknown", string.Empty, $"No reference range is available for '{test}'.");
@@ -42,7 +42,7 @@ public sealed class ClinicalTools
     /// <c>transcript</c> and <c>patientContext</c> are PHI: never log their values.
     /// </remarks>
     [McpServerTool(Name = "extract_orders", ReadOnly = true, UseStructuredContent = true, Title = "Extract orders")]
-    [Description("Extracts lab, imaging, medication and referral orders mentioned in the current encounter transcript.")]
+    [Description("Extracts lab, imaging, medication and referral orders mentioned in the current encounter. Use when the clinician asks which orders were discussed or asks to list or draft orders from the visit. Do not use for reference ranges or general clinical questions.")]
     public static OrderExtractionResult ExtractOrders(
         RequestContext<CallToolRequestParams> context,
         [Description("Encounter transcript object ({ \"transcript\": { \"turns\": [...] } }). Supplied by the platform.")] JsonElement? transcript = null,

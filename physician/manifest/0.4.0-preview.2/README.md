@@ -49,7 +49,7 @@ tools: [ ... ]
 | --- | --- | --- | --- | --- |
 | `name` | string | ✅ | — | Tool ID. Must be unique within the manifest, follows `^[a-z][a-z0-9-]*$`, and must start with a letter. |
 | `caption` | string | ✅ | — | Display name shown in the UI. |
-| `description` | string | ✅ | — | **Tool-selection prompt.** Dragon Copilot reads it to decide *when* to call the tool, so describe the situations and questions it handles. |
+| `description` | string | ✅ | — | What the tool does. How Dragon Copilot uses it for tool selection depends on the type: for `CopilotStudio` it is the whole selection description; for `MCP` it is placed before each exposed MCP tool's own description; for `OpenAPI` selection uses the operation and parameter descriptions in your OpenAPI document instead. See [Writing tool descriptions](../../TOOL-DESCRIPTIONS.md). |
 | `type` | enum | ✅ | — | Integration type: `DragonAPI`, `MCP`, `OpenAPI` or `CopilotStudio`. This value decides which type-specific fields are allowed. |
 | `triggers` | array of enum | ✅ | — | What activates the tool. See [Triggers](#triggers). |
 | `timeout` | integer | | `5` | Hard timeout in seconds. Allowed range is 5–60. Dragon Copilot aborts the call after this many seconds. The platform default of 5 s is short for model-backed tools, so set it explicitly. |
@@ -63,7 +63,7 @@ Any field not listed for the tool's type is rejected. There are no cross-type fi
 | --- | --- | --- |
 | `DataAvailable` | Runs automatically once all required inputs (note, transcript, EHR context, …) are available. Can be retried. | `DragonAPI` |
 | `ExplicitRequest` | Runs only on a deliberate user action in the UI (button, card or command). Never runs automatically. | `DragonAPI` |
-| `IntentDriven` | Runs when Dragon Copilot decides, from the user's request and the tool `description`, that the tool should be called. | `MCP`, `OpenAPI`, `CopilotStudio` |
+| `IntentDriven` | Runs when Dragon Copilot decides, from the user's request and the tool's descriptions, that the tool should be called. See [Writing tool descriptions](../../TOOL-DESCRIPTIONS.md). | `MCP`, `OpenAPI`, `CopilotStudio` |
 
 `triggers` must be non-empty and contain no duplicates, and every entry must be allowed for the tool's `type`.
 
@@ -153,7 +153,7 @@ A [Model Context Protocol](https://modelcontextprotocol.io/) server, reached ove
 ```yaml
 - name: clinical-reference
   caption: Clinical Reference
-  description: Use for lab reference ranges and unit conversions.
+  description: Clinical lab reference data.   # shared context, placed before each MCP tool's own description
   type: MCP
   triggers: [IntentDriven]
   timeout: 30
@@ -179,7 +179,7 @@ The API's base URL comes from the document's `servers` entry, so OpenAPI tools h
 ```yaml
 - name: drug-interactions
   caption: Drug Interactions
-  description: Use to check interactions between two or more medications.
+  description: Drug interaction checks.   # for readers; selection uses the OpenAPI operation description
   type: OpenAPI
   triggers: [IntentDriven]
   timeout: 30
@@ -205,7 +205,10 @@ A published [Microsoft Copilot Studio](https://learn.microsoft.com/microsoft-cop
 ```yaml
 - name: formulary-agent
   caption: Formulary Agent
-  description: Use for questions about the hospital formulary.
+  description: >-                 # the agent's whole selection description
+    Answers questions about the hospital formulary: whether a drug is on
+    formulary, its tier and preferred alternatives. Do not use for dosing
+    or interactions.
   type: CopilotStudio
   triggers: [IntentDriven]
   timeout: 45

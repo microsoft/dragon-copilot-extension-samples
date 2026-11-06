@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
+using System.ComponentModel;
 using System.Text.Json;
 
 namespace SampleConversational.OpenApi.Web.Services;
@@ -12,10 +13,10 @@ namespace SampleConversational.OpenApi.Web.Services;
 /// its model sees and overwrites any model-supplied value. <c>PatientContext</c> is PHI: never log its value.
 /// </summary>
 public sealed record DrugInteractionRequest(
-    string MedicationA,
-    string MedicationB,
-    string? Locale = null,
-    JsonElement? PatientContext = null);
+    [property: Description("First medication name exactly as the clinician said it, without dose.")] string MedicationA,
+    [property: Description("Second medication name exactly as the clinician said it, without dose.")] string MedicationB,
+    [property: Description("Supplied by Dragon Copilot.")] string? Locale = null,
+    [property: Description("Supplied by Dragon Copilot.")] JsonElement? PatientContext = null);
 
 /// <summary>
 /// A citation for an interaction finding. Projected as an Evidence Link by <c>customExtractors</c>.

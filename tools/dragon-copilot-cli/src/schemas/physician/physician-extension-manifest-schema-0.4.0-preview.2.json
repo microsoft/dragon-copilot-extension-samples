@@ -381,7 +381,7 @@
         "description": {
           "type": "string",
           "minLength": 1,
-          "description": "Tool-selection prompt: Dragon Copilot uses it to decide when to call the tool."
+          "description": "What the tool does. CopilotStudio: the whole tool-selection description. MCP: shared context placed before each exposed MCP tool's own description. OpenAPI: for readers only; tool selection uses the OpenAPI operation and parameter descriptions."
         },
         "triggers": {
           "$ref": "#/definitions/Triggers"

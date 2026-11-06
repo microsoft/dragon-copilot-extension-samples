@@ -1,8 +1,8 @@
 # Dragon Copilot Conversational Extensions
 
-Conversational extensions let Dragon Copilot call **your** tools and agents while a clinician talks to it. Dragon Copilot reads each tool's `description`, decides when the tool is relevant to the user's request (`IntentDriven` trigger), calls it, and blends the result into its answer.
+Conversational extensions let Dragon Copilot call **your** tools and agents while a clinician talks to it. Dragon Copilot reads your tools' descriptions, decides when a tool is relevant to the user's request (`IntentDriven` trigger), calls it, and blends the result into its answer. Which description it reads depends on the tool type; see [Writing tool descriptions](TOOL-DESCRIPTIONS.md).
 
-In this guide, **intent** means what the clinician is asking for in the current turn (for example "what's the normal potassium range?"). An `IntentDriven` tool is called when Dragon Copilot judges, from that request and the tool's `description`, that the tool can help answer it.
+In this guide, **intent** means what the clinician is asking for in the current turn (for example "what's the normal potassium range?"). An `IntentDriven` tool is called when Dragon Copilot judges, from that request and the tool's descriptions, that the tool can help answer it.
 
 > **Public Preview.** Conversational extensions use the Public Preview manifest schema [`0.4.0-preview.2`](../tools/dragon-copilot-cli/src/schemas/physician/physician-extension-manifest-schema-0.4.0-preview.2.json). Fields and behavior may change before general availability.
 
@@ -14,6 +14,7 @@ In this guide, **intent** means what the clinician is asking for in the current 
 - [CLI](#️-cli)
 - [How Dragon Copilot calls your tool](#how-dragon-copilot-calls-your-tool)
 - [Onboarding](#-onboarding)
+- [Writing tool descriptions](TOOL-DESCRIPTIONS.md)
 - [Quick start](src/samples/DragonCopilot/Conversational/README.md)
 
 ## 🧩 Integration types
@@ -34,7 +35,7 @@ sequenceDiagram
     participant D as Dragon Copilot
     participant T as Your tool (MCP / OpenAPI / Copilot Studio)
     C->>D: "What's the normal range for potassium?"
-    D->>D: Select tool by description (IntentDriven)
+    D->>D: Select tool by its descriptions (IntentDriven)
     D->>T: Call tool + runtimeParamBindings (e.g. locale, correlationId)
     T-->>D: Result
     D->>D: customExtractors → Response Text / Evidence Link
@@ -75,7 +76,7 @@ A manifest opts in by declaring `schemaVersion: 0.4.0-preview.2`; manifests decl
 | --- | --- | --- |
 | `name` | ✅ | Unique in the manifest; lowercase, digits, hyphens. |
 | `caption` | ✅ | Display name. |
-| `description` | ✅ | **Dragon Copilot's selection prompt.** Say *when* to use the tool. |
+| `description` | ✅ | What the tool does. `CopilotStudio`: the whole selection description. `MCP`: shared context placed before each MCP tool's own description. `OpenAPI`: for readers only; selection uses the operation and parameter descriptions. See [Writing tool descriptions](TOOL-DESCRIPTIONS.md). |
 | `type` | ✅ | `MCP`, `OpenAPI` or `CopilotStudio`. |
 | `triggers` | ✅ | `[IntentDriven]` for conversational tools. |
 | `timeout` | | Seconds, 5–60 (default 5). |

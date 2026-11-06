@@ -17,8 +17,9 @@ tools:
     caption: Appointment Scheduling
     description: >-
       Answers questions about scheduling, rescheduling and preparing for
-      clinic appointments. Use when the user asks about appointment
-      availability or visit preparation.
+      clinic appointments. Use when the clinician asks about appointment
+      availability or visit preparation. Do not use for clinical questions or
+      for medication, lab or referral orders.
     type: CopilotStudio
     environmentId: 00000000-0000-0000-0000-00000000bbbb   # placeholder: your Power Platform environment ID
     agentIdentifier: cr123_schedulingAgent

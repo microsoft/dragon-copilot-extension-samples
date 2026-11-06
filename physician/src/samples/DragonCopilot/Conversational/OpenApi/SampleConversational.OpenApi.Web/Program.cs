@@ -73,7 +73,9 @@ app.MapPost("/interactions/check", (
     })
     .WithName("checkDrugInteraction")
     .WithSummary("Check interactions between two medications.")
-    .WithDescription("Returns the interaction severity, a summary, and supporting sources for a medication pair.")
+    // For OpenAPI tools, Dragon Copilot routes on this description and the parameter descriptions,
+    // not on the manifest's tools[].description.
+    .WithDescription("Checks whether two medications interact and how severe the interaction is. Use when the clinician asks whether two drugs can be taken together or are safe to combine. Do not use for dosing or for a single medication's side effects. If the clinician names more than two medications, call once per pair.")
     .Produces<DrugInteractionResponse>()
     .ProducesProblem(StatusCodes.Status400BadRequest)
     .RequireAuthorization(AuthenticationExtensions.RequiredClaimsPolicy);
