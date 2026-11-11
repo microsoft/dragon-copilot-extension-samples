@@ -12,7 +12,6 @@ A field-by-field reference for the [manifest schema](../../../tools/dragon-copil
 - [DragonAPI tools](#dragonapi-tools)
   - [Inputs](#inputs)
   - [Outputs](#outputs)
-- [MCP tools](#mcp-tools)
 - [OpenAPI tools](#openapi-tools)
 - [CopilotStudio tools](#copilotstudio-tools)
 - [Runtime parameter bindings](#runtime-parameter-bindings)
@@ -49,11 +48,11 @@ tools: [ ... ]
 | --- | --- | --- | --- | --- |
 | `name` | string | ✅ | — | Tool ID. Must be unique within the manifest, follows `^[a-z][a-z0-9-]*$`, and must start with a letter. |
 | `caption` | string | ✅ | — | Display name shown in the UI. |
-| `description` | string | ✅ | — | What the tool does. How Dragon Copilot uses it for tool selection depends on the type: for `CopilotStudio` it is the whole selection description; for `MCP` and `OpenAPI` it is short server notes shared by all the server's tools or operations, given to the model once per server (at most 1000 characters), while each MCP tool's or OpenAPI operation's own description and parameters decide when it is called. See [Writing tool descriptions](../../TOOL-DESCRIPTIONS.md). |
-| `type` | enum | ✅ | — | Integration type: `DragonAPI`, `MCP`, `OpenAPI` or `CopilotStudio`. This value decides which type-specific fields are allowed. |
+| `description` | string | ✅ | — | What the tool does. How Dragon Copilot uses it for tool selection depends on the type: for `CopilotStudio` it is the whole selection description; for `OpenAPI` it is short server notes shared by all the server's operations, given to the model once per server (at most 1000 characters), while each OpenAPI operation's own description and parameters decide when it is called. See [Writing tool descriptions](../../TOOL-DESCRIPTIONS.md). |
+| `type` | enum | ✅ | — | Integration type: `DragonAPI`, `OpenAPI` or `CopilotStudio`. This value decides which type-specific fields are allowed. |
 | `triggers` | array of enum | ✅ | — | What activates the tool. See [Triggers](#triggers). |
 | `timeout` | integer | | `5` | Hard timeout in seconds. Allowed range is 5–60. Dragon Copilot aborts the call after this many seconds. The platform default of 5 s is short for model-backed tools, so set it explicitly. |
-| `isExclusive` | boolean | | `false` | When `true`, the tool's result is not blended with other tools in the same assistant response. Allowed on `MCP`, `OpenAPI` and `CopilotStudio`; not allowed on `DragonAPI`. |
+| `isExclusive` | boolean | | `false` | When `true`, the tool's result is not blended with other tools in the same assistant response. Allowed on `OpenAPI` and `CopilotStudio`; not allowed on `DragonAPI`. |
 
 Any field not listed for the tool's type is rejected. There are no cross-type fields. For example, `endpoint` on an OpenAPI tool is an error.
 
@@ -63,7 +62,7 @@ Any field not listed for the tool's type is rejected. There are no cross-type fi
 | --- | --- | --- |
 | `DataAvailable` | Runs automatically once all required inputs (note, transcript, EHR context, …) are available. Can be retried. | `DragonAPI` |
 | `ExplicitRequest` | Runs only on a deliberate user action in the UI (button, card or command). Never runs automatically. | `DragonAPI` |
-| `IntentDriven` | Runs when Dragon Copilot decides, from the user's request and the tool's descriptions, that the tool should be called. See [Writing tool descriptions](../../TOOL-DESCRIPTIONS.md). | `MCP`, `OpenAPI`, `CopilotStudio` |
+| `IntentDriven` | Runs when Dragon Copilot decides, from the user's request and the tool's descriptions, that the tool should be called. See [Writing tool descriptions](../../TOOL-DESCRIPTIONS.md). | `OpenAPI`, `CopilotStudio` |
 
 `triggers` must be non-empty and contain no duplicates, and every entry must be allowed for the tool's `type`.
 
@@ -138,29 +137,6 @@ Workflow extensions, which Dragon Copilot calls with an HTTP `POST` to your endp
 | `description` | string | ✅ | What the output is. |
 | `content-type` | enum | ✅ | Only `application/vnd.ms-dragon.dsp+json`, a Dragon Standard Payload response (for example, cards to show the clinician). |
 
-## MCP tools
-
-A [Model Context Protocol](https://modelcontextprotocol.io/) server, reached over Streamable HTTP. Dragon Copilot discovers its tools and calls them. Sample: [`Conversational/Mcp`](../../src/samples/DragonCopilot/Conversational/Mcp/README.md).
-
-| Field | Type | Required | What it does |
-| --- | --- | --- | --- |
-| `endpoint` | URI | ✅ | MCP server URL (for example `https://mcp.example.com/mcp`). |
-| `expose` | array of string | | MCP tool names Dragon Copilot may call (at least 1, unique). If omitted, every discovered tool is available. |
-| `customExtractors` | map | | Keyed by MCP tool name. See [Custom extractors](#custom-extractors). |
-| `runtimeParamBindings` | map | | Keyed by MCP tool name. `target` is **required** and must be `argument`, `header` or `sideChannel`. See [Runtime parameter bindings](#runtime-parameter-bindings). |
-| `isExclusive` | boolean | | See [common fields](#tool-fields-common-to-every-type). |
-
-```yaml
-- name: clinical-reference
-  caption: Clinical Reference
-  description: Lab reference data; values are synthetic.   # server notes; each MCP tool's own description drives routing
-  type: MCP
-  triggers: [IntentDriven]
-  timeout: 30
-  endpoint: https://mcp.example.com/mcp
-  expose: [get_lab_reference_range]
-```
-
 ## OpenAPI tools
 
 A REST API described by an OpenAPI 3.x document. Each operation is identified by its `operationId`. Sample: [`Conversational/OpenApi`](../../src/samples/DragonCopilot/Conversational/OpenApi/README.md).
@@ -224,7 +200,7 @@ A published [Microsoft Copilot Studio](https://learn.microsoft.com/microsoft-cop
 
 Shape by type:
 
-- **MCP / OpenAPI:** a map keyed by MCP tool name or `operationId`, where each value is a non-empty list of bindings.
+- **OpenAPI:** a map keyed by `operationId`, where each value is a non-empty list of bindings.
 - **CopilotStudio:** a non-empty list of bindings.
 
 ### Binding fields
@@ -232,7 +208,7 @@ Shape by type:
 | Field | Type | Required | Default | What it does |
 | --- | --- | --- | --- | --- |
 | `source` | enum | ✅ | — | The runtime value to send. See [Sources](#sources). |
-| `target` | enum | MCP: ✅ | OpenAPI: `body`; CopilotStudio: `intent` | Where in the call the value goes. See [Targets](#targets). |
+| `target` | enum | | OpenAPI: `body`; CopilotStudio: `intent` | Where in the call the value goes. See [Targets](#targets). |
 | `path` | string (1–256) | ✅ | — | Destination within the target. See [Targets](#targets). |
 | `required` | boolean | | `false` | `true` means the call is **not made** if the value is unavailable (except `transcript` / `transcriptTurns`: the call proceeds without them, so handle a missing transcript). `false` means the binding is skipped and the call proceeds. |
 
@@ -240,7 +216,7 @@ Shape by type:
 
 A source with no value on a request is treated as absent, and `required` decides whether the call proceeds. Sources marked PHI/EUII below are treated as PHI/EUII by Dragon Copilot; handle them with the same care in your service and never log their values.
 
-For MCP `argument` and OpenAPI `body` / `header` targets, declare the bound field in your tool's contract as optional. Dragon Copilot removes bound fields from the tool definition its model sees, ignores any value the model supplies for them, and sends the bound value instead.
+For OpenAPI `body` / `header` targets, declare the bound field in your tool's contract as optional. Dragon Copilot removes bound fields from the tool definition its model sees, ignores any value the model supplies for them, and sends the bound value instead.
 
 | `source` | Value | PHI/EUII | Requires |
 | --- | --- | --- | --- |
@@ -265,29 +241,13 @@ For MCP `argument` and OpenAPI `body` / `header` targets, declare the bound fiel
 | `target` | Sends the value… | `path` means | Allowed on |
 | --- | --- | --- | --- |
 | `body` | in the JSON body of the HTTP request | Dotted path with optional `[n]` indices (`patient.mrn`, `items[0].text`), no wildcards | OpenAPI (default) |
-| `header` | as an HTTP request header | The header name (`X-Correlation-Id`) | MCP, OpenAPI |
-| `argument` | in the MCP tool-call arguments, which your tool code receives | Dotted path with optional `[n]` indices | MCP |
-| `sideChannel` | out of band, not visible to the agent's model: MCP `_meta` or the Copilot Studio activity `value` | Dotted path with optional `[n]` indices | MCP, CopilotStudio |
+| `header` | as an HTTP request header | The header name (`X-Correlation-Id`) | OpenAPI |
+| `sideChannel` | out of band, not visible to the agent's model: the Copilot Studio activity `value` | Dotted path with optional `[n]` indices | CopilotStudio |
 | `intent` | appended to the query text sent to the agent, as a delimited, labelled block (for agents without a structured parameter slot) | A label matching `^[A-Za-z_][A-Za-z0-9_-]*$` | CopilotStudio (default) |
 
 The platform enforces reserved/credential header names, the header-name charset, and path depth and index limits at registration and call time.
 
 ### Examples
-
-```yaml
-# MCP: keyed by MCP tool name; target is required
-runtimeParamBindings:
-  get_lab_reference_range:
-    - source: locale
-      target: argument
-      path: locale
-    - source: correlationId
-      target: sideChannel          # MCP _meta
-      path: dragon.correlationId
-    - source: requestId
-      target: header
-      path: X-Request-Id
-```
 
 ```yaml
 # OpenAPI: keyed by operationId; target defaults to body
@@ -313,7 +273,7 @@ runtimeParamBindings:
 
 ## Custom extractors
 
-`customExtractors` maps the output: it tells Dragon Copilot how to project fields of your tool's response into the assistant response, such as the answer text and evidence cards. Available on MCP and OpenAPI only, as a map keyed by MCP tool name or `operationId`. Each value is a list of extractors.
+`customExtractors` maps the output: it tells Dragon Copilot how to project fields of your tool's response into the assistant response, such as the answer text and evidence cards. Available on OpenAPI only, as a map keyed by `operationId`. Each value is a list of extractors.
 
 | Field | Type | Required | What it does |
 | --- | --- | --- | --- |
@@ -338,14 +298,13 @@ runtimeParamBindings:
 
 | Tool type | `$` is |
 | --- | --- |
-| `MCP` | The tool result's text content, parsed as JSON. Return your result object as JSON text (MCP SDKs that emit `structuredContent` also serialize the same object as text), so `$.summary` selects its top-level `summary` field. Do not prefix paths with `structuredContent`. |
 | `OpenAPI` | The JSON response body of the operation. |
 
 If the result is not JSON or a path matches nothing, the raw result text is used as the response. If a `Response Text` path matches an empty value, Dragon Copilot treats the call as having no answer.
 
 ```yaml
 customExtractors:
-  get_lab_reference_range:
+  checkInteractions:
     - propertyPath: $.summary
       extractorType: Response Text
     - propertyPath: $.sources[*].url
@@ -360,13 +319,13 @@ Run `dragon-copilot physician validate extension.yaml` to check them all.
 
 | Rule | Detail |
 | --- | --- |
-| Trigger/type alignment | `DragonAPI` allows only `DataAvailable` / `ExplicitRequest`. `MCP`, `OpenAPI` and `CopilotStudio` allow only `IntentDriven`. |
+| Trigger/type alignment | `DragonAPI` allows only `DataAvailable` / `ExplicitRequest`. `OpenAPI` and `CopilotStudio` allow only `IntentDriven`. |
 | No cross-type fields | Only the common fields plus the fields of the tool's `type` are allowed. Unknown fields are rejected. |
 | Unique tool names | Each `tools[].name` must be unique in the manifest (checked by the CLI). |
 | Name patterns | Extension and tool `name` must match `^[a-z][a-z0-9-]*$`; `version` must match `x.y.z`; `tenantId` and `environmentId` must be GUIDs. |
 | OpenAPI document | Exactly one of `specUrl` and `specString`. |
 | EHR context `include` | Required on `application/fhir.ehr-context+json` inputs, and not allowed on any other content type. |
-| Binding targets | MCP: `argument` / `header` / `sideChannel`, and `target` is required. OpenAPI: `body` / `header`. CopilotStudio: `intent` / `sideChannel`. |
+| Binding targets | OpenAPI: `body` / `header`. CopilotStudio: `intent` / `sideChannel`. |
 | Intent label | When `target` is `intent`, explicitly or by the CopilotStudio default, `path` must match `^[A-Za-z_][A-Za-z0-9_-]*$`. |
 | `timeout` | Integer from 5 to 60. |
 | `expose` keys (warning) | `customExtractors` / `runtimeParamBindings` entries keyed by a name that isn't listed in `expose` never run; the CLI warns about them. |

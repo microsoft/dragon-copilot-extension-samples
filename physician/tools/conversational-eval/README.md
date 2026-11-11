@@ -41,7 +41,7 @@ Cases run one at a time. Each request in your log is matched to the case whose q
 - **Skill-aware agents** (for example GitHub Copilot, Claude Code): copy this folder into your agent's skills folder (such as `.github/skills/` or `.claude/skills/`) in your extension's repo, then ask "Evaluate my Dragon Copilot extension".
 - **Any other agent or chat LLM:** open this folder in the agent's workspace, or paste `SKILL.md` into the chat, and ask it to follow the skill.
 
-The agent needs your extension's source (OpenAPI document or MCP server) to propose description changes, and a terminal to run `node`. It never signs in for you and only uses synthetic questions.
+The agent needs your extension's source (OpenAPI document) to propose description changes, and a terminal to run `node`. It never signs in for you and only uses synthetic questions.
 
 ## Prerequisites
 
@@ -90,7 +90,7 @@ Write one JSON line per tool call your service receives, to a file such as `requ
 ```
 
 - `time`: when the request arrived, ISO 8601 with a time zone. Keep your server clock in sync.
-- `tool`: the name you use in `expectTools`, for example the OpenAPI `operationId` or the MCP tool name.
+- `tool`: the name you use in `expectTools`, for example the OpenAPI `operationId`.
 - `args`: the arguments or request body, so you can see what Dragon Copilot extracted from the question.
 
 Log only for synthetic test runs, and only to a place you control. This step is optional but strongly recommended; without it the report can't tell which tool was called.
@@ -172,6 +172,6 @@ See [Writing tool descriptions](../../TOOL-DESCRIPTIONS.md) for which fields Dra
 - **Remove `example` values** from your OpenAPI document and schemas. Use clearly synthetic values if you need any.
 - **Don't rely on your brand name** in descriptions. Clinicians ask for outcomes, not vendors.
 - **Prerequisites are not failures.** Some tools only make sense once something exists, such as a visit note. If Dragon Copilot asks for it, mark the case `followUpOk` and add a second case that provides it.
-- **Renaming changes the tool.** The tool name Dragon Copilot sees comes from the manifest tool `name` and the `operationId` or MCP tool name. If you rename either, update `expectTools` and your log.
+- **Renaming changes the tool.** The tool name Dragon Copilot sees comes from the manifest tool `name` and the `operationId`. If you rename either, update `expectTools` and your log.
 - **Answers vary.** Run important cases more than once before concluding a change helped.
 - **Change one thing at a time** between runs, so you know which change moved the numbers.

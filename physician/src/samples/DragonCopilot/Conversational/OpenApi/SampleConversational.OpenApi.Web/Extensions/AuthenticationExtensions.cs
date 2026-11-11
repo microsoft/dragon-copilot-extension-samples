@@ -1,6 +1,5 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
-// Intentionally duplicated in the MCP and OpenAPI samples so each sample can be copied on its own; apply changes to both.
 
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication.JwtBearer;

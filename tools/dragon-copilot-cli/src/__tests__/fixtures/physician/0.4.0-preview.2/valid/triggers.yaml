@@ -41,15 +41,16 @@
       - name: note
         description: The clinical note.
         content-type: application/vnd.ms-dragon.dsp+json
-- description: MCP with IntentDriven
+- description: CopilotStudio with IntentDriven
   tool:
-    name: mcp-intent
-    caption: MCP Intent
+    name: cs-intent
+    caption: Copilot Studio Intent
     description: Selected by Dragon Copilot from user intent.
-    type: MCP
+    type: CopilotStudio
     triggers:
       - IntentDriven
-    endpoint: https://mcp.example.com
+    environmentId: 11111111-2222-3333-4444-555555555555
+    agentIdentifier: my-agent
 - description: OpenAPI with IntentDriven
   tool:
     name: openapi-intent

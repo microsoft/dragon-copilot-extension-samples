@@ -15,7 +15,7 @@ Human guide with full details: [README.md](README.md). Description-writing rules
 
 ## Workflow
 
-1. **Cases.** Ask for the partner's tools (OpenAPI `operationId`s or MCP tool names) and what each is for. Build `cases.json` in the [cases.example.json](cases.example.json) format:
+1. **Cases.** Ask for the partner's tools (OpenAPI `operationId`s) and what each is for. Build `cases.json` in the [cases.example.json](cases.example.json) format:
    - 5 or more phrasings per tool;
    - questions between neighbouring tools;
    - out-of-scope questions with `expectTools: []`;

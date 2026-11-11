@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Scores run results, optionally against your service's request log, and writes report.md + report.csv.
 //   node report.mjs --results results/results.jsonl [--log requests.jsonl] [--source "Caption"] [--out results]
-// Request log: one JSON object per line: {"time": "<ISO 8601>", "tool": "<operationId or MCP tool name>", "args": {...}}
+// Request log: one JSON object per line: {"time": "<ISO 8601>", "tool": "<operationId>", "args": {...}}
 import fs from 'node:fs';
 import path from 'node:path';
 

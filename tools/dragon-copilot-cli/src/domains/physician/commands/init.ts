@@ -114,9 +114,7 @@ export async function initProject(options: InitOptions): Promise<void> {
   const addedType = addTool ? tools[tools.length - 1]?.type : undefined;
   if (addedType !== undefined && addedType !== 'DragonAPI') {
     console.log(chalk.yellow('🛠️  Development Steps:'));
-    if (addedType === 'MCP') {
-      console.log(chalk.gray('   1. Set endpoint to your public HTTPS MCP server URL'));
-    } else if (addedType === 'OpenAPI') {
+    if (addedType === 'OpenAPI') {
       console.log(chalk.gray('   1. Set specUrl to your public OpenAPI document (or use specString)'));
     } else {
       console.log(chalk.gray('   1. Set environmentId and agentIdentifier from Copilot Studio (Settings > Advanced > Metadata)'));

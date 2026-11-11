@@ -5,14 +5,13 @@
 # user's request matches, calls it, and blends the response into its answer.
 #
 # Supported conversational tool types in this sample:
-#   MCP            – a Model Context Protocol server (streamable HTTP)
 #   OpenAPI        – a REST API described by an OpenAPI document
 #   CopilotStudio  – a published Microsoft Copilot Studio agent
 #
 # Additions vs. 0.3.0 used below:
 #   specString            inline OpenAPI document (alternative to specUrl)
 #   customExtractors      map response fields (JSONPath) to Response Text,
-#                         Evidence Link, ... (MCP + OpenAPI)
+#                         Evidence Link, ... (OpenAPI)
 #   isExclusive           do not blend this tool with other tool responses
 #   runtimeParamBindings  platform-injected runtime values (transcript, transcriptTurns,
 #                         conversationId, ...) – the LLM never retypes them
@@ -27,50 +26,13 @@ schemaVersion: 0.4.0-preview.2
 name: contoso-conversational-sample
 caption: Contoso Conversational Sample
 description: >-
-  Sample manifest showing MCP, OpenAPI and Copilot Studio conversational tools.
+  Sample manifest showing OpenAPI and Copilot Studio conversational tools.
 version: 0.1.0
 
 auth:
   tenantId: 00000000-0000-0000-0000-000000000000
 
 tools:
-
-  # ─── MCP (all tools) ─────────────────────────────────────────────────────────
-  # Omit `expose` to discover and surface every tool on the server.
-  - name: clinical-reference-mcp
-    caption: Clinical Reference
-    description: >-
-      Answers questions about clinical reference material. Use when the user
-      asks for guideline summaries or reference ranges.
-    type: MCP
-    endpoint: https://mcp.contoso.com/mcp
-    triggers:
-      - IntentDriven
-
-  # ─── MCP (single tool + extractors + bindings) ───────────────────────────────
-  - name: order-extraction
-    caption: Order Extraction
-    description: Extract clinical orders mentioned in the current encounter transcript.
-    type: MCP
-    endpoint: https://mcp.contoso.com/mcp
-    triggers:
-      - IntentDriven
-    expose:
-      - extract_orders
-    customExtractors:
-      extract_orders:
-        - propertyPath: $.summary
-          extractorType: Response Text
-    runtimeParamBindings:
-      extract_orders:
-        - source: transcript        # PHI – injected by the platform; never log the value
-          target: argument          # JSON path in the MCP tool-call arguments
-          path: transcript
-          required: true
-        - source: conversationId
-          target: sideChannel       # MCP _meta, not visible to the model
-          path: dragon.conversationId
-    timeout: 10
 
   # ─── OpenAPI (specUrl) ───────────────────────────────────────────────────────
   - name: drug-interaction-check

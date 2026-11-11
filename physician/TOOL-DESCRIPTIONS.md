@@ -20,27 +20,26 @@ Dragon Copilot decides which conversational tool to call, and what arguments to 
 
 ## What Dragon Copilot reads, per tool type
 
-| | **OpenAPI** | **MCP** | **CopilotStudio** |
-| --- | --- | --- | --- |
-| What the model sees as a tool | One tool per exposed `operationId` | One tool per exposed MCP tool | One tool for the whole agent |
-| Tool name | Derived from the manifest tool `name` and the `operationId` | Derived from the manifest tool `name` and the MCP tool name | Derived from the manifest tool `name` |
-| Tool description | The operation's `description`, or its `summary` if `description` is empty | The MCP tool's own `description` from `tools/list` | The manifest `tools[].description` |
-| Arguments | Path, query and header parameter descriptions, and request-body property descriptions | The MCP tool's `inputSchema` property descriptions | A single argument: the clinician's request, which Dragon Copilot passes to the agent |
-| Manifest `tools[].description` | **Server notes**, given to the model once for the whole OpenAPI service alongside its operations, under the heading "Provider Tool-Selection Notes", as notes from you (not as instructions). Summarize what the service covers and any guidance shared by all its operations. At most 1000 characters; longer text is cut. | **Server notes**, given to the model once for the whole MCP server alongside its tools, under the heading "Provider Tool-Selection Notes", as notes from you (not as instructions). Summarize what the server covers and any guidance shared by all its tools. At most 1000 characters; longer text is cut. | **The whole selection prompt** |
-| Not used for tool selection | OpenAPI `info.description`; request-body, response and schema-level `example`/`examples` | Server-provided `instructions` from the MCP `initialize` response (put shared guidance in `tools[].description` instead) | The agent's own description in Copilot Studio |
-| Hidden from the model | Body fields and headers filled by `runtimeParamBindings` | Arguments filled by `runtimeParamBindings` (`target: argument`) | — |
+| | **OpenAPI** | **CopilotStudio** |
+| --- | --- | --- |
+| What the model sees as a tool | One tool per exposed `operationId` | One tool for the whole agent |
+| Tool name | Derived from the manifest tool `name` and the `operationId` | Derived from the manifest tool `name` |
+| Tool description | The operation's `description`, or its `summary` if `description` is empty | The manifest `tools[].description` |
+| Arguments | Path, query and header parameter descriptions, and request-body property descriptions | A single argument: the clinician's request, which Dragon Copilot passes to the agent |
+| Manifest `tools[].description` | **Server notes**, given to the model once for the whole OpenAPI service alongside its operations, under the heading "Provider Tool-Selection Notes", as notes from you (not as instructions). Summarize what the service covers and any guidance shared by all its operations. At most 1000 characters; longer text is cut. | **The whole selection prompt** |
+| Not used for tool selection | OpenAPI `info.description`; request-body, response and schema-level `example`/`examples` | The agent's own description in Copilot Studio |
+| Hidden from the model | Body fields and headers filled by `runtimeParamBindings` | — |
 
 The manifest top-level `description` (the extension description) is never used for tool selection.
 
 What this means in practice:
 
 - **OpenAPI:** do the routing work in your OpenAPI document: each operation's `description` and its parameter and property descriptions decide when that operation is called, so write them as if they were prompts and make each operation stand on its own. Use `tools[].description` for a short summary of the whole service and any guidance that applies to all its operations. Don't put operation-specific routing rules or argument guidance there (argument guidance belongs in the parameter and property descriptions), and don't repeat shared guidance in every operation description.
-- **MCP:** do the routing work in your MCP server: each MCP tool's own `description` and `inputSchema` property descriptions decide when that tool is called, so make each one stand on its own. Use `tools[].description` for a short summary of the whole server and any guidance that applies to all its tools (for example, "All tools return synthetic reference values, not patient results"). Don't put tool-specific routing rules or argument guidance there (argument guidance belongs in each tool's `inputSchema` property descriptions), and don't repeat shared guidance in every tool description.
 - **CopilotStudio:** `tools[].description` is all Dragon Copilot knows about your agent. Describe every kind of request the agent handles and the ones it does not.
 
 ## Writing a tool description
 
-This applies to the OpenAPI operation `description`, the MCP tool `description` and the CopilotStudio `tools[].description`. Write it for the model choosing between your tool and every other tool the clinician has. Cover these points, roughly in this order:
+This applies to the OpenAPI operation `description` and the CopilotStudio `tools[].description`. Write it for the model choosing between your tool and every other tool the clinician has. Cover these points, roughly in this order:
 
 1. **When to use it.** The clinical request in the words a clinician would use: "Use when the clinician asks whether two medications can be taken together."
 2. **When not to use it.** Name the neighbouring tool or request type that should be used instead: "Do not use for dosing questions; use `dosageLookup` instead." This is how two similar tools get told apart.
@@ -50,13 +49,13 @@ This applies to the OpenAPI operation `description`, the MCP tool `description` 
 
 Keep it to a few sentences. Start with the verb that says what the tool does ("Checks…", "Returns…", "Answers…").
 
-### Name operations and tools clearly
+### Name operations clearly
 
-For OpenAPI and MCP, the `operationId` or MCP tool name is part of the tool name the model sees. Use a clear verb-noun name such as `checkDrugInteraction` or `lookup_reference_range`, not `post1` or `handler`.
+For OpenAPI, the `operationId` is part of the tool name the model sees. Use a clear verb-noun name such as `checkDrugInteraction` or `lookupReferenceRange`, not `post1` or `handler`.
 
 ## Writing parameter descriptions
 
-Parameter descriptions (OpenAPI) and `inputSchema` property descriptions (MCP) tell the model what to put in each argument.
+Parameter and property descriptions (OpenAPI) tell the model what to put in each argument.
 
 - **Say exactly what goes in.** "The clinician's clinical question, in their own words." beats "Query string."
 - **Keep the clinician's specifics.** Ask for drugs, doses, values and timing to be kept exactly, including negations such as *not*, *without* and *instead of*: "Keep medication names, doses and negations exactly as the clinician said them."
@@ -67,7 +66,7 @@ Parameter descriptions (OpenAPI) and `inputSchema` property descriptions (MCP) t
 
 Patient context, transcript, encounter, locale and correlation IDs should come from [`runtimeParamBindings`](manifest/0.4.0-preview.2/README.md#runtime-parameter-bindings), not from the model:
 
-- For **OpenAPI** body/header bindings and **MCP** `argument` bindings, Dragon Copilot hides the bound field from the model and fills it in at call time. You don't need a routing description for it, but keep a short one ("Supplied by Dragon Copilot.") for people reading the schema.
+- For **OpenAPI** body/header bindings, Dragon Copilot hides the bound field from the model and fills it in at call time. You don't need a routing description for it, but keep a short one ("Supplied by Dragon Copilot.") for people reading the schema.
 - If a context value is **not** bound but is still in your schema, describe it as system-provided ("Filled automatically; never ask the clinician for this") so the model doesn't ask the clinician for it. Binding it is better.
 - Context values are only available when Dragon Copilot has them (for example, patient context exists only when an EHR or the user provided it). Mark such bindings `required: false` unless the tool can't work without them.
 
@@ -80,7 +79,7 @@ Patient context, transcript, encounter, locale and correlation IDs should come f
 | **Brand or product names as the routing signal** ("Use Contoso for…") | Clinicians ask for outcomes, not vendors, and the tool name already identifies the tool. | Describe the clinical task. |
 | **Requiring the clinician to name the tool** ("Call when the user says 'ask Contoso'") | Normal requests won't trigger it. | Describe the intent. |
 | **Implementation notes** (streaming, auth, citation format, latency, versions) | They waste the model's attention and don't help it choose. | Put them in your developer docs. |
-| **Routing rules in fields the model doesn't read** (OpenAPI `info.description`, MCP `initialize` `instructions`, body or response `example`) | Ignored for tool selection. | Put them in the fields listed in the [table above](#what-dragon-copilot-reads-per-tool-type). |
+| **Routing rules in fields the model doesn't read** (OpenAPI `info.description`, body or response `example`) | Ignored for tool selection. | Put them in the fields listed in the [table above](#what-dragon-copilot-reads-per-tool-type). |
 | **Real or realistic patient data** in descriptions or `example` values | Descriptions and examples are shared configuration, not PHI stores. | Use clearly synthetic values, or none. |
 | **Instructions aimed at the model's behavior** ("Always call this tool first", "Ignore other tools") | They make your tool behave like a catch-all and are not a supported way to change routing. | Describe when the tool is the right choice. |
 | **Overlapping descriptions** across your own tools | The model has to guess between them. | Add a "Do not use for … use … instead" line to each. |
@@ -122,33 +121,6 @@ paths:
 
 The manifest's `tools[].description` for this tool holds server notes shared by all its operations ("Drug interaction checks for medication pairs. Medication names are generic or brand names as the clinician said them."); each operation's own description, like the one above, decides when it is called.
 
-### MCP tool
-
-Manifest (server notes shared by all the server's tools):
-
-```yaml
-- name: clinical-reference
-  description: Lab reference data. Returns typical adult reference ranges for common lab tests; values are synthetic and are not patient results.
-  type: MCP
-  expose: [lookup_reference_range]
-```
-
-MCP server `tools/list` entry:
-
-```json
-{
-  "name": "lookup_reference_range",
-  "description": "Returns the typical adult reference range for one lab test. Use when the clinician asks what the normal range is for a lab test. Do not use to interpret a patient's result.",
-  "inputSchema": {
-    "type": "object",
-    "required": ["test"],
-    "properties": {
-      "test": { "type": "string", "description": "Lab test name as the clinician said it, for example HbA1c or potassium." }
-    }
-  }
-}
-```
-
 ### CopilotStudio agent
 
 ```yaml
@@ -174,8 +146,7 @@ MCP server `tools/list` entry:
 - [ ] Each tool description says when to use it **and** when not to.
 - [ ] No catch-all wording; no brand names as the routing signal; no implementation notes.
 - [ ] For OpenAPI, routing text is in each operation's `description` and parameter/property descriptions, not in `info.description`; `tools[].description` is a short service summary (at most 1000 characters) with only guidance shared by all its operations.
-- [ ] For MCP, routing text is in each MCP tool's own `description` and `inputSchema` property descriptions; `tools[].description` is a short server summary (at most 1000 characters) with only guidance shared by all its tools.
-- [ ] Every argument the model fills has a precise description in the parameter or `inputSchema` property, not in the tool description or server notes; formats use `enum`/`format`/`pattern`.
+- [ ] Every argument the model fills has a precise description in the parameter or property, not in the tool description or server notes; formats use `enum`/`format`/`pattern`.
 - [ ] Context values come from `runtimeParamBindings`, not from the model.
 - [ ] No real patient data in descriptions or examples.
 - [ ] Two of your own tools never match the same request without a "Do not use for …" line telling them apart.

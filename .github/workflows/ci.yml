@@ -63,11 +63,8 @@ jobs:
       with:
         dotnet-version: '9.0.x'
 
-    - name: Build and test conversational samples (MCP, OpenAPI)
+    - name: Build and test conversational samples (OpenAPI)
       run: dotnet test physician/src/samples/DragonCopilot/Conversational/SampleConversational.slnx --configuration Release --verbosity normal
-
-    - name: Build MCP sample Docker image
-      run: docker build -f physician/src/samples/DragonCopilot/Conversational/Mcp/SampleConversational.Mcp.Web/Dockerfile -t conversational-mcp-sample .
 
     - name: Build OpenAPI sample Docker image
       run: docker build -f physician/src/samples/DragonCopilot/Conversational/OpenApi/SampleConversational.OpenApi.Web/Dockerfile -t conversational-openapi-sample .

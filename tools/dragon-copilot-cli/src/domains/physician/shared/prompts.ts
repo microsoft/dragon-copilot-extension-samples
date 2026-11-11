@@ -74,7 +74,6 @@ export const TRIGGER_CHOICES: Array<{ name: string; value: ToolTrigger }> = [
 
 export const TOOL_TYPE_CHOICES: Array<{ name: string; value: ToolType }> = [
   { name: 'DragonAPI - runs on clinical data (notes, transcripts, audio, EHR context)', value: 'DragonAPI' },
-  { name: 'MCP - Model Context Protocol server the assistant calls during a conversation', value: 'MCP' },
   { name: 'OpenAPI - REST API described by an OpenAPI document', value: 'OpenAPI' },
   { name: 'CopilotStudio - published Microsoft Copilot Studio agent', value: 'CopilotStudio' },
 ];
@@ -403,7 +402,7 @@ export async function promptToolDetails(
 }
 
 /**
- * Prompts for an IntentDriven conversational tool (MCP, OpenAPI or CopilotStudio).
+ * Prompts for an IntentDriven conversational tool (OpenAPI or CopilotStudio).
  */
 export async function promptConversationalTool(
   type: ConversationalToolType,
@@ -417,7 +416,6 @@ export async function promptConversationalTool(
   const caption = (await promptCaption('Tool caption (display name):', humanizeName(name))).trim();
   const descriptionPrompts: Record<ConversationalToolType, string> = {
     CopilotStudio: "When should Dragon Copilot use this tool? (the agent's whole selection description; say what it handles and what it doesn't):",
-    MCP: "Server description (shared context for all this server's tools; each MCP tool's own description decides when it is called):",
     OpenAPI: "Server description (short notes shared by all this service's operations; each operation's own description decides when it is called):"
   };
   const description = (await input({
@@ -427,10 +425,7 @@ export async function promptConversationalTool(
 
   const base = { name, caption, description, triggers: ['IntentDriven' as const] };
   let tool: ConversationalTool;
-  if (type === 'MCP') {
-    const endpoint = await input({ message: 'MCP endpoint (streamable HTTP):', default: 'https://mcp.example.com/mcp', validate: validateHttpsUrl });
-    tool = { ...base, type, endpoint: endpoint.trim() };
-  } else if (type === 'OpenAPI') {
+  if (type === 'OpenAPI') {
     const specUrl = await input({ message: 'OpenAPI document URL:', default: 'https://api.example.com/openapi/v1.json', validate: validateHttpsUrl });
     tool = { ...base, type, specUrl: specUrl.trim() };
   } else {
@@ -444,9 +439,7 @@ export async function promptConversationalTool(
 
   if (tool.type !== 'CopilotStudio') {
     const expose = (await input({
-      message: tool.type === 'MCP'
-        ? 'MCP tool names to expose (comma separated, empty = all):'
-        : 'OpenAPI operationIds to expose (comma separated, empty = all):'
+      message: 'OpenAPI operationIds to expose (comma separated, empty = all):'
     })).split(',').map(item => item.trim()).filter(Boolean);
     if (expose.length > 0) {
       tool.expose = expose;

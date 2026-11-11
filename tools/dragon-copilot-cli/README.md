@@ -66,8 +66,8 @@ Run `npm unlink -g dragon-copilot` only once per workstation; subsequent rebuild
 | Domain     | Command Example                                       | Description |
 |------------|--------------------------------------------------------|-------------|
 | Physician  | `dragon-copilot physician init`                        | Interactive wizard that generates an extension manifest (latest schema by default; `--schema-version` to pick another) |
-| Physician  | `dragon-copilot physician generate --template note-analysis` | Generate a manifest from a template (`note-analysis`, `speech-analysis`; 0.3.0 and 0.4.0-preview.2 also have `note-suggestions`, `audio-analysis`; 0.4.0-preview.2 adds `mcp`, `openapi`, `copilot-studio`) or interactively with `--interactive` |
-| Physician  | `dragon-copilot physician init --schema-version 0.4.0-preview.2 --type MCP` | Conversational tool manifest (Public Preview). `--type` is `MCP`, `OpenAPI`, `CopilotStudio` or `DragonAPI` |
+| Physician  | `dragon-copilot physician generate --template note-analysis` | Generate a manifest from a template (`note-analysis`, `speech-analysis`; 0.3.0 and 0.4.0-preview.2 also have `note-suggestions`, `audio-analysis`; 0.4.0-preview.2 adds `openapi`, `copilot-studio`) or interactively with `--interactive` |
+| Physician  | `dragon-copilot physician init --schema-version 0.4.0-preview.2 --type OpenAPI` | Conversational tool manifest (Public Preview). `--type` is `OpenAPI`, `CopilotStudio` or `DragonAPI` |
 | Physician  | `dragon-copilot physician validate ./extension.yaml`   | Validates the manifest against the JSON schema for its `schemaVersion` + business rules |
 | Physician  | `dragon-copilot physician migrate ./extension.yaml`    | Upgrades a manifest to the latest schema version (writes `extension.migrated.yaml`; see options below) |
 | Physician  | `dragon-copilot physician versions`                    | Lists supported physician manifest schema versions |
@@ -89,7 +89,7 @@ Physician manifests declare their format with a top-level `schemaVersion` field.
 
 - **No `schemaVersion`**: validated against the original (legacy) schema. Still accepted, but `validate` suggests migrating.
 - **A supported version** (e.g. `0.3.0`): validated against that version's schema.
-- **`0.4.0-preview.2`** (Public Preview): adds conversational tools (`MCP`, `OpenAPI`, `CopilotStudio`) alongside `DragonAPI`. It's a preview, so it's never the default; opt in with `--schema-version 0.4.0-preview.2` or `migrate --to 0.4.0-preview.2`. See [physician/CONVERSATIONAL.md](../../physician/CONVERSATIONAL.md).
+- **`0.4.0-preview.2`** (Public Preview): adds conversational tools (`OpenAPI`, `CopilotStudio`) alongside `DragonAPI`. It's a preview, so it's never the default; opt in with `--schema-version 0.4.0-preview.2` or `migrate --to 0.4.0-preview.2`. See [physician/CONVERSATIONAL.md](../../physician/CONVERSATIONAL.md).
 - **Anything else**: rejected as an unsupported schema version.
 
 `init` and `generate` create manifests for the latest version by default. Pass `--schema-version <version>` (or `--schema-version legacy`) to target another one. When `generate --interactive` adds a tool to an existing manifest, it always uses that manifest's version.

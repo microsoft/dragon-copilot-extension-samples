@@ -76,11 +76,11 @@
     specUrl: https://api.example.com/openapi.json
     runtimeParamBindings:
       summarizeEncounter: []
-- description: OpenAPI does not support the argument target
+- description: binding uses an unknown target
   tool:
     name: openapi-bind-argument
     caption: OpenAPI Argument
-    description: argument is MCP-only.
+    description: Target outside the closed enum.
     type: OpenAPI
     triggers:
       - IntentDriven
@@ -116,33 +116,20 @@
     runtimeParamBindings:
       - source: transcript
         path: transcript
-- description: MCP binding omits target (no default for MCP)
+- description: CopilotStudio does not support the body target
   tool:
-    name: mcp-bind-no-target
-    caption: MCP No Location
-    description: MCP must state where the value goes.
-    type: MCP
+    name: cs-bind-body
+    caption: Copilot Studio Body
+    description: body is OpenAPI-only.
+    type: CopilotStudio
     triggers:
       - IntentDriven
-    endpoint: https://mcp.example.com
+    environmentId: 11111111-2222-3333-4444-555555555555
+    agentIdentifier: my-agent
     runtimeParamBindings:
-      summarize:
-        - source: transcript
-          path: transcript
-- description: MCP does not support the body target
-  tool:
-    name: mcp-bind-body
-    caption: MCP Body
-    description: body is OpenAPI-only; MCP uses argument.
-    type: MCP
-    triggers:
-      - IntentDriven
-    endpoint: https://mcp.example.com
-    runtimeParamBindings:
-      summarize:
-        - source: transcript
-          target: body
-          path: transcript
+      - source: transcript
+        target: body
+        path: transcript
 - description: CopilotStudio does not support the header target
   tool:
     name: cs-bind-header

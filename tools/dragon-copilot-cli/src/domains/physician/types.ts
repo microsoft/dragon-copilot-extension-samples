@@ -24,7 +24,7 @@ export interface DragonExtensionManifestV030 {
 
 export const V040_SCHEMA_VERSION = '0.4.0-preview.2';
 
-/** 0.4.0-preview.2 adds conversational tools (MCP, OpenAPI, CopilotStudio) next to DragonAPI. */
+/** 0.4.0-preview.2 adds conversational tools (OpenAPI, CopilotStudio) next to DragonAPI. */
 export interface DragonExtensionManifestV040 {
   schemaVersion: typeof V040_SCHEMA_VERSION;
   name: string;
@@ -74,9 +74,9 @@ export interface DragonToolV030 {
   outputs?: DragonOutput[];
 }
 
-export type ConversationalToolType = 'MCP' | 'OpenAPI' | 'CopilotStudio';
+export type ConversationalToolType = 'OpenAPI' | 'CopilotStudio';
 
-export const CONVERSATIONAL_TOOL_TYPES: readonly ConversationalToolType[] = ['MCP', 'OpenAPI', 'CopilotStudio'];
+export const CONVERSATIONAL_TOOL_TYPES: readonly ConversationalToolType[] = ['OpenAPI', 'CopilotStudio'];
 
 export type ToolType = DragonToolV030['type'] | ConversationalToolType;
 
@@ -100,7 +100,7 @@ export interface CustomExtractor {
 
 export interface RuntimeParamBinding {
   source: string;
-  target?: 'argument' | 'header' | 'sideChannel' | 'body' | 'intent';
+  target?: 'header' | 'sideChannel' | 'body' | 'intent';
   path: string;
   required?: boolean;
 }
@@ -112,14 +112,6 @@ interface ConversationalToolBase {
   triggers: ConversationalTrigger[];
   timeout?: number;
   isExclusive?: boolean;
-}
-
-export interface McpTool extends ConversationalToolBase {
-  type: 'MCP';
-  endpoint: string;
-  expose?: string[];
-  customExtractors?: Record<string, CustomExtractor[]>;
-  runtimeParamBindings?: Record<string, RuntimeParamBinding[]>;
 }
 
 export interface OpenApiTool extends ConversationalToolBase {
@@ -140,7 +132,7 @@ export interface CopilotStudioTool extends ConversationalToolBase {
   runtimeParamBindings?: RuntimeParamBinding[];
 }
 
-export type ConversationalTool = McpTool | OpenApiTool | CopilotStudioTool;
+export type ConversationalTool = OpenApiTool | CopilotStudioTool;
 
 /** 0.4.0-preview.2 tool, discriminated on `type`. */
 export type DragonToolV040 = DragonToolV030 | ConversationalTool;

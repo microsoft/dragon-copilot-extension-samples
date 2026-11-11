@@ -14,9 +14,9 @@ This repository contains sample code and tools for developing **Dragon Copilot E
 
 ### Physician Conversational Tools (Public Preview, schema `0.4.0-preview.2`)
 - **Purpose**: Tools the Dragon Copilot assistant calls during a conversation (`IntentDriven` trigger). Part of the physician domain, not a separate product
-- **Types covered here**: `MCP`, `OpenAPI`, `CopilotStudio`
+- **Types covered here**: `OpenAPI`, `CopilotStudio`
 - **Schema**: `tools/dragon-copilot-cli/src/schemas/physician/physician-extension-manifest-schema-0.4.0-preview.2.json` (reference docs and example in `physician/manifest/0.4.0-preview.2/`)
-- **Key fields**: `expose`, `customExtractors`, `runtimeParamBindings` (keyed by MCP tool / operationId; flat list for CopilotStudio), `isExclusive`, `timeout` (5–60s)
+- **Key fields**: `expose`, `customExtractors`, `runtimeParamBindings` (keyed by operationId; flat list for CopilotStudio), `isExclusive`, `timeout` (5–60s)
 - **Default**: registered as `preview`, so `0.3.0` stays the default schema
 
 ### Core Data Models (physician/src/models/Dragon.Copilot.Physician.Models/)
@@ -37,7 +37,6 @@ This repository contains sample code and tools for developing **Dragon Copilot E
    - Port 5181 (HTTP), 7156 (HTTPS)
 
 2. **Conversational Samples** (`physician/src/samples/DragonCopilot/Conversational/`)
-   - `Mcp/` — C# MCP server (ModelContextProtocol.AspNetCore), port 5190
    - `OpenApi/` — C# REST API with an OpenAPI 3.0 document, port 5191
    - `CopilotStudio/` — manifest + setup guide (no server)
    - Build/test: `dotnet test physician/src/samples/DragonCopilot/Conversational/SampleConversational.slnx`
@@ -168,7 +167,7 @@ tools:
 - `tools/dragon-copilot-cli/` - Development tooling
 - `doc/Authentication.md` - Security implementation guide
 - `physician/QUICKSTART.md` - Getting started guide
-- `physician/CONVERSATIONAL.md` - Conversational tools (MCP, OpenAPI, Copilot Studio) guide
+- `physician/CONVERSATIONAL.md` - Conversational tools (OpenAPI, Copilot Studio) guide
 
 ## Business Context
 This is healthcare/medical AI software. Extensions process clinical data like patient notes, transcripts, and medical encounters to provide AI-powered insights, entity extraction, clinical decision support, and documentation assistance for healthcare providers.

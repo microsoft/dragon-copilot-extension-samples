@@ -245,28 +245,28 @@ describe('CLI integration paths', () => {
       expect(scriptedAnswers).toEqual([]);
     });
 
-    test('init --type MCP creates a valid manifest from prompted answers', async () => {
+    test('init --type openapi creates a valid manifest from prompted answers', async () => {
       scriptedAnswers = [
         ...envelopeAnswers('integration-extension'),
         [/^Tool name/, 'orders'],
         [/^Tool caption/, 'Orders'],
-        [/^Server description \(shared context for all this server's tools/, 'Order extraction from the current encounter.'],
-        [/^MCP endpoint/, 'https://mcp.contoso.com/mcp'],
-        [/^MCP tool names to expose/, 'extract_orders'],
+        [/^Server description \(short notes shared by all this service/, 'Order extraction from the current encounter.'],
+        [/^OpenAPI document URL/, 'https://api.contoso.com/openapi/v1.json'],
+        [/^OpenAPI operationIds to expose/, 'extractOrders'],
         [/^Set a custom timeout/, true],
         [/^Timeout in seconds/, '20'],
       ];
 
-      await run('init', '--schema-version', V040, '--type', 'mcp');
+      await run('init', '--schema-version', V040, '--type', 'openapi');
 
       const manifest = readManifest();
       expect(manifest).toMatchObject({ schemaVersion: V040, name: 'integration-extension', auth: { tenantId: TENANT_ID } });
       expect(manifest.tools[0]).toMatchObject({
-        name: 'orders', type: 'MCP', triggers: ['IntentDriven'], endpoint: 'https://mcp.contoso.com/mcp', expose: ['extract_orders'], timeout: 20,
+        name: 'orders', type: 'OpenAPI', triggers: ['IntentDriven'], specUrl: 'https://api.contoso.com/openapi/v1.json', expose: ['extractOrders'], timeout: 20,
       });
       await run('validate', 'extension.yaml');
       expect(logs()).toContain('Validation passed');
-      expect(logs()).toContain('orders [MCP] https://mcp.contoso.com/mcp');
+      expect(logs()).toContain('orders [OpenAPI] https://api.contoso.com/openapi/v1.json');
     });
 
     test('init --type CopilotStudio --output creates a missing directory', async () => {
@@ -286,18 +286,17 @@ describe('CLI integration paths', () => {
     });
 
     test('init --type rejects conversational types under the default 0.3.0 schema', async () => {
-      await expect(run('init', '--type', 'MCP')).rejects.toThrow(/0\.4\.0-preview\.2/);
+      await expect(run('init', '--type', 'OpenAPI')).rejects.toThrow(/0\.4\.0-preview\.2/);
       expect(existsSync(join(workingDir, 'extension.yaml'))).toBe(false);
     });
 
     test('init refuses to overwrite an existing manifest', async () => {
       writeFileSync(join(workingDir, 'extension.yaml'), 'name: existing\n', 'utf8');
-      await expect(run('init', '--schema-version', V040, '--type', 'MCP')).rejects.toThrow(/already exists/);
+      await expect(run('init', '--schema-version', V040, '--type', 'OpenAPI')).rejects.toThrow(/already exists/);
       expect(readFileSync(join(workingDir, 'extension.yaml'), 'utf8')).toBe('name: existing\n');
     });
 
     test.each([
-      ['mcp', 'MCP'],
       ['openapi', 'OpenAPI'],
       ['copilot-studio', 'CopilotStudio'],
     ])('generate --template %s writes a valid %s manifest', async (template, type) => {
@@ -313,8 +312,8 @@ describe('CLI integration paths', () => {
     });
 
     test('generate --template rejects conversational templates under 0.3.0', async () => {
-      await expect(run('generate', '--template', 'mcp')).rejects.toThrow(
-        `Template 'mcp' requires --schema-version ${V040} (current: 0.3.0)`
+      await expect(run('generate', '--template', 'openapi')).rejects.toThrow(
+        `Template 'openapi' requires --schema-version ${V040} (current: 0.3.0)`
       );
       await expect(run('generate', '--template', 'no-such-template')).rejects.toThrow(/Template 'no-such-template' not found/);
     });
@@ -345,7 +344,7 @@ describe('CLI integration paths', () => {
     });
 
     test('generate --interactive appends a tool to an existing 0.4.0 manifest', async () => {
-      await run('generate', '--schema-version', V040, '--template', 'mcp');
+      await run('generate', '--schema-version', V040, '--template', 'openapi');
       scriptedAnswers = [
         [/^Tool type/, 'CopilotStudio'],
         [/^Tool name/, 'scheduler'],
@@ -358,7 +357,7 @@ describe('CLI integration paths', () => {
 
       await run('generate', '--interactive');
 
-      expect(readManifest().tools.map((tool: { name: string }) => tool.name)).toEqual(['order-extraction', 'scheduler']);
+      expect(readManifest().tools.map((tool: { name: string }) => tool.name)).toEqual(['drug-interaction-check', 'scheduler']);
       expect(logs()).toContain('all-zero placeholder');
     });
 
@@ -374,12 +373,12 @@ describe('CLI integration paths', () => {
     });
 
     test('package zips the manifest and included files', async () => {
-      await run('generate', '--schema-version', V040, '--template', 'mcp');
+      await run('generate', '--schema-version', V040, '--template', 'openapi');
       writeFileSync(join(workingDir, 'README.txt'), 'readme', 'utf8');
 
       await run('package', '--include', 'README.txt', '--silent');
 
-      const zipPath = join(workingDir, 'my-order-extraction-extension-0.0.1.zip');
+      const zipPath = join(workingDir, 'my-drug-interaction-check-extension-0.0.1.zip');
       expect(existsSync(zipPath)).toBe(true);
       expect(listZipEntries(zipPath)).toEqual(['README.txt', 'extension.yaml']);
     });
@@ -389,7 +388,7 @@ describe('CLI integration paths', () => {
     });
 
     test('package refuses to overwrite an input file', async () => {
-      await run('generate', '--schema-version', V040, '--template', 'mcp');
+      await run('generate', '--schema-version', V040, '--template', 'openapi');
       mkdirSync(join(workingDir, 'out'));
       await expect(run('package', '--output', 'extension.yaml', '--silent')).rejects.toThrow(/would overwrite/);
       expect(readManifest().tools).toHaveLength(1);

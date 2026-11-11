@@ -56,29 +56,24 @@
       summarizeEncounter:
         - source: transcript
           path: transcript
-- description: MCP binds argument, header and sideChannel
+- description: CopilotStudio binds explicit intent and sideChannel targets
   tool:
-    name: mcp-bind-all-targets
-    caption: MCP All Locations
-    description: Every target MCP supports.
-    type: MCP
+    name: cs-bind-all-targets
+    caption: Copilot Studio All Locations
+    description: Every target Copilot Studio supports.
+    type: CopilotStudio
     triggers:
       - IntentDriven
-    endpoint: https://mcp.example.com
-    expose:
-      - summarize
+    environmentId: 11111111-2222-3333-4444-555555555555
+    agentIdentifier: my-agent
     runtimeParamBindings:
-      summarize:
-        - source: transcript
-          target: argument
-          path: transcript
-          required: true
-        - source: conversationId
-          target: header
-          path: x-conversation-id
-        - source: patientContext
-          target: sideChannel
-          path: dragon.patientContext
+      - source: transcript
+        target: intent
+        path: transcript
+        required: true
+      - source: patientContext
+        target: sideChannel
+        path: dragon.patientContext
 - description: CopilotStudio injects into the intent (target defaults to intent)
   tool:
     name: cs-bind-default-intent
@@ -96,47 +91,47 @@
       - source: conversationId
         target: sideChannel
         path: conversationId
-- description: MCP binds every remaining source across argument, header and sideChannel
+- description: OpenAPI binds every remaining source across body and header
   tool:
-    name: mcp-bind-all-sources
-    caption: MCP All Sources
+    name: openapi-bind-all-sources
+    caption: OpenAPI All Sources
     description: Covers the full RuntimeParamSource enum.
-    type: MCP
+    type: OpenAPI
     triggers:
       - IntentDriven
-    endpoint: https://mcp.example.com
+    specUrl: https://api.example.com/openapi.json
     runtimeParamBindings:
-      summarize:
+      summarizeEncounter:
         - source: transcript
-          target: argument
+          target: body
           path: transcript
         - source: patientContext
-          target: argument
+          target: body
           path: patient.context
         - source: conversationId
           target: header
           path: x-conversation-id
         - source: locale
-          target: sideChannel
-          path: locale
+          target: header
+          path: Accept-Language
         - source: mrn
-          target: argument
+          target: body
           path: patient.mrn
         - source: sessionUniqueId
-          target: sideChannel
+          target: body
           path: session.uniqueId
-- description: MCP binds transcriptTurns (inner transcript object, no wrapper)
+- description: OpenAPI binds transcriptTurns (inner transcript object, no wrapper)
   tool:
-    name: mcp-bind-transcript-turns
-    caption: MCP Transcript Turns
+    name: openapi-bind-transcript-turns
+    caption: OpenAPI Transcript Turns
     description: Partner expects the turns without the transcript wrapper.
-    type: MCP
+    type: OpenAPI
     triggers:
       - IntentDriven
-    endpoint: https://mcp.example.com
+    specUrl: https://api.example.com/openapi.json
     runtimeParamBindings:
-      summarize:
+      summarizeEncounter:
         - source: transcriptTurns
-          target: argument
+          target: body
           path: transcript
           required: true

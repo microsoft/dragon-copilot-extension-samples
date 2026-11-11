@@ -6,7 +6,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageVersion Include="ModelContextProtocol.AspNetCore" Version="2.2.0" />
     <!-- Pin patched versions of transitive dependencies of Microsoft.Identity.Web (NU1902/NU1903). -->
     <PackageVersion Include="System.Security.Cryptography.Pkcs" Version="10.0.13" />
     <PackageVersion Include="System.Security.Cryptography.Xml" Version="10.0.13" />

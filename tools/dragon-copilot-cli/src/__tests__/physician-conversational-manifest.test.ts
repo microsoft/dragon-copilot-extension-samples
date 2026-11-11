@@ -49,7 +49,6 @@ describe('physician manifest schema 0.4.0-preview.2 (conversational tools)', () 
 
   const sampleManifests = [
     'physician/manifest/0.4.0-preview.2/manifest-example.yaml',
-    'physician/src/samples/DragonCopilot/Conversational/Mcp/SampleConversational.Mcp.Web/extension.yaml',
     'physician/src/samples/DragonCopilot/Conversational/OpenApi/SampleConversational.OpenApi.Web/extension.yaml',
     'physician/src/samples/DragonCopilot/Conversational/CopilotStudio/extension.yaml',
   ];
@@ -105,20 +104,20 @@ describe('physician manifest schema 0.4.0-preview.2 (conversational tools)', () 
 
     test('every full tool example in the reference is valid', () => {
       const blocks = [...readme.matchAll(/```yaml\n(- name:[\s\S]*?)```/g)].map(m => load(m[1]) as unknown[]);
-      expect(blocks.length).toBeGreaterThanOrEqual(4);
+      expect(blocks.length).toBeGreaterThanOrEqual(3);
       for (const tools of blocks) {
         expect(validate(withTools(...tools)).errors).toEqual([]);
       }
     });
   });
   test('rejects duplicate tool names', () => {
-    const result = validate(withTools(getConversationalToolTemplate('MCP'), getConversationalToolTemplate('MCP')));
+    const result = validate(withTools(getConversationalToolTemplate('OpenAPI'), getConversationalToolTemplate('OpenAPI')));
     expect(result.isValid).toBe(false);
     expect(result.errors.some(e => e.keyword === 'uniqueToolNames')).toBe(true);
   });
 
   test('rejects integration types outside the public preview set', () => {
-    const tool = { ...getConversationalToolTemplate('MCP'), type: 'Unknown' };
+    const tool = { ...getConversationalToolTemplate('OpenAPI'), type: 'Unknown' };
     expect(validate(withTools(tool)).isValid).toBe(false);
   });
 
@@ -131,13 +130,13 @@ describe('physician manifest schema 0.4.0-preview.2 (conversational tools)', () 
   });
 
   test('rejects conversational tool types under schema 0.3.0', () => {
-    const result = validate({ ...withTools(getConversationalToolTemplate('MCP')), schemaVersion: '0.3.0' });
+    const result = validate({ ...withTools(getConversationalToolTemplate('OpenAPI')), schemaVersion: '0.3.0' });
     expect(result.isValid).toBe(false);
   });
 
   test('accepts DragonAPI and conversational tools in one manifest', () => {
     const dragonApi = (getTemplate('note-analysis', V040_SCHEMA_VERSION) as { tools: unknown[] }).tools[0];
-    const result = validate(withTools(dragonApi, getConversationalToolTemplate('MCP')));
+    const result = validate(withTools(dragonApi, getConversationalToolTemplate('OpenAPI')));
     expect(result.errors).toEqual([]);
   });
 
@@ -167,19 +166,19 @@ describe('physician 0.4.0 conversational commands', () => {
   });
 
   test('generate --template rejects templates unknown to the schema version', async () => {
-    await expect(generateManifest({ template: 'mcp', output: join(workDir, 'v030.yaml'), schemaVersion: '0.3.0' }))
-      .rejects.toThrow(`Template 'mcp' requires --schema-version ${V040_SCHEMA_VERSION} (current: 0.3.0)`);
+    await expect(generateManifest({ template: 'openapi', output: join(workDir, 'v030.yaml'), schemaVersion: '0.3.0' }))
+      .rejects.toThrow(`Template 'openapi' requires --schema-version ${V040_SCHEMA_VERSION} (current: 0.3.0)`);
     await expect(generateManifest({ template: 'unknown', output: join(workDir, 'v040.yaml'), schemaVersion: V040_SCHEMA_VERSION }))
       .rejects.toThrow(/Template 'unknown' not found/);
   });
 
   test('generate --template writes a manifest and package zips it', async () => {
     const manifestPath = join(workDir, 'extension.yaml');
-    await generateManifest({ template: 'mcp', output: manifestPath, schemaVersion: V040_SCHEMA_VERSION });
+    await generateManifest({ template: 'openapi', output: manifestPath, schemaVersion: V040_SCHEMA_VERSION });
 
     const manifest = load(readFileSync(manifestPath, 'utf8')) as { schemaVersion: string; tools: Array<{ type: string }> };
     expect(manifest.schemaVersion).toBe(V040_SCHEMA_VERSION);
-    expect(manifest.tools.map(t => t.type)).toEqual(['MCP']);
+    expect(manifest.tools.map(t => t.type)).toEqual(['OpenAPI']);
     expect(validate(manifest).isValid).toBe(true);
 
 

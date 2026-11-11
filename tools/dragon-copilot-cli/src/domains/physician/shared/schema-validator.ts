@@ -119,7 +119,7 @@ interface SchemaVersionEntry {
 // Ordered oldest to newest. Adding a version only requires a new schema file and an entry here.
 const SCHEMA_VERSION_REGISTRY: SchemaVersionEntry[] = [
   { version: '0.3.0', file: 'physician-extension-manifest-schema-0.3.0.json' },
-  // Conversational (MCP / OpenAPI / CopilotStudio) tools. Public Preview, so never the default.
+  // Conversational (OpenAPI / CopilotStudio) tools. Public Preview, so never the default.
   { version: '0.4.0-preview.2', file: 'physician-extension-manifest-schema-0.4.0-preview.2.json', preview: true },
 ];
 
@@ -328,7 +328,7 @@ function validateManifestBusinessRules(manifest: DragonExtensionManifest): Schem
 }
 
 /**
- * Extractors and bindings keyed by an MCP tool / operationId that isn't in `expose` never run.
+ * Extractors and bindings keyed by an operationId that isn't in `expose` never run.
  */
 function collectWarnings(manifest: unknown): string[] {
   const warnings: string[] = [];

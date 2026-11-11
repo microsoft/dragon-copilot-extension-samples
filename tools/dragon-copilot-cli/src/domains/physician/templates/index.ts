@@ -258,25 +258,6 @@ const v030Templates: Record<string, TemplateConfigV030> = {
 
 /** Conversational starter tools; each mirrors a sample under physician/src/samples/DragonCopilot/Conversational. */
 const conversationalToolTemplates: Record<string, () => ConversationalTool> = {
-  mcp: () => ({
-    name: 'order-extraction',
-    caption: 'Order Extraction',
-    description: 'Extract clinical orders mentioned in the current encounter transcript.',
-    type: 'MCP',
-    endpoint: 'https://mcp.example.com/mcp',
-    triggers: ['IntentDriven'],
-    expose: ['extract_orders'],
-    customExtractors: {
-      extract_orders: [{ propertyPath: '$.summary', extractorType: 'Response Text' }]
-    },
-    runtimeParamBindings: {
-      extract_orders: [
-        { source: 'transcript', target: 'argument', path: 'transcript', required: true },
-        { source: 'conversationId', target: 'sideChannel', path: 'dragon.conversationId' }
-      ]
-    },
-    timeout: 10
-  }),
   openapi: () => ({
     name: 'drug-interaction-check',
     caption: 'Drug Interaction Check',
@@ -311,7 +292,6 @@ const conversationalToolTemplates: Record<string, () => ConversationalTool> = {
 };
 
 export const TEMPLATE_FOR_TOOL_TYPE: Record<ConversationalToolType, string> = {
-  MCP: 'mcp',
   OpenAPI: 'openapi',
   CopilotStudio: 'copilot-studio'
 };
