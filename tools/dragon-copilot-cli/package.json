@@ -18,6 +18,9 @@
   "author": "",
   "license": "ISC",
   "type": "module",
+  "engines": {
+    "node": ">=22.12.0"
+  },
   "description": "Unified Dragon Copilot Extension and Clinical Application Connector CLI",
   "bin": {
     "dragon-copilot": "dist/cli.js"

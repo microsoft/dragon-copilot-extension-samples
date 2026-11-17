@@ -46,7 +46,7 @@ async function bundle() {
 		entryPoints: [path.join(distDir, 'cli.js')],
 		bundle: true,
 		platform: 'node',
-		target: 'node20',
+		target: 'node22',
 		format: 'cjs',
 		outfile: bundlePath,
 		define: {
