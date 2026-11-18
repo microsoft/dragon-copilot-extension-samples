@@ -4,16 +4,14 @@ export interface AuthConfig {
   tenantId: string;
 }
 
-export type NoteSectionValue = string | string[] | null;
-
 export interface ConnectorIntegrationManifest {
   name: string;
   description: string;
   version: string;
+  ['publisher-name']?: string;
   ['partner-id']: string;
   ['clinical-application-name']: string;
   ['server-authentication']: ServerAuthenticationEntry[];
-  ['note-sections']?: Record<string, NoteSectionValue>;
   instance: InstanceConfig;
 }
 
@@ -99,6 +97,7 @@ export interface IntegrationDetails {
   name: string;
   description: string;
   version: string;
+  publisherName: string;
   partnerId: string;
   clinicalApplicationName: string;
   rawName?: string;

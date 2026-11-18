@@ -1,6 +1,6 @@
 from __future__ import annotations
 from typing import Any, Dict, List, Optional
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 from enum import Enum
 
 # Expanded model layer to better mirror the C# sample (not full parity but structurally closer)
@@ -64,6 +64,10 @@ class Note(BaseModel):
 
 class SessionData(BaseModel):
     sessionId: Optional[str] = None
+    correlation_id: Optional[str] = None
+    session_start: Optional[str] = None
+    environment_id: Optional[str] = None
+    customer_tenant_id: Optional[str] = None
 
 class DspResponse(BaseModel):
     schema_version: str | None = None
@@ -71,8 +75,13 @@ class DspResponse(BaseModel):
     resources: List[Any] = Field(default_factory=list)
 
 class DragonStandardPayload(BaseModel):
+    # Inputs without a typed field (EHR context FHIR bundles, adaptive card content, custom JSON)
+    # are keyed by the manifest input name; keep them so they're available via `model_extra`.
+    model_config = ConfigDict(extra="allow")
+
     note: Optional[Note] = None
     sessionData: SessionData | None = None
+    extensibilityApiVersion: Optional[str] = None
 
 class ProcessResponse(BaseModel):
     success: bool = False

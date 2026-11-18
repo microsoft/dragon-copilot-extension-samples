@@ -1,8 +1,7 @@
 ﻿import fs from 'fs-extra';
 const { readFileSync, createWriteStream, pathExists } = fs;
-import yaml from 'js-yaml';
-const { load } = yaml;
-import archiver from 'archiver';
+import { load } from 'js-yaml';
+import { ZipArchive } from 'archiver';
 import path from 'path';
 import chalk from 'chalk';
 import { logMessage } from '../../../common/index.js';
@@ -51,7 +50,7 @@ export async function packageExtension(options: PackageOptions): Promise<void> {
       logMessage(chalk.gray(`🛠️  Tools: ${manifest.tools?.length || 0}`), isQuiet);
 
     const output = createWriteStream(outputPath);
-    const archive = archiver('zip', {
+    const archive = new ZipArchive({
       zlib: { level: 9 }
     });
 

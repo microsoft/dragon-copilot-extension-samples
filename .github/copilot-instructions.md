@@ -47,31 +47,60 @@ public async Task<ProcessResponse> ProcessAsync([FromBody] ProcessRequest reques
 ```
 
 ### Authentication
-1. **JWT Authentication**: Microsoft Entra ID integration for service-to-service auth
-2. **Conditional Security**: Can be disabled for development environments
+
+Extensions authenticate in one of two directions. Determine which applies before writing or changing auth code.
+
+1. **Dragon Copilot calls the partner's endpoint** (Physician extensions and Radiologists tools with `toolType: contractBased`)
+   - The extension validates the Microsoft Entra ID JWT bearer token that the Dragon Copilot Extension Runtime sends on every request.
+   - Production settings: `TenantId`, `ClientId`, `Instance`, `RequiredClaims`. The manifest's `auth.tenantId` must match `TenantId`.
+   - Validation can be disabled in `appsettings.Development.json` for local testing only. Never ship it disabled.
+   - Source of truth: `doc/Authentication.md`, `doc/AuthenticationDesign.md`, `doc/Troubleshooting-Authentication.md`.
+
+2. **The partner calls Dragon Copilot** (Radiologists tools with `toolType: partnerInitiated`)
+   - These tools declare no `endpoint`, so there is no inbound request to validate and no development bypass.
+   - The partner workload acquires an app-only access token through the OAuth 2.0 client credentials flow. Its app registration needs the Partner Communications API `AiFindingsWriters` application permission.
+   - The manifest's `auth.tenantId` is the tenant that issues these tokens, and the token's `tid` claim must match it.
+   - Source of truth: `radiologists/partner-initiated/authentication.md`. The `doc/` guides don't apply.
+
+Clinical Application Connectors don't use `auth.tenantId`. See `connector/QUICKSTART.md` for their server and client authentication.
 
 ### Configuration Patterns
+
+These apply only when Dragon Copilot calls the partner's endpoint, not when a Radiologists `partnerInitiated` tool calls Dragon Copilot.
+
 - **Development**: Authentication disabled for easier testing
 - **Production**: JWT authentication with Microsoft Entra ID
 - **Environment-specific**: `appsettings.json` vs `appsettings.Development.json`
 
 ## Extension Manifest Format
+Physician manifests are versioned by `schemaVersion` (latest: `0.3.0`). Manifests without it use the original format; convert them with `dragon-copilot physician migrate`.
 ```yaml
-name: extension-name
+schemaVersion: 0.3.0
+name: extension-name            # lowercase, starts with a letter
+caption: Extension Name          # display name
 description: Extension description
 version: 0.0.1
 auth:
   tenantId: 12345678-1234-1234-1234-123456789abc
 tools:
   - name: tool-name
+    caption: Tool Name
     description: Tool description
+    type: DragonAPI
+    triggers:                    # DataAvailable and/or ExplicitRequest
+      - DataAvailable
+    timeout: 60                  # Optional: 3-60 seconds; the platform uses 5 if omitted, so set it explicitly
     endpoint: https://api.example.com/v1/process
-    trigger: AutoRun  # Optional: AutoRun (default) or AdaptiveCardAction
     inputs:
       - name: note
         description: Clinical note input
         content-type: application/vnd.ms-dragon.dsp.note+json
-    outputs:
+      - name: ehr-context
+        description: EHR context for the current encounter
+        content-type: application/fhir.ehr-context+json
+        include: [patient, current-encounter]
+        required: false          # Optional input: the tool still runs without it
+    outputs:                     # Optional: omit for fire-and-forget tools
       - name: processed-data
         description: Processed results
         content-type: application/vnd.ms-dragon.dsp+json

@@ -4,7 +4,6 @@ import path from 'path';
 import chalk from 'chalk';
 import type { InitOptions, ConnectorIntegrationManifest } from '../types.js';
 import { runConnectorManifestWizard } from '../shared/prompts.js';
-import { getDefaultManifestNoteSections } from '../shared/note-sections.js';
 import { dumpManifestYaml } from '../shared/yaml.js';
 
 export async function initProject(options: InitOptions): Promise<void> {
@@ -13,15 +12,13 @@ export async function initProject(options: InitOptions): Promise<void> {
 
   // Step 1: Connector Manifest Wizard
   console.log(chalk.blue('🧙 Step 1: Connector Manifest Wizard'));
-  console.log(chalk.gray('We\'ll gather the details needed for your Clinical Application Connector manifest, including authentication, documentation sections, and instance configuration.\n'));
+  console.log(chalk.gray('We\'ll gather the details needed for your Clinical Application Connector manifest, including publisher metadata, authentication, and instance configuration.\n'));
 
   const manifest: ConnectorIntegrationManifest = await runConnectorManifestWizard({
     ...(options.name ? { name: options.name } : {}),
     ...(options.description ? { description: options.description } : {}),
     ...(options.version ? { version: options.version } : {})
   });
-
-  manifest['note-sections'] = manifest['note-sections'] ?? getDefaultManifestNoteSections();
 
   console.log(chalk.green('\n✅ Manifest details captured!'));
 

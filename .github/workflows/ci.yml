@@ -19,10 +19,10 @@ jobs:
             dockerfile: physician/src/samples/DragonCopilot/Workflow/SampleExtension.Web/Dockerfile
 
     steps:
-    - uses: actions/checkout@v7
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
     - name: Setup .NET
-      uses: actions/setup-dotnet@v6
+      uses: actions/setup-dotnet@0f4a354dd5547a28c70b7853dbd95d5b67886e73 # v6.1.0
       with:
         dotnet-version: '9.0.x'
 
@@ -56,10 +56,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v7
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
     - name: Setup .NET
-      uses: actions/setup-dotnet@v6
+      uses: actions/setup-dotnet@0f4a354dd5547a28c70b7853dbd95d5b67886e73 # v6.1.0
       with:
         dotnet-version: '10.0.x'
 
@@ -75,56 +75,67 @@ jobs:
         dotnet test --no-build --configuration Release --verbosity normal
 
     - name: Build Radiologists Quickstart sample (cross-platform)
-      working-directory: radiologists/src/samples/Workflow/SampleExtension.Radiologists.Web.Quickstart
+      working-directory: radiologists/src/samples/ContractBased/SampleExtension.Radiologists.Web.Quickstart
       run: |
         dotnet restore
         dotnet build --no-restore --configuration Release
 
     - name: Test Radiologists Quickstart sample
-      working-directory: radiologists/src/samples/Workflow/SampleExtension.Radiologists.Web.Quickstart.Tests
+      working-directory: radiologists/src/samples/ContractBased/SampleExtension.Radiologists.Web.Quickstart.Tests
       run: |
         dotnet test --configuration Release --verbosity normal
 
     - name: Build Radiologists AI sample (cross-platform, Azure OpenAI)
-      working-directory: radiologists/src/samples/Workflow/SampleExtension.Radiologists.Web.Ai
+      working-directory: radiologists/src/samples/ContractBased/SampleExtension.Radiologists.Web.Ai
       run: |
         dotnet restore
         dotnet build --no-restore --configuration Release
 
     - name: Test Radiologists AI sample
-      working-directory: radiologists/src/samples/Workflow/SampleExtension.Radiologists.Web.Ai.Tests
+      working-directory: radiologists/src/samples/ContractBased/SampleExtension.Radiologists.Web.Ai.Tests
+      run: |
+        dotnet test --configuration Release --verbosity normal
+
+    - name: Build Radiologists Pre-Draft Report sample (partnerInitiated)
+      working-directory: radiologists/src/samples/PartnerInitiated/PreDraftReport.Console.QuickStart
+      run: |
+        dotnet restore
+        dotnet build --no-restore --configuration Release
+
+    - name: Test Radiologists Pre-Draft Report sample
+      working-directory: radiologists/src/samples/PartnerInitiated/PreDraftReport.Console.QuickStart.Tests
       run: |
         dotnet test --configuration Release --verbosity normal
 
     - name: Build Radiologists Quickstart Docker image
       run: |
-        docker build -f radiologists/src/samples/Workflow/SampleExtension.Radiologists.Web.Quickstart/Dockerfile -t radiologists-quickstart-sample .
+        docker build -f radiologists/src/samples/ContractBased/SampleExtension.Radiologists.Web.Quickstart/Dockerfile -t radiologists-quickstart-sample .
 
     - name: Build Radiologists AI Docker image
       run: |
-        docker build -f radiologists/src/samples/Workflow/SampleExtension.Radiologists.Web.Ai/Dockerfile -t radiologists-ai-sample .
+        docker build -f radiologists/src/samples/ContractBased/SampleExtension.Radiologists.Web.Ai/Dockerfile -t radiologists-ai-sample .
 
   build-radiologists-foundry-local:
     runs-on: windows-latest
 
     steps:
-    - uses: actions/checkout@v7
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
     - name: Setup .NET
-      uses: actions/setup-dotnet@v6
+      uses: actions/setup-dotnet@0f4a354dd5547a28c70b7853dbd95d5b67886e73 # v6.1.0
       with:
         dotnet-version: '10.0.x'
 
     # The Foundry Local sample is Windows-only (net10.0-windows, Microsoft.AI.Foundry.Local.WinML),
     # so it is built on a Windows runner rather than the cross-platform ubuntu job above.
     - name: Build Radiologists Foundry Local sample (Windows-only, on-device)
-      working-directory: radiologists/src/samples/Workflow/SampleExtension.Radiologists.Web.Local
+      working-directory: radiologists/src/samples/ContractBased/SampleExtension.Radiologists.Web.Local
       run: |
         dotnet restore
         dotnet build --no-restore --configuration Release
 
     - name: Test Radiologists Foundry Local sample (Windows-only, on-device)
-      working-directory: radiologists/src/samples/Workflow/SampleExtension.Radiologists.Web.Local.Tests
+      working-directory: radiologists/src/samples/ContractBased/SampleExtension.Radiologists.Web.Local.Tests
       run: |
         dotnet test --configuration Release --verbosity normal
 
@@ -132,12 +143,12 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v7
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
     - name: Setup Node.js
-      uses: actions/setup-node@v7
+      uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
       with:
-        node-version: '20'
+        node-version: '24'
         cache: 'npm'
         cache-dependency-path: tools/dragon-copilot-cli/package-lock.json
 
@@ -156,3 +167,34 @@ jobs:
     - name: Verify bundle
       working-directory: tools/dragon-copilot-cli
       run: npm run bundle
+
+  extensions-sandbox:
+    runs-on: ubuntu-latest
+
+    # The sandbox consumes two contracts and the manifest-generation code from
+    # tools/dragon-copilot-cli, syncing them in at build/test time. Building and
+    # testing it here is what catches a CLI-side change that breaks that sync.
+    # `npm test` / `npm run build` also typecheck the synced core against the
+    # CLI's stricter ES2020 baseline, so this job cannot go green on code the
+    # CLI would fail to compile.
+    steps:
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+    - name: Setup Node.js
+      uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+      with:
+        node-version: '20'
+        cache: 'npm'
+        cache-dependency-path: radiologists/tools/extensions-sandbox/package-lock.json
+
+    - name: Install dependencies
+      working-directory: radiologists/tools/extensions-sandbox
+      run: npm ci
+
+    - name: Run tests
+      working-directory: radiologists/tools/extensions-sandbox
+      run: npm test
+
+    - name: Build
+      working-directory: radiologists/tools/extensions-sandbox
+      run: npm run build

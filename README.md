@@ -15,8 +15,10 @@ Welcome! This repository contains sample code, models, OpenAPI specs, and develo
 
 This repo includes:
 
-- [Shared Platform Documentation](doc/) for authentication guides and resources common across all products
+- [Shared Platform Documentation](doc/) for authentication guides and resources common across all products where Dragon Copilot calls a partner service. For integrations where a partner calls a Dragon Copilot endpoint, see the [Radiologists authentication documentation](radiologists/partner-initiated/authentication.md).
 - Sample [`Physician Workflow`](physician/) with best practices
+- Sample [`Radiologists Workflow`](radiologists/) with best practices
+- [Clinical Application Connector documentation](connector/) for EHR and enterprise API integrations
 - CLI [`tools`](tools/dragon-copilot-cli/README.md) to initialize & package both **Extensions** and **Clinical Application Connectors**
 
 ### Extensions vs. Clinical Application Connectors
@@ -25,6 +27,7 @@ This repo includes:
 | ---------------------------------- | -------------------------------------------------------------------------------------- | ---------------------------------------------------------- |
 | **Physician Workflow**             | Custom AI-powered extensions with automation scripts, event triggers, and dependencies | Extend Dragon Copilot with custom clinical data processing |
 | **Clinical Application Connector** | EHR integrations and API connectors that interface with clinical applications          | Connect Dragon Copilot to external clinical systems        |
+| **Radiologists Workflow**          | Custom AI-powered extensions that analyze radiology reports and return quality-check recommendations | Extend Dragon Copilot with Report Optimization |
 
 ## 🚀 Getting Started
 
@@ -42,6 +45,8 @@ Pick the product you are building an extension for and follow its dedicated quic
 | Product       | README                                     | Quick Start Guide                                  |
 | ------------- | ------------------------------------------ | -------------------------------------------------- |
 | **Physician** | [physician/README.md](physician/README.md) | [physician/QUICKSTART.md](physician/QUICKSTART.md) |
+| **Radiologists** | [radiologists/README.md](radiologists/README.md) | [radiologists/QUICKSTART.md](radiologists/QUICKSTART.md) |
+| **Connector** | [connector/README.md](connector/README.md) | [connector/QUICKSTART.md](connector/QUICKSTART.md) |
 
 > **Tip:** Each product's `QUICKSTART.md` is a self-contained, end-to-end walkthrough from setting up your dev environment to testing your extension inside Dragon Copilot.
 
@@ -68,13 +73,16 @@ dragon-copilot physician package    # Package for distribution
 
 #### Radiologists Extension Commands
 
-For creating **Radiologists Workflows** that analyze radiology reports and return quality-check recommendations:
+For creating **Radiologists Workflows**. A tool either responds to Dragon Copilot, such as returning
+quality-check recommendations for a report, or submits results to Dragon Copilot on its own
+schedule, such as an AI generated pre-draft report:
 
 ```bash
-dragon-copilot radiologists init                              # Initialize a new extension project (interactive)
-dragon-copilot radiologists generate --template quality-check # Generate a manifest from a template (or use --interactive)
-dragon-copilot radiologists validate ./extension.yaml         # Validate extension manifest
-dragon-copilot radiologists package                           # Package for distribution
+dragon-copilot radiologists init                                  # Initialize a new extension project (interactive)
+dragon-copilot radiologists generate --template quality-check     # Generate a quality check manifest
+dragon-copilot radiologists generate --template pre-draft-report  # Generate a pre-draft report manifest
+dragon-copilot radiologists validate ./extension.yaml             # Validate extension manifest
+dragon-copilot radiologists package                               # Package for distribution
 ```
 
 #### Connector Commands
@@ -83,12 +91,12 @@ For creating **Clinical Application Connectors** (EHR integrations, API connecto
 
 ```bash
 dragon-copilot connector init       # Initialize a new connector project
-dragon-copilot connector generate   # Generate or update connector manifest
+dragon-copilot connector generate --interactive # Generate or update connector manifest
 dragon-copilot connector validate   # Validate connector manifest
 dragon-copilot connector package    # Package for distribution
 ```
 
-See the [CLI README](tools/dragon-copilot-cli/README.md) for detailed options, advanced usage, and release instructions.
+See the [CLI README](tools/dragon-copilot-cli/README.md) for detailed options, advanced usage, and release instructions. Connector partners can use the [Connector documentation](connector/README.md) and [Quickstart](connector/QUICKSTART.md) to prepare answers for every wizard question.
 
 ## 🤝 Contributing
 

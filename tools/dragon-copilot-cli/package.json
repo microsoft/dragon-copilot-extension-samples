@@ -18,32 +18,37 @@
   "author": "",
   "license": "ISC",
   "type": "module",
+  "engines": {
+    "node": "^22.13.0 || >=23.5.0"
+  },
   "description": "Unified Dragon Copilot Extension and Clinical Application Connector CLI",
   "bin": {
     "dragon-copilot": "dist/cli.js"
   },
   "dependencies": {
-    "@inquirer/prompts": "^8.5.2",
+    "@inquirer/prompts": "^8.7.3",
     "ajv": "^8.20.0",
     "ajv-formats": "^3.0.1",
-    "archiver": "^7.0.1",
-    "chalk": "^5.6.2",
+    "archiver": "^8.0.0",
+    "chalk": "^6.0.1",
     "commander": "^15.0.0",
-    "fs-extra": "^11.3.6",
-    "js-yaml": "^4.2.0"
+    "fs-extra": "^11.4.1",
+    "js-yaml": "^5.5.0",
+    "yaml": "^2.9.1"
   },
   "devDependencies": {
-    "@types/archiver": "^7.0.0",
+    "@types/archiver": "^8.0.0",
     "@types/fs-extra": "^11.0.4",
     "@types/jest": "^30.0.0",
     "@types/js-yaml": "^4.0.9",
-    "@types/node": "^26.1.1",
-    "esbuild": "^0.28.1",
-    "jest": "^30.4.2",
+    "@types/node": "^26.6.6",
+    "@typescript/native": "npm:typescript@^7.0.2",
+    "esbuild": "^0.28.2",
+    "jest": "^30.5.2",
     "postject": "^1.0.0-alpha.6",
-    "rimraf": "^6.1.3",
-    "ts-jest": "^29.4.12",
+    "rimraf": "^6.1.4",
+    "ts-jest": "^29.4.15",
     "ts-node": "^10.9.2",
-    "typescript": "^7.0.2"
+    "typescript": "npm:@typescript/typescript6@^6.0.2"
   }
 }

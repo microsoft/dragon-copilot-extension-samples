@@ -15,6 +15,7 @@ Key resources:
 
 - [Shared Platform Documentation](../doc/) — Authentication guides and resources common across all products
 - Sample [`Physician Workflow`](src/samples/) with best practices
+- [`physician-extensibility-api.yaml`](physician-extensibility-api.yaml) — the Dragon Extensibility API contract (OpenAPI, version 1.2.0) for `POST /v1/process`, with the Dragon Standard Payload (DSP) schemas in [`dsp-0.1.json`](dsp-0.1.json)
 - CLI tools to initialize & package both **Extensions** and **Clinical Application Connectors**
 
 ### Extensions vs. Clinical Application Connectors

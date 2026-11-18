@@ -1,0 +1,38 @@
+{
+  "name": "sampleQualityCheck",
+  "description": "Sample radiology quality check extension",
+  "version": "0.0.1",
+  "radiologistsExtensibilityApiVersion": "0.0.1",
+  "auth": {
+    "tenantId": "00000000-0000-0000-0000-000000000000"
+  },
+  "tools": [
+    {
+      "name": "chestCtQuality",
+      "toolType": "contractBased",
+      "capability": "qualityCheck",
+      "description": "Quality check for chest CT reports",
+      "endpoint": "https://api.example.com/v1/process",
+      "inputs": [
+        {
+          "name": "report",
+          "description": "Radiology report",
+          "content-type": "application/vnd.ms-dragon.rad.report+json",
+          "schemaVersion": "0.0"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "quality-result",
+          "description": "Quality check findings",
+          "content-type": "application/vnd.ms-dragon.rad.quality-check-result+json",
+          "schemaVersion": "0.0"
+        }
+      ],
+      "relevanceFilteringCriteria": {
+        "relevantBodyParts": ["CHEST"],
+        "relevantModalities": ["CT"]
+      }
+    }
+  ]
+}
