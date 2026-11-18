@@ -1,7 +1,7 @@
 import fs from 'fs-extra';
 const { readFileSync, createWriteStream, pathExists } = fs;
 import { load } from 'js-yaml';
-import archiver from 'archiver';
+import { ZipArchive } from 'archiver';
 import chalk from 'chalk';
 import { logMessage } from '../../../common/index.js';
 import type { PackageOptions, ConnectorIntegrationManifest } from '../types.js';
@@ -61,7 +61,7 @@ export async function packageIntegration(options: PackageOptions): Promise<void>
 
     // Create archive
   const output = createWriteStream(outputPath);
-  const archive = archiver('zip', { zlib: { level: 9 } });
+  const archive = new ZipArchive({ zlib: { level: 9 } });
 
   return new Promise<void>(async (resolve, reject) => {
       output.on('close', () => {
