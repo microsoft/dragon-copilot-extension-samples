@@ -41,7 +41,7 @@ dragon-copilot --help
 
 ### Option 2: Build from source
 
-For contributors or local development, build from the repository:
+For contributors or local development, build from the repository. Requires [Node.js](https://nodejs.org/) `^22.13.0 || >=23.5.0`; CI and the release binaries use Node.js 24.
 
 ```powershell
 cd tools/dragon-copilot-cli
