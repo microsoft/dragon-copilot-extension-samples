@@ -3,7 +3,11 @@ const { readFileSync } = fs;
 import { load } from 'js-yaml';
 import chalk from 'chalk';
 import type { DragonExtensionManifest } from '../types.js';
-import { validateExtensionManifest } from '../shared/schema-validator.js';
+import {
+  validateExtensionManifest,
+  LEGACY_SCHEMA_VERSION,
+  LATEST_SCHEMA_VERSION
+} from '../shared/schema-validator.js';
 import type { SchemaError } from '../shared/schema-validator.js';
 
 export async function validateManifest(filePath: string): Promise<void> {
@@ -13,41 +17,48 @@ export async function validateManifest(filePath: string): Promise<void> {
   let hasErrors = false;
   let hasWarnings = false;
 
-  // Validate manifest file
   try {
     const fileContent = readFileSync(filePath, 'utf8');
     const manifest = load(fileContent) as DragonExtensionManifest;
 
     console.log(chalk.blue('📋 Validating Physician Workflow Manifest...'));
     const manifestResult = validateExtensionManifest(manifest);
+    const schemaVersion = manifestResult.schemaVersion;
+
+    if (schemaVersion === LEGACY_SCHEMA_VERSION) {
+      console.log(chalk.gray('  • Schema: original format (no schemaVersion)'));
+    } else if (schemaVersion) {
+      console.log(chalk.gray(`  • Schema: ${schemaVersion}`));
+    }
 
     if (manifestResult.errors.length > 0) {
       hasErrors = true;
       console.log(chalk.red('❌ Manifest validation failed with errors:'));
       manifestResult.errors.forEach((error: SchemaError) => {
-        // Convert schema path to friendly field name
         const fieldPath = error.instancePath.replace(/^\//, '').replace(/\//g, '.');
         const fieldName = fieldPath || 'manifest';
         console.log(chalk.red(`  • ${fieldName}: ${error.message}`));
       });
     }
 
-    // Display results summary
-    if (!hasErrors) {
-      console.log(chalk.green('\n✅ Validation passed!'));
+    if (schemaVersion === LEGACY_SCHEMA_VERSION && LATEST_SCHEMA_VERSION !== LEGACY_SCHEMA_VERSION) {
+      hasWarnings = true;
+      console.log(chalk.yellow(`⚠️  This manifest has no schemaVersion and uses the original format. Run 'dragon-copilot physician migrate ${filePath}' to upgrade to ${LATEST_SCHEMA_VERSION}.`));
+    }
 
-      // Display summary
+    if (!hasErrors) {
+      console.log(chalk.green(`\n✅ Validation passed!${schemaVersion && schemaVersion !== LEGACY_SCHEMA_VERSION ? ` (schema ${schemaVersion})` : ''}`));
+
       console.log(chalk.gray('\n📊 Physician Workflow Summary:'));
       console.log(chalk.gray(`  • Extension: ${manifest.name} v${manifest.version}`));
       console.log(chalk.gray(`  • Description: ${manifest.description}`));
       console.log(chalk.gray(`  • Auth Tenant ID: ${manifest.auth?.tenantId || 'Not specified'}`));
       console.log(chalk.gray(`  • Tools: ${manifest.tools?.length || 0}`));
 
-      if (manifest.tools && manifest.tools.length > 0) {
-        manifest.tools.forEach(tool => {
-          console.log(chalk.gray(`    - ${tool.name}: ${tool.inputs?.length || 0} inputs, ${tool.outputs?.length || 0} outputs`));
-        });
-      }
+      const tools = (manifest.tools ?? []) as Array<{ name: string; inputs?: unknown[]; outputs?: unknown[] }>;
+      tools.forEach(tool => {
+        console.log(chalk.gray(`    - ${tool.name}: ${tool.inputs?.length || 0} inputs, ${tool.outputs?.length || 0} outputs`));
+      });
 
       if (hasWarnings) {
         console.log(chalk.yellow('\n💡 Consider addressing the warnings above for better compliance.'));

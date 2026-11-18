@@ -15,6 +15,11 @@ internal static partial class LoggerExtensions
 
     [LoggerMessage(
         Level = LogLevel.Information,
+        Message = "Received request for Dragon Extensibility API version {ApiVersion} with {AdditionalInputCount} additional input(s)")]
+    public static partial void LogApiVersion(this ILogger logger, string apiVersion, int additionalInputCount);
+
+    [LoggerMessage(
+        Level = LogLevel.Information,
         Message = "Processing Dragon Standard payload. RequestId: {RequestId}, CorrelationId: {CorrelationId}")]
     public static partial void LogProcessingStart(this ILogger logger, string? requestId, string? correlationId);
 

@@ -4,6 +4,8 @@
 
 The Dragon Copilot Sample Extension authenticates incoming service-to-service requests using **Microsoft Entra ID (Azure AD) JWT bearer tokens**. The Dragon Copilot Extension Runtime acquires a token for the extension's app registration and includes it as a standard `Authorization: Bearer <token>` header on every request.
 
+> **Building a Radiologists `partnerInitiated` tool?** This guide covers requests that Dragon Copilot sends to your extension endpoint. A `partnerInitiated` tool calls Dragon Copilot instead, so this guide doesn't apply. Follow [`partnerInitiated` authentication](../radiologists/partner-initiated/authentication.md).
+
 > **Hitting auth errors?** See [Troubleshooting-Authentication.md](Troubleshooting-Authentication.md) for a symptom → cause matrix, FAQ, and pre-flight checklist covering the most common partner issues (`InvalidAudience`/`InvalidIssuer`, `identifierUris` mistakes, `AADSTS500011`, and more).
 
 ## Architecture
@@ -45,7 +47,7 @@ The production configuration in [appsettings.json](../physician/src/samples/Drag
 - `Instance` — the Entra ID authority URL (typically `https://login.microsoftonline.com/`)
 - `RequiredClaims` — claims required for authorization (e.g. `idtyp`, `azp`)
 
-> **CLI Note:** Physician and Radiologists Workflow manifests capture `auth.tenantId`, which must match the `TenantId` configured here. Clinical Application Connector manifests do not use `auth.tenantId`; their wizard configures `server-authentication` and instance-level client authentication issuer and claim fields instead. See the [Connector Quickstart](../connector/QUICKSTART.md).
+> **CLI Note:** Physician and Radiologists Workflow manifests capture `auth.tenantId`, which must match the `TenantId` configured here. For a Radiologists `partnerInitiated` tool, `auth.tenantId` is the tenant that issues your access tokens. A manifest has a single `auth.tenantId`, so if it declares both tool types, the `TenantId` configured here and the tenant that issues your tokens must be the same. See [`partnerInitiated` authentication](../radiologists/partner-initiated/authentication.md). Clinical Application Connector manifests do not use `auth.tenantId`; their wizard configures `server-authentication` and instance-level client authentication issuer and claim fields instead. See the [Connector Quickstart](../connector/QUICKSTART.md).
 
 ## Microsoft Entra ID (JWT) Authentication
 

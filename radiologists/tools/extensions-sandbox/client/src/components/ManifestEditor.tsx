@@ -2,7 +2,6 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 import {
   Button,
   Badge,
-  Tooltip,
   Spinner,
 } from '@fluentui/react-components';
 import {
@@ -16,6 +15,7 @@ import { EditorState, Compartment } from '@codemirror/state';
 import { json } from '@codemirror/lang-json';
 import { yaml } from '@codemirror/lang-yaml';
 import { syntaxHighlighting, defaultHighlightStyle } from '@codemirror/language';
+import { CliWizardDialog } from './CliWizardDialog';
 
 interface ValidationError {
   path: string | null;
@@ -44,6 +44,9 @@ function detectLanguage(text: string) {
   const trimmed = text.trimStart();
   return trimmed.startsWith('{') || trimmed.startsWith('[') ? json() : yaml();
 }
+
+const REPLACE_MANIFEST_PROMPT =
+  'Replace the manifest in the editor with the generated one? Your current manifest and any unsaved edits will be lost.';
 
 const editorTheme = EditorView.theme({
   '&': {
@@ -97,6 +100,7 @@ export function ManifestEditor({ onManifestLoaded, onManifestEditing, onReset }:
   const [validationMessage, setValidationMessage] = useState<string>('');
   const [errors, setErrors] = useState<ValidationError[]>([]);
   const [isValidating, setIsValidating] = useState(false);
+  const [isCliWizardOpen, setIsCliWizardOpen] = useState(false);
 
   // Stable refs for callbacks used inside CodeMirror listener
   const onManifestEditingRef = useRef(onManifestEditing);
@@ -240,18 +244,25 @@ export function ManifestEditor({ onManifestLoaded, onManifestEditing, onReset }:
     onReset();
   }, [onReset, setEditorContent]);
 
-  // User-initiated validation via "Validate" button
-  const handleValidate = useCallback(async () => {
-    if (!manifestText.trim()) return;
+  // Validates a specific manifest string against the schema and publishes the
+  // result. Takes the content explicitly so the CLI wizard can validate the YAML
+  // it just wrote without waiting for editor state to catch up.
+  const validateContent = useCallback(async (content: string) => {
+    if (!content.trim()) return;
 
     setIsValidating(true);
+    // Clear the whole previous verdict, not just the errors: leaving isValid set
+    // would show the old manifest's badge over content that has not been checked
+    // yet — visible when the CLI wizard swaps in a new manifest mid-flight.
+    setIsValid(null);
+    setValidationMessage('');
     setErrors([]);
 
     try {
       const response = await fetch('/api/manifest/validate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ content: manifestText }),
+        body: JSON.stringify({ content }),
       });
       const data = await response.json();
 
@@ -272,13 +283,39 @@ export function ManifestEditor({ onManifestLoaded, onManifestEditing, onReset }:
     } finally {
       setIsValidating(false);
     }
-  }, [manifestText, onManifestLoaded]);
+  }, [onManifestLoaded]);
+
+  // User-initiated validation via "Validate" button
+  const handleValidate = useCallback(() => {
+    void validateContent(manifestText);
+  }, [manifestText, validateContent]);
+
+  // Manifest produced by the CLI wizard: replace the editor contents and validate
+  // it straight away, so the user lands on the same state as an uploaded manifest.
+  // Returns false when the user declines to replace a manifest already in the
+  // editor, so the wizard stays open with their answers.
+  const handleCliGenerated = useCallback((generatedYaml: string) => {
+    if (
+      manifestText.trim() &&
+      manifestText !== generatedYaml &&
+      !window.confirm(REPLACE_MANIFEST_PROMPT)
+    ) {
+      return false;
+    }
+
+    // A new manifest invalidates whatever was validated before.
+    onReset();
+    setManifestText(generatedYaml);
+    setEditorContent(generatedYaml);
+    void validateContent(generatedYaml);
+    return true;
+  }, [manifestText, onReset, setEditorContent, validateContent]);
 
   return (
     <div className="manifest-editor">
       <h2 className="panel-title">Manifest Editor</h2>
       <p className="panel-description">
-        Upload your extension manifest file (.json, .yaml, .yml) to begin testing, or use the CLI tool to create a manifest.
+        Upload your extension manifest file (.json, .yaml, .yml) to begin testing, or click Generate Manifest to create one with the CLI wizard.
       </p>
 
       <div className="editor-toolbar">
@@ -289,18 +326,14 @@ export function ManifestEditor({ onManifestLoaded, onManifestEditing, onReset }:
         >
           Upload Manifest
         </Button>
-        {/* TODO: Re-enable when CLI integration (story #2848832) is complete */}
-        <Tooltip content="Coming Soon - CLI integration in progress" relationship="description">
-          <span>
-            <Button
-              appearance="secondary"
-              icon={<CodeRegular />}
-              disabled
-            >
-              Dragon Copilot CLI
-            </Button>
-          </span>
-        </Tooltip>
+        {/* Runs the CLI's manifest generation server-side (POST /api/cli/generate). */}
+        <Button
+          appearance="secondary"
+          icon={<CodeRegular />}
+          onClick={() => setIsCliWizardOpen(true)}
+        >
+          Generate Manifest
+        </Button>
         <Button
           appearance="subtle"
           icon={<ArrowCounterclockwiseRegular />}
@@ -317,6 +350,12 @@ export function ManifestEditor({ onManifestLoaded, onManifestEditing, onReset }:
           aria-hidden="true"
         />
       </div>
+
+      <CliWizardDialog
+        open={isCliWizardOpen}
+        onOpenChange={setIsCliWizardOpen}
+        onGenerated={handleCliGenerated}
+      />
 
       {isUploading && (
         <div className="editor-loading">

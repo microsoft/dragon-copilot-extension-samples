@@ -7,15 +7,17 @@ Accept: application/json
 ###
 
 # Process Data - Sample Request
-POST {{SampleExtension_Web_HostAddress}}/v1/process
+POST {{SampleExtension_Web_HostAddress}}/v1/process?api-version=1.2.0
 Content-Type: application/json
 Accept: application/json
 
 {
+    "extensibilityApiVersion": "1.2.0",
     "sessionData": {
         "correlation_id": "f40dd0d0-4201-d29d-79b4-df40189fd2f0",
         "session_start": "2025-06-20T08:57:35.978Z",
-        "environment_id": "01bd0d47-1621-4a29-941d-00e9a9420f20"
+        "environment_id": "01bd0d47-1621-4a29-941d-00e9a9420f20",
+        "customer_tenant_id": "01bd0d47-1621-4a29-941d-00e9a9420f20"
     },
     "note": {
         "payload_version": "1.1.0",

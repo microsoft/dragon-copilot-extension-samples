@@ -48,6 +48,12 @@ public class Note
     public IList<DragonSession>? Sessions { get; init; }
 
     /// <summary>
+    /// Recordings that make up the encounter audio
+    /// </summary>
+    [JsonPropertyName("recordings")]
+    public IList<Recording>? Recordings { get; init; }
+
+    /// <summary>
     /// Document information
     /// </summary>
     [JsonPropertyName("document")]

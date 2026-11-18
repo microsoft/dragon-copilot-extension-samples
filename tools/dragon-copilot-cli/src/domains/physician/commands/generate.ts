@@ -2,9 +2,15 @@ import fs from 'fs-extra';
 const { readFileSync, writeFileSync } = fs;
 import { load, dump } from 'js-yaml';
 import chalk from 'chalk';
-import type { GenerateOptions, DragonExtensionManifest, DragonTool } from '../types.js';
+import type { GenerateOptions, DragonExtensionManifest } from '../types.js';
 import { getTemplate } from '../templates/index.js';
-import { promptToolDetails, promptAuthDetails, getInputDescription, getInputName } from '../shared/prompts.js';
+import { promptToolDetails, promptAuthDetails, humanizeName } from '../shared/prompts.js';
+import { buildManifest, buildTool } from '../shared/manifest-builder.js';
+import {
+  getManifestSchemaVersion,
+  isSupportedSchemaVersion,
+  resolveRequestedSchemaVersion
+} from '../shared/schema-validator.js';
 
 export async function generateManifest(options: GenerateOptions): Promise<void> {
   console.log(chalk.blue('🐉 Generating Dragon Copilot Physician Workflow Manifest'));
@@ -22,7 +28,6 @@ export async function generateManifest(options: GenerateOptions): Promise<void> 
 async function generateInteractive(options: GenerateOptions): Promise<void> {
   console.log(chalk.gray('Interactive manifest generation...\n'));
 
-  // Check if manifest already exists
   let existingManifest: DragonExtensionManifest | null = null;
   try {
     const existing = readFileSync(options.output || 'extension.yaml', 'utf8');
@@ -32,40 +37,43 @@ async function generateInteractive(options: GenerateOptions): Promise<void> {
     // File doesn't exist, create new
   }
 
-  // Use shared prompt logic
-  const answers = await promptToolDetails(existingManifest);
+  // An existing manifest keeps its own format; new tools must match it.
+  let schemaVersion: string;
+  if (existingManifest) {
+    schemaVersion = getManifestSchemaVersion(existingManifest);
+    if (!isSupportedSchemaVersion(schemaVersion)) {
+      throw new Error(`Existing manifest uses unsupported schemaVersion "${schemaVersion}"`);
+    }
+    if (options.schemaVersion && options.schemaVersion !== schemaVersion) {
+      console.log(chalk.yellow(`⚠️  Ignoring --schema-version ${options.schemaVersion}; the existing manifest uses ${schemaVersion}. Run 'dragon-copilot physician migrate' to change versions.`));
+    }
+  } else {
+    schemaVersion = resolveRequestedSchemaVersion(options.schemaVersion);
+  }
 
-  const newTool: DragonTool = {
-    name: answers.toolName,
-    description: answers.toolDescription,
-    endpoint: answers.endpoint,
-    inputs: answers.inputTypes.map((contentType: string, index: number) => ({
-      name: getInputName(contentType, index),
-      description: getInputDescription(contentType),
-      'content-type': contentType
-    })),
-    outputs: answers.outputs
-  };
+  const answers = await promptToolDetails(existingManifest, { schemaVersion });
+  const newTool = buildTool(answers, schemaVersion);
 
   let manifest: DragonExtensionManifest;
   if (existingManifest) {
     manifest = existingManifest;
-    manifest.tools.push(newTool);
+    (manifest.tools as unknown[]).push(newTool);
   } else {
-    // For new manifests, collect auth details
     console.log(chalk.blue('\n🔐 Authentication Configuration'));
     console.log(chalk.gray('New manifest requires authentication configuration.\n'));
     const authDetails = await promptAuthDetails();
 
-    manifest = {
-      name: 'my-extension',
-      description: 'A Dragon Copilot extension',
-      version: '0.0.1',
-      auth: {
-        tenantId: authDetails.tenantId
+    manifest = buildManifest(
+      {
+        name: 'my-extension',
+        caption: humanizeName('my-extension'),
+        description: 'A Dragon Copilot extension',
+        version: '0.0.1'
       },
-      tools: [newTool]
-    };
+      { tenantId: authDetails.tenantId },
+      schemaVersion
+    );
+    (manifest.tools as unknown[]).push(newTool);
   }
 
   const yamlContent = dump(manifest, { lineWidth: -1 });
@@ -74,7 +82,6 @@ async function generateInteractive(options: GenerateOptions): Promise<void> {
   console.log(chalk.green('\n✅ Tool added to manifest successfully!'));
   console.log(chalk.gray(`📁 Manifest saved to: ${options.output || 'extension.yaml'}`));
 }
-
 async function generateFromTemplate(options: GenerateOptions): Promise<void> {
   if (!options.template) {
     console.log(chalk.red('❌ Template name is required'));
@@ -82,7 +89,7 @@ async function generateFromTemplate(options: GenerateOptions): Promise<void> {
   }
 
   try {
-    const template = getTemplate(options.template);
+    const template = getTemplate(options.template, resolveRequestedSchemaVersion(options.schemaVersion));
     const yamlContent = dump(template, { lineWidth: -1 });
     writeFileSync(options.output || 'extension.yaml', yamlContent);
 

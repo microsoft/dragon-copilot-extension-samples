@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
+using System.Collections.Generic;
 using System.Text.Json.Serialization;
 
 namespace Dragon.Copilot.Physician.Models;
@@ -33,4 +34,16 @@ public class IterativeAudio
     /// </summary>
     [JsonPropertyName("encounter")]
     public Encounter? Encounter { get; set; }
+
+    /// <summary>
+    /// Recordings that make up the encounter audio
+    /// </summary>
+    [JsonPropertyName("recordings")]
+    public IList<Recording>? Recordings { get; init; }
+
+    /// <summary>
+    /// The audio turn delivered by this request
+    /// </summary>
+    [JsonPropertyName("turn")]
+    public AudioTurn? Turn { get; set; }
 }

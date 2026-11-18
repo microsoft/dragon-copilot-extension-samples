@@ -4,21 +4,24 @@ const { writeFileSync } = fs;
 import { dump } from 'js-yaml';
 import path from 'path';
 import chalk from 'chalk';
-import type {
-  InitOptions,
-  DragonExtensionManifest
-} from '../types.js';
+import type { InitOptions } from '../types.js';
 import {
   promptExtensionDetails,
   promptToolDetails,
   promptAuthDetails,
-  getInputDescription,
-  getInputName
+  isLegacySchema
 } from '../shared/prompts.js';
+import { buildManifest, buildTool } from '../shared/manifest-builder.js';
+import { resolveRequestedSchemaVersion } from '../shared/schema-validator.js';
 
 export async function initProject(options: InitOptions): Promise<void> {
   console.log(chalk.blue('🐉 Dragon Copilot Physician Workflow Generator'));
   console.log(chalk.gray('Initializing a new physician workflow project...\n'));
+
+  const schemaVersion = resolveRequestedSchemaVersion(options.schemaVersion);
+  console.log(chalk.gray(isLegacySchema(schemaVersion)
+    ? 'Using the original manifest format (no schemaVersion).\n'
+    : `Using manifest schema version ${schemaVersion}.\n`));
 
   // Step 1: Physician Workflow Details
   console.log(chalk.blue('📝 Step 1: Physician Workflow Details'));
@@ -28,7 +31,7 @@ export async function initProject(options: InitOptions): Promise<void> {
     ...(options.name ? { name: options.name } : {}),
     ...(options.description ? { description: options.description } : {}),
     ...(options.version ? { version: options.version } : {})
-  });
+  }, schemaVersion);
 
   // Step 2: Authentication Configuration
   console.log(chalk.blue('\n🔐 Step 2: Authentication Configuration'));
@@ -46,20 +49,13 @@ export async function initProject(options: InitOptions): Promise<void> {
     default: true
   });
 
-  const manifest: DragonExtensionManifest = {
-    name: extensionDetails.name,
-    description: extensionDetails.description,
-    version: extensionDetails.version,
-    auth: {
-      tenantId: authDetails.tenantId
-    },
-    tools: []
-  };
+  const manifest = buildManifest(extensionDetails, { tenantId: authDetails.tenantId }, schemaVersion);
 
   if (addTool) {
     // Use shared prompt for tool details (single input for init)
     const toolDetails = await promptToolDetails(undefined, {
       allowMultipleInputs: true, // Allow multiple inputs for flexibility
+      schemaVersion,
       defaults: {
         toolName: 'my-tool',
         toolDescription: 'Processes clinical data',
@@ -67,17 +63,7 @@ export async function initProject(options: InitOptions): Promise<void> {
       }
     });
 
-    manifest.tools.push({
-      name: toolDetails.toolName,
-      description: toolDetails.toolDescription,
-      endpoint: toolDetails.endpoint,
-      inputs: toolDetails.inputTypes.map((contentType, index) => ({
-        name: getInputName(contentType, index),
-        description: getInputDescription(contentType),
-        'content-type': contentType
-      })),
-      outputs: toolDetails.outputs
-    });
+    (manifest.tools as unknown[]).push(buildTool(toolDetails, schemaVersion));
   }
 
   const outputPath = path.join(options.output || '.', 'extension.yaml');

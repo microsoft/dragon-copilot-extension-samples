@@ -6,3 +6,6 @@ dist/
 # Source of truth for the manifest schema is tools/dragon-copilot-cli; for the OpenAPI spec it is radiologists/.
 server/src/schemas/radiologists/radiologists-extension-manifest-schema.json
 server/src/schemas/radiologists/radiologists-extensibility-api.yaml
+
+# The CLI's pure manifest core, synced from tools/dragon-copilot-cli to power /api/cli/generate.
+server/src/cli/radiologists/
