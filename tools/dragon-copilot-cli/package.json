@@ -3,7 +3,7 @@
   "version": "0.0.0-dev",
   "main": "dist/cli.js",
   "scripts": {
-    "build": "tsc -p tsconfig.json && npm run copy-resources",
+    "build": "node ./node_modules/@typescript/native/bin/tsc -p tsconfig.json && npm run copy-resources",
     "copy-resources": "node ./scripts/copy-resources.cjs",
     "dev": "ts-node src/cli.ts",
     "start": "node dist/cli.js",
