@@ -3,7 +3,7 @@
   "version": "0.0.0-dev",
   "main": "dist/cli.js",
   "scripts": {
-    "build": "tsc -p tsconfig.json && npm run copy-resources",
+    "build": "node ./node_modules/@typescript/native/bin/tsc -p tsconfig.json && npm run copy-resources",
     "copy-resources": "node ./scripts/copy-resources.cjs",
     "dev": "ts-node src/cli.ts",
     "start": "node dist/cli.js",
@@ -42,12 +42,13 @@
     "@types/jest": "^30.0.0",
     "@types/js-yaml": "^4.0.9",
     "@types/node": "^26.6.6",
+    "@typescript/native": "npm:typescript@^7.0.2",
     "esbuild": "^0.28.2",
     "jest": "^30.5.2",
     "postject": "^1.0.0-alpha.6",
     "rimraf": "^6.1.4",
     "ts-jest": "^29.4.15",
     "ts-node": "^10.9.2",
-    "typescript": "^6.0.3"
+    "typescript": "npm:@typescript/typescript6@^6.0.2"
   }
 }
