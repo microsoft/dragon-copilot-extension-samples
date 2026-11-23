@@ -19,14 +19,14 @@
   "license": "ISC",
   "type": "module",
   "engines": {
-    "node": "^22.13.0 || >=23.5.0"
+    "node": "^22.22.2 || ^24.15.0 || >=26.0.0"
   },
   "description": "Unified Dragon Copilot Extension and Clinical Application Connector CLI",
   "bin": {
     "dragon-copilot": "dist/cli.js"
   },
   "dependencies": {
-    "@inquirer/prompts": "^8.7.3",
+    "@inquirer/prompts": "^8.8.0",
     "ajv": "^8.20.0",
     "ajv-formats": "^3.0.1",
     "archiver": "^8.0.0",
