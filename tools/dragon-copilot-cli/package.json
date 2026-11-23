@@ -26,7 +26,7 @@
     "dragon-copilot": "dist/cli.js"
   },
   "dependencies": {
-    "@inquirer/prompts": "^8.7.3",
+    "@inquirer/prompts": "^8.8.0",
     "ajv": "^8.20.0",
     "ajv-formats": "^3.0.1",
     "archiver": "^8.0.0",
