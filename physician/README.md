@@ -15,6 +15,7 @@ Key resources:
 
 - [Shared Platform Documentation](../doc/) — Authentication guides and resources common across all products
 - Sample [`Physician Workflow`](src/samples/) with best practices
+- **Conversational tools (Public Preview)** — [OpenAPI and Copilot Studio tools](CONVERSATIONAL.md) the Dragon Copilot assistant calls during a conversation, using manifest schema [`0.4.0-preview.2`](manifest/0.4.0-preview.2/) and the [conversational samples](src/samples/DragonCopilot/Conversational/)
 - [`physician-extensibility-api.yaml`](physician-extensibility-api.yaml) — the Dragon Extensibility API contract (OpenAPI, version 1.2.0) for `POST /v1/process`, with the Dragon Standard Payload (DSP) schemas in [`dsp-0.1.json`](dsp-0.1.json)
 - CLI tools to initialize & package both **Extensions** and **Clinical Application Connectors**
 
@@ -23,6 +24,7 @@ Key resources:
 | Type                               | Description                                                                            | Use Case                                                   |
 | ---------------------------------- | -------------------------------------------------------------------------------------- | ---------------------------------------------------------- |
 | **Physician Workflow**             | Custom AI-powered extensions with automation scripts, event triggers, and dependencies | Extend Dragon Copilot with custom clinical data processing |
+| **Conversational tool (Public Preview)** | OpenAPI REST API or Copilot Studio agent that the assistant calls on intent (schema `0.4.0-preview.2`) | Give Dragon Copilot conversational access to your data or actions |
 | **Clinical Application Connector** | EHR integrations and API connectors that interface with clinical applications          | Connect Dragon Copilot to external clinical systems        |
 
 ## 🚀 Getting Started

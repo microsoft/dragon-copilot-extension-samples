@@ -119,6 +119,8 @@ interface SchemaVersionEntry {
 // Ordered oldest to newest. Adding a version only requires a new schema file and an entry here.
 const SCHEMA_VERSION_REGISTRY: SchemaVersionEntry[] = [
   { version: '0.3.0', file: 'physician-extension-manifest-schema-0.3.0.json' },
+  // Conversational (OpenAPI / CopilotStudio) tools. Public Preview, so never the default.
+  { version: '0.4.0-preview.2', file: 'physician-extension-manifest-schema-0.4.0-preview.2.json', preview: true },
 ];
 
 const LEGACY_SCHEMA_FILE = 'physician-extension-manifest-schema.json';
@@ -153,6 +155,11 @@ export function getSchemaVersions(): SchemaVersionInfo[] {
     deprecated: false
   }));
   return [...versioned, { version: LEGACY_SCHEMA_VERSION, latest: false, preview: false, deprecated: true }];
+}
+
+/** Versioned (non-legacy) schema versions, oldest to newest. */
+export function getRegisteredSchemaVersions(): string[] {
+  return SCHEMA_VERSION_REGISTRY.map(entry => entry.version);
 }
 
 export function isSupportedSchemaVersion(version: string): boolean {
@@ -206,6 +213,33 @@ export interface ValidationResult {
   errors: SchemaError[];
   /** Schema version the manifest was validated against (`legacy` when `schemaVersion` is absent). */
   schemaVersion?: string;
+  /** Non-fatal findings (e.g. bindings keyed by a tool that isn't exposed). */
+  warnings?: string[];
+}
+
+export const PLACEHOLDER_TENANT_ID = '00000000-0000-0000-0000-000000000000';
+
+export const PLACEHOLDER_TENANT_WARNING =
+  'auth.tenantId is the all-zero placeholder; set your publisher Microsoft Entra tenant ID before uploading';
+
+export const PLACEHOLDER_ENVIRONMENT_ID_WARNING =
+  'environmentId is the all-zero placeholder; set your Copilot Studio environment ID before uploading';
+
+/** Warnings for all-zero placeholder IDs (tenant and Copilot Studio environment) left in a manifest. */
+export function getPlaceholderWarnings(manifest: unknown): string[] {
+  const warnings: string[] = [];
+  const { auth, tools } = (manifest ?? {}) as { auth?: { tenantId?: unknown }; tools?: unknown };
+  if (auth?.tenantId === PLACEHOLDER_TENANT_ID) {
+    warnings.push(PLACEHOLDER_TENANT_WARNING);
+  }
+  if (Array.isArray(tools)) {
+    tools.forEach((tool: { name?: unknown; environmentId?: unknown } | null, index) => {
+      if (tool?.environmentId === PLACEHOLDER_TENANT_ID) {
+        warnings.push(`tools[${index}] (${tool.name}): ${PLACEHOLDER_ENVIRONMENT_ID_WARNING}`);
+      }
+    });
+  }
+  return warnings;
 }
 
 /**
@@ -223,7 +257,12 @@ export function validateExtensionManifest(manifest: unknown): ValidationResult {
   // Step 2: Simple business rules (easily portable to C#)
   const businessRuleErrors = validateManifestBusinessRules(manifest as DragonExtensionManifest);
 
-  return { ...schemaResult, isValid: businessRuleErrors.length === 0, errors: businessRuleErrors };
+  return {
+    ...schemaResult,
+    isValid: businessRuleErrors.length === 0,
+    errors: businessRuleErrors,
+    warnings: collectWarnings(manifest)
+  };
 }
 
 /**
@@ -289,6 +328,52 @@ function validateManifestBusinessRules(manifest: DragonExtensionManifest): Schem
 }
 
 /**
+ * Extractors and bindings keyed by an operationId that isn't in `expose` never run.
+ */
+function collectWarnings(manifest: unknown): string[] {
+  const warnings: string[] = [];
+  const tools = Array.isArray((manifest as { tools?: unknown })?.tools) ? (manifest as { tools: any[] }).tools : [];
+
+  tools.forEach((tool, index) => {
+    if (!tool || !Array.isArray(tool.expose)) {
+      return;
+    }
+    const exposed = new Set(tool.expose);
+    for (const field of ['customExtractors', 'runtimeParamBindings']) {
+      const value = tool[field];
+      if (!value || Array.isArray(value) || typeof value !== 'object') {
+        continue;
+      }
+      for (const key of Object.keys(value)) {
+        if (!exposed.has(key)) {
+          warnings.push(`tools.${index}.${field}.${key}: '${key}' is not listed in expose and will be ignored`);
+        }
+      }
+    }
+  });
+
+  return warnings;
+}
+
+/**
+ * Formats validation errors for console output, collapsing the noise produced by if/then/else branches.
+ */
+export function formatErrors(errors: SchemaError[]): string[] {
+  const lines = errors
+    .filter(e => e.keyword !== 'if')
+    .map(e => {
+      const field = e.instancePath.replace(/^\//, '').replace(/\//g, '.') || 'manifest';
+      const extra = e.keyword === 'additionalProperties' && e.params?.additionalProperty
+        ? ` ('${e.params.additionalProperty}')`
+        : e.keyword === 'enum' && Array.isArray(e.params?.allowedValues)
+          ? ` (${e.params.allowedValues.join(', ')})`
+          : '';
+      return `${field}: ${e.message}${extra}`;
+    });
+  return [...new Set(lines)];
+}
+
+/**
  * Converts AJV error to our standard schema error format
  */
 function convertAjvError(ajvError: any): SchemaError {
@@ -312,11 +397,15 @@ export function validateFieldValue(
   schemaType: 'manifest',
   schemaVersion: string = LATEST_SCHEMA_VERSION
 ): string | true {
-  const schema = getSchemaForVersion(schemaVersion) ?? manifestSchema;
+  const schema = getSchemaForVersion(schemaVersion);
+  if (!schema) {
+    throw new Error(`Unsupported schema version "${schemaVersion}"`);
+  }
   const fieldSchema = extractFieldSchema(fieldPath, schema);
 
+  // A wrong path would otherwise silently accept any value.
   if (!fieldSchema) {
-    return true;
+    throw new Error(`Schema ${schemaVersion} has no field "${fieldPath}"`);
   }
 
   const tempValidator = ajv.compile(fieldSchema);

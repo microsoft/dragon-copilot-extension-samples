@@ -68,7 +68,8 @@ Run `npm unlink -g dragon-copilot` only once per workstation; subsequent rebuild
 | Domain     | Command Example                                       | Description |
 |------------|--------------------------------------------------------|-------------|
 | Physician  | `dragon-copilot physician init`                        | Interactive wizard that generates an extension manifest (latest schema by default; `--schema-version` to pick another) |
-| Physician  | `dragon-copilot physician generate --template note-analysis` | Generate a manifest from a template (`note-analysis`, `speech-analysis`; 0.3.0 also has `note-suggestions`, `audio-analysis`) or interactively with `--interactive` |
+| Physician  | `dragon-copilot physician generate --template note-analysis` | Generate a manifest from a template (`note-analysis`, `speech-analysis`; 0.3.0 and 0.4.0-preview.2 also have `note-suggestions`, `audio-analysis`; 0.4.0-preview.2 adds `openapi`, `copilot-studio`) or interactively with `--interactive` |
+| Physician  | `dragon-copilot physician init --schema-version 0.4.0-preview.2 --type OpenAPI` | Conversational tool manifest (Public Preview). `--type` is `OpenAPI`, `CopilotStudio` or `DragonAPI` |
 | Physician  | `dragon-copilot physician validate ./extension.yaml`   | Validates the manifest against the JSON schema for its `schemaVersion` + business rules |
 | Physician  | `dragon-copilot physician migrate ./extension.yaml`    | Upgrades a manifest to the latest schema version (writes `extension.migrated.yaml`; see options below) |
 | Physician  | `dragon-copilot physician versions`                    | Lists supported physician manifest schema versions |
@@ -92,6 +93,7 @@ Physician manifests declare their format with a top-level `schemaVersion` field.
 
 - **No `schemaVersion`**: validated against the original (legacy) schema. Still accepted, but `validate` suggests migrating.
 - **A supported version** (e.g. `0.3.0`): validated against that version's schema.
+- **`0.4.0-preview.2`** (Public Preview): adds conversational tools (`OpenAPI`, `CopilotStudio`) alongside `DragonAPI`. It's a preview, so it's never the default; opt in with `--schema-version 0.4.0-preview.2` or `migrate --to 0.4.0-preview.2`. See [physician/CONVERSATIONAL.md](../../physician/CONVERSATIONAL.md).
 - **Anything else**: rejected as an unsupported schema version.
 
 `init` and `generate` create manifests for the latest version by default. Pass `--schema-version <version>` (or `--schema-version legacy`) to target another one. When `generate --interactive` adds a tool to an existing manifest, it always uses that manifest's version.
@@ -109,6 +111,10 @@ For `0.3.0`, the interactive prompts also cover captions, `triggers`, a `timeout
 
 Migrating from the original format to `0.3.0` adds `schemaVersion` and captions, adds `type: DragonAPI` and `timeout: 60` to each tool, converts `trigger` to `triggers` (`AutoRun` → `DataAvailable`, `AdaptiveCardAction` → `ExplicitRequest`, unset → `DataAvailable`), and replaces deprecated `data` fields with `content-type` (`DSP/*` input values map to their DSP content types; the output value `DSP` maps to `application/vnd.ms-dragon.dsp+json`). Names that start with a digit must be renamed; interactive mode prompts for a new name.
 
+Migrating from `0.3.0` to `0.4.0-preview.2` only updates `schemaVersion`; existing `DragonAPI` tools are unchanged. Add conversational tools afterwards with `generate --interactive`.
+
+`validate` and `package` print warnings (for example, an all-zero placeholder `auth.tenantId` from a template) without failing. `package` refuses an `--output` path that would overwrite the manifest or an included file.
+
 ## Clinical Application Connector
 
 See the root-level [Connector documentation](../../connector/README.md) for connector concepts and the [Connector Quickstart](../../connector/QUICKSTART.md) for every interactive question, default, validation rule, conditional branch, review step, and manifest field mapping.
@@ -118,7 +124,8 @@ See the root-level [Connector documentation](../../connector/README.md) for conn
 - Shared helpers now live under `src/common`, keeping the CLI self-contained without external workspaces.
 - `src/domains/radiologists/manifest/` is the **pure manifest core** — manifest types, templates, selectable values, and assembly. It must stay free of prompts, filesystem access, `process.exit`, and any dependency other than `js-yaml`: the Extensions Sandbox (`radiologists/tools/extensions-sandbox`) syncs the folder in verbatim to power its "Dragon Copilot CLI" wizard, so both surfaces emit identical manifests. Adding a CLI-only import there breaks the sandbox build.
 - `npm run build` emits compiled JS plus copies schemas/resources into `dist/`.
-- `npm test` covers physician, radiologists, and connector flows (command registration, schema validation, manifest generation, CLI integration).
+- Expected errors print `Error: <message>` and exit 1. Pass `--debug` (or `--verbose`, or set `DEBUG`) to also print the stack trace.
+- `npm test` covers physician (including 0.4.0-preview.2 conversational tools), radiologists, and connector flows (command registration, schema validation, manifest generation, CLI integration).
 
 ## Versioning & Releases
 

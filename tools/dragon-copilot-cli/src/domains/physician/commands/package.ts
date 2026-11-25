@@ -6,8 +6,16 @@ import path from 'path';
 import chalk from 'chalk';
 import { logMessage } from '../../../common/index.js';
 import type { PackageOptions, DragonExtensionManifest } from '../types.js';
-import { validateExtensionManifest } from '../shared/schema-validator.js';
+import {
+  validateExtensionManifest,
+  getPlaceholderWarnings
+} from '../shared/schema-validator.js';
 import type { SchemaError } from '../shared/schema-validator.js';
+
+const normalizePath = (p: string) => {
+  const resolved = path.resolve(p);
+  return process.platform === 'win32' ? resolved.toLowerCase() : resolved;
+};
 
 export async function packageExtension(options: PackageOptions): Promise<void> {
   const isQuiet = options.silent || process.env.NODE_ENV === 'test';
@@ -44,9 +52,20 @@ export async function packageExtension(options: PackageOptions): Promise<void> {
       throw new Error('Extension manifest validation failed');
     }
   logMessage(chalk.green('✅ Physician workflow manifest is valid'), isQuiet);
+    manifestValidation.warnings?.forEach(warning => logMessage(chalk.yellow(`⚠️  ${warning}`), isQuiet));
+    for (const warning of getPlaceholderWarnings(manifest)) {
+      logMessage(chalk.yellow(`⚠️  ${warning}`), isQuiet);
+    }
 
     // Step 3: Create package
     const outputPath = options.output || `${manifest.name}-${manifest.version}.zip`;
+
+    // Refuse before the write stream truncates an input file.
+    const outputKey = normalizePath(outputPath);
+    const collision = [manifestPath, ...(options.include ?? [])].find(input => normalizePath(input) === outputKey);
+    if (collision) {
+      throw new Error(`Output path ${outputPath} would overwrite input file ${collision}; choose a different --output`);
+    }
 
   logMessage(chalk.blue(`\n📦 Creating package: ${outputPath}`), isQuiet);
   logMessage(chalk.gray(`📄 Extension: ${manifest.name} v${manifest.version}`), isQuiet);
@@ -56,6 +75,11 @@ export async function packageExtension(options: PackageOptions): Promise<void> {
     const output = createWriteStream(outputPath);
     const archive = new ZipArchive({
       zlib: { level: 9 } // Maximum compression
+    });
+    const closed = new Promise<void>((resolve, reject) => {
+      output.on('close', () => resolve());
+      output.on('error', reject);
+      archive.on('error', reject);
     });
 
     // Handle archive events
@@ -116,7 +140,7 @@ export async function packageExtension(options: PackageOptions): Promise<void> {
     }
 
     // Finalize the archive
-    await archive.finalize();
+    await Promise.all([archive.finalize(), closed]);
 
   } catch (error) {
     if (error instanceof Error) {

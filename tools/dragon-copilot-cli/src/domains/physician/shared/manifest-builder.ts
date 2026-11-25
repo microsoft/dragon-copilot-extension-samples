@@ -1,20 +1,29 @@
 import type {
   AuthConfig,
   DragonExtensionManifest,
-  DragonExtensionManifestV030,
   DragonTool,
-  DragonToolV030
+  DragonToolV040,
+  VersionedDragonExtensionManifest
 } from '../types.js';
+import { supportsConversationalTools } from '../types.js';
 import type { ExtensionDetails, ToolDetails } from './prompts.js';
 import {
   buildV030Inputs,
   getInputDescription,
   getInputName,
   humanizeName,
-  isLegacySchema
+  isLegacySchema,
+  isConversationalToolDetails
 } from './prompts.js';
 
-export function buildTool(details: ToolDetails, schemaVersion: string): DragonTool | DragonToolV030 {
+export function buildTool(details: ToolDetails, schemaVersion: string): DragonTool | DragonToolV040 {
+  if (isConversationalToolDetails(details)) {
+    if (!supportsConversationalTools(schemaVersion)) {
+      throw new Error(`Tool type '${details.conversationalTool.type}' requires schema version 0.4.0-preview.2 (got ${schemaVersion})`);
+    }
+    return details.conversationalTool;
+  }
+
   if (isLegacySchema(schemaVersion)) {
     return {
       name: details.toolName,
@@ -60,7 +69,7 @@ export function buildManifest(
 
   // schemaVersion goes first so readers can see which format the file uses at a glance.
   return {
-    schemaVersion: schemaVersion as DragonExtensionManifestV030['schemaVersion'],
+    schemaVersion: schemaVersion as VersionedDragonExtensionManifest['schemaVersion'],
     name: extension.name,
     caption: extension.caption || humanizeName(extension.name),
     description: extension.description,

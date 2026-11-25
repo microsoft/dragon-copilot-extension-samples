@@ -1,0 +1,15 @@
+{
+  "name": "dragon-copilot-conversational-eval",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Evaluate a Dragon Copilot conversational extension end to end with a list of clinician questions.",
+  "type": "module",
+  "engines": { "node": ">=22" },
+  "scripts": {
+    "run": "node run.mjs",
+    "report": "node report.mjs"
+  },
+  "dependencies": {
+    "playwright": "^1.48.0"
+  }
+}

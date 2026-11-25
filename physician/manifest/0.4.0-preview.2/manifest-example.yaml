@@ -1,0 +1,107 @@
+# Dragon Copilot – Conversational Extension Manifest (0.4.0-preview.2, Public Preview)
+#
+# Conversational extensions add intent-driven tools to the Dragon Copilot
+# conversation. Dragon Copilot selects a tool from its `description` when a
+# user's request matches, calls it, and blends the response into its answer.
+#
+# Supported conversational tool types in this sample:
+#   OpenAPI        – a REST API described by an OpenAPI document
+#   CopilotStudio  – a published Microsoft Copilot Studio agent
+#
+# Additions vs. 0.3.0 used below:
+#   specString            inline OpenAPI document (alternative to specUrl)
+#   customExtractors      map response fields (JSONPath) to Response Text,
+#                         Evidence Link, ... (OpenAPI)
+#   isExclusive           do not blend this tool with other tool responses
+#   runtimeParamBindings  platform-injected runtime values (transcript, transcriptTurns,
+#                         conversationId, ...) – the LLM never retypes them
+#   triggers              must be IntentDriven for every non-DragonAPI type
+#
+# All values below are placeholders. Replace contoso.com hosts and GUIDs with
+# your own.
+
+# yaml-language-server: $schema=../../../tools/dragon-copilot-cli/src/schemas/physician/physician-extension-manifest-schema-0.4.0-preview.2.json
+
+schemaVersion: 0.4.0-preview.2
+name: contoso-conversational-sample
+caption: Contoso Conversational Sample
+description: >-
+  Sample manifest showing OpenAPI and Copilot Studio conversational tools.
+version: 0.1.0
+
+auth:
+  tenantId: 00000000-0000-0000-0000-000000000000
+
+tools:
+
+  # ─── OpenAPI (specUrl) ───────────────────────────────────────────────────────
+  - name: drug-interaction-check
+    caption: Drug Interaction Check
+    description: Check interactions between two medications.
+    type: OpenAPI
+    specUrl: https://api.contoso.com/openapi.json   # or inline it with specString (see formulary-lookup)
+    triggers:
+      - IntentDriven
+    expose:
+      - checkDrugInteraction
+    customExtractors:
+      checkDrugInteraction:
+        - propertyPath: $.summary
+          extractorType: Response Text
+        - propertyPath: $.sources[*].url
+          extractorType: Evidence Link
+    runtimeParamBindings:
+      checkDrugInteraction:
+        - source: locale
+          path: locale              # target defaults to body
+        - source: correlationId
+          target: header
+          path: x-correlation-id
+
+  # ─── OpenAPI (inline specString) ─────────────────────────────────────────────
+  - name: formulary-lookup
+    caption: Formulary Lookup
+    description: Look up whether a medication is on the organization's formulary.
+    type: OpenAPI
+    triggers:
+      - IntentDriven
+    isExclusive: true
+    timeout: 10
+    specString: |-
+      openapi: 3.0.3
+      info:
+        title: Formulary API
+        version: 1.0.0
+      servers:
+        - url: https://api.contoso.com
+      paths:
+        /formulary:
+          get:
+            operationId: getFormularyStatus
+            parameters:
+              - name: medication
+                in: query
+                required: true
+                schema:
+                  type: string
+            responses:
+              "200":
+                description: Formulary status
+
+  # ─── CopilotStudio ───────────────────────────────────────────────────────────
+  # No endpoint: identity is environmentId + agentIdentifier (the agent's
+  # schema name from Copilot Studio > Settings > Advanced > Metadata).
+  - name: scheduling-agent
+    caption: Appointment Scheduling
+    description: Handles appointment scheduling and rescheduling questions.
+    type: CopilotStudio
+    environmentId: 11111111-2222-3333-4444-555555555555
+    agentIdentifier: cr123_schedulingAgent
+    cloud: Prod
+    agentType: Published
+    timeout: 45
+    triggers:
+      - IntentDriven
+    runtimeParamBindings:      # flat list for agent types
+      - source: locale
+        path: locale           # target defaults to intent (labelled block in the query)

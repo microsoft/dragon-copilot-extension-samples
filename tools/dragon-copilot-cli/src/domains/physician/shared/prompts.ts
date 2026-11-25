@@ -4,8 +4,12 @@ import type {
   AuthConfig,
   DragonInputV030,
   EhrContextSelector,
-  ToolTrigger
+  ToolTrigger,
+  ToolType,
+  ConversationalTool,
+  ConversationalToolType
 } from '../types.js';
+import { CONVERSATIONAL_TOOL_TYPES, TOOL_TYPES, supportsConversationalTools } from '../types.js';
 import { validateFieldValue, LEGACY_SCHEMA_VERSION, LATEST_SCHEMA_VERSION } from './schema-validator.js';
 
 export interface ExtensionDetails {
@@ -15,7 +19,18 @@ export interface ExtensionDetails {
   version: string;
 }
 
-export interface ToolDetails {
+/** Prompt answers for a tool: DragonAPI details, or a fully built conversational tool (0.4.0-preview.2+). */
+export type ToolDetails = DragonApiToolDetails | ConversationalToolDetails;
+
+export interface ConversationalToolDetails {
+  conversationalTool: ConversationalTool;
+}
+
+export function isConversationalToolDetails(details: ToolDetails): details is ConversationalToolDetails {
+  return 'conversationalTool' in details;
+}
+
+export interface DragonApiToolDetails {
   toolName: string;
   caption?: string;
   toolDescription: string;
@@ -55,6 +70,12 @@ const V030_INPUT_CHOICES = [
 export const TRIGGER_CHOICES: Array<{ name: string; value: ToolTrigger }> = [
   { name: 'DataAvailable - run automatically when all required inputs are available', value: 'DataAvailable' },
   { name: 'ExplicitRequest - run only on a deliberate user action', value: 'ExplicitRequest' },
+];
+
+export const TOOL_TYPE_CHOICES: Array<{ name: string; value: ToolType }> = [
+  { name: 'DragonAPI - runs on clinical data (notes, transcripts, audio, EHR context)', value: 'DragonAPI' },
+  { name: 'OpenAPI - REST API described by an OpenAPI document', value: 'OpenAPI' },
+  { name: 'CopilotStudio - published Microsoft Copilot Studio agent', value: 'CopilotStudio' },
 ];
 
 export const EHR_INCLUDE_CHOICES: EhrContextSelector[] = [
@@ -117,15 +138,47 @@ export function validateExtensionName(input: string, schemaVersion: string = LAT
 export const DEFAULT_TOOL_TIMEOUT_SECONDS = 60;
 
 /**
- * Validates an optional tool timeout (whole seconds, 3-60). Empty means "use the default".
+ * Validates an optional tool timeout in whole seconds. Empty means "use the default".
+ * The minimum is 5 for 0.4.0-preview.2 and 3 for 0.3.0 (see minTimeoutSeconds).
  */
-export function validateTimeout(input: string): string | boolean {
+export function validateTimeout(input: string, minimum: number): string | boolean {
   if (!input.trim()) return true;
   const value = Number(input.trim());
-  if (!Number.isInteger(value) || value < 3 || value > 60) {
-    return `Timeout must be a whole number of seconds between 3 and 60 (default ${DEFAULT_TOOL_TIMEOUT_SECONDS})`;
+  if (!Number.isInteger(value) || value < minimum || value > 60) {
+    return `Timeout must be a whole number of seconds between ${minimum} and 60 (default ${DEFAULT_TOOL_TIMEOUT_SECONDS})`;
   }
   return true;
+}
+
+/** Smallest timeout the given schema version accepts (0.3.0: 3; 0.4.0-preview.2: 5). */
+export function minTimeoutSeconds(schemaVersion: string): number {
+  return supportsConversationalTools(schemaVersion) ? 5 : 3;
+}
+
+/**
+ * Validates a tool type for a schema version; conversational types need 0.4.0-preview.2.
+ */
+export function validateToolType(type: string, schemaVersion: string): string | boolean {
+  if (!TOOL_TYPES.includes(type as ToolType)) {
+    return `Unknown tool type '${type}'. Use one of: ${TOOL_TYPES.join(', ')}`;
+  }
+  if (type !== 'DragonAPI' && !supportsConversationalTools(schemaVersion)) {
+    return `Tool type '${type}' requires --schema-version 0.4.0-preview.2 (current: ${schemaVersion})`;
+  }
+  return true;
+}
+
+/**
+ * Validates an https URL (http is allowed for localhost while developing).
+ */
+export function validateHttpsUrl(input: string): string | boolean {
+  try {
+    const url = new URL(input.trim());
+    if (url.protocol === 'https:') return true;
+    return (url.protocol === 'http:' && url.hostname === 'localhost') || 'Use an https:// URL (http:// only for localhost)';
+  } catch {
+    return 'Must be a valid URL (e.g., https://example.com)';
+  }
 }
 
 /**
@@ -239,6 +292,8 @@ export async function promptToolDetails(
   options?: {
     allowMultipleInputs?: boolean;
     schemaVersion?: string;
+    /** Skip the type question (e.g. from `init --type`). */
+    toolType?: ToolType;
     defaults?: {
       toolName?: string;
       toolDescription?: string;
@@ -252,6 +307,18 @@ export async function promptToolDetails(
     defaults = {}
   } = options || {};
   const legacy = isLegacySchema(schemaVersion);
+
+  let toolType: ToolType = options?.toolType ?? 'DragonAPI';
+  if (!options?.toolType && supportsConversationalTools(schemaVersion)) {
+    toolType = await select<ToolType>({ message: 'Tool type:', choices: TOOL_TYPE_CHOICES });
+  }
+  const typeCheck = validateToolType(toolType, schemaVersion);
+  if (typeCheck !== true) {
+    throw new Error(String(typeCheck));
+  }
+  if (toolType !== 'DragonAPI') {
+    return { conversationalTool: await promptConversationalTool(toolType, existingManifest, schemaVersion) };
+  }
 
   const toolName = await input({
     message: 'Tool name:',
@@ -281,10 +348,11 @@ export async function promptToolDetails(
       validate: (choices) => (choices.length === 0 ? 'Please select at least one trigger' : true)
     });
 
+    const minTimeout = minTimeoutSeconds(schemaVersion);
     const timeoutInput = await input({
-      message: 'Timeout in seconds (3-60):',
+      message: `Timeout in seconds (${minTimeout}-60):`,
       default: String(DEFAULT_TOOL_TIMEOUT_SECONDS),
-      validate: validateTimeout
+      validate: (value: string) => validateTimeout(value, minTimeout)
     });
     timeout = timeoutInput.trim() ? Number(timeoutInput.trim()) : DEFAULT_TOOL_TIMEOUT_SECONDS;
   }
@@ -332,6 +400,68 @@ export async function promptToolDetails(
     ...(ehrInclude !== undefined ? { ehrInclude } : {}),
     ...(inputs !== undefined ? { inputs } : {})
   };
+}
+
+/**
+ * Prompts for an IntentDriven conversational tool (OpenAPI or CopilotStudio).
+ */
+export async function promptConversationalTool(
+  type: ConversationalToolType,
+  existingManifest: DragonExtensionManifest | null | undefined,
+  schemaVersion: string
+): Promise<ConversationalTool> {
+  const name = (await input({
+    message: 'Tool name:',
+    validate: (value: string) => validateToolName(value.trim(), existingManifest, schemaVersion)
+  })).trim();
+  const caption = (await promptCaption('Tool caption (display name):', humanizeName(name))).trim();
+  const descriptionPrompts: Record<ConversationalToolType, string> = {
+    CopilotStudio: "When should Dragon Copilot use this tool? (the agent's whole selection description; say what it handles and what it doesn't):",
+    OpenAPI: "Server description (short notes shared by all this service's operations; each operation's own description decides when it is called):"
+  };
+  const description = (await input({
+    message: descriptionPrompts[type],
+    validate: (value: string) => (value.trim() ? true : 'Description is required')
+  })).trim();
+
+  const base = { name, caption, description, triggers: ['IntentDriven' as const] };
+  let tool: ConversationalTool;
+  if (type === 'OpenAPI') {
+    const specUrl = await input({ message: 'OpenAPI document URL:', default: 'https://api.example.com/openapi/v1.json', validate: validateHttpsUrl });
+    tool = { ...base, type, specUrl: specUrl.trim() };
+  } else {
+    const environmentId = await input({ message: 'Copilot Studio environment ID:', validate: validateTenantIdLike });
+    const agentIdentifier = await input({
+      message: 'Agent schema name (Settings > Advanced > Metadata):',
+      validate: (value: string) => (value.trim() ? true : 'Agent schema name is required')
+    });
+    tool = { ...base, type, environmentId: environmentId.trim(), agentIdentifier: agentIdentifier.trim(), cloud: 'Prod', agentType: 'Published' };
+  }
+
+  if (tool.type !== 'CopilotStudio') {
+    const expose = (await input({
+      message: 'OpenAPI operationIds to expose (comma separated, empty = all):'
+    })).split(',').map(item => item.trim()).filter(Boolean);
+    if (expose.length > 0) {
+      tool.expose = expose;
+    }
+  }
+
+  if (await confirm({ message: 'Set a custom timeout (seconds)?', default: false })) {
+    const minTimeout = minTimeoutSeconds(schemaVersion);
+    const timeout = await input({
+      message: `Timeout in seconds (${minTimeout}-60):`,
+      default: '30',
+      validate: (value: string) => (value.trim() && validateTimeout(value, minTimeout) === true ? true : `Enter a whole number between ${minTimeout} and 60`)
+    });
+    tool.timeout = Number(timeout.trim());
+  }
+
+  return tool;
+}
+
+function validateTenantIdLike(value: string): string | boolean {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value.trim()) || 'Enter a GUID';
 }
 
 async function promptEhrInclude(message: string): Promise<EhrContextSelector[]> {

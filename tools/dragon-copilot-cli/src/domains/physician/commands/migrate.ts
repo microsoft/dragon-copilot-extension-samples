@@ -13,10 +13,11 @@ import {
   resolveRequestedSchemaVersion,
   validateExtensionManifest,
   validateFieldValue,
+  getRegisteredSchemaVersions,
   LEGACY_SCHEMA_VERSION
 } from '../shared/schema-validator.js';
 import type { SchemaError } from '../shared/schema-validator.js';
-import { TRIGGER_CHOICES, DEFAULT_TOOL_TIMEOUT_SECONDS, humanizeName } from '../shared/prompts.js';
+import { TRIGGER_CHOICES, DEFAULT_TOOL_TIMEOUT_SECONDS, humanizeName, minTimeoutSeconds } from '../shared/prompts.js';
 
 type Manifest = Record<string, any>;
 
@@ -33,13 +34,30 @@ interface MigrationStep {
 }
 
 const V030 = '0.3.0';
+const V040_PREVIEW_2 = '0.4.0-preview.2';
 
 // Ordered oldest to newest; each step upgrades exactly one version so they can be chained.
 const MIGRATION_STEPS: MigrationStep[] = [
-  { from: LEGACY_SCHEMA_VERSION, to: V030, apply: migrateLegacyTo030 }
+  { from: LEGACY_SCHEMA_VERSION, to: V030, apply: migrateLegacyTo030 },
+  { from: V030, to: V040_PREVIEW_2, apply: migrate030To040 }
 ];
 
-const MIGRATION_ORDER = [LEGACY_SCHEMA_VERSION, ...MIGRATION_STEPS.map(step => step.to)];
+// The order comes from the schema registry; every registered version must be reachable by exactly one step.
+const MIGRATION_ORDER = [LEGACY_SCHEMA_VERSION, ...getRegisteredSchemaVersions()];
+
+export function getMigrationChainProblems(): string[] {
+  const problems: string[] = [];
+  MIGRATION_ORDER.slice(1).forEach((version, index) => {
+    const step = MIGRATION_STEPS[index];
+    if (!step || step.from !== MIGRATION_ORDER[index] || step.to !== version) {
+      problems.push(`No migration step ${MIGRATION_ORDER[index]} -> ${version}`);
+    }
+  });
+  if (MIGRATION_STEPS.length !== MIGRATION_ORDER.length - 1) {
+    problems.push(`Expected ${MIGRATION_ORDER.length - 1} migration steps, found ${MIGRATION_STEPS.length}`);
+  }
+  return problems;
+}
 
 /** Schema versions reachable by `migrate`, oldest first. */
 export function getMigrationVersions(): string[] {
@@ -93,6 +111,10 @@ export async function migrateManifest(filePath: string, options: MigrateOptions)
 
     const fromIndex = indexInMigrationOrder(fromVersion);
     const toIndex = indexInMigrationOrder(toVersion);
+    const chainProblems = getMigrationChainProblems();
+    if (chainProblems.length > 0) {
+      throw new Error(`Migration steps are out of sync with the schema registry: ${chainProblems.join('; ')}`);
+    }
     if (fromIndex === toIndex) {
       console.log(chalk.green(`✅ Manifest is already at schema ${describeVersion(toVersion)}; nothing to migrate.`));
       return;
@@ -253,6 +275,24 @@ async function migrateLegacyTo030(manifest: Manifest, ctx: MigrationContext): Pr
     tools: migratedTools,
     ...rest
   };
+}
+
+// 0.4.0-preview.2 keeps the 0.3.0 DragonAPI tool shape and adds conversational tool types,
+// but raises the minimum tool timeout from 3 to 5 seconds, so shorter timeouts are bumped.
+async function migrate030To040(manifest: Manifest, ctx: MigrationContext): Promise<Manifest> {
+  const { schemaVersion: _previous, ...rest } = manifest;
+  ctx.changes.push(`Updated schemaVersion: ${V030} -> ${V040_PREVIEW_2}`);
+  const minimum = minTimeoutSeconds(V040_PREVIEW_2);
+  if (Array.isArray(rest.tools)) {
+    rest.tools = rest.tools.map((tool: Manifest, index: number) => {
+      if (typeof tool?.timeout !== 'number' || tool.timeout >= minimum) {
+        return tool;
+      }
+      ctx.changes.push(`tools[${index}].timeout: ${tool.timeout} -> ${minimum} (${V040_PREVIEW_2} minimum)`);
+      return { ...tool, timeout: minimum };
+    });
+  }
+  return { schemaVersion: V040_PREVIEW_2, ...rest };
 }
 
 async function migrateToolTo030(tool: Manifest, index: number, ctx: MigrationContext): Promise<Manifest> {

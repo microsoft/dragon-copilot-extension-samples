@@ -59,8 +59,13 @@ export function registerExtensionCommands(program: Command): void {
 		.option('-v, --version <version>', 'Extension version', '0.0.1')
 		.option('-o, --output <path>', 'Output directory', '.')
 		.option('--schema-version <version>', SCHEMA_VERSION_OPTION_DESCRIPTION, parseSchemaVersion)
-		.action(async (options: { name?: string; description?: string; version: string; output: string; schemaVersion?: string }) => {
+		.option('--type <type>', 'Initial tool type (DragonAPI; OpenAPI, CopilotStudio need --schema-version 0.4.0-preview.2)')
+		.action(async (options: { name?: string; description?: string; version: string; output: string; schemaVersion?: string; type?: string }) => {
 			const normalizedOptions: InitOptions = { output: options.output };
+
+			if (options.type !== undefined) {
+				normalizedOptions.type = options.type;
+			}
 
 			if (options.schemaVersion !== undefined) {
 				normalizedOptions.schemaVersion = options.schemaVersion;
@@ -84,7 +89,7 @@ export function registerExtensionCommands(program: Command): void {
 	extension
 		.command('generate')
 		.description('Generate or update a physician workflow manifest')
-		.option('-t, --template <template>', 'Template to use (note-analysis, speech-analysis, custom)')
+		.option('-t, --template <template>', 'Template to use (note-analysis, speech-analysis; 0.3.0 and 0.4.0-preview.2 also note-suggestions, audio-analysis; 0.4.0-preview.2 also openapi, copilot-studio)')
 		.option('-o, --output <path>', 'Output file path', 'extension.yaml')
 		.option('-i, --interactive', 'Interactive mode')
 		.option('--schema-version <version>', `${SCHEMA_VERSION_OPTION_DESCRIPTION} Ignored when adding to an existing manifest.`, parseSchemaVersion)

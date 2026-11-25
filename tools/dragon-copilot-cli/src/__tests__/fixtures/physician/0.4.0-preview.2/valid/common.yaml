@@ -1,0 +1,29 @@
+# Valid conversational manifest cases (common). Each case MUST pass schema validation.
+# A "tool" case is wrapped in a minimal manifest envelope before validation.
+
+- description: minimal valid manifest using the extension version
+  manifest:
+    schemaVersion: 0.4.0-preview.2
+    name: sample-extension
+    caption: Sample Extension
+    description: A minimal manifest declaring the extension version.
+    version: 0.1.0
+    auth:
+      tenantId: 00000000-0000-0000-0000-000000000000
+    tools:
+      - name: only-tool
+        caption: Only Tool
+        description: The only tool.
+        type: OpenAPI
+        triggers:
+          - IntentDriven
+        specString: |-
+          openapi: 3.0.3
+          info:
+            title: Example API
+            version: 1.0.0
+          paths: {}
+        customExtractors:
+          getPatientById:
+            - propertyPath: $.evidence[*].url
+              extractorType: Evidence Link

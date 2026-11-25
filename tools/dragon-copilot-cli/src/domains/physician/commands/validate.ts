@@ -1,18 +1,43 @@
 import fs from 'fs-extra';
-const { readFileSync } = fs;
+const { readFileSync, existsSync } = fs;
 import { load } from 'js-yaml';
 import chalk from 'chalk';
 import type { DragonExtensionManifest } from '../types.js';
 import {
   validateExtensionManifest,
+  formatErrors,
+  getPlaceholderWarnings,
   LEGACY_SCHEMA_VERSION,
   LATEST_SCHEMA_VERSION
 } from '../shared/schema-validator.js';
-import type { SchemaError } from '../shared/schema-validator.js';
+
+interface ToolSummary {
+  name: string;
+  type?: string;
+  inputs?: unknown[];
+  outputs?: unknown[];
+  endpoint?: string;
+  specUrl?: string;
+  specString?: string;
+  agentIdentifier?: string;
+}
+
+function describeTool(tool: ToolSummary): string {
+  if (!tool.type || tool.type === 'DragonAPI') {
+    return `${tool.name}: ${tool.inputs?.length || 0} inputs, ${tool.outputs?.length || 0} outputs`;
+  }
+  const target = tool.endpoint ?? tool.specUrl ?? (tool.specString ? 'inline OpenAPI spec' : tool.agentIdentifier ?? '');
+  return `${tool.name} [${tool.type}] ${target}`;
+}
 
 export async function validateManifest(filePath: string): Promise<void> {
   console.log(chalk.blue('🐉 Validating Dragon Copilot Physician Workflow Manifest'));
   console.log(chalk.gray(`📄 File: ${filePath}\n`));
+
+  if (!existsSync(filePath)) {
+    console.log(chalk.red(`❌ Manifest file not found: ${filePath}`));
+    process.exit(1);
+  }
 
   let hasErrors = false;
   let hasWarnings = false;
@@ -34,11 +59,16 @@ export async function validateManifest(filePath: string): Promise<void> {
     if (manifestResult.errors.length > 0) {
       hasErrors = true;
       console.log(chalk.red('❌ Manifest validation failed with errors:'));
-      manifestResult.errors.forEach((error: SchemaError) => {
-        const fieldPath = error.instancePath.replace(/^\//, '').replace(/\//g, '.');
-        const fieldName = fieldPath || 'manifest';
-        console.log(chalk.red(`  • ${fieldName}: ${error.message}`));
-      });
+      formatErrors(manifestResult.errors).forEach(line => console.log(chalk.red(`  • ${line}`)));
+    }
+
+    manifestResult.warnings?.forEach(warning => {
+      hasWarnings = true;
+      console.log(chalk.yellow(`⚠️  ${warning}`));
+    });
+    for (const warning of getPlaceholderWarnings(manifest)) {
+      hasWarnings = true;
+      console.log(chalk.yellow(`⚠️  ${warning}`));
     }
 
     if (schemaVersion === LEGACY_SCHEMA_VERSION && LATEST_SCHEMA_VERSION !== LEGACY_SCHEMA_VERSION) {
@@ -55,10 +85,8 @@ export async function validateManifest(filePath: string): Promise<void> {
       console.log(chalk.gray(`  • Auth Tenant ID: ${manifest.auth?.tenantId || 'Not specified'}`));
       console.log(chalk.gray(`  • Tools: ${manifest.tools?.length || 0}`));
 
-      const tools = (manifest.tools ?? []) as Array<{ name: string; inputs?: unknown[]; outputs?: unknown[] }>;
-      tools.forEach(tool => {
-        console.log(chalk.gray(`    - ${tool.name}: ${tool.inputs?.length || 0} inputs, ${tool.outputs?.length || 0} outputs`));
-      });
+      const tools = (manifest.tools ?? []) as ToolSummary[];
+      tools.forEach(tool => console.log(chalk.gray(`    - ${describeTool(tool)}`)));
 
       if (hasWarnings) {
         console.log(chalk.yellow('\n💡 Consider addressing the warnings above for better compliance.'));

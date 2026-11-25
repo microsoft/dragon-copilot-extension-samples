@@ -1,0 +1,26 @@
+@host = http://localhost:5191
+
+# Health check
+GET {{host}}/health
+Accept: application/json
+
+###
+
+# OpenAPI document (what the manifest's specUrl points to)
+GET {{host}}/openapi/v1.json
+Accept: application/json
+
+###
+
+# Call checkDrugInteraction the way Dragon Copilot does with runtimeParamBindings:
+# locale is injected into the body, correlationId into the x-correlation-id header.
+POST {{host}}/interactions/check
+Content-Type: application/json
+Accept: application/json
+x-correlation-id: 00000000-0000-0000-0000-000000000001
+
+{
+  "medicationA": "warfarin",
+  "medicationB": "aspirin",
+  "locale": "en-US"
+}

@@ -1,0 +1,25 @@
+# Valid conversational manifest cases (isexclusive). Each case MUST pass schema validation.
+# A "tool" case is wrapped in a minimal manifest envelope before validation.
+
+- description: CopilotStudio tool marked exclusive
+  tool:
+    name: cs-exclusive
+    caption: Copilot Studio Exclusive
+    description: Copilot Studio tool that must not be blended with other tools.
+    type: CopilotStudio
+    triggers:
+      - IntentDriven
+    environmentId: 11111111-2222-3333-4444-555555555555
+    agentIdentifier: my-agent
+    isExclusive: true
+- description: isExclusive may be set false explicitly on a non-OpenAPI type
+  tool:
+    name: cs-not-exclusive
+    caption: Copilot Studio Not Exclusive
+    description: Copilot Studio tool that opts out of exclusivity explicitly.
+    type: CopilotStudio
+    triggers:
+      - IntentDriven
+    environmentId: 11111111-2222-3333-4444-555555555555
+    agentIdentifier: my-agent
+    isExclusive: false
