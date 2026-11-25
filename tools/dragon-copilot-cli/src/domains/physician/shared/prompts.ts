@@ -174,7 +174,8 @@ export function validateToolType(type: string, schemaVersion: string): string | 
 export function validateHttpsUrl(input: string): string | boolean {
   try {
     const url = new URL(input.trim());
-    return url.protocol === 'https:' || url.hostname === 'localhost' || 'Use an https:// URL';
+    if (url.protocol === 'https:') return true;
+    return (url.protocol === 'http:' && url.hostname === 'localhost') || 'Use an https:// URL (http:// only for localhost)';
   } catch {
     return 'Must be a valid URL (e.g., https://example.com)';
   }

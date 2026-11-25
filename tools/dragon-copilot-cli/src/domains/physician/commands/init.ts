@@ -92,10 +92,13 @@ export async function initProject(options: InitOptions): Promise<void> {
     (manifest.tools as unknown[]).push(buildTool(toolDetails, schemaVersion));
   }
 
-  const result = validateExtensionManifest(manifest);
-  if (!result.isValid) {
-    formatErrors(result.errors).forEach(line => console.log(chalk.red(`  • ${line}`)));
-    throw new Error('Generated manifest failed validation');
+  // A manifest without tools is a draft scaffold; it is validated once a tool is added.
+  if (addTool) {
+    const result = validateExtensionManifest(manifest);
+    if (!result.isValid) {
+      formatErrors(result.errors).forEach(line => console.log(chalk.red(`  • ${line}`)));
+      throw new Error('Generated manifest failed validation');
+    }
   }
 
   ensureDirSync(path.dirname(outputPath));

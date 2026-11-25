@@ -9,6 +9,7 @@ import { CONVERSATIONAL_TOOL_TYPES, V040_SCHEMA_VERSION } from '../domains/physi
 import type { ConversationalTool, ConversationalToolType } from '../domains/physician/types.js';
 import { generateManifest } from '../domains/physician/commands/generate.js';
 import { packageExtension } from '../domains/physician/commands/package.js';
+import { validateHttpsUrl } from '../domains/physician/shared/prompts.js';
 
 const fixturesDir = resolve(process.cwd(), 'src', '__tests__', 'fixtures', 'physician', V040_SCHEMA_VERSION);
 const conversationalTemplates = Object.values(TEMPLATE_FOR_TOOL_TYPE);
@@ -199,5 +200,15 @@ describe('physician 0.4.0 conversational commands', () => {
     const manifestPath = join(workDir, 'invalid.yaml');
     writeFileSync(manifestPath, `schemaVersion: ${V040_SCHEMA_VERSION}\nname: Bad Name\n`);
     await expect(packageExtension({ manifest: manifestPath, silent: true })).rejects.toThrow(/validation failed/);
+  });
+});
+
+describe('validateHttpsUrl', () => {
+  test.each(['https://api.example.com/openapi.json', 'http://localhost:8080/openapi.json'])('accepts %s', (url) => {
+    expect(validateHttpsUrl(url)).toBe(true);
+  });
+
+  test.each(['http://api.example.com/openapi.json', 'ftp://localhost/openapi.json', 'file://localhost/tmp/openapi.json'])('rejects %s', (url) => {
+    expect(validateHttpsUrl(url)).not.toBe(true);
   });
 });

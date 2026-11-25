@@ -10,21 +10,28 @@ const outDir = args.out || 'results';
 const SLACK_BEFORE_MS = 2000;
 const SLACK_AFTER_MS = 5000;
 
-const results = readJsonl(args.results || path.join(outDir, 'results.jsonl'));
+// results.jsonl is append-only (reruns with --only add attempts); score only the latest attempt per case.
+const latest = new Map();
+for (const r of readJsonl(args.results || path.join(outDir, 'results.jsonl'))) latest.set(r.id, r);
+const results = [...latest.values()].sort((a, b) => new Date(a.sentAt) - new Date(b.sentAt));
 const log = args.log ? readJsonl(args.log).map((e) => ({ ...e, t: new Date(e.time).getTime() })) : null;
 
-const rows = results.map((r) => score(r));
+const rows = results.map((r, i) => score(r, results[i - 1], results[i + 1]));
 fs.writeFileSync(path.join(outDir, 'report.md'), markdown(rows));
 fs.writeFileSync(path.join(outDir, 'report.csv'), csv(rows));
 console.log(`Wrote ${path.join(outDir, 'report.md')} and report.csv`);
 console.log(summaryLine(rows));
 
-function score(r) {
+function score(r, prev, next) {
   const expect = r.expectTools || [];
   const expectedSource = args.source || r.expectSource || null;
-  const from = new Date(r.sentAt).getTime() - SLACK_BEFORE_MS;
-  const to = new Date(r.answeredAt).getTime() + SLACK_AFTER_MS;
-  const calls = log ? log.filter((e) => e.t >= from && e.t <= to) : null;
+  // Padded window, cut at the midpoint to adjacent cases so each logged call belongs to one case only.
+  const sent = new Date(r.sentAt).getTime();
+  const answered = new Date(r.answeredAt).getTime();
+  const mid = (a, b) => (new Date(a.answeredAt).getTime() + new Date(b.sentAt).getTime()) / 2;
+  const from = Math.max(sent - SLACK_BEFORE_MS, prev ? mid(prev, r) : -Infinity);
+  const to = Math.min(answered + SLACK_AFTER_MS, next ? mid(r, next) : Infinity);
+  const calls = log ? log.filter((e) => e.t >= from && e.t < to) : null;
   const invoked = calls ? [...new Set(calls.map((e) => e.tool))] : null;
   const askedBack = /\?\s*$/.test((r.answer || '').trim());
   const captionHit = expectedSource ? (r.source || '').includes(expectedSource) : Boolean(r.source);
@@ -97,7 +104,7 @@ function csv(rows) {
 }
 
 function cell(v) {
-  return String(v ?? '').replace(/\|/g, '\\|').replace(/\n/g, ' ');
+  return String(v ?? '').replace(/\\/g, '\\\\').replace(/\|/g, '\\|').replace(/\n/g, ' ');
 }
 
 function readJsonl(file) {
