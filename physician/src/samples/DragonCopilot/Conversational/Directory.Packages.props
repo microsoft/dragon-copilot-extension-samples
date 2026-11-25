@@ -6,6 +6,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <!-- System.Text.Json 11 (root props) does not support net9.0; with transitive pinning it would replace the
+         shared-framework copy and break ASP.NET Core at runtime, so let these net9.0 samples use the framework's. -->
+    <PackageVersion Remove="System.Text.Json" />
+  </ItemGroup>
+
+  <ItemGroup>
     <!-- Pin patched versions of transitive dependencies of Microsoft.Identity.Web (NU1902/NU1903). -->
     <PackageVersion Include="System.Security.Cryptography.Pkcs" Version="10.0.13" />
     <PackageVersion Include="System.Security.Cryptography.Xml" Version="10.0.13" />

@@ -116,7 +116,7 @@ public static class ServiceCollectionExtensions
                         logger.LogTokenAudiences(audClaimsStr);
 
                         // Log required claims for authorization debugging
-                        if (authOptions?.RequiredClaims.Any() == true)
+                        if (authOptions?.RequiredClaims.Count > 0)
                         {
                             foreach (var requiredClaim in authOptions.RequiredClaims)
                             {
@@ -147,7 +147,7 @@ public static class ServiceCollectionExtensions
                 policy.RequireAuthenticatedUser();
 
                 // Add required claims
-                if (authOptions.RequiredClaims.Any())
+                if (authOptions.RequiredClaims.Count > 0)
                 {
                     foreach (var claim in authOptions.RequiredClaims)
                     {

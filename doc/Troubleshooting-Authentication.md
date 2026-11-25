@@ -3,6 +3,8 @@
 **Audience:** Developers building and operating Dragon Copilot extensions.
 **Scope:** Service-to-service authentication between the Dragon Copilot Extension Runtime and a partner-hosted extension endpoint — JWT/Microsoft Entra ID, Application ID URI / `identifierUris`, and manifest configuration.
 
+> **Building a Radiologists `partnerInitiated` tool?** It calls Dragon Copilot rather than hosting an endpoint, so this guide doesn't apply. Follow [`partnerInitiated` authentication](../radiologists/partner-initiated/authentication.md).
+
 **See also:** [Authentication.md](Authentication.md) · [AuthenticationDesign.md](AuthenticationDesign.md)
 
 ---

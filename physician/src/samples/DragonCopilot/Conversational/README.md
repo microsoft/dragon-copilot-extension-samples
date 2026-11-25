@@ -7,7 +7,7 @@ Build, run and package the [OpenAPI](OpenApi/README.md) sample end to end in abo
 ## Prerequisites
 
 - [.NET 9 SDK](https://dotnet.microsoft.com/download/dotnet/9.0)
-- [Node.js 20+](https://nodejs.org/) (for the CLI)
+- [Node.js](https://nodejs.org/) `^22.22.2 || ^24.15.0 || >=26.0.0` (for the CLI; see the [CLI README](../../../../../tools/dragon-copilot-cli/README.md))
 - Optional: [Docker](https://www.docker.com/)
 
 ## 1. Run the OpenAPI sample

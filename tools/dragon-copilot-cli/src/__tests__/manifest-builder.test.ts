@@ -3,6 +3,7 @@ import { load } from 'js-yaml';
 import {
   DEFAULT_OUTPUT_CONTENT_TYPE,
   DEFAULT_PAYLOAD_SCHEMA_VERSION,
+  DRAFT_REPORT_CONTENT_TYPE,
   MANIFEST_DEFAULTS,
   PATIENT_INFORMATION_CONTENT_TYPE,
   REPORT_CONTENT_TYPE,
@@ -121,11 +122,61 @@ describe('radiologists manifest builder', () => {
     expect(normalizeRelevanceFilteringCriteria(null)).toBeUndefined();
   });
 
+  it('omits endpoint and inputs from a partnerInitiated tool and defaults its output to a draft report', () => {
+    const tool = buildTool({
+      name: 'preDraftReportGeneratorTool',
+      description: 'Generates a pre-draft radiology report',
+      toolType: 'partnerInitiated',
+      capability: 'preDraftReportGeneration',
+      // Supplied to show they are dropped: Dragon Copilot never calls a partnerInitiated tool.
+      endpoint: 'https://api.example.com/radiologists/v1/process',
+      inputTypes: [REPORT_CONTENT_TYPE],
+      outputs: [{ name: 'preDraftReportResult', description: 'Pre-draft radiology report' }],
+    });
+
+    expect('endpoint' in tool).toBe(false);
+    expect('inputs' in tool).toBe(false);
+    expect(tool.outputs[0]!['content-type']).toBe(DRAFT_REPORT_CONTENT_TYPE);
+  });
+
+  it('builds a schema-valid manifest with a partnerInitiated tool', () => {
+    const manifest = buildManifest({
+      extension: {
+        name: 'myRadiologistsExtension',
+        description: 'A Dragon Copilot radiologists extension',
+        version: '0.0.1',
+        radiologistsExtensibilityApiVersion: '1.0.0',
+      },
+      auth: { tenantId: TENANT_ID },
+      tools: [
+        {
+          name: 'preDraftReportGeneratorTool',
+          description: 'Generates a pre-draft radiology report',
+          toolType: 'partnerInitiated',
+          capability: 'preDraftReportGeneration',
+          outputs: [{ name: 'preDraftReportResult', description: 'Pre-draft radiology report' }],
+        },
+      ],
+    });
+
+    const result = validateDcrExtensionManifest(manifest);
+    expect(result.errors).toHaveLength(0);
+    expect(result.isValid).toBe(true);
+  });
+
   it('builds a schema-valid manifest from the quality-check template', () => {
     const manifest = buildManifestFromTemplate('quality-check', { tenantId: TENANT_ID });
 
     expect(manifest.name).toBe('sampleQualityCheckExtension');
     expect(manifest.auth.tenantId).toBe(TENANT_ID);
+    expect(validateDcrExtensionManifest(manifest).isValid).toBe(true);
+  });
+
+  it('builds a schema-valid manifest from the pre-draft-report template', () => {
+    const manifest = buildManifestFromTemplate('pre-draft-report', { tenantId: TENANT_ID });
+
+    expect(manifest.tools[0]!.toolType).toBe('partnerInitiated');
+    expect('endpoint' in manifest.tools[0]!).toBe(false);
     expect(validateDcrExtensionManifest(manifest).isValid).toBe(true);
   });
 
@@ -166,6 +217,13 @@ describe('radiologists manifest builder', () => {
         id: 'quality-check',
         name: 'sampleQualityCheckExtension',
         description: 'Extension to provide radiology report optimization',
+        version: '0.0.1',
+        toolCount: 1,
+      },
+      {
+        id: 'pre-draft-report',
+        name: 'sampleRadiologyExtension',
+        description: 'Extension to provide pre-draft radiology report generation',
         version: '0.0.1',
         toolCount: 1,
       },

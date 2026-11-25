@@ -9,10 +9,11 @@ import type {
 import {
   BODY_PART_CHOICES,
   CAPABILITY_CHOICES,
-  DEFAULT_OUTPUT_CONTENT_TYPE,
+  CAPABILITY_OUTPUT,
   INPUT_TYPE_CHOICES,
   MANIFEST_DEFAULTS,
   MODALITY_CHOICES,
+  TOOL_TYPE_CAPABILITIES,
   TOOL_TYPE_CHOICES,
   getInputDescription,
   getInputName
@@ -44,7 +45,7 @@ export interface ToolDetails {
   toolDescription: string;
   toolType: ToolType;
   capability: Capability;
-  endpoint: string;
+  endpoint?: string | undefined;
   inputTypes: string[];
   outputs: DcrOutput[];
   relevanceFilteringCriteria?: RelevanceFilteringCriteria | undefined;
@@ -143,10 +144,10 @@ export async function promptExtensionDetails(defaults?: Partial<ExtensionDetails
  */
 export async function promptAuthDetails(defaults?: { tenantId?: string }): Promise<{ tenantId: string }> {
   console.log('Authentication configuration is required for Dragon Copilot extensions.');
-  console.log('This should be the Azure Entra ID tenant where your extension will be deployed.');
+  console.log('This is the Microsoft Entra tenant ID of your organization, the tenant that owns this extension, not a customer tenant.');
 
   const tenantId = await input({
-    message: 'Azure Entra ID Tenant ID:',
+    message: 'Microsoft Entra tenant ID:',
     default: defaults?.tenantId || '',
     validate: validateTenantId
   });
@@ -192,28 +193,34 @@ export async function promptToolDetails(
 
   const capability = await select({
     message: 'Capability:',
-    choices: CAPABILITY_CHOICES
+    choices: CAPABILITY_CHOICES.filter(choice => TOOL_TYPE_CAPABILITIES[toolType].includes(choice.value))
   });
 
-  const endpoint = await input({
-    message: 'API endpoint:',
-    ...(defaults.endpoint ? { default: defaults.endpoint } : {}),
-    validate: validateUrl
-  });
+  // A partnerInitiated tool is never called by Dragon Copilot, so it declares neither.
+  let endpoint: string | undefined;
+  let inputTypes: string[] = [];
 
-  const inputTypes = await checkbox({
-    message: allowMultipleInputs ? 'Select input data types:' : 'Select primary input data type:',
-    choices: INPUT_TYPE_CHOICES,
-    validate: (choices) => {
-      if (choices.length === 0) return 'Please select at least one input type';
-      if (!allowMultipleInputs && choices.length > 1) {
-        return 'Please select only one input type';
+  if (toolType === 'contractBased') {
+    endpoint = await input({
+      message: 'API endpoint:',
+      ...(defaults.endpoint ? { default: defaults.endpoint } : {}),
+      validate: validateUrl
+    });
+
+    inputTypes = await checkbox({
+      message: allowMultipleInputs ? 'Select input data types:' : 'Select primary input data type:',
+      choices: INPUT_TYPE_CHOICES,
+      validate: (choices) => {
+        if (choices.length === 0) return 'Please select at least one input type';
+        if (!allowMultipleInputs && choices.length > 1) {
+          return 'Please select only one input type';
+        }
+        return true;
       }
-      return true;
-    }
-  });
+    });
+  }
 
-  const outputs = await promptOutputs();
+  const outputs = await promptOutputs(capability);
 
   // Optionally prompt for relevance filtering criteria
   const addFiltering = await confirm({
@@ -232,15 +239,17 @@ export async function promptToolDetails(
 /**
  * Prompts for output details
  */
-export async function promptOutputDetails(defaults?: { name?: string; description?: string; schemaVersion?: string }): Promise<DcrOutput> {
+export async function promptOutputDetails(capability: Capability, defaults?: { name?: string; description?: string; schemaVersion?: string }): Promise<DcrOutput> {
+  const expected = CAPABILITY_OUTPUT[capability];
+
   const name = await input({
     message: 'Output name:',
-    default: defaults?.name || MANIFEST_DEFAULTS.outputName
+    default: defaults?.name || expected.name
   });
 
   const description = await input({
     message: 'Output description:',
-    default: defaults?.description || MANIFEST_DEFAULTS.outputDescription
+    default: defaults?.description || expected.description
   });
 
   const schemaVersion = await input({
@@ -251,7 +260,7 @@ export async function promptOutputDetails(defaults?: { name?: string; descriptio
   return {
     name,
     description,
-    'content-type': DEFAULT_OUTPUT_CONTENT_TYPE,
+    'content-type': expected.contentType,
     schemaVersion
   };
 }
@@ -295,12 +304,12 @@ export async function promptRelevanceFilteringCriteria(): Promise<RelevanceFilte
 /**
  * Prompts for multiple outputs
  */
-export async function promptOutputs(): Promise<DcrOutput[]> {
+export async function promptOutputs(capability: Capability): Promise<DcrOutput[]> {
   const outputs: DcrOutput[] = [];
 
   console.log('\n Configuring outputs for your tool...');
 
-  const firstOutput = await promptOutputDetails();
+  const firstOutput = await promptOutputDetails(capability);
   outputs.push(firstOutput);
 
   let addMoreOutputs = await confirm({
@@ -309,7 +318,7 @@ export async function promptOutputs(): Promise<DcrOutput[]> {
   });
 
   while (addMoreOutputs) {
-    const additionalOutput = await promptOutputDetails();
+    const additionalOutput = await promptOutputDetails(capability);
     outputs.push(additionalOutput);
 
     addMoreOutputs = await confirm({

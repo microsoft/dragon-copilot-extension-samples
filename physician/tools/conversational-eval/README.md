@@ -47,7 +47,7 @@ The agent needs your extension's source (OpenAPI document) to propose descriptio
 
 - Your extension is uploaded in the Dragon admin center and works for at least one question. See [Installing your Extension](../../QUICKSTART.md#installing-your-extension) and [Testing your Extension](../../QUICKSTART.md#testing-your-extension).
 - In Dragon Copilot **Settings → AI apps and agents** (**Extensions** in some versions), your extension is listed. Turn off other extensions so they don't answer your questions.
-- Node.js 20 or later and Microsoft Edge (or Chrome).
+- Node.js 22 or later and Microsoft Edge (or Chrome).
 
 Install the kit:
 

@@ -18,8 +18,8 @@ import type {
   ToolType,
 } from './types.js';
 import {
+  CAPABILITY_OUTPUT,
   DEFAULT_CAPABILITY,
-  DEFAULT_OUTPUT_CONTENT_TYPE,
   DEFAULT_PAYLOAD_SCHEMA_VERSION,
   DEFAULT_TOOL_TYPE,
   getInputDescription,
@@ -40,16 +40,20 @@ export interface OutputInput {
   description: string;
   /** Defaults to `DEFAULT_PAYLOAD_SCHEMA_VERSION`. */
   schemaVersion?: string | undefined;
-  /** Defaults to `DEFAULT_OUTPUT_CONTENT_TYPE`. */
+  /** Defaults to the content type the tool's capability produces. */
   'content-type'?: string | undefined;
 }
 
 export interface ToolInput {
   name: string;
   description: string;
-  endpoint: string;
-  /** Input media types; names and descriptions are derived from them. */
-  inputTypes: string[];
+  /** Required for contractBased tools; ignored for partnerInitiated tools, which are never called. */
+  endpoint?: string | undefined;
+  /**
+   * Input media types; names and descriptions are derived from them. Ignored for
+   * partnerInitiated tools, which receive no inputs.
+   */
+  inputTypes?: string[] | undefined;
   outputs: OutputInput[];
   toolType?: ToolType | undefined;
   capability?: Capability | undefined;
@@ -78,11 +82,13 @@ export function buildInputs(contentTypes: string[]): DcrInput[] {
 /**
  * Fills in the output content type and schema version defaults.
  */
-export function buildOutputs(outputs: OutputInput[]): DcrOutput[] {
+export function buildOutputs(outputs: OutputInput[], capability: Capability = DEFAULT_CAPABILITY): DcrOutput[] {
+  const defaultContentType = CAPABILITY_OUTPUT[capability].contentType;
+
   return outputs.map((output) => ({
     name: output.name,
     description: output.description,
-    'content-type': output['content-type'] ?? DEFAULT_OUTPUT_CONTENT_TYPE,
+    'content-type': output['content-type'] ?? defaultContentType,
     schemaVersion: output.schemaVersion ?? DEFAULT_PAYLOAD_SCHEMA_VERSION,
   }));
 }
@@ -112,14 +118,19 @@ export function normalizeRelevanceFilteringCriteria(
  * Assembles a single tool definition.
  */
 export function buildTool(tool: ToolInput): DcrTool {
+  const toolType = tool.toolType ?? DEFAULT_TOOL_TYPE;
+  const capability = tool.capability ?? DEFAULT_CAPABILITY;
+
   const built: DcrTool = {
     name: tool.name,
-    toolType: tool.toolType ?? DEFAULT_TOOL_TYPE,
-    capability: tool.capability ?? DEFAULT_CAPABILITY,
+    toolType,
+    capability,
     description: tool.description,
-    endpoint: tool.endpoint,
-    inputs: buildInputs(tool.inputTypes),
-    outputs: buildOutputs(tool.outputs),
+    // A partnerInitiated tool is never called, so neither key belongs in its manifest entry.
+    ...(toolType === 'contractBased'
+      ? { endpoint: tool.endpoint ?? '', inputs: buildInputs(tool.inputTypes ?? []) }
+      : {}),
+    outputs: buildOutputs(tool.outputs, capability),
   };
 
   const criteria = normalizeRelevanceFilteringCriteria(tool.relevanceFilteringCriteria);

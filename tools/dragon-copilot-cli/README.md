@@ -8,8 +8,8 @@ The `dragon-copilot` CLI allows you to generate, validate, and package manifests
 
 Download the latest release for your platform from the [Releases page](../../releases). The binary is a self-contained executable—no Node.js installation required.
 
-| Platform | Binary                  |
-|----------|-------------------------|
+| Platform | Binary                   |
+| -------- | ------------------------ |
 | Windows  | `dragon-copilot-win.exe` |
 | macOS    | `dragon-copilot-macos`   |
 | Linux    | `dragon-copilot-linux`   |
@@ -17,6 +17,7 @@ Download the latest release for your platform from the [Releases page](../../rel
 After downloading, rename the binary to `dragon-copilot` (or `dragon-copilot.exe` on Windows) and add it to your system PATH:
 
 **Windows (PowerShell)**
+
 ```powershell
 # Move the binary to a directory already on your PATH, or create one and add it:
 New-Item -ItemType Directory -Force "$env:USERPROFILE\.dragon-copilot"
@@ -25,6 +26,7 @@ Move-Item dragon-copilot-win.exe "$env:USERPROFILE\.dragon-copilot\dragon-copilo
 ```
 
 **macOS / Linux**
+
 ```bash
 # Move the binary to a directory on your PATH:
 chmod +x dragon-copilot-*
@@ -39,7 +41,7 @@ dragon-copilot --help
 
 ### Option 2: Build from source
 
-For contributors or local development, build from the repository:
+For contributors or local development, build from the repository. Requires [Node.js](https://nodejs.org/) `^22.22.2 || ^24.15.0 || >=26.0.0`; CI and the release binaries use Node.js 24.
 
 ```powershell
 cd tools/dragon-copilot-cli
@@ -73,7 +75,9 @@ Run `npm unlink -g dragon-copilot` only once per workstation; subsequent rebuild
 | Physician  | `dragon-copilot physician versions`                    | Lists supported physician manifest schema versions |
 | Physician  | `dragon-copilot physician package`                     | Produces a zip containing the manifest and any included files |
 | Radiologists | `dragon-copilot radiologists init`                     | Interactive wizard that scaffolds a radiologists extension manifest |
-| Radiologists | `dragon-copilot radiologists generate --template quality-check -o extension.yaml` | Generate a manifest from a built-in template (currently `quality-check`) or interactively with `--interactive` |
+| Radiologists | `dragon-copilot radiologists generate --template quality-check -o extension.yaml` | Generate a quality check manifest from the built-in template |
+| Radiologists | `dragon-copilot radiologists generate --template pre-draft-report -o extension.yaml` | Generate a pre-draft report manifest from the built-in template |
+| Radiologists | `dragon-copilot radiologists generate --interactive` | Add a tool to an existing manifest, or scaffold a new one, by answering prompts |
 | Radiologists | `dragon-copilot radiologists validate ./extension.yaml` | Validates the radiologists manifest against JSON schema + business rules |
 | Radiologists | `dragon-copilot radiologists package`                  | Produces a zip containing the radiologists manifest and any included files |
 | Connector  | `dragon-copilot connector init`                          | Clinical Application Connector manifest wizard (publisher metadata, authentication, web launch, and context retrieval) |
@@ -118,7 +122,7 @@ See the root-level [Connector documentation](../../connector/README.md) for conn
 ## Development Notes
 
 - Shared helpers now live under `src/common`, keeping the CLI self-contained without external workspaces.
-- Keep `src/domains/radiologists/manifest/` free of CLI-only dependencies (prompts, filesystem, `process.exit`); the radiologists Extensions Sandbox reuses it.
+- `src/domains/radiologists/manifest/` is the **pure manifest core** — manifest types, templates, selectable values, and assembly. It must stay free of prompts, filesystem access, `process.exit`, and any dependency other than `js-yaml`: the Extensions Sandbox (`radiologists/tools/extensions-sandbox`) syncs the folder in verbatim to power its "Dragon Copilot CLI" wizard, so both surfaces emit identical manifests. Adding a CLI-only import there breaks the sandbox build.
 - `npm run build` emits compiled JS plus copies schemas/resources into `dist/`.
 - Expected errors print `Error: <message>` and exit 1. Pass `--debug` (or `--verbose`, or set `DEBUG`) to also print the stack trace.
 - `npm test` covers physician (including 0.4.0-preview.2 conversational tools), radiologists, and connector flows (command registration, schema validation, manifest generation, CLI integration).
@@ -131,15 +135,15 @@ The git tag is the single source of truth for the CLI version. The `version` fie
 
 1. **Merge** your changes to `main`.
 2. **Tag the commit** you want to release with a `cli/v` prefix following [semver](https://semver.org/):
-   ```bash
-   git tag cli/v0.1.0 main
-   git push origin cli/v0.1.0
-   ```
+    ```bash
+    git tag cli/v0.1.0 main
+    git push origin cli/v0.1.0
+    ```
 3. CI automatically:
-   - Sets the version in `package.json` from the tag
-   - Builds and bundles the CLI
-   - Produces standalone binaries for Windows, macOS, and Linux
-   - Publishes them to [GitHub Releases](../../releases)
+    - Sets the version in `package.json` from the tag
+    - Builds and bundles the CLI
+    - Produces standalone binaries for Windows, macOS, and Linux
+    - Publishes them to [GitHub Releases](../../releases)
 
 ### Local dev builds
 
